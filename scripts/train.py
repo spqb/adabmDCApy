@@ -53,7 +53,7 @@ if __name__ == '__main__':
     
     if args.label is not None:
         file_paths = {
-            "log" : folder / Path(f"{args.label}_adabmDCA.log"),
+            "log" : folder / Path(f"{args.label}.log"),
             "params" : folder / Path(f"{args.label}_params.dat"),
             "chains" : folder / Path(f"{args.label}_chains.fasta")
         }
@@ -106,14 +106,14 @@ if __name__ == '__main__':
     if args.path_params:
         tokens = get_tokens(args.alphabet)
         params = load_params(fname=args.path_params, tokens=tokens, device=args.device)
-        mask = torch.zeros(shape=(L, q, L, q), device=args.device)
+        mask = torch.zeros(size=(L, q, L, q), dtype=torch.bool, device=args.device)
         mask[torch.nonzero(params["coupling_matrix"])] = 1
         
     else:
         params = init_parameters(fi=fi_target)
         
         if args.model in ["bmDCA", "edDCA"]:
-            mask = torch.ones(size=(L, q, L, q), device=args.device)
+            mask = torch.ones(size=(L, q, L, q), dtype=torch.bool, device=args.device)
             mask[torch.arange(L), :, torch.arange(L), :] = 0
             
         else:
@@ -124,10 +124,12 @@ if __name__ == '__main__':
             torch.tensor(load_chains(fname=args.path_chains, tokens=dataset.tokens), device=args.device),
             num_classes=q,
         ).float()
+        args.nchains = chains.shape[0]
         
     else:
         if args.nchains is None:
             args.nchains = min(5000, dataset.get_effective_size())
+            
             print(f"Number of chains automatically set to {args.nchains}.")
             
         else:
@@ -140,29 +142,30 @@ if __name__ == '__main__':
     
     print("\n")
         
-    # Save the hyperparameters of the model     
+    # Save the hyperparameters of the model
+    template = "{0:20} {1:10}\n"  
     with open(file_paths["log"], "w") as f:
         if args.label is not None:
-            f.write(f"label:\t\t\t\t{args.label}\n")
+            f.write(template.format("label:", args.label))
         else:
-            f.write(f"label:\t\t\t\tN/A\n")
-        f.write(f"model:\t\t\t\t{args.model}\n")
-        f.write(f"input MSA:\t\t\t{args.data}\n")
-        f.write(f"alphabet:\t\t\t{args.alphabet}\n")
-        f.write(f"sampler:\t\t\t{args.sampler}\n")
-        f.write(f"nchains:\t\t\t{args.nchains}\n")
-        f.write(f"nsweeps:\t\t\t{args.nsweeps}\n")
-        f.write(f"lr:\t\t\t\t\t{args.lr}\n")
-        f.write(f"pseudo count:\t\t{args.pseudocount}\n")
-        f.write(f"target Pearson Cij:\t{args.target}\n")
+            f.write(template.format("label:", "N/A"))
+            
+        f.write(template.format("model:", str(args.model)))
+        f.write(template.format("input MSA:", str(args.data)))
+        f.write(template.format("alphabet:", args.alphabet))
+        f.write(template.format("sampler:", args.sampler))
+        f.write(template.format("nchains:", args.nchains))
+        f.write(template.format("nsweeps:", args.nsweeps))
+        f.write(template.format("lr:", args.lr))
+        f.write(template.format("pseudo count:", args.pseudocount))
+        f.write(template.format("target Pearson Cij:", args.target))
         if args.model == "eaDCA":
-            f.write(f"gsteps:\t\t\t\t{args.gsteps}\n")
-            f.write(f"factivate:\t\t\t{args.factivate}\n")
-        elif args.model == "edDCA":
-            f.write(f"target density:\t\t{args.density}\n")
-            f.write(f"drate:\t\t\t\t{args.drate}\n")
-        f.write(f"random seed:\t\t{args.seed}\n")
-        f.write(f"\nepoch\t\tPearson\t\tDensity\t\ttime [s]\n")
+            f.write(template.format("gsteps:", args.gsteps))
+            f.write(template.format("factivate:", args.factivate))
+        f.write(template.format("random seed:", args.seed))
+        f.write("\n")
+        template = "{0:10} {1:10} {2:10} {3:10}\n"
+        f.write(template.format("Epoch", "Pearson", "Density", "Time [s]"))
 
     
     DCA_model.fit(

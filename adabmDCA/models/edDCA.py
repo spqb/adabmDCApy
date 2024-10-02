@@ -1,5 +1,6 @@
 from pathlib import Path
 from typing import Callable, Tuple, Dict
+import time
 
 import torch
 
@@ -107,7 +108,6 @@ def decimate_graph(
 
 
 def fit(
-    key: torch.Generator,
     sampler: Callable,
     chains: torch.Tensor,
     fi_target: torch.Tensor,
@@ -142,6 +142,7 @@ def fit(
         file_paths (Dict[str, Path]): Dictionary containing the paths where to save log, params and chains.
         device (str): Device to be used. Defaults to "cpu".
     """
+    time_start = time.time()
     
     # Check the input sizes
     if fi_target.dim() != 2:
@@ -192,16 +193,22 @@ def fit(
     file_paths["chains_dec"] = Path(parent).joinpath(new_name)
     
     print(f"\nStarting the decimation (target density = {target_density}):")
+    template_log = "{0:10} {1:10} {2:10} {3:10}\n"
+    with open(file_paths["log"], "a") as f:
+        f.write("\nDecimation\n")
+        f.write(f"Target density: {target_density}\n")
+        f.write(f"Decimation rate: {drate}\n\n")
+        f.write(template_log.format("Epoch", "Pearson", "Density", "Time [s]"))
+        
+    # Template for frinting the results
+    template = "{0:15} | {1:15} | {2:15} | {3:15}"
     density = compute_density(mask)
     count = 0
     
     while density > target_density:
         count += 1
         
-        print(f"Decimation step: {count}")
-        
         # Decimate the model
-        print("Decimating the model...")
         params, mask = decimate_graph(
             pij=pij,
             params=params,
@@ -209,10 +216,8 @@ def fit(
             drate=drate
         )
         
-        print("Equilibrating the decimated model...")
-        subkey = torch.Generator().manual_seed(key.seed())
+        # Equilibrate the model
         chains = sampler(
-            key=subkey,
             chains=chains,
             params=params,
             nsweeps=nsweeps,
@@ -222,10 +227,8 @@ def fit(
         pi = get_freq_single_point(data=chains, weights=None, pseudo_count=0.)
         pij = get_freq_two_points(data=chains, weights=None, pseudo_count=0.)
         
-        # bring the model at convergence
-        print("Bringing the model to convergence...")
+        # bring the model at convergence on the graph
         chains, params = train_graph(
-            key=subkey,
             sampler=sampler,
             chains=chains,
             mask=mask,
@@ -251,12 +254,16 @@ def fit(
         pearson, slope = get_correlation_two_points(fi=fi_target, pi=pi, fij=fij_target, pij=pij)
         density = compute_density(mask)
         
-        print(f"Density:\t{float(density):.3f}\t-\tPearson:\t{float(pearson):.3f}\t-\tSlope:\t{float(slope):.3f}\n")
-        
+        print(template.format(f"Dec. step: {count}", f"Density: {density:.3f}", f"Pearson: {pearson:.3f}", f"Slope: {slope:.3f}"))
+                
         if count % 10 == 0:
             save_params(fname=file_paths["params_dec"], params=params, mask=torch.logical_and(mask, mask_save), tokens=tokens)
             save_chains(fname=file_paths["chains_dec"], chains=chains.argmax(-1), tokens=tokens)
+            with open(file_paths["log"], "a") as f:
+                f.write(template_log.format(f"{count}", f"{pearson:.3f}", f"{density:.3f}", f"{(time.time() - time_start):.1f}"))
     
     save_params(fname=file_paths["params_dec"], params=params, mask=torch.logical_and(mask, mask_save), tokens=tokens)
     save_chains(fname=file_paths["chains_dec"], chains=chains.argmax(-1), tokens=tokens)
+    with open(file_paths["log"], "a") as f:
+        f.write(template_log.format(f"{count}", f"{pearson:.3f}", f"{density:.3f}", f"{(time.time() - time_start):.1f}"))
     print(f"Completed, decimated model parameters saved in {file_paths['params_dec']}")

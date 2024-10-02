@@ -160,6 +160,9 @@ def train_graph(
             bar_format="{desc} {percentage:.2f}%[{bar}] Pearson: {n:.3f}/{total_fmt} [{elapsed}]"
         )
         pbar.set_description(f"Train graph - Epochs: {epochs} - Slope: {slope:.2f}")
+   
+    # Template for wrinting the results
+    template = "{0:10} {1:10} {2:10} {3:10}\n"
     
     while not halt_condition(epochs, pearson, slope, check_slope):
         chains, params = update(
@@ -191,7 +194,7 @@ def train_graph(
             save_params(fname=file_paths["params"], params=params, mask=mask_save, tokens=tokens)
             save_chains(fname=file_paths["chains"], chains=chains.argmax(dim=-1), tokens=tokens)
             with open(file_paths["log"], "a") as f:
-                f.write(f"{epochs}\t\t\t{pearson:.3f}\t\t{(time.time() - time_start):.1f}\n")
+                f.write(template.format(f"{epochs}", f"{pearson:.3f}", f"{slope:.3f}", f"{(time.time() - time_start):.1f}"))
                 
     if progress_bar:
         pbar.close()
@@ -200,6 +203,6 @@ def train_graph(
         save_params(fname=file_paths["params"], params=params, mask=mask_save, tokens=tokens)
         save_chains(fname=file_paths["chains"], chains=chains.argmax(dim=-1), tokens=tokens)
         with open(file_paths["log"], "a") as f:
-            f.write(f"{epochs}\t\t\t{pearson:.3f}\t\t{density}\t\t{(time.time() - time_start):.1f}\n")
+            f.write(template.format(f"{epochs}", f"{pearson:.3f}", f"{slope:.3f}", f"{(time.time() - time_start):.1f}"))
 
     return chains, params

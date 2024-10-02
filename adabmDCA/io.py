@@ -51,6 +51,7 @@ def load_params(
     fname: str,
     tokens: str,
     device: str,
+    dtype: torch.dtype = torch.float32,
 ) -> Dict[str, torch.Tensor]:
     """Import the parameters of the model from a file.
 
@@ -58,6 +59,7 @@ def load_params(
         fname (str): Path of the file that stores the parameters.
         tokens (str): "protein", "dna", "rna" or another string with the alphabet to be used.
         device (str): Device where to store the parameters.
+        dtype (torch.dtype): Data type of the parameters. Defaults to torch.float32.
 
     Returns:
         Dict[str, torch.Tensor]: Parameters of the model.
@@ -108,7 +110,10 @@ def load_params(
     J = J.reshape(L, L, q, q).transpose(0, 2, 1, 3).reshape(L * q, L * q)
     J = (J + J.T).reshape(L, q, L, q)
 
-    return {"bias" : torch.tensor(h, device=device), "coupling_matrix" : torch.tensor(J, device=device)}
+    return {
+        "bias" : torch.tensor(h, dtype=dtype, device=device),
+        "coupling_matrix" : torch.tensor(J, dtype=dtype, device=device),
+        }
 
 
 def save_params(
@@ -145,7 +150,7 @@ def save_params(
     df_h.to_csv(fname, sep=" ", header=False, index=False, mode="a")
     
     
-def load_params_oldformat(fname: str, device: str) -> Dict[str, torch.Tensor]:
+def load_params_oldformat(fname: str, device: str, dtype: torch.dtype = torch.float32) -> Dict[str, torch.Tensor]:
     """Import the parameters of the model from a file. Assumes the old DCA format.
 
     Args:
@@ -179,7 +184,10 @@ def load_params_oldformat(fname: str, device: str) -> Dict[str, torch.Tensor]:
     J = J.reshape(L, L, q, q).transpose(0, 2, 1, 3).reshape(L * q, L * q)
     J = (J + J.T).reshape(L, q, L, q)
 
-    return {"bias" : torch.tensor(h, device=device), "coupling_matrix" : torch.tensor(J, device=device)}
+    return {
+        "bias" : torch.tensor(h, dtype=dtype, device=device),
+        "coupling_matrix" : torch.tensor(J, dtype=dtype, device=device),
+        }
 
 
 def save_params_oldformat(

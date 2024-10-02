@@ -29,7 +29,7 @@ def compute_Dkl(
     # Compute the Dkl of each coupling
     Dkl = fij * (torch.log(fij) - torch.log(pij)) + (1. - fij) * (torch.log(1. - fij) - torch.log(1. - pij))
     # The auto-correlations have not to be considered
-    Dkl = Dkl.at[torch.arange(L), :, torch.arange(L), :].set(-float("inf"))
+    Dkl[torch.arange(L), :, torch.arange(L), :] = -float("inf")
     
     return Dkl
 
@@ -148,7 +148,7 @@ def fit(
     pearson = max(0, float(get_correlation_two_points(fij=fij_target, pij=pij, fi=fi_target, pi=pi)[0]))
     
     # Save the chains
-    save_chains(fname=file_paths["chains"], chains=np.argmax(chains, axis=-1).cpu().numpy(), tokens=tokens)
+    save_chains(fname=file_paths["chains"], chains=chains.argmax(-1), tokens=tokens)
     
     # Number of active couplings
     nactive = mask.sum()
@@ -158,6 +158,8 @@ def fit(
     pbar = tqdm(initial=max(0, float(pearson)), total=target_pearson, colour="red", dynamic_ncols=True, ascii="-#",
                 bar_format="{desc}: {percentage:.2f}%[{bar}] Pearson: {n:.3f}/{total_fmt} [{elapsed}]")
     pbar.set_description(f"Training eaDCA - Graph updates: {graph_upd} - Density: {density:.3f}% - New active couplings: {0}")
+    # Template for wrinting the results
+    template = "{0:10} {1:10} {2:10} {3:10}\n"
     
     while pearson < target_pearson:
         
@@ -216,7 +218,8 @@ def fit(
             save_params(fname=file_paths["params"], params=params, mask=torch.logical_and(mask, mask_save), tokens=tokens)
             save_chains(fname=file_paths["chains"], chains=chains.argmax(-1), tokens=tokens)
             with open(file_paths["log"], "a") as f:
-                f.write(f"{graph_upd}\t{pearson:.3f}\t{density:.3f}\t{(time.time() - time_start):.1f}\n")
+                f.write(template.format(f"{graph_upd}", f"{pearson:.3f}", f"{density:.3f}", f"{(time.time() - time_start):.1f}"))
+                #f.write(f"{graph_upd}\t{pearson:.3f}\t{density:.3f}\t{(time.time() - time_start):.1f}\n")
         pbar.n = min(max(0, float(pearson)), target_pearson)
 
     save_params(fname=file_paths["params"], params=params, mask=torch.logical_and(mask, mask_save), tokens=tokens)
