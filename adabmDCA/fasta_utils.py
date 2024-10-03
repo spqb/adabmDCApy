@@ -156,20 +156,27 @@ def import_clean_dataset(filein: str, tokens: str="protein") -> Tuple[np.ndarray
     return clean_names, clean_sequences
 
 
-def compute_weights(data: np.ndarray, th: float = 0.8, device: str = "cpu") -> np.ndarray:
+def compute_weights(
+    data: np.ndarray | torch.Tensor,
+    th: float = 0.8,
+    device: str = "cpu",
+) -> torch.Tensor:
     """Computes the weight to be assigned to each sequence 's' in 'data' as 1 / n_clust, where 'n_clust' is the number of sequences
     that have a sequence identity with 's' >= th.
 
     Args:
-        data (np.ndarray): Encoded input dataset.
+        data (np.ndarray | torch.Tensor): Encoded input dataset.
         th (float, optional): Sequence identity threshold for the clustering. Defaults to 0.8.
         device (str): Device.
 
     Returns:
-        np.ndarray: Array with the weights of the sequences.
+        torch.Tensor: Array with the weights of the sequences.
     """
+    if isinstance(data, torch.Tensor):
+        data = data.to(device)
+    else:
+        data = torch.tensor(data, device=device)
 
-    data = torch.tensor(data, device=device)
     assert len(data.shape) == 2, "'data' must be a 2-dimensional array"
     _, L = data.shape
 
@@ -181,6 +188,7 @@ def compute_weights(data: np.ndarray, th: float = 0.8, device: str = "cpu") -> n
         return 1.0 / n_clust
 
     weights = torch.vstack([get_sequence_weight(s, data, L, th) for s in data])
+    
     return weights
 
 

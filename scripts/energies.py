@@ -46,7 +46,7 @@ if __name__ == '__main__':
     fname_out = folder / Path(args.data.stem + "_energies.fasta")
     with open(fname_out, "w") as f:
         for n, s, e in zip(names, sequences, energies):
-            f.write(f">{n}|{e:.3f}\n")
+            f.write(f">{n} | DCAenergy: {e:.3f}\n")
             f.write(f"{s}\n")
     
     print(f"Process completed. Output saved in {fname_out}")

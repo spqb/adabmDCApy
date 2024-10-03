@@ -35,7 +35,7 @@ if __name__ == '__main__':
     wt_name = names[0]
     # remove non-alphanumeric characters from wt name
     wt_name = "".join(e for e in wt_name if e.isalnum())
-    wt_seq = encode_sequence(sequences[0], tokens)
+    wt_seq = torch.tensor(encode_sequence(sequences[0], tokens))
     
     params = load_params(args.path_params, tokens=tokens, device=args.device)
     L, q = params["bias"].shape
@@ -50,7 +50,7 @@ if __name__ == '__main__':
     for i in range(L):
         for a in range(q):
             if wt_seq[i] != a:
-                seq = wt_seq.copy()
+                seq = wt_seq.clone()
                 seq[i] = a
                 dms.append(seq)
                 site_list.append(i)
@@ -58,9 +58,10 @@ if __name__ == '__main__':
                 new_residues.append(tokens[a])
     
     print("Computing the DCA scores...")
-    dms = one_hot(torch.vstack(dms), num_classes=q).to(args.device)
+    dms = torch.vstack(dms).to(args.device)
+    dms = one_hot(dms, num_classes=q)
     energies = compute_energy(dms, params)
-    energy_wt = compute_energy(one_hot(torch.tensor([wt_seq], device=args.device), num_classes=q), params)
+    energy_wt = compute_energy(one_hot(wt_seq.view(1, -1).to(args.device), num_classes=q), params)
     deltaE = energies - energy_wt
     
     dms = torch.argmax(dms, -1).cpu().numpy()
@@ -73,7 +74,7 @@ if __name__ == '__main__':
     
     with open(fname_out, "w") as f:
         for i, res_old, res_new, e, seq in zip(site_list, old_residues, new_residues, deltaE, dms_decoded):
-            f.write(f">{res_old}{i}{res_new} | DCAscore : {e:.3f}\n")
+            f.write(f">{res_old}{i}{res_new} | DCAscore: {e:.3f}\n")
             f.write(seq + "\n")
     
     print(f"Process completed. Results saved in {fname_out}")

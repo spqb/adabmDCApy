@@ -10,10 +10,9 @@ def resample_sequences(
 ) -> torch.Tensor:
     """Extracts nextract sequences from data with replacement according to the weights.
     Args:
-    key (torch.Generator): Random key.
-    data (torch.Tensor): Data array.
-    weights (torch.Tensor): Weights of the sequences.
-    nextract (int): Number of sequences to be extracted.
+        data (torch.Tensor): Data array.
+        weights (torch.Tensor): Weights of the sequences.
+        nextract (int): Number of sequences to be extracted.
 
     Returns:
         torch.Tensor: Extracted sequences.
@@ -199,6 +198,56 @@ def get_slope(x, y):
     return torch.abs(num / den)
 
 
+def extract_Cij_from_freq(
+    fij: torch.Tensor,
+    pij: torch.Tensor,
+    fi: torch.Tensor,
+    pi: torch.Tensor,
+    mask: torch.Tensor = None,
+) -> Tuple[float, float]:
+    L = fi.shape[0]
+    
+    # Compute the covariance matrices
+    cov_data = fij - torch.einsum('ij,kl->ijkl', fi, fi)
+    cov_chains = pij - torch.einsum('ij,kl->ijkl', pi, pi)
+    
+    # Only use a subset of couplings if a mask is provided
+    if mask is not None:
+        cov_data = torch.where(mask, cov_data, torch.tensor(0.0, device=cov_data.device))
+        cov_chains = torch.where(mask, cov_chains, torch.tensor(0.0, device=cov_chains.device))
+    
+    # Extract only the entries of half the matrix and out of the diagonal blocks
+    idx_row, idx_col = torch.tril_indices(L, L, offset=-1)
+    fij_extract = cov_data[idx_row, :, idx_col, :].reshape(-1)
+    pij_extract = cov_chains[idx_row, :, idx_col, :].reshape(-1)
+    
+    return fij_extract, pij_extract
+
+
+def extract_Cij_from_seqs(
+    data: torch.Tensor,
+    chains: torch.Tensor,
+    mask: torch.Tensor = None,
+) -> Tuple[float, float]:
+    """Extracts the two-point frequencies from the sequences of data and chains.
+
+    Args:
+        data (torch.Tensor): Data sequences.
+        chains (torch.Tensor): Chain sequences.
+        mask (torch.Tensor, optional): Mask to select the couplings to use for the correlation coefficient. Defaults to None.
+
+    Returns:
+        Tuple[float, float]: Two-point frequencies of the data and chains.
+    """
+    
+    fi = get_freq_single_point(data, weights=None)
+    pi = get_freq_single_point(chains, weights=None)
+    fij = get_freq_two_points(data, weights=None)
+    pij = get_freq_two_points(chains, weights=None)
+    
+    return extract_Cij_from_freq(fij, pij, fi, pi, mask)
+
+
 def get_correlation_two_points(
     fij: torch.Tensor,
     pij: torch.Tensor,
@@ -219,22 +268,7 @@ def get_correlation_two_points(
         Tuple[float, float]: Pearson correlation coefficient of the two-sites statistics and slope of the interpolating line.
     """
     
-    L = fi.shape[0]
-    
-    # Compute the covariance matrices
-    cov_data = fij - torch.einsum('ij,kl->ijkl', fi, fi)
-    cov_chains = pij - torch.einsum('ij,kl->ijkl', pi, pi)
-    
-    # Only use a subset of couplings if a mask is provided
-    if mask is not None:
-        cov_data = torch.where(mask, cov_data, torch.tensor(0.0, device=cov_data.device))
-        cov_chains = torch.where(mask, cov_chains, torch.tensor(0.0, device=cov_chains.device))
-    
-    # Extract only the entries of half the matrix and out of the diagonal blocks
-    idx_row, idx_col = torch.tril_indices(L, L, offset=-1)
-    fij_extract = cov_data[idx_row, :, idx_col, :].reshape(-1)
-    pij_extract = cov_chains[idx_row, :, idx_col, :].reshape(-1)
-    
+    fij_extract, pij_extract = extract_Cij_from_freq(fij, pij, fi, pi, mask)
     pearson = torch.corrcoef(torch.stack([fij_extract, pij_extract]))[0, 1].item()
     slope = get_slope(fij_extract, pij_extract).item()
     

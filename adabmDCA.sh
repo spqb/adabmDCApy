@@ -27,6 +27,9 @@ case "$COMMAND" in
   test)
     SCRIPT="test_model.py"
     ;;
+  contacts)
+    SCRIPT="contacts.py"
+    ;;
   *)
     echo "Error: Invalid command '$COMMAND'. Use 'train', 'sample', 'contacts', 'energies', 'DMS' or 'test'."
     exit 1
