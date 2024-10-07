@@ -49,6 +49,7 @@ def update(
     nsweeps: int,
 ) -> Tuple[torch.Tensor, Dict[str, torch.Tensor]]:
     """Updates the parameters of the model and the Markov chains.
+    
     Args:
         sampler (Callable): Sampling function.
         chains (torch.Tensor): Markov chains simulated with the model.
