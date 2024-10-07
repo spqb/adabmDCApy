@@ -14,6 +14,7 @@
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="adabmDCApy documentation" href="index.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -870,11 +871,102 @@ the limit of <cite>n_max_sweeps</cite> sweeps is reached.</p>
     </div>
 </search>
 <script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">adabmDCA package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-adabmDCA.custom_fn">adabmDCA.custom_fn module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-adabmDCA.dataset">adabmDCA.dataset module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#adabmDCA.dataset.DatasetDCA"><code class="docutils literal notranslate"><span class="pre">DatasetDCA</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#adabmDCA.dataset.DatasetDCA.get_effective_size"><code class="docutils literal notranslate"><span class="pre">DatasetDCA.get_effective_size()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#adabmDCA.dataset.DatasetDCA.get_num_residues"><code class="docutils literal notranslate"><span class="pre">DatasetDCA.get_num_residues()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#adabmDCA.dataset.DatasetDCA.get_num_states"><code class="docutils literal notranslate"><span class="pre">DatasetDCA.get_num_states()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#adabmDCA.dataset.DatasetDCA.shuffle"><code class="docutils literal notranslate"><span class="pre">DatasetDCA.shuffle()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-adabmDCA.fasta_utils">adabmDCA.fasta_utils module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#adabmDCA.fasta_utils.compute_weights"><code class="docutils literal notranslate"><span class="pre">compute_weights()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#adabmDCA.fasta_utils.decode_sequence"><code class="docutils literal notranslate"><span class="pre">decode_sequence()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#adabmDCA.fasta_utils.encode_sequence"><code class="docutils literal notranslate"><span class="pre">encode_sequence()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#adabmDCA.fasta_utils.get_tokens"><code class="docutils literal notranslate"><span class="pre">get_tokens()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#adabmDCA.fasta_utils.import_clean_dataset"><code class="docutils literal notranslate"><span class="pre">import_clean_dataset()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#adabmDCA.fasta_utils.import_from_fasta"><code class="docutils literal notranslate"><span class="pre">import_from_fasta()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#adabmDCA.fasta_utils.validate_alphabet"><code class="docutils literal notranslate"><span class="pre">validate_alphabet()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#adabmDCA.fasta_utils.write_fasta"><code class="docutils literal notranslate"><span class="pre">write_fasta()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-adabmDCA.grad">adabmDCA.grad module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#adabmDCA.grad.train_graph"><code class="docutils literal notranslate"><span class="pre">train_graph()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#adabmDCA.grad.update"><code class="docutils literal notranslate"><span class="pre">update()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-adabmDCA.io">adabmDCA.io module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#adabmDCA.io.load_chains"><code class="docutils literal notranslate"><span class="pre">load_chains()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#adabmDCA.io.load_params"><code class="docutils literal notranslate"><span class="pre">load_params()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#adabmDCA.io.load_params_oldformat"><code class="docutils literal notranslate"><span class="pre">load_params_oldformat()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#adabmDCA.io.save_chains"><code class="docutils literal notranslate"><span class="pre">save_chains()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#adabmDCA.io.save_params"><code class="docutils literal notranslate"><span class="pre">save_params()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#adabmDCA.io.save_params_oldformat"><code class="docutils literal notranslate"><span class="pre">save_params_oldformat()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-adabmDCA.methods">adabmDCA.methods module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#adabmDCA.methods.compute_energy"><code class="docutils literal notranslate"><span class="pre">compute_energy()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#adabmDCA.methods.get_mask_save"><code class="docutils literal notranslate"><span class="pre">get_mask_save()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#adabmDCA.methods.init_chains"><code class="docutils literal notranslate"><span class="pre">init_chains()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#adabmDCA.methods.init_parameters"><code class="docutils literal notranslate"><span class="pre">init_parameters()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#adabmDCA.methods.set_zerosum_gauge"><code class="docutils literal notranslate"><span class="pre">set_zerosum_gauge()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-adabmDCA.parser">adabmDCA.parser module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#adabmDCA.parser.add_args_dca"><code class="docutils literal notranslate"><span class="pre">add_args_dca()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#adabmDCA.parser.add_args_eaDCA"><code class="docutils literal notranslate"><span class="pre">add_args_eaDCA()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#adabmDCA.parser.add_args_edDCA"><code class="docutils literal notranslate"><span class="pre">add_args_edDCA()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-adabmDCA.plot">adabmDCA.plot module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#adabmDCA.plot.plot_PCA"><code class="docutils literal notranslate"><span class="pre">plot_PCA()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#adabmDCA.plot.plot_autocorrelation"><code class="docutils literal notranslate"><span class="pre">plot_autocorrelation()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#adabmDCA.plot.plot_hist"><code class="docutils literal notranslate"><span class="pre">plot_hist()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#adabmDCA.plot.plot_pearson_sampling"><code class="docutils literal notranslate"><span class="pre">plot_pearson_sampling()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#adabmDCA.plot.plot_scatter_correlations"><code class="docutils literal notranslate"><span class="pre">plot_scatter_correlations()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#adabmDCA.plot.plot_scatter_labels"><code class="docutils literal notranslate"><span class="pre">plot_scatter_labels()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-adabmDCA.resampling">adabmDCA.resampling module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#adabmDCA.resampling.compute_mixing_time"><code class="docutils literal notranslate"><span class="pre">compute_mixing_time()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-adabmDCA.sampling">adabmDCA.sampling module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#adabmDCA.sampling.get_deltaE"><code class="docutils literal notranslate"><span class="pre">get_deltaE()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#adabmDCA.sampling.get_sampler"><code class="docutils literal notranslate"><span class="pre">get_sampler()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#adabmDCA.sampling.gibbs_sampling"><code class="docutils literal notranslate"><span class="pre">gibbs_sampling()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#adabmDCA.sampling.metropolis"><code class="docutils literal notranslate"><span class="pre">metropolis()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#adabmDCA.sampling.metropolis_sweep"><code class="docutils literal notranslate"><span class="pre">metropolis_sweep()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-adabmDCA.stats">adabmDCA.stats module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#adabmDCA.stats.extract_Cij_from_freq"><code class="docutils literal notranslate"><span class="pre">extract_Cij_from_freq()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#adabmDCA.stats.extract_Cij_from_seqs"><code class="docutils literal notranslate"><span class="pre">extract_Cij_from_seqs()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#adabmDCA.stats.generate_unique_triplets"><code class="docutils literal notranslate"><span class="pre">generate_unique_triplets()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#adabmDCA.stats.get_correlation_two_points"><code class="docutils literal notranslate"><span class="pre">get_correlation_two_points()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#adabmDCA.stats.get_covariance_matrix"><code class="docutils literal notranslate"><span class="pre">get_covariance_matrix()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#adabmDCA.stats.get_freq_three_points"><code class="docutils literal notranslate"><span class="pre">get_freq_three_points()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#adabmDCA.stats.get_slope"><code class="docutils literal notranslate"><span class="pre">get_slope()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#adabmDCA.stats.resample_sequences"><code class="docutils literal notranslate"><span class="pre">resample_sequences()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-adabmDCA">Module contents</a></li>
+</ul>
+</li>
+</ul>
 
 <div class="relations">
 <h3>Related Topics</h3>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">adabmDCApy documentation</a></li>
   </ul></li>
 </ul>
 </div>
