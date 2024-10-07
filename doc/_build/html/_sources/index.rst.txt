@@ -15,4 +15,7 @@ documentation for details.
    :maxdepth: 2
    :caption: Contents:
 
-   modules
+
+.. toctree::
+   :maxdepth: 2
+   adabmDCA
