@@ -18,9 +18,9 @@ class DatasetDCA(Dataset):
     def __init__(
         self,
         path_data: Union[str, Path],
-        path_weights: Union[str, Path]=None,
-        alphabet: str="protein",
-        device: str="cuda",
+        path_weights: Union[str, Path] = None,
+        alphabet: str = "protein",
+        device: str = "cuda",
     ):
         """Initialize the dataset.
 
@@ -43,7 +43,7 @@ class DatasetDCA(Dataset):
         if first_line.startswith(">"):
             names, sequences = import_clean_dataset(path_data, tokens=self.tokens)
             self.names = np.array(names)
-            self.data = np.vectorize(encode_sequence, excluded=["tokens"], signature="(), () -> (n)")(sequences, self.tokens)
+            self.data = encode_sequence(sequences, tokens=self.tokens)
         else:
             raise KeyError("The input dataset is not in fasta format")
         
@@ -84,9 +84,6 @@ class DatasetDCA(Dataset):
     
     def shuffle(self) -> None:
         """Shuffles the dataset.
-        
-        Args:
-            key (KeyArray): Random key.
         """
         perm = torch.randperm(len(self.data))
         self.data = self.data[perm]

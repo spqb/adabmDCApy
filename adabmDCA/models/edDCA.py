@@ -120,7 +120,7 @@ def fit(
     target_density: float,
     drate: float,
     tokens: str,
-    file_paths: Dict[str, Path],
+    file_paths: Dict[str, Path] = None,
     device: str = "cpu",
     *args, **kwargs,
 ):
@@ -139,8 +139,8 @@ def fit(
         target_density (float): Target density of the coupling matrix.
         drate (float): Percentage of active couplings to be pruned at each decimation step.
         tokens (str): Tokens used for encoding the sequences.
-        file_paths (Dict[str, Path]): Dictionary containing the paths where to save log, params and chains.
-        device (str): Device to be used. Defaults to "cpu".
+        file_paths (Dict[str, Path], optional): Dictionary containing the paths where to save log, params and chains. Defaults to None.
+        device (str, optional): Device to be used. Defaults to "cpu".
     """
     time_start = time.time()
     

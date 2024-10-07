@@ -3,12 +3,14 @@ from typing import Tuple
 
 import torch
 
+
 def resample_sequences(
     data: torch.Tensor,
     weights: torch.Tensor,
     nextract: int,
 ) -> torch.Tensor:
     """Extracts nextract sequences from data with replacement according to the weights.
+    
     Args:
         data (torch.Tensor): Data array.
         weights (torch.Tensor): Weights of the sequences.
@@ -31,8 +33,8 @@ def get_freq_single_point(
     """Computes the single point frequencies of the input MSA.
     Args:
         data (torch.Tensor): One-hot encoded data array.
-        weights (torch.Tensor): Weights of the sequences.
-        pseudo_count (float): Pseudo count to be added to the frequencies.
+        weights (torch.Tensor | None): Weights of the sequences.
+        pseudo_count (float, optional): Pseudo count to be added to the frequencies. Defaults to 0..
 
     Returns:
         torch.Tensor: Single point frequencies.
@@ -62,8 +64,8 @@ def get_freq_two_points(
 
     Args:
         data (torch.Tensor): One-hot encoded data array.
-        weights (torch.Tensor, optional): Array of weights to assign to the sequences of shape.
-        pseudo_count (float, optional): Pseudo count for the single and two points statistics. Acts as a regularization.
+        weights (torch.Tensor | None): Array of weights to assign to the sequences of shape.
+        pseudo_count (float, optional): Pseudo count for the single and two points statistics. Acts as a regularization. Defaults to 0..
 
     Returns:
         torch.Tensor: Matrix of two-point frequencies of shape (L, q, L, q).
@@ -97,7 +99,16 @@ def generate_unique_triplets(
     ntriplets: int,
     device: str = "cpu",
 ) -> torch.Tensor:
+    """Generates a set of unique triplets of positions. Used to compute the 3-points statistics.
     
+    Args:
+        L (int): Length of the sequences.
+        ntriplets (int): Number of triplets to be generated.
+        device (str, optional): Device to perform computations on. Defaults to "cpu".
+    
+    Returns:
+        torch.Tensor: Tensor of shape (ntriplets, 3) containing the indices of the triplets.
+    """    
     # Generate all possible unique triplets
     all_triplets = torch.tensor(list(itertools.combinations(range(L), 3)), device=device)
     # Shuffle the triplets to ensure randomness
@@ -149,12 +160,11 @@ def get_freq_three_points(
         data (torch.Tensor): Input MSA in one-hot encoding.
         weights (torch.Tensor): Importance weights for the sequences.
         ntriplets (int): Number of triplets to test.
-        device (str): Device to perform computations on.
+        device (str, optional): Device to perform computations on. Defaults to "cpu".
 
     Returns:
         torch.Tensor: 3-points connected correlation for ntriplets randomly extracted triplets.
     """
-    
     if data.dim() != 3:
         raise ValueError(f"Expected data to be a 3D tensor, but got {data.dim()}D tensor instead")
     
@@ -182,7 +192,6 @@ def get_covariance_matrix(
     Returns:
         torch.Tensor: Covariance matrix.
     """
-    
     _, L, q = data.shape
     fi = get_freq_single_point(data, weights, pseudo_count)
     fij = get_freq_two_points(data, weights, pseudo_count)
@@ -205,6 +214,18 @@ def extract_Cij_from_freq(
     pi: torch.Tensor,
     mask: torch.Tensor = None,
 ) -> Tuple[float, float]:
+    """Extracts the lower triangular part of the covariance matrices of the data and chains starting from the frequencies.
+
+    Args:
+        fij (torch.Tensor): Two-point frequencies of the data.
+        pij (torch.Tensor): Two-point frequencies of the chains.
+        fi (torch.Tensor): Single-point frequencies of the data.
+        pi (torch.Tensor): Single-point frequencies of the chains.
+        mask (torch.Tensor, optional): Mask for comparing just a subset of the couplings. Defaults to None.
+
+    Returns:
+        Tuple[float, float]: Extracted two-point frequencies of the data and chains.
+    """
     L = fi.shape[0]
     
     # Compute the covariance matrices
@@ -229,17 +250,16 @@ def extract_Cij_from_seqs(
     chains: torch.Tensor,
     mask: torch.Tensor = None,
 ) -> Tuple[float, float]:
-    """Extracts the two-point frequencies from the sequences of data and chains.
+    """Extracts the lower triangular part of the covariance matrices of the data and chains starting from the sequences.
 
     Args:
         data (torch.Tensor): Data sequences.
         chains (torch.Tensor): Chain sequences.
-        mask (torch.Tensor, optional): Mask to select the couplings to use for the correlation coefficient. Defaults to None.
+        mask (torch.Tensor, optional): Mask for comparing just a subset of the couplings. Defaults to None.
 
     Returns:
         Tuple[float, float]: Two-point frequencies of the data and chains.
     """
-    
     fi = get_freq_single_point(data, weights=None)
     pi = get_freq_single_point(chains, weights=None)
     fij = get_freq_two_points(data, weights=None)

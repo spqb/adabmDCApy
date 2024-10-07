@@ -11,6 +11,14 @@ TOKENS_DNA = "-ACGT"
 
 
 def get_tokens(alphabet: str) -> str:
+    """Converts the alphabet into the corresponding tokens.
+
+    Args:
+        alphabet (str): Alphabet to be used for the encoding. It can be either "protein", "rna", "dna" or a custom string of tokens.
+
+    Returns:
+        str: Tokens of the alphabet.
+    """
     assert isinstance(alphabet, str), "Argument 'alphabet' must be of type str"
     if alphabet == "protein":
         return TOKENS_PROTEIN
@@ -22,8 +30,8 @@ def get_tokens(alphabet: str) -> str:
         return alphabet
     
     
-def encode_sequence(sequence: Union[str, np.ndarray], tokens: str) -> list:
-    """Takes a string sequence in input an returns the numeric encoding.
+def encode_sequence(sequence: Union[str, np.ndarray], tokens: str) -> np.ndarray:
+    """Encodes a sequence or a list of sequences into a numeric format.
 
     Args:
         sequence (Union[str, Array]): Input sequence.
@@ -33,23 +41,36 @@ def encode_sequence(sequence: Union[str, np.ndarray], tokens: str) -> list:
         list: Encoded sequence.
     """
     letter_map = {l : n for n, l in enumerate(tokens)}
-    return np.array([letter_map[l] for l in sequence])
+    if isinstance(sequence, str):
+        return np.array([letter_map[l] for l in sequence])
+    elif isinstance(sequence, np.ndarray):
+        return np.vectorize(encode_sequence, excluded=["tokens"], signature="(), () -> (n)")(sequence, tokens)
+    elif isinstance(sequence, list):
+        sequence = np.array(sequence)
+        return encode_sequence(sequence, tokens)
+    else:        
+        raise ValueError("Input sequence must be either a string or a numpy array.")
 
 
 def decode_sequence(sequence: np.ndarray, tokens: str) -> str:
-    """Takes a numeric sequence in input an returns the string encoding.
+    """Takes a numeric sequence or list of seqences in input an returns the corresponding string encoding.
 
     Args:
-        sequence (Array): Input sequence.
+        sequence (np.ndarray): Input sequences. Can be either a 1D or a 2D array.
         tokens (str): Alphabet to be used for the encoding.
 
     Returns:
-        list: Decoded sequence.
+        list: Decoded input.
     """
-    return ''.join([tokens[aa] for aa in sequence])
+    if sequence.ndim == 1:
+        return ''.join([tokens[aa] for aa in sequence])
+    elif sequence.ndim == 2:
+        return np.vectorize(decode_sequence, signature="(m), () -> ()")(sequence, tokens)
+    else:
+        raise ValueError("Input sequence must be either a 1D or a 2D array.")
 
 
-def import_from_fasta(fasta_name: Union[str, Path], tokens: str=None) -> Tuple[np.ndarray, np.ndarray]:
+def import_from_fasta(fasta_name: Union[str, Path], tokens: str = None) -> Tuple[np.ndarray, np.ndarray]:
     """Import data from a fasta file.
 
     Args:
@@ -85,7 +106,7 @@ def import_from_fasta(fasta_name: Union[str, Path], tokens: str=None) -> Tuple[n
         sequences.append(seq)
     
     if tokens is not None:
-        sequences = np.vectorize(encode_sequence, excluded=["tokens"], signature="(), () -> (n)")(sequences, tokens)
+        sequences = encode_sequence(sequences, tokens)
     
     return np.array(names), np.array(sequences)
     
@@ -94,16 +115,16 @@ def write_fasta(
     fname: str,
     headers: np.ndarray,
     sequences: np.ndarray,
-    numeric_input: bool=False,
-    remove_gaps: bool=False,
-    alphabet: str="protein"
+    numeric_input: bool = False,
+    remove_gaps: bool = False,
+    alphabet: str = "protein"
 ):
     """Generate a fasta file with the input sequences.
 
     Args:
         fname (str): Name of the output fasta file.
-        headers (ArrayLike): List of sequences' headers.
-        sequences (ArrayLike): List of sequences.
+        headers (np.ndarray): Array of sequences' headers.
+        sequences (np.ndarray): Array of sequences.
         numeric_input (bool, optional): Whether the sequences are in numeric (encoded) format or not. Defaults to False.
         remove_gaps (bool, optional): If True, removes the gap from the alignment. Defaults to False.
         tokens (str): Alphabet to be used for the encoding. Defaults to protein.
@@ -112,7 +133,7 @@ def write_fasta(
 
     if numeric_input:
         # Decode the sequences
-        seqs_decoded = np.vectorize(decode_sequence, signature="(m), () -> ()")(sequences, tokens)
+        seqs_decoded = decode_sequence(sequences, tokens)
     else:
         seqs_decoded = sequences.copy()
     if remove_gaps:
@@ -125,12 +146,12 @@ def write_fasta(
             f.write('\n')
          
                 
-def import_clean_dataset(filein: str, tokens: str="protein") -> Tuple[np.ndarray, np.ndarray]:
+def import_clean_dataset(filein: str, tokens: str = "protein") -> Tuple[np.ndarray, np.ndarray]:
     """Imports data from a fasta file and removes all the sequences whose tokens are not present in a specified alphabet.
 
     Args:
         filein (str): Input fasta.
-        tokens (str): Alphabet to be used for the encoding.
+        tokens (str, optional): Alphabet to be used for the encoding. Defaults to "protein".
     
     Returns:
         Tuple[np.ndarray, np.ndarray]: headers, sequences.
@@ -167,7 +188,7 @@ def compute_weights(
     Args:
         data (np.ndarray | torch.Tensor): Encoded input dataset.
         th (float, optional): Sequence identity threshold for the clustering. Defaults to 0.8.
-        device (str): Device.
+        device (str, optional): Device. Defaults to "cpu".
 
     Returns:
         torch.Tensor: Array with the weights of the sequences.
@@ -193,6 +214,15 @@ def compute_weights(
 
 
 def validate_alphabet(sequences: np.ndarray, tokens: str):
+    """Check if the chosen alphabet is compatible with the input sequences.
+
+    Args:
+        sequences (np.ndarray): Input sequences.
+        tokens (str): Alphabet to be used for the encoding.
+
+    Raises:
+        KeyError: The chosen alphabet is incompatible with the Multi-Sequence Alignment.
+    """
     all_char = "".join(sequences)
     tokens_data = "".join(sorted(set(all_char)))
     sorted_tokens = "".join(sorted(tokens))

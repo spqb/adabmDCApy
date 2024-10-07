@@ -1,13 +1,13 @@
 from tqdm import tqdm
-import numpy as np
 from pathlib import Path
 import time
 from typing import Tuple, Optional, Callable, Dict
 
+import torch
+
 from adabmDCA.stats import get_freq_single_point, get_freq_two_points, get_correlation_two_points
 from adabmDCA.io import save_chains, save_params
 from adabmDCA.methods import compute_density, get_mask_save
-import torch
 
 
 @torch.jit.script
@@ -95,7 +95,7 @@ def train_graph(
     target_pearson: float,
     tokens: str = "protein",
     check_slope: bool = False,
-    file_paths: Optional[Dict[str, Path]] = None,
+    file_paths: Dict[str, Path] = None,
     progress_bar: bool = True,
     device: str = "cpu",
 ) -> Tuple[torch.Tensor, Dict[str, torch.Tensor]]:
@@ -114,11 +114,11 @@ def train_graph(
         lr (float): Learning rate.
         max_epochs (int): Maximum number of gradient updates to be done.
         target_pearson (float): Target Pearson coefficient.
-        tokens (str): Alphabet to be used for the encoding.
-        check_slope (bool): Whether to take into account the slope for the convergence criterion or not.
-        file_paths (Optional[Dict[str, Path]]): Dictionary containing the paths where to save log, params, and chains.
-        progress_bar (bool): Whether to display a progress bar or not.
-        device (str): Device to be used.
+        tokens (str, optional): Alphabet to be used for the encoding. Defaults to "protein".
+        check_slope (bool, optional): Whether to take into account the slope for the convergence criterion or not. Defaults to False.
+        file_paths (Dict[str, Path], optional): Dictionary containing the paths where to save log, params, and chains.  Defaults to None.
+        progress_bar (bool, optional): Whether to display a progress bar or not. Defaults to True.
+        device (str, optional): Device to be used. Defaults to "cpu".
 
     Returns:
         Tuple[torch.Tensor, Dict[str, torch.Tensor]]: Updated chains and parameters.
@@ -126,7 +126,6 @@ def train_graph(
     
     L, q = fi.shape
     time_start = time.time()
-    density = compute_density(mask)
     
     def halt_condition(epochs, pearson, slope, check_slope):
         c1 = pearson < target_pearson
@@ -137,7 +136,7 @@ def train_graph(
             c3 = False
         return not c2 * ((not c1) * c3 + c1)
     
-    # Mask for saving only the upper-diagonal matrix
+    # Mask for saving only the upper-diagonal coupling matrix
     mask_save = get_mask_save(L, q, device=device)
 
     pearson, slope = get_correlation_two_points(

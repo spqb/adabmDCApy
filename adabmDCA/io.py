@@ -19,7 +19,7 @@ def load_chains(fname: str, tokens: str):
     """
     _, seqs = import_from_fasta(fasta_name=fname)
     
-    return np.vectorize(encode_sequence, excluded=["tokens"], signature="(), () -> (n)")(seqs, tokens)
+    return encode_sequence(seqs, tokens=tokens)
 
 
 def save_chains(fname: str, chains: torch.Tensor, tokens: str):
@@ -195,7 +195,7 @@ def save_params_oldformat(
     params: Dict[str, torch.Tensor],
     mask: torch.Tensor,
 ) -> None:
-    """Saves the parameters of the model in a file.
+    """Saves the parameters of the model in a file. Assumes the old DCA format.
 
     Args:
         fname (str): Path to the file where to save the parameters.

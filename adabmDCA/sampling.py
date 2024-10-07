@@ -1,7 +1,9 @@
-from typing import Dict
+from typing import Dict, Callable
+
 import torch
-from adabmDCA.custom_fn import one_hot
 from torch.nn.functional import one_hot as one_hot_torch
+
+from adabmDCA.custom_fn import one_hot
 
 
 @torch.jit.script
@@ -15,7 +17,7 @@ def gibbs_sweep(
 
     Args:
         chains (torch.Tensor): One-hot encoded sequences.
-        residue_idxs (torch.Tensor): Indices of the residues to update.
+        residue_idxs (torch.Tensor): List of residue indices in random order.
         params (Dict[str, torch.Tensor]): Parameters of the model.
         beta (float): Inverse temperature.
 
@@ -129,7 +131,18 @@ def metropolis(
     return chains
 
 
-def get_sampler(sampling_method: str):
+def get_sampler(sampling_method: str) -> Callable:
+    """Returns the sampling function corresponding to the chosen method.
+
+    Args:
+        sampling_method (str): String indicating the sampling method. Choose between 'metropolis' and 'gibbs'.
+
+    Raises:
+        KeyError: Unknown sampling method.
+
+    Returns:
+        Callable: Sampling function.
+    """
     if sampling_method == "gibbs":
         return gibbs_sampling
     elif sampling_method == "metropolis":

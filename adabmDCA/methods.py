@@ -101,7 +101,8 @@ def init_chains(
         num_chains (int): Number of parallel chains.
         L (int): Length of the MSA.
         q (int): Number of values that each residue can assume.
-        fi (torch.Tensor, optional): Single-point frequencies.
+        device (str): Device where to store the chains.
+        fi (torch.Tensor, optional): Single-point frequencies. Defaults to None.
 
     Returns:
         torch.Tensor: Initialized parallel chains in one-hot encoding format.
@@ -120,6 +121,7 @@ def get_mask_save(L: int, q: int, device: str) -> torch.Tensor:
     Args:
         L (int): Length of the MSA.
         q (int): Number of values that each residue can assume.
+        device (str): Device where to store the mask.
         
     Returns:
         torch.Tensor: Mask.

@@ -1,5 +1,4 @@
 import time
-import numpy as np
 from tqdm import tqdm
 from typing import Callable
 
@@ -95,12 +94,12 @@ def fit(
     chains: torch.Tensor,
     tokens: str,
     target_pearson: float,
-    nsweeps: int = 5,
-    nepochs: int = 50000,
-    pseudo_count: float = 0.1,
-    lr: float = 0.01,
-    factivate: float = 0.001,
-    gsteps: int = 10,
+    nsweeps: int,
+    nepochs: int,
+    pseudo_count: float,
+    lr: float,
+    factivate: float,
+    gsteps: int,
     file_paths: dict = None,
     device: str = "cpu",
     *args, **kwargs
@@ -117,14 +116,14 @@ def fit(
         chains (torch.Tensor): Initialization of the Markov chains.
         tokens (str): Tokens used for encoding the sequences.
         target_pearson (float): Pearson correlation coefficient on the two-points statistics to be reached.
-        nsweeps (int): Number of Monte Carlo steps to update the state of the model. Defaults to 5.
+        nsweeps (int): Number of Monte Carlo steps to update the state of the model.
         nepochs (int): Maximum number of epochs to be performed. Defaults to 50000.
-        pseudo_count (float): Pseudo count for the single and two points statistics. Acts as a regularization. Defaults to 0.1.
-        lr (float): Learning rate. Defaults to 0.01.
-        factivate (float): Fraction of inactive couplings to activate at each step. Defaults to 0.001.
-        gsteps (int): Number of gradient updates to be performed on a given graph. Defaults to 10.
-        file_paths (dict): Dictionary containing the paths where to save log, params, and chains. Defaults to None.
-        device (str): Device to be used. Defaults to "cpu".
+        pseudo_count (float): Pseudo count for the single and two points statistics. Acts as a regularization.
+        lr (float): Learning rate.
+        factivate (float): Fraction of inactive couplings to activate at each step.
+        gsteps (int): Number of gradient updates to be performed on a given graph.
+        file_paths (dict, optional): Dictionary containing the paths where to save log, params, and chains. Defaults to None.
+        device (str, optional): Device to be used. Defaults to "cpu".
     """
     
     # Check the input sizes
