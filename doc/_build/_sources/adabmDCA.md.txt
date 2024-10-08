@@ -100,12 +100,3 @@
    :undoc-members:
    :show-inheritance:
 ```
-
-### Module contents
-
-```{eval-rst}
-.. automodule:: adabmDCA
-   :members:
-   :undoc-members:
-   :show-inheritance:
-```
