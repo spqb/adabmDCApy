@@ -7,7 +7,7 @@ permissions:
 
 jobs:
   docs:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -24,5 +24,27 @@ jobs:
         with:
           publish_branch: gh-pages
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: _build/
+          #publish_dir: _build/
+          publish_dir: ${{ steps.deployment.outputs.artifact }}
           force_orphan: true
+
+
+
+#name: Deploy Sphinx documentation to Pages
+#
+#on:
+#  push:
+#    branches: [master] # branch to trigger deployment
+#
+#jobs:
+#  pages:
+#    runs-on: ubuntu-20.04
+#    steps:
+#    - id: deployment
+#      uses: sphinx-notes/pages@v3
+#      with:
+#        publish: false
+#    - uses: peaceiris/actions-gh-pages@v3
+#      with:
+#        github_token: ${{ secrets.GITHUB_TOKEN }}
+#        publish_dir: ${{ steps.deployment.outputs.artifact }}
