@@ -6,9 +6,9 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'adabmDCApy'
+project = 'adabmDCA'
 copyright = '2024, Lorenzo Rosset'
-author = 'Lorenzo Rosset'
+author = 'Lorenzo Rosset, Roberto Netti, Anna Paola Muntoni, Martin Weigt, Francesco Zamponi'
 release = '1.0'
 
 # -- General configuration ---------------------------------------------------
@@ -32,5 +32,5 @@ source_suffix = {
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = 'alabaster'
+html_theme = 'press'
 html_static_path = ['_static']
