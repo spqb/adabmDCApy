@@ -163,3 +163,4 @@ cython_debug/
 
 example_data/
 example_models/
+doc/_build
