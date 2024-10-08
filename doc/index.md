@@ -9,6 +9,6 @@
 :caption: 'Contents:'
 :maxdepth: 4
 
-prova
-adabmDCA
+prova.md
+adabmDCA.md
 ```
