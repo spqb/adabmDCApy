@@ -6,6 +6,11 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
+# this is a trick to make sphinx find the modules in the parent directory
+import os
+import sys
+sys.path.insert(0, os.path.abspath("."))
+
 project = 'adabmDCA'
 copyright = '2024, Lorenzo Rosset'
 author = 'Lorenzo Rosset, Roberto Netti, Anna Paola Muntoni, Martin Weigt, Francesco Zamponi'
@@ -19,6 +24,7 @@ extensions = [
 	'sphinx.ext.napoleon',
 	'myst_parser',
 	'sphinx.ext.githubpages',
+	'sphinx.ext.mathjax',
 ]
 
 templates_path = ['_templates']
