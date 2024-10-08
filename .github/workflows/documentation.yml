@@ -24,8 +24,8 @@ jobs:
         with:
           publish_branch: gh-pages
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          #publish_dir: _build/
-          publish_dir: ${{ steps.deployment.outputs.artifact }}
+          publish_dir: _build/
+          #publish_dir: ${{ steps.deployment.outputs.artifact }}
           force_orphan: true
 
 
