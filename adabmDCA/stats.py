@@ -19,7 +19,7 @@ def resample_sequences(
     Returns:
         torch.Tensor: Extracted sequences.
     """
-    indices = torch.multinomial(weights, nextract, replacement=True)
+    indices = torch.multinomial(weights.view(-1), nextract, replacement=True)
     
     return data[indices]
 

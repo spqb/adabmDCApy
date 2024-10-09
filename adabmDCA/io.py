@@ -85,9 +85,9 @@ def load_params(
     ).astype({"idx0" : int, "idx1" : str, "val" : float})
     
     # Convert from amino acid format to numeric format
-    df_J["idx2"] = encode_sequence(df_J["idx2"], tokens=tokens)
-    df_J["idx3"] = encode_sequence(df_J["idx3"], tokens=tokens)
-    df_h["idx1"] = encode_sequence(df_h["idx1"], tokens=tokens)
+    df_J["idx2"] = encode_sequence(df_J["idx2"].to_numpy(), tokens=tokens)
+    df_J["idx3"] = encode_sequence(df_J["idx3"].to_numpy(), tokens=tokens)
+    df_h["idx1"] = encode_sequence(df_h["idx1"].to_numpy(), tokens=tokens)
     
 
     h_idx = df_h.loc[:, ["idx0", "idx1"]].to_numpy()
