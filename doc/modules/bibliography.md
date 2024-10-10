@@ -1,4 +1,4 @@
 ## References
 
-```{bibliography} bibliography.bib
+```{bibliography} spqb/adabmDCApy/doc/bibliography.bib
 ```

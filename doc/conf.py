@@ -27,7 +27,6 @@ extensions = [
 	'sphinx.ext.mathjax',
 	'sphinxcontrib.bibtex',
 	'sphinxemoji.sphinxemoji',
-	'sphinx_markdown_tables',
 ]
 
 sphinxemoji_style = 'twemoji'
