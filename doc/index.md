@@ -18,9 +18,10 @@ Additionally, we provide several routines for sampling and analyzing the generat
 :caption: 'Contents:'
 :maxdepth: 4
 
-preprocessing.md
-implementation.md
-quicklist.md
-adabmDCApy.md
-bibliography.md
+modules/installation.md
+modules/preprocessing.md
+modules/implementation.md
+modules/quicklist.md
+modules/adabmDCApy.md
+modules/bibliography.md
 ```

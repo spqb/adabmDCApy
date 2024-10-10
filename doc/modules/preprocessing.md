@@ -55,11 +55,11 @@ This reweighting allows us to give less importance to sequences found in very de
 DCA models are trained to reproduce the one and two-site frequencies of the empirical data. To compute these, we introduce in the computation of the empirical statistics a small parameter {math}`\alpha`, called pseudo count, that allows us to deal with unobserved (pairs of) symbols in one (or two) column(s) of the MSA. The one and two-site frequencies are given by
 
 ```{math}
-:label: eq-freqs
 \begin{align}
     f_i(a) &= (1 - \alpha) f^{\mathrm{data}}_i(a) + \frac{\alpha}{q}, \\
     f_{ij}(a, b) &= (1 - \alpha) f^{\mathrm{data}}_{ij}(a, b) + \frac{\alpha}{q^2}
 \end{align}
+:label: eq-freqs
 ```
 
-where {math}`f_i^{\mathrm{data}}(a)$ and $f_{ij}^{\mathrm{data}}(a, b)` are computed from the MSA as in Eq. [](#eq-freqs). 
+where {math}`f_i^{\mathrm{data}}(a)` and {math}`f_{ij}^{\mathrm{data}}(a, b)` are computed from the MSA as in Eq. [](#eq-freqs). 
