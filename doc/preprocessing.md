@@ -5,9 +5,9 @@
 
 `adabmDCA 2.0` implements the three default alphabets shown in table [](tab-alphabets), but the user can specify an ad-hoc alphabet as far as it is compatible with the input MSA.
 
-:::{table} Default alphabets implemented in `adabmDCA 2.0`, where “-”indicates the alignment gap.
-:name: tab-alphabets
+:::{table}
 :align: center
+:name: tab-alphabets
 
 |  |  |
 |:--:|:--:|
@@ -22,6 +22,7 @@ An example of a FASTA file format is shown in Figure [](fig-example_fasta). In p
 :name: fig-example_fasta
 :alt: Fasta example
 :align: center
+:scale: 50
 
 Example of protein sequences formatted in FASTA format.
 ```

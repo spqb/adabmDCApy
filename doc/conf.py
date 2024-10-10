@@ -42,7 +42,8 @@ myst_enable_extensions = [
 
 sphinxemoji_style = 'twemoji'
 bibtex_bibfiles = ['bibliography.bib']
-bibtex_encoding = 'latin'
+#bibtex_encoding = 'latin'
+bibtex_reference_style = 'author_year'
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 source_suffix = {

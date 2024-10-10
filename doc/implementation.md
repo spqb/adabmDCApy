@@ -44,6 +44,7 @@ It is possible to provide the algorithm with a pre-computed list of [importance 
 #### Choosing the alphabet
 By default, the algorithm will assume that the input MSA belongs to a protein family, and it will use the preset alphabet defined in Table [](#tab-alphabets) (by default: `--alphabet protein`). If the input data comes from RNA or DNA sequences, it has to be specified by passing respectively `rna` or `dna` to the `--alphabet` argument. There is also the possibility of passing a user-defined alphabet, provided that all the tokens match with those that are found in the input MSA. This can be useful if one wants to use a different order than the default one for the tokens, or in the eventuality that one wants to handle additional symbols present in the alignment.
 
+(eaDCA)=
 ### eaDCA
 To train an eaDCA model, we just have to specify `–model eaDCA`. Two
 more hyperparameters can be changed:
@@ -56,6 +57,7 @@ more hyperparameters can be changed:
 
 For this routine, the number of sweeps for updating the chains can be typically reduced to 5, since only a fraction of all the possible couplings have to be updated at each iteration.
 
+(edDCA)=
 ### edDCA
 To launch a decimation with default hyperparameters, use the command:
 ```bash
@@ -79,7 +81,7 @@ The default values for the hyperparameters are chosen to be a good compromise be
 By default, the learning rate is set to 0.05, which is a reasonable value in most cases. For some protein datasets, this value can be brought up to 0.05. If the resampling of the model is bad (very long thermalization time or mode collapse), one may try to decrease the learning rate through the argument `--lr` to some smaller value (e.g. 0.005 or 0.001).
 
 #### Number of Markov Chains
-By default, the number of Markov chains is set equal to {math}`\min(M_{\mathrm{eff}}, 5000)`, where {math}`M_{\mathrm{eff}` the *effective number of sequences* of the dataset, defined as:
+By default, the number of Markov chains is set equal to {math}`\min(M_{\mathrm{eff}}, 5000)`, where $M_{\mathrm{eff}}$ the *effective number of sequences* of the dataset, defined as:
 ```{math}
 M_{\mathrm{eff}} = \sum_{m=1}^M w^{(m)} \leq M.
 ```
