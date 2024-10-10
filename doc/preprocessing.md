@@ -18,7 +18,7 @@
 
 An example of a FASTA file format is shown in Figure [](fig-example_fasta). In particular, `adabmDCA 2.0` correctly handles FASTA files in which line breaks within a sequence are present.
 
-```{figure} spqb/adabmDCApy/doc/images/example_fasta_2.png
+```{figure} images/example_fasta_2.png
 :name: fig-example_fasta
 :alt: Fasta example
 :align: center
@@ -42,26 +42,21 @@ Their precise implementation is described in the following.
 #### Computing the importance weights
 The sequence weights are computed to mitigate as much as possible the systematic biases in the data, such as correlations due to the phylogeny or over-representation of some regions of the sequence space because of a sequencing bias.
 
-Given an MSA of {math}`M` sequences, to compute the importance weight of each sequence {math}`\pmb a^{(m)}`, {math}`m=1, \dots, M`, we consider {math}`N^{(m)}` as the number of sequences in the dataset having Hamming distance from {math}`\pmb a^{(m)}` smaller or equal to {math}`0.2 \cdot L` (this threshold can be tuned by the user). Then, the importance  weight of {math}`\pmb{a}^{(m)}` will be
+Given an MSA of {math}`M` sequences, to compute the importance weight of each sequence $\pmb a^{(m)}$, {math}`m=1, \dots, M`, we consider {math}`N^{(m)}` as the number of sequences in the dataset having Hamming distance from {math}`\pmb a^{(m)}` smaller or equal to {math}`0.2 \cdot L` (this threshold can be tuned by the user). Then, the importance  weight of {math}`\pmb{a}^{(m)}` will be
 
-```{math}
-:label: eq-weights
-
+$$
 w^{(m)} = \frac{1}{N^{(m)}}.
-```
+$$(eqn:weights)
 
 This reweighting allows us to give less importance to sequences found in very densely populated regions of the sequence space while enhancing the importance of isolated sequences.
 
 #### Pseudo count and reweighted statistics
-DCA models are trained to reproduce the one and two-site frequencies of the empirical data. To compute these, we introduce in the computation of the empirical statistics a small parameter {math}`\alpha`, called pseudo count, that allows us to deal with unobserved (pairs of) symbols in one (or two) column(s) of the MSA. The one and two-site frequencies are given by
+DCA models are trained to reproduce the one and two-site frequencies of the empirical data. To compute these, we introduce in the computation of the empirical statistics a small parameter $\alpha$, called pseudo count, that allows us to deal with unobserved (pairs of) symbols in one (or two) column(s) of the MSA. The one and two-site frequencies are given by
 
-```{math}
-:label: eq-freqs
-
-\begin{align}
+$$
     f_i(a) &= (1 - \alpha) f^{\mathrm{data}}_i(a) + \frac{\alpha}{q}, \\
     f_{ij}(a, b) &= (1 - \alpha) f^{\mathrm{data}}_{ij}(a, b) + \frac{\alpha}{q^2}
-\end{align}
-```
 
-where {math}`f_i^{\mathrm{data}}(a)` and {math}`f_{ij}^{\mathrm{data}}(a, b)` are computed from the MSA as in Eq. [](#eq-freqs). 
+$$(eqn:freqs)
+
+where {math}`f_i^{\mathrm{data}}(a)` and {math}`f_{ij}^{\mathrm{data}}(a, b)` are computed from the MSA as in Eq. [](#eqn:freqs). 

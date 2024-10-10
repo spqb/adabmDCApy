@@ -39,7 +39,7 @@ $ ./adabmDCA.sh train [...] -p <file_params> -c <file_chains>
 ```
 
 #### Importance weights
-It is possible to provide the algorithm with a pre-computed list of [importance weights](#computing-the-importance-weights) to be assigned to the sequences by giving the path to the text file to the argument `-w`. If this argument is not provided, the algorithm will automatically compute the weights using Eq.[](#eq-weights) and it will store them into the folder `<output_folder>` as `<label>_weights.dat`.
+It is possible to provide the algorithm with a pre-computed list of [importance weights](#computing-the-importance-weights) to be assigned to the sequences by giving the path to the text file to the argument `-w`. If this argument is not provided, the algorithm will automatically compute the weights using Eq.[](#eqn:weights) and it will store them into the folder `<output_folder>` as `<label>_weights.dat`.
 
 #### Choosing the alphabet
 By default, the algorithm will assume that the input MSA belongs to a protein family, and it will use the preset alphabet defined in Table [](#tab-alphabets) (by default: `--alphabet protein`). If the input data comes from RNA or DNA sequences, it has to be specified by passing respectively `rna` or `dna` to the `--alphabet` argument. There is also the possibility of passing a user-defined alphabet, provided that all the tokens match with those that are found in the input MSA. This can be useful if one wants to use a different order than the default one for the tokens, or in the eventuality that one wants to handle additional symbols present in the alignment.
