@@ -1,7 +1,7 @@
 ## Input data and preprocessing
 
 ### Input data
-`adabmDCA 2.0` takes as input a multiple sequence alignment ([MSA](https://en.wikipedia.org/wiki/Multiple_sequence_alignment)) of aligned amino acid or nucleotide sequences, usually forming a protein or RNA family. DCA implementations require the data to be saved in FASTA format @pearson_improved_1988. 
+`adabmDCA 2.0` takes as input a multiple sequence alignment ([MSA](https://en.wikipedia.org/wiki/Multiple_sequence_alignment)) of aligned amino acid or nucleotide sequences, usually forming a protein or RNA family. DCA implementations require the data to be saved in FASTA format {cite:p}`pearson_improved_1988`. 
 
 `adabmDCA 2.0` implements the three default alphabets shown in table [Alphabets](#alphabets), but the user can specify an ad-hoc alphabet as far as it is compatible with the input MSA.
 
