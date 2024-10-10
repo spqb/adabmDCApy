@@ -3,11 +3,11 @@
 ### Input data
 `adabmDCA 2.0` takes as input a multiple sequence alignment ([MSA](https://en.wikipedia.org/wiki/Multiple_sequence_alignment)) of aligned amino acid or nucleotide sequences, usually forming a protein or RNA family. DCA implementations require the data to be saved in FASTA format @pearson_improved_1988. 
 
-`adabmDCA 2.0` implements the three default alphabets shown in table [](tab-alphabets), but the user can specify an ad-hoc alphabet as far as it is compatible with the input MSA.
+`adabmDCA 2.0` implements the three default alphabets shown in table [Alphabets](#alphabets), but the user can specify an ad-hoc alphabet as far as it is compatible with the input MSA.
 
 :::{table}
 :align: center
-:name: tab-alphabets
+:name: alphabets
 
 |  |  |
 |:--:|:--:|
@@ -16,7 +16,7 @@
 | **dna** | `-, A, C, G, T` |
 :::
 
-An example of a FASTA file format is shown in Figure [](fig-example_fasta). In particular, `adabmDCA 2.0` correctly handles FASTA files in which line breaks within a sequence are present.
+An example of a FASTA file format is shown in Figure [Example FASTA](fig-example_fasta). In particular, `adabmDCA 2.0` correctly handles FASTA files in which line breaks within a sequence are present.
 
 ```{figure} images/example_fasta_2.png
 :name: fig-example_fasta
@@ -43,7 +43,7 @@ Their precise implementation is described in the following.
 #### Computing the importance weights
 The sequence weights are computed to mitigate as much as possible the systematic biases in the data, such as correlations due to the phylogeny or over-representation of some regions of the sequence space because of a sequencing bias.
 
-Given an MSA of {math}`M` sequences, to compute the importance weight of each sequence $\pmb a^{(m)}$, {math}`m=1, \dots, M`, we consider {math}`N^{(m)}` as the number of sequences in the dataset having Hamming distance from {math}`\pmb a^{(m)}` smaller or equal to {math}`0.2 \cdot L` (this threshold can be tuned by the user). Then, the importance  weight of {math}`\pmb{a}^{(m)}` will be
+Given an MSA of {math}`M` sequences, to compute the importance weight of each sequence $\pmb a^{(m)}$, $m=1, \dots, M$, we consider $N^{(m)}$ as the number of sequences in the dataset having Hamming distance from $\pmb a^{(m)}$ smaller or equal to $0.2 \cdot L$ (this threshold can be tuned by the user). Then, the importance  weight of $\pmb{a}^{(m)}$ will be
 
 $$
 w^{(m)} = \frac{1}{N^{(m)}}.
@@ -60,4 +60,4 @@ $$
 
 $$(eqn:freqs)
 
-where {math}`f_i^{\mathrm{data}}(a)` and {math}`f_{ij}^{\mathrm{data}}(a, b)` are computed from the MSA as in Eq. [](#eqn:freqs). 
+where $f_i^{\mathrm{data}}(a)$ and $f_{ij}^{\mathrm{data}}(a, b)$ are computed from the MSA as in Eq. [](#eqn:freqs). 

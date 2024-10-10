@@ -29,6 +29,8 @@ extensions = [
 	'sphinxemoji.sphinxemoji',
 ]
 
+sphinxemoji_source = 'https://unpkg.com/twemoji@latest/dist/twemoji.min.js'
+
 myst_enable_extensions = [
     "amsmath",
     "attrs_inline",

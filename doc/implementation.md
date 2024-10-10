@@ -11,7 +11,7 @@ $ ./adabmDCA.sh train -m <model> -d <fasta_file> -o <output_folder> -l <label>
 ```
 where:
 
-- `<model>`{math}`\in` {bmDCA, eaDCA, edDCA} selects the training routine. By default, the fully connected bmDCA algorithm is used. edDCA can follow two different routines: either it decimates a pre-trained bmDCA model, or it first trains a bmDCA model and then decimates it. The corresponding commands are shown below (see section [decDCA](#decDCA));
+- `<model>`{math}`\in` {bmDCA, eaDCA, edDCA} selects the training routine. By default, the fully connected bmDCA algorithm is used. edDCA can follow two different routines: either it decimates a pre-trained bmDCA model, or it first trains a bmDCA model and then decimates it. The corresponding commands are shown below (see section [edDCA](#edDCA));
 - `<fasta_file>` is the FASTA file, with the complete path, containing the MSA;
 - `<output_folder>` is the path to a (existing or not) folder where to store the output files;
 - `<label>` is an optional argument. If provided, it will label the output files. This is helpful when running the algorithm multiple times in the same output folder.
@@ -42,7 +42,7 @@ $ ./adabmDCA.sh train [...] -p <file_params> -c <file_chains>
 It is possible to provide the algorithm with a pre-computed list of [importance weights](#computing-the-importance-weights) to be assigned to the sequences by giving the path to the text file to the argument `-w`. If this argument is not provided, the algorithm will automatically compute the weights using Eq.[](#eqn:weights) and it will store them into the folder `<output_folder>` as `<label>_weights.dat`.
 
 #### Choosing the alphabet
-By default, the algorithm will assume that the input MSA belongs to a protein family, and it will use the preset alphabet defined in Table [](#tab-alphabets) (by default: `--alphabet protein`). If the input data comes from RNA or DNA sequences, it has to be specified by passing respectively `rna` or `dna` to the `--alphabet` argument. There is also the possibility of passing a user-defined alphabet, provided that all the tokens match with those that are found in the input MSA. This can be useful if one wants to use a different order than the default one for the tokens, or in the eventuality that one wants to handle additional symbols present in the alignment.
+By default, the algorithm will assume that the input MSA belongs to a protein family, and it will use the preset alphabet defined in Table [Alphabets](#alphabets) (by default: `--alphabet protein`). If the input data comes from RNA or DNA sequences, it has to be specified by passing respectively `rna` or `dna` to the `--alphabet` argument. There is also the possibility of passing a user-defined alphabet, provided that all the tokens match with those that are found in the input MSA. This can be useful if one wants to use a different order than the default one for the tokens, or in the eventuality that one wants to handle additional symbols present in the alignment.
 
 (eaDCA)=
 ### eaDCA
@@ -81,10 +81,12 @@ The default values for the hyperparameters are chosen to be a good compromise be
 By default, the learning rate is set to 0.05, which is a reasonable value in most cases. For some protein datasets, this value can be brought up to 0.05. If the resampling of the model is bad (very long thermalization time or mode collapse), one may try to decrease the learning rate through the argument `--lr` to some smaller value (e.g. 0.005 or 0.001).
 
 #### Number of Markov Chains
-By default, the number of Markov chains is set equal to {math}`\min(M_{\mathrm{eff}}, 5000)`, where $M_{\mathrm{eff}}$ the *effective number of sequences* of the dataset, defined as:
-```{math}
+By default, the number of Markov chains is set equal to $\min(M_{\mathrm{eff}}, 5000)$, where $M_{\mathrm{eff}}$ the *effective number of sequences* of the dataset, defined as:
+
+$$
 M_{\mathrm{eff}} = \sum_{m=1}^M w^{(m)} \leq M.
-```
+$$
+
 This number is displayed at the beginning of the training routine.
 
 Using a higher number of chains in most cases does not significantly improve the quality of the training while increasing its computational cost.
@@ -95,4 +97,4 @@ The argument `--nsweeps` defines the number of Monte Carlo chain updates (sweeps
 
 #### Regularization
 Another parameter that can be adjusted if the model does not resample correctly is the pseudo count, {math}`\alpha`, which can be changed using the key `--pseudocount`. The pseudo count is a regularization term that introduces a flat prior on the frequency profiles, modifying the frequencies as in equations [](eq:freq1) and [](eq:freq2).
-If {math}`\alpha = 1` we impose an equal probability to all the amino acids to be found in the residue at position $i$, while if {math}`\alpha = 0` we just use the empirical frequencies of the data. By default, the pseudo count is set as the inverse of the effective number of sequences, {math}`1 / M_{\mathrm{eff}}`.
+If {math}`\alpha = 1` we impose an equal probability to all the amino acids to be found in the residue at position $i$, while if $\alpha = 0$ we just use the empirical frequencies of the data. By default, the pseudo count is set as the inverse of the effective number of sequences, $1 / M_{\mathrm{eff}}$.
