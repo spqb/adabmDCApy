@@ -25,8 +25,14 @@ extensions = [
 	'myst_parser',
 	'sphinx.ext.githubpages',
 	'sphinx.ext.mathjax',
+	'sphinxcontrib.bibtex',
+	'sphinxemoji.sphinxemoji',
+	'sphinx_markdown_tables',
 ]
 
+sphinxemoji_style = 'twemoji'
+bibtex_bibfiles = ['bibliography.bib']
+bibtex_encoding = 'latin'
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 source_suffix = {
