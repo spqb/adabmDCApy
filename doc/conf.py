@@ -26,10 +26,8 @@ extensions = [
 	'sphinx.ext.githubpages',
 	'sphinx.ext.mathjax',
 	'sphinxcontrib.bibtex',
-	'sphinxemoji.sphinxemoji',
 ]
 
-sphinxemoji_source = 'https://unpkg.com/twemoji@latest/dist/twemoji.min.js'
 
 myst_enable_extensions = [
     "amsmath",
@@ -42,7 +40,6 @@ myst_enable_extensions = [
     "html_image",
 ]
 
-sphinxemoji_style = 'twemoji'
 bibtex_bibfiles = ['bibliography.bib']
 #bibtex_encoding = 'latin'
 bibtex_reference_style = 'author_year'
