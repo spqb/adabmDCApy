@@ -14,10 +14,6 @@
 **adabmDCA 2.0** is a flexible yet easy-to-use implementation of Direct Coupling Analysis (DCA) based on Boltzmann machine learning. This package provides tools for analyzing residue-residue contacts, predicting mutational effects, scoring sequence libraries, and generating artificial sequences, applicable to both protein and RNA families. The package is designed for flexibility and performance, supporting multiple programming languages (C++, Julia, Python) and architectures (single-core/multi-core CPUs and GPUs).  
 This repository contains the Python GPU version of adabmDCA, maintained by **Lorenzo Rosset**.
 
-The documentation can be found at the following [link](https://spqb.github.io/adabmDCApy/).
-
-Check out the [Colab notebook](https://colab.research.google.com/drive/1l5e1W8pk4cB92JAlBElLzpkEk6Hdjk7B?usp=sharing) with a tutorial for training and analyzing a `bmDCA` model.
-
 ## Features
 
 - **Direct Coupling Analysis (DCA)** based on Boltzmann machine learning.
