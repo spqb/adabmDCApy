@@ -22,17 +22,6 @@ This repository contains the Python GPU version of adabmDCA, maintained by **Lor
 - Ready-to-use for **residue-residue contact prediction**, **mutational-effect prediction**, and **sequence design**.
 - Compatible with protein and RNA family analysis.
 
-# adabmDCA 2.0 - Direct Coupling Analysis in Julia
-
-**Authors:**  
-- **Lorenzo Rosset** (Sorbonne Université, Sapienza Università di Roma)
-- **Roberto Netti** (Sorbonne Université)
-- **Anna Paola Muntoni** (Politecnico di Torino)
-- **Martin Weigt** (Sorbonne Université)
-- **Francesco Zamponi** (Sapienza Università di Roma)
-  
-**Maintainer:** Roberto Netti
-
 ## Installation
 To install the requirements and the package, run the following commands in the terminal
 
