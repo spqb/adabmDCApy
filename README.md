@@ -23,7 +23,7 @@ This repository contains the Python GPU version of adabmDCA, maintained by **Lor
 - Compatible with protein and RNA family analysis.
 
 ## Installation
-To install the requirements and the package, run the following commands in the terminal
+Clone the repository locally and then install the requirements and the package. In a terminal, run:
 
 ```bash
 git clone git@github.com:spqb/adabmDCApy.git
@@ -34,7 +34,7 @@ pip install -e .
 
 ## Usage
 
-To get started with adabmDCA in Python, please refer to the [Documentation](https://spqb.github.io/adabmDCApy/) or the [Colab notebook]([https://github.com/spqb/adabmDCA.jl/tree/main/tutorials](https://colab.research.google.com/drive/1l5e1W8pk4cB92JAlBElLzpkEk6Hdjk7B?usp=sharing).
+To get started with adabmDCA in Python, please refer to the [Documentation](https://spqb.github.io/adabmDCApy/) or the [Colab notebook](https://colab.research.google.com/drive/1l5e1W8pk4cB92JAlBElLzpkEk6Hdjk7B?usp=sharing).
 
 ## License
 
