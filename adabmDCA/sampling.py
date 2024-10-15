@@ -3,7 +3,7 @@ from typing import Dict, Callable
 import torch
 from torch.nn.functional import one_hot as one_hot_torch
 
-from adabmDCA.custom_fn import one_hot
+from adabmDCA.functional import one_hot
 
 
 @torch.jit.script

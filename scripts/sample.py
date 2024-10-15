@@ -9,10 +9,9 @@ import torch
 from adabmDCA.fasta_utils import get_tokens, write_fasta, compute_weights
 from adabmDCA.resampling import compute_mixing_time
 from adabmDCA.io import load_params, load_chains
-from adabmDCA.methods import compute_energy, init_chains
+from adabmDCA.utils import compute_energy, init_chains, resample_sequences
 from adabmDCA.sampling import get_sampler
-from adabmDCA.stats import resample_sequences
-from adabmDCA.custom_fn import one_hot
+from adabmDCA.functional import one_hot
 
 
 # import command-line input arguments

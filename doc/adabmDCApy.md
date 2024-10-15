@@ -1,17 +1,8 @@
-# adabmDCApy APIs
+# adabmDCA package
 
 ## Submodules
 
-### adabmDCA.custom_fn module
-
-```{eval-rst}
-.. automodule:: adabmDCA.custom_fn
-   :members:
-   :undoc-members:
-   :show-inheritance:
-```
-
-### adabmDCA.dataset module
+## adabmDCA.dataset module
 
 ```{eval-rst}
 .. automodule:: adabmDCA.dataset
@@ -20,7 +11,7 @@
    :show-inheritance:
 ```
 
-### adabmDCA.fasta_utils module
+## adabmDCA.fasta_utils module
 
 ```{eval-rst}
 .. automodule:: adabmDCA.fasta_utils
@@ -29,7 +20,16 @@
    :show-inheritance:
 ```
 
-### adabmDCA.grad module
+## adabmDCA.functional module
+
+```{eval-rst}
+.. automodule:: adabmDCA.functional
+   :members:
+   :undoc-members:
+   :show-inheritance:
+```
+
+## adabmDCA.grad module
 
 ```{eval-rst}
 .. automodule:: adabmDCA.grad
@@ -38,7 +38,16 @@
    :show-inheritance:
 ```
 
-### adabmDCA.io module
+## adabmDCA.graph module
+
+```{eval-rst}
+.. automodule:: adabmDCA.graph
+   :members:
+   :undoc-members:
+   :show-inheritance:
+```
+
+## adabmDCA.io module
 
 ```{eval-rst}
 .. automodule:: adabmDCA.io
@@ -47,16 +56,7 @@
    :show-inheritance:
 ```
 
-### adabmDCA.methods module
-
-```{eval-rst}
-.. automodule:: adabmDCA.methods
-   :members:
-   :undoc-members:
-   :show-inheritance:
-```
-
-### adabmDCA.parser module
+## adabmDCA.parser module
 
 ```{eval-rst}
 .. automodule:: adabmDCA.parser
@@ -65,7 +65,7 @@
    :show-inheritance:
 ```
 
-### adabmDCA.plot module
+## adabmDCA.plot module
 
 ```{eval-rst}
 .. automodule:: adabmDCA.plot
@@ -74,7 +74,7 @@
    :show-inheritance:
 ```
 
-### adabmDCA.resampling module
+## adabmDCA.resampling module
 
 ```{eval-rst}
 .. automodule:: adabmDCA.resampling
@@ -83,7 +83,7 @@
    :show-inheritance:
 ```
 
-### adabmDCA.sampling module
+## adabmDCA.sampling module
 
 ```{eval-rst}
 .. automodule:: adabmDCA.sampling
@@ -92,10 +92,28 @@
    :show-inheritance:
 ```
 
-### adabmDCA.stats module
+## adabmDCA.stats module
 
 ```{eval-rst}
 .. automodule:: adabmDCA.stats
+   :members:
+   :undoc-members:
+   :show-inheritance:
+```
+
+## adabmDCA.utils module
+
+```{eval-rst}
+.. automodule:: adabmDCA.utils
+   :members:
+   :undoc-members:
+   :show-inheritance:
+```
+
+## Module contents
+
+```{eval-rst}
+.. automodule:: adabmDCA
    :members:
    :undoc-members:
    :show-inheritance:

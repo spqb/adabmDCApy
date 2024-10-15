@@ -6,7 +6,7 @@ import torch
 
 from adabmDCA.fasta_utils import get_tokens
 from adabmDCA.io import load_params
-from adabmDCA.methods import set_zerosum_gauge
+from adabmDCA.utils import set_zerosum_gauge
 
 
 # import command-line input arguments

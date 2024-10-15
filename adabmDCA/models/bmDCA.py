@@ -2,7 +2,6 @@ from typing import Callable, Dict
 
 import torch
 
-from adabmDCA.stats import get_freq_single_point, get_freq_two_points
 from adabmDCA.grad import train_graph
 
     
@@ -22,7 +21,7 @@ def fit(
     device: str = "cpu",
     *args, **kwargs
 ) -> None:
-    """Fits an eaDCA model on the training data and saves the results in a file.
+    """Trains a bmDCA model on the input MSA and saves the results in a file.
 
     Args:
         sampler (Callable): Sampling function to be used.
@@ -48,10 +47,6 @@ def fit(
     if chains.dim() != 3:
         raise ValueError("chains must be a 3D tensor")
     
-    # Compute the single-point and two-points frequencies of the simulated data
-    pi = get_freq_single_point(data=chains, weights=None, pseudo_count=0.)
-    pij = get_freq_two_points(data=chains, weights=None, pseudo_count=0.)
-    
     # Training loop    
     train_graph(
         sampler=sampler,
@@ -59,8 +54,6 @@ def fit(
         mask=mask,
         fi=fi_target,
         fij=fij_target,
-        pi=pi,
-        pij=pij,
         params=params,
         nsweeps=nsweeps,
         lr=lr,

@@ -4,26 +4,6 @@ from typing import Tuple
 import torch
 
 
-def resample_sequences(
-    data: torch.Tensor,
-    weights: torch.Tensor,
-    nextract: int,
-) -> torch.Tensor:
-    """Extracts nextract sequences from data with replacement according to the weights.
-    
-    Args:
-        data (torch.Tensor): Data array.
-        weights (torch.Tensor): Weights of the sequences.
-        nextract (int): Number of sequences to be extracted.
-
-    Returns:
-        torch.Tensor: Extracted sequences.
-    """
-    indices = torch.multinomial(weights.view(-1), nextract, replacement=True)
-    
-    return data[indices]
-
-
 @torch.jit.script
 def get_freq_single_point(
     data: torch.Tensor,

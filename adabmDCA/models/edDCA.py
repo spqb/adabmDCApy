@@ -1,111 +1,17 @@
 from pathlib import Path
-from typing import Callable, Tuple, Dict
+from typing import Callable, Dict
 import time
 
 import torch
 
 from adabmDCA.stats import get_correlation_two_points
 from adabmDCA.grad import train_graph
-from adabmDCA.methods import compute_density, get_mask_save
+from adabmDCA.utils import get_mask_save
 from adabmDCA.io import save_chains, save_params
 from adabmDCA.stats import get_freq_single_point, get_freq_two_points, get_correlation_two_points
+from adabmDCA.graph import decimate_graph, compute_density
 
 MAX_EPOCHS = 10000
-
-
-@torch.jit.script
-def compute_sym_Dkl(
-    params: Dict[str, torch.Tensor],
-    pij: torch.Tensor,
-) -> torch.Tensor:
-    """Computes the symmetric Kullback-Leibler divergence matrix between the initial distribution and the same 
-    distribution once removing one coupling J_ij(a, b).
-
-    Args:
-        params (Dict[ste, torch.Tensor]): Parameters of the model.
-        pij (torch.Tensor): Two-point marginal probability distribution.
-
-    Returns:
-        torch.Tensor: Kullback-Leibler divergence matrix.
-    """
-    
-    exp_J = torch.exp(-params["coupling_matrix"])
-    Dkl = pij * params["coupling_matrix"] * (1. - exp_J / (pij * (exp_J - 1.) + 1.))
-    
-    return Dkl
-
-
-@torch.jit.script
-def compute_Dkl(
-    params: Dict[str, torch.Tensor],
-    pij: torch.Tensor,
-) -> torch.Tensor:
-    """Computes the Kullback-Leibler divergence matrix between the initial distribution and the same 
-    distribution once removing one coupling J_ij(a, b).
-
-    Args:
-        params (Dict[ste, torch.Tensor]): Parameters of the model.
-        pij (torch.Tensor): Two-point marginal probability distribution.
-
-    Returns:
-        torch.Tensor: Kullback-Leibler divergence matrix.
-    """
-    
-    exp_J = torch.exp(-params["coupling_matrix"])
-    Dkl = pij * params["coupling_matrix"] + torch.log(exp_J * pij + 1 - pij)
-    
-    return Dkl
-
-
-def update_mask(
-    mask: torch.Tensor,
-    Dkl: torch.Tensor,
-    drate: float,
-) -> torch.Tensor:
-    """Updates the mask by removing the n_remove couplings with the smallest Dkl.
-
-    Args:
-        mask (torch.Tensor): Mask.
-        Dkl (torch.Tensor): Kullback-Leibler divergence matrix.
-        drate (float): Percentage of active couplings to be pruned at each decimation step.
-
-    Returns:
-        torch.Tensor: Updated mask.
-    """
-    
-    n_remove = int((mask.sum().item() // 2) * drate) * 2
-    # Only consider the active couplings
-    Dkl_active = torch.where(mask, Dkl, float("inf")).view(-1)
-    _, idx_remove = torch.topk(-Dkl_active, n_remove)
-    mask = mask.view(-1).scatter_(0, idx_remove, 0).view(mask.shape)
-    
-    return mask
-
-
-def decimate_graph(
-    pij: torch.Tensor,
-    params: Dict[str, torch.Tensor],
-    mask: torch.Tensor,
-    drate: float,
-) -> Tuple[Dict[str, torch.Tensor], torch.Tensor]:
-    """Performs one decimation step and updates the parameters and mask.
-
-    Args:
-        pij (torch.Tensor): Two-point marginal probability distribution.
-        params (Dict[str, torch.Tensor]): Parameters of the model.
-        mask (torch.Tensor): Mask.
-        drate (float): Percentage of active couplings to be pruned at each decimation step.
-
-    Returns:
-        Tuple[Dict[str, torch.Tensor], torch.Tensor]: Updated parameters and mask.
-    """
-    
-    Dkl = compute_Dkl(params=params, pij=pij)
-    mask = update_mask(mask=mask, Dkl=Dkl, drate=drate)
-    params["coupling_matrix"] *= mask
-    
-    return params, mask
-
 
 def fit(
     sampler: Callable,
@@ -155,16 +61,12 @@ def fit(
     L, q = params["bias"].shape
     
     print("Bringing the model to the convergence threshold...")
-    pi = get_freq_single_point(data=chains, weights=None, pseudo_count=0.)
-    pij = get_freq_two_points(data=chains, weights=None, pseudo_count=0.)
     chains, params = train_graph(
         sampler=sampler,
         chains=chains,
         mask=mask,
         fi=fi_target,
         fij=fij_target,
-        pi=pi,
-        pij=pij,
         params=params,
         nsweeps=nsweeps,
         lr=lr,
@@ -223,19 +125,13 @@ def fit(
             nsweeps=nsweeps,
         )
         
-        # Compute the single-point and two-points frequencies of the simulated data
-        pi = get_freq_single_point(data=chains, weights=None, pseudo_count=0.)
-        pij = get_freq_two_points(data=chains, weights=None, pseudo_count=0.)
-        
-        # bring the model at convergence on the graph
+        # Bring the model at convergence on the graph
         chains, params = train_graph(
             sampler=sampler,
             chains=chains,
             mask=mask,
             fi=fi_target,
             fij=fij_target,
-            pi=pi,
-            pij=pij,
             params=params,
             nsweeps=nsweeps,
             lr=lr,

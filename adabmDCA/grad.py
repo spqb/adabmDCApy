@@ -1,13 +1,13 @@
 from tqdm import tqdm
 from pathlib import Path
 import time
-from typing import Tuple, Optional, Callable, Dict
+from typing import Tuple, Callable, Dict
 
 import torch
 
 from adabmDCA.stats import get_freq_single_point, get_freq_two_points, get_correlation_two_points
 from adabmDCA.io import save_chains, save_params
-from adabmDCA.methods import compute_density, get_mask_save
+from adabmDCA.utils import get_mask_save
 
 
 @torch.jit.script
@@ -87,8 +87,6 @@ def train_graph(
     mask: torch.Tensor,
     fi: torch.Tensor,
     fij: torch.Tensor,
-    pi: torch.Tensor,
-    pij: torch.Tensor,
     params: Dict[str, torch.Tensor],
     nsweeps: int,
     lr: float,
@@ -108,8 +106,6 @@ def train_graph(
         mask (torch.Tensor): Mask encoding the sparse graph.
         fi (torch.Tensor): Single-point frequencies of the data.
         fij (torch.Tensor): Two-point frequencies of the data.
-        pi (torch.Tensor): Single-point marginals of the model.
-        pij (torch.Tensor): Two-points marginals of the model.
         params (Dict[str, torch.Tensor]): Parameters of the model.
         nsweeps (int): Number of Gibbs steps for each gradient estimation.
         lr (float): Learning rate.
@@ -127,6 +123,10 @@ def train_graph(
     
     L, q = fi.shape
     time_start = time.time()
+    
+    # Compute the single-point and two-points frequencies of the simulated data
+    pi = get_freq_single_point(data=chains, weights=None, pseudo_count=0.)
+    pij = get_freq_two_points(data=chains, weights=None, pseudo_count=0.)
     
     def halt_condition(epochs, pearson, slope, check_slope):
         c1 = pearson < target_pearson

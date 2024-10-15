@@ -5,10 +5,10 @@ import numpy as np
 import torch
 
 from adabmDCA.fasta_utils import get_tokens
-from adabmDCA.methods import compute_energy
+from adabmDCA.utils import compute_energy
 from adabmDCA.io import load_params, import_from_fasta
 from adabmDCA.fasta_utils import encode_sequence, decode_sequence
-from adabmDCA.custom_fn import one_hot
+from adabmDCA.functional import one_hot
 
 
 # import command-line input arguments
