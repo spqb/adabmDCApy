@@ -77,14 +77,14 @@ def get_freq_two_points(
 def generate_unique_triplets(
     L: int,
     ntriplets: int,
-    device: str = "cpu",
+    device: torch.device = torch.device("cpu"),
 ) -> torch.Tensor:
     """Generates a set of unique triplets of positions. Used to compute the 3-points statistics.
     
     Args:
         L (int): Length of the sequences.
         ntriplets (int): Number of triplets to be generated.
-        device (str, optional): Device to perform computations on. Defaults to "cpu".
+        device (torch.device, optional): Device to perform computations on. Defaults to "cpu".
     
     Returns:
         torch.Tensor: Tensor of shape (ntriplets, 3) containing the indices of the triplets.
@@ -132,7 +132,7 @@ def get_freq_three_points(
     data: torch.Tensor,
     weights: torch.Tensor,
     ntriplets: int,
-    device: str = "cpu",
+    device: torch.device = torch.device("cpu"),
 ) -> torch.Tensor:
     """Computes the 3-body statistics of the input MSA.
 
@@ -140,7 +140,7 @@ def get_freq_three_points(
         data (torch.Tensor): Input MSA in one-hot encoding.
         weights (torch.Tensor): Importance weights for the sequences.
         ntriplets (int): Number of triplets to test.
-        device (str, optional): Device to perform computations on. Defaults to "cpu".
+        device (torch.device, optional): Device to perform computations on. Defaults to "cpu".
 
     Returns:
         torch.Tensor: 3-points connected correlation for ntriplets randomly extracted triplets.

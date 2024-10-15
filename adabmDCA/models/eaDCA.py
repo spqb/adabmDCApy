@@ -27,7 +27,7 @@ def fit(
     factivate: float,
     gsteps: int,
     file_paths: dict = None,
-    device: str = "cpu",
+    device: torch.device = torch.device("cpu"),
     *args, **kwargs
 ) -> None:
     """
@@ -49,7 +49,7 @@ def fit(
         factivate (float): Fraction of inactive couplings to activate at each step.
         gsteps (int): Number of gradient updates to be performed on a given graph.
         file_paths (dict, optional): Dictionary containing the paths where to save log, params, and chains. Defaults to None.
-        device (str, optional): Device to be used. Defaults to "cpu".
+        device (torch.device, optional): Device to be used. Defaults to "cpu".
     """
     
     # Check the input sizes

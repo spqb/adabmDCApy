@@ -9,7 +9,7 @@ import torch
 from adabmDCA.fasta_utils import get_tokens, write_fasta, compute_weights
 from adabmDCA.resampling import compute_mixing_time
 from adabmDCA.io import load_params, load_chains
-from adabmDCA.utils import compute_energy, init_chains, resample_sequences
+from adabmDCA.utils import compute_energy, init_chains, resample_sequences, get_device
 from adabmDCA.sampling import get_sampler
 from adabmDCA.functional import one_hot
 
@@ -49,11 +49,14 @@ if __name__ == '__main__':
     folder.mkdir(parents=True, exist_ok=True)
     
     print("\n" + "".join(["*"] * 10) + f" Sampling from DCA model " + "".join(["*"] * 10) + "\n")
+    # Set the device
+    device = get_device(args.device)
+    print("\n")
     tokens = get_tokens(args.alphabet)
         
     # Import parameters
     print(f"Loading parameters from {args.path_params}...")
-    params = load_params(fname=args.path_params, tokens=tokens, device=args.device)
+    params = load_params(fname=args.path_params, tokens=tokens, device=device)
     L, q = params["bias"].shape
     print(f"L = {L}, q = {q}")
     
@@ -66,13 +69,13 @@ if __name__ == '__main__':
     
     if args.weights is None:
         print("Computing the weights...")
-        weights = compute_weights(data, device=args.device).view(-1).to("cpu")
+        weights = compute_weights(data, device=device).view(-1).to("cpu")
     else:
         weights = torch.tensor(np.loadtxt(args.weights))
     
     nmeasure = min(args.nmeasure, len(data))
-    data = resample_sequences(data, weights, nmeasure).to(args.device)
-    data = one_hot(data, num_classes=len(tokens)).to(args.device)
+    data = resample_sequences(data, weights, nmeasure).to(device)
+    data = one_hot(data, num_classes=len(tokens)).to(device)
     
     # Compute the mixing time
     print("Computing the mixing time...")
@@ -101,7 +104,7 @@ if __name__ == '__main__':
         num_chains=args.ngen,
         L=L,
         q=q,
-        device=args.device,
+        device=device,
     )
     
     for i in range(args.nmix * mixing_time):

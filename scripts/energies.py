@@ -5,7 +5,7 @@ import numpy as np
 import torch
 
 from adabmDCA.fasta_utils import get_tokens
-from adabmDCA.utils import compute_energy
+from adabmDCA.utils import compute_energy, get_device
 from adabmDCA.io import load_params, import_from_fasta
 from adabmDCA.fasta_utils import encode_sequence
 from adabmDCA.functional import one_hot
@@ -18,7 +18,7 @@ def create_parser():
     parser.add_argument("-p", "--path_params",  type=Path,   required=True,      help="Path to the file containing the parameters of DCA model to sample from.")
     parser.add_argument("-o", "--output",       type=Path,   required=True,      help="Path to the folder where to save the output.")
     parser.add_argument("--alphabet",           type=str,    default="protein",  help="(Defaults to protein). Type of encoding for the sequences. Choose among ['protein', 'rna', 'dna'] or a user-defined string of tokens.")
-    parser.add_argument("--device",             type=str,    default="cuda",     help="(Defaults to cuda). Device to be used. Choose among ['cpu', 'cuda'].")
+    parser.add_argument("--device",             type=str,    default="cuda",     help="(Defaults to cuda). Device to be used.")
     return parser
 
 
@@ -28,14 +28,17 @@ if __name__ == '__main__':
     parser = create_parser()
     args = parser.parse_args()
     
+    # Set the device
+    device = get_device(args.device)
+    
     # import data
     tokens = get_tokens(args.alphabet)
     names, sequences = import_from_fasta(args.data)
     data = np.vectorize(encode_sequence, excluded=["tokens"], signature="(), () -> (n)")(sequences, tokens)
-    data = torch.tensor(data, device=args.device)
+    data = torch.tensor(data, device=device)
     
     # import parameters and compute DCA energies
-    params = load_params(args.path_params, tokens=tokens, device=args.device)
+    params = load_params(args.path_params, tokens=tokens, device=device)
     q = params["bias"].shape[1]
     data = one_hot(data, num_classes=q)
     energies = compute_energy(data, params).cpu().numpy()

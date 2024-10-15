@@ -180,7 +180,7 @@ def import_clean_dataset(filein: str, tokens: str = "protein") -> Tuple[np.ndarr
 def compute_weights(
     data: np.ndarray | torch.Tensor,
     th: float = 0.8,
-    device: str = "cpu",
+    device: torch.device = torch.device("cpu"),
 ) -> torch.Tensor:
     """Computes the weight to be assigned to each sequence 's' in 'data' as 1 / n_clust, where 'n_clust' is the number of sequences
     that have a sequence identity with 's' >= th.
@@ -188,7 +188,7 @@ def compute_weights(
     Args:
         data (np.ndarray | torch.Tensor): Encoded input dataset.
         th (float, optional): Sequence identity threshold for the clustering. Defaults to 0.8.
-        device (str, optional): Device. Defaults to "cpu".
+        device (toch.device, optional): Device. Defaults to "cpu".
 
     Returns:
         torch.Tensor: Array with the weights of the sequences.
@@ -227,4 +227,4 @@ def validate_alphabet(sequences: np.ndarray, tokens: str):
     tokens_data = "".join(sorted(set(all_char)))
     sorted_tokens = "".join(sorted(tokens))
     if not sorted_tokens == tokens_data:
-        raise KeyError(f"The chosen alphabet is incompatible with the Multi-Sequence Alignment. The missing tokens are: {[c for c in tokens_data if c not in sorted_tokens]}")
+        raise KeyError(f"The chosen alphabet is incompatible with the Multi-Sequence Alignment. The missing tokens are: {[c for c in tokens_data if c not in sorted_tokens]}. Current alphabet: {tokens}")

@@ -96,7 +96,7 @@ def train_graph(
     check_slope: bool = False,
     file_paths: Dict[str, Path] = None,
     progress_bar: bool = True,
-    device: str = "cpu",
+    device: torch.device = torch.device("cpu"),
 ) -> Tuple[torch.Tensor, Dict[str, torch.Tensor]]:
     """Trains the model on a given graph until the target Pearson correlation is reached or the maximum number of epochs is exceeded.
 
@@ -115,7 +115,7 @@ def train_graph(
         check_slope (bool, optional): Whether to take into account the slope for the convergence criterion or not. Defaults to False.
         file_paths (Dict[str, Path], optional): Dictionary containing the paths where to save log, params, and chains.  Defaults to None.
         progress_bar (bool, optional): Whether to display a progress bar or not. Defaults to True.
-        device (str, optional): Device to be used. Defaults to "cpu".
+        device (torch.device, optional): Device to be used. Defaults to "cpu".
 
     Returns:
         Tuple[torch.Tensor, Dict[str, torch.Tensor]]: Updated chains and parameters.

@@ -20,7 +20,7 @@ class DatasetDCA(Dataset):
         path_data: Union[str, Path],
         path_weights: Union[str, Path] = None,
         alphabet: str = "protein",
-        device: str = "cuda",
+        device: torch.device = torch.device("cpu"),
     ):
         """Initialize the dataset.
 
@@ -28,7 +28,7 @@ class DatasetDCA(Dataset):
             path_data (Union[str, Path]): Path to multi sequence alignment in fasta format.
             path_weights (Union[str, Path], optional): Path to the file containing the importance weights of the sequences. If None, the weights are computed automatically.
             alphabet (str, optional): Selects the type of encoding of the sequences. Default choices are ("protein", "rna", "dna"). Defaults to "protein".
-            device (str, optional): Device to be used. Choose among ['cpu', 'cuda']. Defaults to "cuda".
+            device (torch.device, optional): Device to be used. Defaults to "cpu".
         """
         path_data = Path(path_data)
         self.names = []

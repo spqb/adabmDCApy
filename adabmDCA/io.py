@@ -4,7 +4,7 @@ import numpy as np
 
 import torch
 
-from adabmDCA.fasta_utils import write_fasta, encode_sequence, import_from_fasta
+from adabmDCA.fasta_utils import write_fasta, encode_sequence, import_from_fasta, validate_alphabet
 
 
 def load_chains(fname: str, tokens: str):
@@ -18,6 +18,7 @@ def load_chains(fname: str, tokens: str):
         np.ndarray: Numeric-encoded sequences.
     """
     _, seqs = import_from_fasta(fasta_name=fname)
+    validate_alphabet(seqs, tokens=tokens)
     
     return encode_sequence(seqs, tokens=tokens)
 
@@ -50,7 +51,7 @@ def save_chains(fname: str, chains: torch.Tensor, tokens: str):
 def load_params(
     fname: str,
     tokens: str,
-    device: str,
+    device: torch.device,
     dtype: torch.dtype = torch.float32,
 ) -> Dict[str, torch.Tensor]:
     """Import the parameters of the model from a file.
@@ -58,7 +59,7 @@ def load_params(
     Args:
         fname (str): Path of the file that stores the parameters.
         tokens (str): "protein", "dna", "rna" or another string with the alphabet to be used.
-        device (str): Device where to store the parameters.
+        device (torch.device): Device where to store the parameters.
         dtype (torch.dtype): Data type of the parameters. Defaults to torch.float32.
 
     Returns:
@@ -85,6 +86,7 @@ def load_params(
     ).astype({"idx0" : int, "idx1" : str, "val" : float})
     
     # Convert from amino acid format to numeric format
+    validate_alphabet(df_h["idx1"].to_numpy(), tokens=tokens)
     df_J["idx2"] = encode_sequence(df_J["idx2"].to_numpy(), tokens=tokens)
     df_J["idx3"] = encode_sequence(df_J["idx3"].to_numpy(), tokens=tokens)
     df_h["idx1"] = encode_sequence(df_h["idx1"].to_numpy(), tokens=tokens)
@@ -150,12 +152,17 @@ def save_params(
     df_h.to_csv(fname, sep=" ", header=False, index=False, mode="a")
     
     
-def load_params_oldformat(fname: str, device: str, dtype: torch.dtype = torch.float32) -> Dict[str, torch.Tensor]:
+def load_params_oldformat(
+    fname: str,
+    device: torch.device,
+    dtype: torch.dtype = torch.float32,
+) -> Dict[str, torch.Tensor]:
     """Import the parameters of the model from a file. Assumes the old DCA format.
 
     Args:
         fname (str): Path of the file that stores the parameters.
-        device (str): Device where to store the parameters.
+        device (torch.device): Device where to store the parameters.
+        dtype (torch.dtype): Data type of the parameters. Defaults to torch.float32.
 
     Returns:
         Dict[str, torch.Tensor]: Parameters of the model.

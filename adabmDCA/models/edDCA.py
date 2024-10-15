@@ -27,7 +27,7 @@ def fit(
     drate: float,
     tokens: str,
     file_paths: Dict[str, Path] = None,
-    device: str = "cpu",
+    device: torch.device = torch.device("cpu"),
     *args, **kwargs,
 ):
     """Fits an edDCA model on the training data and saves the results in a file.
@@ -46,7 +46,7 @@ def fit(
         drate (float): Percentage of active couplings to be pruned at each decimation step.
         tokens (str): Tokens used for encoding the sequences.
         file_paths (Dict[str, Path], optional): Dictionary containing the paths where to save log, params and chains. Defaults to None.
-        device (str, optional): Device to be used. Defaults to "cpu".
+        device (torch.device, optional): Device to be used. Defaults to "cpu".
     """
     time_start = time.time()
     

@@ -75,7 +75,7 @@ def init_chains(
     num_chains: int,
     L: int,
     q: int,
-    device: str,
+    device: torch.device,
     fi: torch.Tensor = None,
 ) -> torch.Tensor:
     """Initialize the chains of the DCA model. If 'fi' is provided, the chains are sampled from the
@@ -85,7 +85,7 @@ def init_chains(
         num_chains (int): Number of parallel chains.
         L (int): Length of the MSA.
         q (int): Number of values that each residue can assume.
-        device (str): Device where to store the chains.
+        device (torch.device): Device where to store the chains.
         fi (torch.Tensor, optional): Single-point frequencies. Defaults to None.
 
     Returns:
@@ -99,13 +99,13 @@ def init_chains(
     return one_hot(chains, num_classes=q).float()
 
 
-def get_mask_save(L: int, q: int, device: str) -> torch.Tensor:
+def get_mask_save(L: int, q: int, device: torch.device) -> torch.Tensor:
     """Returns the mask to save the upper-triangular part of the coupling matrix.
     
     Args:
         L (int): Length of the MSA.
         q (int): Number of values that each residue can assume.
-        device (str): Device where to store the mask.
+        device (torch.device): Device where to store the mask.
         
     Returns:
         torch.Tensor: Mask.
@@ -135,3 +135,21 @@ def resample_sequences(
     indices = torch.multinomial(weights.view(-1), nextract, replacement=True)
     
     return data[indices]
+
+
+def get_device(device: str) -> torch.device:
+    """Returns the device where to store the tensors.
+    
+    Args:
+        device (str): Device to be used.
+        
+    Returns:
+        torch.device: Device.
+    """
+    if "cuda" in device and torch.cuda.is_available():
+        device = torch.device(device)
+        print(f"Running on {torch.cuda.get_device_name(device)}")
+        return device
+    else:
+        print("Running on CPU")
+        return torch.device("cpu")

@@ -11,7 +11,7 @@ from adabmDCA.dataset import DatasetDCA
 from adabmDCA.fasta_utils import get_tokens
 from adabmDCA.io import load_chains, load_params
 from adabmDCA.stats import get_freq_single_point, get_freq_two_points
-from adabmDCA.utils import init_chains, init_parameters
+from adabmDCA.utils import init_chains, init_parameters, get_device
 from adabmDCA.parser import add_args_dca, add_args_eaDCA, add_args_edDCA
 from adabmDCA.sampling import get_sampler
 from adabmDCA.functional import one_hot
@@ -35,6 +35,9 @@ if __name__ == '__main__':
     args = parser.parse_args()
     
     print("\n" + "".join(["*"] * 10) + f" Training {args.model} model " + "".join(["*"] * 10) + "\n")
+    # Set the device
+    device = get_device(args.device)
+    print("\n")
     print(f"Input MSA:\t\t{args.data}")
     print(f"Output folder:\t\t{args.output}")
     print(f"Alphabet:\t\t{args.alphabet}")
@@ -67,7 +70,7 @@ if __name__ == '__main__':
     
     # Import dataset
     print("Importing dataset...")
-    dataset = DatasetDCA(path_data=args.data, path_weights=args.weights, alphabet=args.alphabet)
+    dataset = DatasetDCA(path_data=args.data, path_weights=args.weights, alphabet=args.alphabet, device=device)
     DCA_model = importlib.import_module(f"adabmDCA.models.{args.model}")
     tokens = get_tokens(args.alphabet)
     
@@ -95,7 +98,7 @@ if __name__ == '__main__':
         print(f"Pseudocount automatically set to {args.pseudocount}.")
         
     data_oh = one_hot(
-        torch.tensor(dataset.data, device=args.device),
+        torch.tensor(dataset.data, device=device),
         num_classes=q,
     ).float()
     
@@ -105,23 +108,23 @@ if __name__ == '__main__':
     # Initialize parameters and chains
     if args.path_params:
         tokens = get_tokens(args.alphabet)
-        params = load_params(fname=args.path_params, tokens=tokens, device=args.device)
-        mask = torch.zeros(size=(L, q, L, q), dtype=torch.bool, device=args.device)
+        params = load_params(fname=args.path_params, tokens=tokens, device=device)
+        mask = torch.zeros(size=(L, q, L, q), dtype=torch.bool, device=device)
         mask[torch.nonzero(params["coupling_matrix"])] = 1
         
     else:
         params = init_parameters(fi=fi_target)
         
         if args.model in ["bmDCA", "edDCA"]:
-            mask = torch.ones(size=(L, q, L, q), dtype=torch.bool, device=args.device)
+            mask = torch.ones(size=(L, q, L, q), dtype=torch.bool, device=device)
             mask[torch.arange(L), :, torch.arange(L), :] = 0
             
         else:
-            mask = torch.zeros(size=(L, q, L, q), device=args.device)
+            mask = torch.zeros(size=(L, q, L, q), device=device)
     
     if args.path_chains:
         chains = one_hot(
-            torch.tensor(load_chains(fname=args.path_chains, tokens=dataset.tokens), device=args.device),
+            torch.tensor(load_chains(fname=args.path_chains, tokens=dataset.tokens), device=device),
             num_classes=q,
         ).float()
         args.nchains = chains.shape[0]
@@ -135,7 +138,7 @@ if __name__ == '__main__':
         else:
             print(f"Number of chains set to {args.nchains}.")
             
-        chains = init_chains(num_chains=args.nchains, L=L, q=q, fi=fi_target, device=args.device)
+        chains = init_chains(num_chains=args.nchains, L=L, q=q, fi=fi_target, device=device)
         
     # Select the sampling function
     sampler = get_sampler(args.sampler)
@@ -186,5 +189,5 @@ if __name__ == '__main__':
         drate=args.drate,
         target_density=args.density,
         file_paths=file_paths,
-        device=args.device,
+        device=device,
     )

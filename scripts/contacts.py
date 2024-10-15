@@ -6,18 +6,18 @@ import torch
 
 from adabmDCA.fasta_utils import get_tokens
 from adabmDCA.io import load_params
-from adabmDCA.utils import set_zerosum_gauge
+from adabmDCA.utils import set_zerosum_gauge, get_device
 
 
 # import command-line input arguments
 def create_parser():
     # Important arguments
-    parser = argparse.ArgumentParser(description='Samples from a DCA model.')
+    parser = argparse.ArgumentParser(description='Computes the Frobenius norm matrix extracted from a DCA model.')
     parser.add_argument("-p", "--path_params",  type=Path,   required=True,          help="Path to the file containing the parameters of DCA model to sample from.")
     parser.add_argument("-o", "--output",       type=Path,   required=True,          help="Path to the folder where to save the output.")
     parser.add_argument("--label",              type=str,    default=None,           help="(Defaults to None). If provoded, adds a label to the output files inside the output folder.")
     parser.add_argument("--alphabet",           type=str,    default="protein",      help="(Defaults to protein). Type of encoding for the sequences. Choose among ['protein', 'rna', 'dna'] or a user-defined string of tokens.")
-    parser.add_argument("--device",             type=str,    default="cuda",         help="(Defaults to cuda). Device to be used. Choose among ['cpu', 'cuda'].")
+    parser.add_argument("--device",             type=str,    default="cuda",         help="(Defaults to cuda). Device to be used.")
     
     return parser
 
@@ -28,9 +28,12 @@ if __name__ == '__main__':
     parser = create_parser()
     args = parser.parse_args()
     
+    # Set the device
+    device = get_device(args.device)
+    
     # Import parameters
     tokens = get_tokens(args.alphabet)
-    params = load_params(args.path_params, tokens=tokens, device=args.device)
+    params = load_params(args.path_params, tokens=tokens, device=device)
     
     # Zero-sum gauge
     params = set_zerosum_gauge(params)

@@ -18,7 +18,7 @@ def fit(
     nepochs: int,
     lr: float,
     file_paths: dict = None,
-    device: str = "cpu",
+    device: torch.device = torch.device("cpu"),
     *args, **kwargs
 ) -> None:
     """Trains a bmDCA model on the input MSA and saves the results in a file.
@@ -36,7 +36,7 @@ def fit(
         nepochs (int): Maximum number of epochs to be performed.
         lr (float): Learning rate.
         file_paths (dict, optional): Dictionary containing the paths where to save log, params and chains. Defaults to None.
-        device (str, optional): Device to be used. Defaults to "cpu".
+        device (torch.device, optional): Device to be used. Defaults to "cpu".
     """
     
     # Check the input sizes
