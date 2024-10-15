@@ -42,6 +42,9 @@ class DatasetDCA(Dataset):
             first_line = f.readline()
         if first_line.startswith(">"):
             names, sequences = import_clean_dataset(path_data, tokens=self.tokens)
+            # Check if data is empty
+            if len(sequences) == 0:
+                raise ValueError(f"The input dataset is empty. Check that the alphabet is correct. Current alphabet: {alphabet}")
             self.names = np.array(names)
             self.data = encode_sequence(sequences, tokens=self.tokens)
         else:
