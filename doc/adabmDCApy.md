@@ -2,7 +2,7 @@
 
 ## Submodules
 
-## adabmDCA.dataset module
+### adabmDCA.dataset module
 
 ```{eval-rst}
 .. automodule:: adabmDCA.dataset
@@ -11,7 +11,7 @@
    :show-inheritance:
 ```
 
-## adabmDCA.fasta_utils module
+### adabmDCA.fasta_utils module
 
 ```{eval-rst}
 .. automodule:: adabmDCA.fasta_utils
@@ -20,7 +20,7 @@
    :show-inheritance:
 ```
 
-## adabmDCA.functional module
+### adabmDCA.functional module
 
 ```{eval-rst}
 .. automodule:: adabmDCA.functional
@@ -29,7 +29,7 @@
    :show-inheritance:
 ```
 
-## adabmDCA.grad module
+### adabmDCA.grad module
 
 ```{eval-rst}
 .. automodule:: adabmDCA.grad
@@ -38,7 +38,7 @@
    :show-inheritance:
 ```
 
-## adabmDCA.graph module
+### adabmDCA.graph module
 
 ```{eval-rst}
 .. automodule:: adabmDCA.graph
@@ -47,7 +47,7 @@
    :show-inheritance:
 ```
 
-## adabmDCA.io module
+### adabmDCA.io module
 
 ```{eval-rst}
 .. automodule:: adabmDCA.io
@@ -56,7 +56,7 @@
    :show-inheritance:
 ```
 
-## adabmDCA.parser module
+### adabmDCA.parser module
 
 ```{eval-rst}
 .. automodule:: adabmDCA.parser
@@ -65,7 +65,7 @@
    :show-inheritance:
 ```
 
-## adabmDCA.plot module
+### adabmDCA.plot module
 
 ```{eval-rst}
 .. automodule:: adabmDCA.plot
@@ -74,7 +74,7 @@
    :show-inheritance:
 ```
 
-## adabmDCA.resampling module
+### adabmDCA.resampling module
 
 ```{eval-rst}
 .. automodule:: adabmDCA.resampling
@@ -83,7 +83,7 @@
    :show-inheritance:
 ```
 
-## adabmDCA.sampling module
+### adabmDCA.sampling module
 
 ```{eval-rst}
 .. automodule:: adabmDCA.sampling
@@ -92,7 +92,7 @@
    :show-inheritance:
 ```
 
-## adabmDCA.stats module
+### adabmDCA.stats module
 
 ```{eval-rst}
 .. automodule:: adabmDCA.stats
@@ -101,7 +101,7 @@
    :show-inheritance:
 ```
 
-## adabmDCA.utils module
+### adabmDCA.utils module
 
 ```{eval-rst}
 .. automodule:: adabmDCA.utils
@@ -110,7 +110,7 @@
    :show-inheritance:
 ```
 
-## Module contents
+### Module contents
 
 ```{eval-rst}
 .. automodule:: adabmDCA
