@@ -1,4 +1,4 @@
-# adabmDCA package
+# adabmDCApy APIs
 
 ## Submodules
 

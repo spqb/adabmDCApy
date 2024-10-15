@@ -38,7 +38,7 @@ def encode_sequence(sequence: Union[str, np.ndarray], tokens: str) -> np.ndarray
         tokens (str): Alphabet to be used for the encoding.
 
     Returns:
-        list: Encoded sequence.
+        np.ndarray: Encoded sequence or sequences.
     """
     letter_map = {l : n for n, l in enumerate(tokens)}
     if isinstance(sequence, str):
@@ -52,7 +52,7 @@ def encode_sequence(sequence: Union[str, np.ndarray], tokens: str) -> np.ndarray
         raise ValueError("Input sequence must be either a string or a numpy array.")
 
 
-def decode_sequence(sequence: np.ndarray, tokens: str) -> str:
+def decode_sequence(sequence: np.ndarray, tokens: str) -> Union[str, np.ndarray]:
     """Takes a numeric sequence or list of seqences in input an returns the corresponding string encoding.
 
     Args:
@@ -60,7 +60,7 @@ def decode_sequence(sequence: np.ndarray, tokens: str) -> str:
         tokens (str): Alphabet to be used for the encoding.
 
     Returns:
-        list: Decoded input.
+        str | np.ndarray: Decoded input.
     """
     if sequence.ndim == 1:
         return ''.join([tokens[aa] for aa in sequence])
