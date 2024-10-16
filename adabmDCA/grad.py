@@ -8,6 +8,8 @@ import torch
 from adabmDCA.stats import get_freq_single_point, get_freq_two_points, get_correlation_two_points
 from adabmDCA.io import save_chains, save_params
 from adabmDCA.utils import get_mask_save
+from adabmDCA.utils import init_chains
+from adabmDCA.statmech import update_weights_AIS, compute_log_likelihood
 
 
 @torch.jit.script
@@ -94,10 +96,11 @@ def train_graph(
     target_pearson: float,
     tokens: str = "protein",
     check_slope: bool = False,
+    log_weights: torch.Tensor = None,
     file_paths: Dict[str, Path] = None,
     progress_bar: bool = True,
     device: torch.device = torch.device("cpu"),
-) -> Tuple[torch.Tensor, Dict[str, torch.Tensor]]:
+) -> Tuple[torch.Tensor, Dict[str, torch.Tensor], torch.Tensor]:
     """Trains the model on a given graph until the target Pearson correlation is reached or the maximum number of epochs is exceeded.
 
     Args:
@@ -112,17 +115,22 @@ def train_graph(
         max_epochs (int): Maximum number of gradient updates to be done.
         target_pearson (float): Target Pearson coefficient.
         tokens (str, optional): Alphabet to be used for the encoding. Defaults to "protein".
+        log_weights (torch.Tensor, optional): Log-weights used for the online computation of the log-likelihood. Defaults to None.
         check_slope (bool, optional): Whether to take into account the slope for the convergence criterion or not. Defaults to False.
         file_paths (Dict[str, Path], optional): Dictionary containing the paths where to save log, params, and chains.  Defaults to None.
         progress_bar (bool, optional): Whether to display a progress bar or not. Defaults to True.
         device (torch.device, optional): Device to be used. Defaults to "cpu".
 
     Returns:
-        Tuple[torch.Tensor, Dict[str, torch.Tensor]]: Updated chains and parameters.
+        Tuple[torch.Tensor, Dict[str, torch.Tensor], torch.Tensor]: Updated chains and parameters, log-weights for the log-likelihood computation.
     """
     
     L, q = fi.shape
     time_start = time.time()
+    
+    # log_weights used for the online computing of the log-likelihood
+    if log_weights is None:
+        log_weights = torch.zeros(len(chains), device=device)
     
     # Compute the single-point and two-points frequencies of the simulated data
     pi = get_freq_single_point(data=chains, weights=None, pseudo_count=0.)
@@ -165,6 +173,10 @@ def train_graph(
     template = "{0:10} {1:10} {2:10} {3:10}\n"
     
     while not halt_condition(epochs, pearson, slope, check_slope):
+        
+        # Store the previous parameters
+        params_prev = {key: value.clone() for key, value in params.items()}
+        
         chains, params = update(
             sampler=sampler,
             chains=chains,
@@ -182,19 +194,29 @@ def train_graph(
         # Compute the single-point and two-points frequencies of the simulated data
         pi = get_freq_single_point(data=chains, weights=None, pseudo_count=0.)
         pij = get_freq_two_points(data=chains, weights=None, pseudo_count=0.)
-        
         pearson, slope = get_correlation_two_points(fij=fij, pij=pij, fi=fi, pi=pi)
+        
+        # Compute the log-likelihood
+        log_weights = update_weights_AIS(
+            prev_params=params_prev,
+            curr_params=params,
+            chains=chains,
+            log_weights=log_weights,
+        )
+        
+        logZ = (torch.logsumexp(log_weights, dim=0) - torch.log(torch.tensor(len(chains), device=device))).item()
+        log_likelihood = compute_log_likelihood(fi=fi, fij=fij, params=params, logZ=logZ)
         
         if progress_bar:
             pbar.n = min(max(0, float(pearson)), target_pearson)
-            pbar.set_description(f"Train graph - Epochs: {epochs} - Slope: {slope:.2f}")
+            pbar.set_description(f"Train graph - Epochs: {epochs} - Slope: {slope:.2f} - LL: {log_likelihood:.2f}")
             
         # Save the model if a checkpoint is reached
         if (file_paths is not None) and (epochs % 50 == 0 or epochs == max_epochs):
             save_params(fname=file_paths["params"], params=params, mask=mask_save, tokens=tokens)
             save_chains(fname=file_paths["chains"], chains=chains.argmax(dim=-1), tokens=tokens)
             with open(file_paths["log"], "a") as f:
-                f.write(template.format(f"{epochs}", f"{pearson:.3f}", f"{slope:.3f}", f"{(time.time() - time_start):.1f}"))
+                f.write(template.format(f"{epochs}", f"{pearson:.3f}", f"{log_likelihood:.3f}", "1.000", f"{(time.time() - time_start):.1f}"))
                 
     if progress_bar:
         pbar.close()
@@ -203,6 +225,6 @@ def train_graph(
         save_params(fname=file_paths["params"], params=params, mask=mask_save, tokens=tokens)
         save_chains(fname=file_paths["chains"], chains=chains.argmax(dim=-1), tokens=tokens)
         with open(file_paths["log"], "a") as f:
-            f.write(template.format(f"{epochs}", f"{pearson:.3f}", f"{slope:.3f}", f"{(time.time() - time_start):.1f}"))
+            f.write(template.format(f"{epochs}", f"{pearson:.3f}", f"{log_likelihood:.3f}", "1.000", f"{(time.time() - time_start):.1f}"))
 
-    return chains, params
+    return chains, params, log_weights

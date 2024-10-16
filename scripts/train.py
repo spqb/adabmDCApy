@@ -167,8 +167,8 @@ if __name__ == '__main__':
             f.write(template.format("factivate:", args.factivate))
         f.write(template.format("random seed:", args.seed))
         f.write("\n")
-        template = "{0:10} {1:10} {2:10} {3:10}\n"
-        f.write(template.format("Epoch", "Pearson", "Density", "Time [s]"))
+        template = "{0:10} {1:10} {2:10} {3:10} {4:10}\n"
+        f.write(template.format("Epoch", "Pearson", "LL", "Density", "Time [s]"))
 
     
     DCA_model.fit(
