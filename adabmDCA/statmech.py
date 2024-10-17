@@ -1,8 +1,9 @@
 from typing import Dict, Tuple
+import itertools
 
 import torch
 
-from adabmDCA.sampling import gibbs_sampling
+from adabmDCA.functional import one_hot
 
 
 def compute_energy(
@@ -52,12 +53,11 @@ def update_weights_AIS(
     Returns:
         Tuple[torch.Tensor, torch.Tensor]: Log-weights and chains at time t.
     """
-    #chains = gibbs_sampling(chains, params=curr_params, nsweeps=1)
     energy_prev = compute_energy(chains, prev_params)
     energy_curr = compute_energy(chains, curr_params)
     log_weights += energy_prev - energy_curr
     
-    return log_weights#, chains
+    return log_weights
 
 
 @torch.jit.script
@@ -81,3 +81,40 @@ def compute_log_likelihood(
     mean_energy_data = - torch.sum(fi * params["bias"]) - 0.5 * torch.sum(fij * params["coupling_matrix"])
     
     return - mean_energy_data - logZ
+
+
+def enumerate_states(L: int, q: int, device: torch.device=torch.device("cpu")) -> torch.Tensor:
+    """Enumerate all possible states of a system of L sites and q states.
+
+    Args:
+        L (int): Number of sites.
+        q (int): Number of states.
+        device (torch.device, optional): Device to store the states. Defaults to "cpu".
+
+    Returns:
+        torch.Tensor: All possible states.
+    """
+    if q**L > 5**11:
+        raise ValueError("The number of states is too large to enumerate.")
+    
+    all_states = torch.tensor(list(itertools.product(range(q), repeat=L)), device=device)
+    return one_hot(all_states, q)
+
+
+def compute_logZ_exact(
+    all_states: torch.Tensor,
+    params: Dict[str, torch.Tensor],
+) -> float:
+    """Compute the log-partition function of the model.
+
+    Args:
+        all_states (torch.Tensor): All possible states of the system.
+        params (Dict[str, torch.Tensor]): Parameters of the model.
+
+    Returns:
+        float: Log-partition function of the model.
+    """
+    energies = compute_energy(all_states, params)
+    logZ = torch.logsumexp(-energies, dim=0)
+    
+    return logZ.item()

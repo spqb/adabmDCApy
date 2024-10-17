@@ -8,7 +8,6 @@ import torch
 from adabmDCA.stats import get_freq_single_point, get_freq_two_points, get_correlation_two_points
 from adabmDCA.io import save_chains, save_params
 from adabmDCA.utils import get_mask_save
-from adabmDCA.utils import init_chains
 from adabmDCA.statmech import update_weights_AIS, compute_log_likelihood
 
 
@@ -131,6 +130,8 @@ def train_graph(
     # log_weights used for the online computing of the log-likelihood
     if log_weights is None:
         log_weights = torch.zeros(len(chains), device=device)
+    logZ = (torch.logsumexp(log_weights, dim=0) - torch.log(torch.tensor(len(chains), device=device))).item()
+    log_likelihood = compute_log_likelihood(fi=fi, fij=fij, params=params, logZ=logZ)
     
     # Compute the single-point and two-points frequencies of the simulated data
     pi = get_freq_single_point(data=chains, weights=None, pseudo_count=0.)
@@ -167,10 +168,10 @@ def train_graph(
             ascii="-#",
             bar_format="{desc} {percentage:.2f}%[{bar}] Pearson: {n:.3f}/{total_fmt} [{elapsed}]"
         )
-        pbar.set_description(f"Train graph - Epochs: {epochs} - Slope: {slope:.2f}")
+        pbar.set_description(f"Train graph - Epochs: {epochs} - Slope: {slope:.2f} - LL: {log_likelihood:.2f}")
    
     # Template for wrinting the results
-    template = "{0:10} {1:10} {2:10} {3:10}\n"
+    template = "{0:10} {1:10} {2:10} {3:10} {4:10}\n"
     
     while not halt_condition(epochs, pearson, slope, check_slope):
         
