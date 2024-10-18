@@ -160,13 +160,13 @@ def fit(
         # Save the model if a checkpoint is reached
         if (graph_upd % 10 == 0) or (graph_upd == nepochs):
             save_params(fname=file_paths["params"], params=params, mask=torch.logical_and(mask, mask_save), tokens=tokens)
-            save_chains(fname=file_paths["chains"], chains=chains.argmax(-1), tokens=tokens)
+            save_chains(fname=file_paths["chains"], chains=chains.argmax(-1), tokens=tokens, log_weights=log_weights)
             with open(file_paths["log"], "a") as f:
                 f.write(template.format(f"{graph_upd}", f"{pearson:.3f}", f"{log_likelihood:.3f}", f"{density:.3f}", f"{(time.time() - time_start):.1f}"))
         pbar.n = min(max(0, float(pearson)), target_pearson)
 
     save_params(fname=file_paths["params"], params=params, mask=torch.logical_and(mask, mask_save), tokens=tokens)
-    save_chains(fname=file_paths["chains"], chains=chains.argmax(-1), tokens=tokens)
+    save_chains(fname=file_paths["chains"], chains=chains.argmax(-1), tokens=tokens, log_weights=log_weights)
     with open(file_paths["log"], "a") as f:
         f.write(template.format(f"{graph_upd}", f"{pearson:.3f}", f"{log_likelihood:.3f}", f"{density:.3f}", f"{(time.time() - time_start):.1f}"))
 

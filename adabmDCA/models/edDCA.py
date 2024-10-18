@@ -178,12 +178,12 @@ def fit(
                 
         if count % 10 == 0:
             save_params(fname=file_paths["params_dec"], params=params, mask=torch.logical_and(mask, mask_save), tokens=tokens)
-            save_chains(fname=file_paths["chains_dec"], chains=chains.argmax(-1), tokens=tokens)
+            save_chains(fname=file_paths["chains_dec"], chains=chains.argmax(-1), tokens=tokens, log_weights=log_weights)
             with open(file_paths["log"], "a") as f:
                 f.write(template_log.format(f"{count}", f"{pearson:.3f}", f"{log_likelihood:.3f}", f"{density:.3f}", f"{(time.time() - time_start):.1f}"))
     
     save_params(fname=file_paths["params_dec"], params=params, mask=torch.logical_and(mask, mask_save), tokens=tokens)
-    save_chains(fname=file_paths["chains_dec"], chains=chains.argmax(-1), tokens=tokens)
+    save_chains(fname=file_paths["chains_dec"], chains=chains.argmax(-1), tokens=tokens, log_weights=log_weights)
     with open(file_paths["log"], "a") as f:
         f.write(template_log.format(f"{count}", f"{pearson:.3f}", f"{log_likelihood:.3f}", f"{density:.3f}", f"{(time.time() - time_start):.1f}"))
     print(f"Completed, decimated model parameters saved in {file_paths['params_dec']}")
