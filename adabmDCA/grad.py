@@ -8,7 +8,7 @@ import torch
 from adabmDCA.stats import get_freq_single_point, get_freq_two_points, get_correlation_two_points
 from adabmDCA.io import save_chains, save_params
 from adabmDCA.utils import get_mask_save
-from adabmDCA.statmech import update_weights_AIS, compute_log_likelihood
+from adabmDCA.statmech import update_weights_AIS, compute_log_likelihood, enumerate_states, compute_logZ_exact
 
 
 @torch.jit.script
@@ -98,6 +98,7 @@ def train_graph(
     log_weights: torch.Tensor = None,
     file_paths: Dict[str, Path] = None,
     progress_bar: bool = True,
+    all_states: torch.Tensor = None,
     device: torch.device = torch.device("cpu"),
 ) -> Tuple[torch.Tensor, Dict[str, torch.Tensor], torch.Tensor]:
     """Trains the model on a given graph until the target Pearson correlation is reached or the maximum number of epochs is exceeded.
@@ -132,6 +133,13 @@ def train_graph(
         log_weights = torch.zeros(len(chains), device=device)
     logZ = (torch.logsumexp(log_weights, dim=0) - torch.log(torch.tensor(len(chains), device=device))).item()
     log_likelihood = compute_log_likelihood(fi=fi, fij=fij, params=params, logZ=logZ)
+    
+    logZ_exact = compute_logZ_exact(all_states=all_states, params=params)
+    log_likelihood_exact = compute_log_likelihood(fi=fi, fij=fij, params=params, logZ=logZ_exact)
+    
+    # Csv file for recording log_likelihood and log_likelihood_exact
+    with open("LL.csv", "a") as f:
+        f.write(f"{log_likelihood:.3f}, {log_likelihood_exact:.3f}\n")
     
     # Compute the single-point and two-points frequencies of the simulated data
     pi = get_freq_single_point(data=chains, weights=None, pseudo_count=0.)
@@ -208,6 +216,13 @@ def train_graph(
         logZ = (torch.logsumexp(log_weights, dim=0) - torch.log(torch.tensor(len(chains), device=device))).item()
         log_likelihood = compute_log_likelihood(fi=fi, fij=fij, params=params, logZ=logZ)
         
+        logZ_exact = compute_logZ_exact(all_states=all_states, params=params)
+        log_likelihood_exact = compute_log_likelihood(fi=fi, fij=fij, params=params, logZ=logZ_exact)
+        
+        # append log_likelihood and log_likelihood_exact to the csv file
+        with open("LL.csv", "a") as f:
+            f.write(f"{log_likelihood:.3f}, {log_likelihood_exact:.3f}\n")
+        
         if progress_bar:
             pbar.n = min(max(0, float(pearson)), target_pearson)
             pbar.set_description(f"Train graph - Epochs: {epochs} - Slope: {slope:.2f} - LL: {log_likelihood:.2f}")
@@ -215,7 +230,7 @@ def train_graph(
         # Save the model if a checkpoint is reached
         if (file_paths is not None) and (epochs % 50 == 0 or epochs == max_epochs):
             save_params(fname=file_paths["params"], params=params, mask=mask_save, tokens=tokens)
-            save_chains(fname=file_paths["chains"], chains=chains.argmax(dim=-1), tokens=tokens)
+            save_chains(fname=file_paths["chains"], chains=chains.argmax(dim=-1), tokens=tokens, log_weights=log_weights)
             with open(file_paths["log"], "a") as f:
                 f.write(template.format(f"{epochs}", f"{pearson:.3f}", f"{log_likelihood:.3f}", "1.000", f"{(time.time() - time_start):.1f}"))
                 
@@ -224,7 +239,7 @@ def train_graph(
     
     if file_paths is not None:
         save_params(fname=file_paths["params"], params=params, mask=mask_save, tokens=tokens)
-        save_chains(fname=file_paths["chains"], chains=chains.argmax(dim=-1), tokens=tokens)
+        save_chains(fname=file_paths["chains"], chains=chains.argmax(dim=-1), tokens=tokens, log_weights=log_weights)
         with open(file_paths["log"], "a") as f:
             f.write(template.format(f"{epochs}", f"{pearson:.3f}", f"{log_likelihood:.3f}", "1.000", f"{(time.time() - time_start):.1f}"))
 

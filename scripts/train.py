@@ -123,10 +123,12 @@ if __name__ == '__main__':
             mask = torch.zeros(size=(L, q, L, q), device=device)
     
     if args.path_chains:
+        chains, log_weights = load_chains(fname=args.path_chains, tokens=dataset.tokens)
         chains = one_hot(
-            torch.tensor(load_chains(fname=args.path_chains, tokens=dataset.tokens), device=device),
+            torch.tensor(chains, device=device),
             num_classes=q,
         ).float()
+        log_weights = torch.tensor(log_weights, device=device)
         args.nchains = chains.shape[0]
         
     else:
@@ -139,6 +141,7 @@ if __name__ == '__main__':
             print(f"Number of chains set to {args.nchains}.")
             
         chains = init_chains(num_chains=args.nchains, L=L, q=q, fi=fi_target, device=device)
+        log_weights = torch.zeros(size=(args.nchains,), device=device)
         
     # Select the sampling function
     sampler = get_sampler(args.sampler)
@@ -178,6 +181,7 @@ if __name__ == '__main__':
         params=params,
         mask=mask,
         chains=chains,
+        log_weights=log_weights,
         tokens=tokens,
         target_pearson=args.target,
         pseudo_count=args.pseudocount,

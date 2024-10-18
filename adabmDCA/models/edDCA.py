@@ -10,13 +10,14 @@ from adabmDCA.utils import get_mask_save
 from adabmDCA.io import save_chains, save_params
 from adabmDCA.stats import get_freq_single_point, get_freq_two_points, get_correlation_two_points
 from adabmDCA.graph import decimate_graph, compute_density
-from adabmDCA.statmech import compute_log_likelihood
+from adabmDCA.statmech import compute_log_likelihood, enumerate_states, update_weights_AIS
 
 MAX_EPOCHS = 10000
 
 def fit(
     sampler: Callable,
     chains: torch.Tensor,
+    log_weights: torch.Tensor,
     fi_target: torch.Tensor,
     fij_target: torch.Tensor,
     params: Dict[str, torch.Tensor],
@@ -36,6 +37,7 @@ def fit(
     Args:
         sampler (Callable): Sampling function to be used.
         chains (torch.Tensor): Initialization of the Markov chains.
+        log_weights (torch.Tensor): Log-weights of the chains. Used to estimate the log-likelihood.
         fi_target (torch.Tensor): Single-point frequencies of the data.
         fij_target (torch.Tensor): Two-point frequencies of the data.
         params (Dict[str, torch.Tensor]): Initialization of the model's parameters.
@@ -61,10 +63,15 @@ def fit(
     
     L, q = params["bias"].shape
     
+    all_states = enumerate_states(L, q, device=device)
+    with open("LL.csv", "w") as f:
+        f.write("LL, LL_exact\n")
+    
     print("Bringing the model to the convergence threshold...")
     chains, params, log_weights = train_graph(
         sampler=sampler,
         chains=chains,
+        log_weights=log_weights,
         mask=mask,
         fi=fi_target,
         fij=fij_target,
@@ -77,6 +84,7 @@ def fit(
         check_slope=True,
         file_paths=file_paths,
         device=device,
+        all_states=all_states,
     )
     
     # Get the single-point and two-points frequencies of the simulated data
@@ -111,6 +119,9 @@ def fit(
     while density > target_density:
         count += 1
         
+        # Store the previous parameters
+        prev_params = {key: value.clone() for key, value in params.items()}
+        
         # Decimate the model
         params, mask = decimate_graph(
             pij=pij,
@@ -126,10 +137,19 @@ def fit(
             nsweeps=nsweeps,
         )
         
+        # Update the log-weights
+        log_weights = update_weights_AIS(
+            prev_params=prev_params,
+            curr_params=params,
+            chains=chains,
+            log_weights=log_weights,
+        )
+        
         # Bring the model at convergence on the graph
         chains, params, log_weights = train_graph(
             sampler=sampler,
             chains=chains,
+            log_weights=log_weights,
             mask=mask,
             fi=fi_target,
             fij=fij_target,
@@ -139,10 +159,10 @@ def fit(
             max_epochs=MAX_EPOCHS,
             target_pearson=target_pearson,
             tokens=tokens,
-            log_weights=log_weights,
             check_slope=True,
             progress_bar=False,
             device=device,
+            all_states=all_states,
         )
         
         # Compute the single-point and two-points frequencies of the simulated data

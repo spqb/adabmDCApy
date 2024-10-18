@@ -3,6 +3,7 @@ from typing import Callable, Dict
 import torch
 
 from adabmDCA.grad import train_graph
+from adabmDCA.statmech import enumerate_states
 
     
 def fit(
@@ -12,6 +13,7 @@ def fit(
     params: Dict[str, torch.Tensor],
     mask: torch.Tensor,
     chains: torch.Tensor,
+    log_weights: torch.Tensor,
     tokens: str,
     target_pearson: float,
     nsweeps: int,
@@ -30,6 +32,7 @@ def fit(
         params (Dict[str, torch.Tensor]): Initialization of the model's parameters.
         mask (torch.Tensor): Initialization of the coupling matrix's mask.
         chains (torch.Tensor): Initialization of the Markov chains.
+        log_weights (torch.Tensor): Log-weights of the chains. Used to estimate the log-likelihood.
         tokens (str): Tokens used for encoding the sequences.
         target_pearson (float): Pearson correlation coefficient on the two-points statistics to be reached.
         nsweeps (int): Number of Monte Carlo steps to update the state of the model.
@@ -47,10 +50,17 @@ def fit(
     if chains.dim() != 3:
         raise ValueError("chains must be a 3D tensor")
     
+    L, q = params["bias"].shape
+    all_states = enumerate_states(L, q, device=device)
+    
+    with open("LL.csv", "w") as f:
+        f.write("LL, LL_exact\n")
+    
     # Training loop    
     train_graph(
         sampler=sampler,
         chains=chains,
+        log_weights=log_weights,
         mask=mask,
         fi=fi_target,
         fij=fij_target,
@@ -63,4 +73,5 @@ def fit(
         check_slope=False,
         file_paths=file_paths,
         device=device,
+        all_states=all_states,
     )

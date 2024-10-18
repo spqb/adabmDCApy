@@ -9,7 +9,7 @@ from adabmDCA.stats import get_freq_single_point, get_freq_two_points, get_corre
 from adabmDCA.grad import train_graph
 from adabmDCA.utils import get_mask_save
 from adabmDCA.graph import activate_graph, compute_density
-from adabmDCA.statmech import compute_log_likelihood
+from adabmDCA.statmech import compute_log_likelihood, enumerate_states, compute_logZ_exact
 
 
 def fit(
@@ -19,6 +19,7 @@ def fit(
     params: dict,
     mask: torch.Tensor,
     chains: torch.Tensor,
+    log_weights: torch.Tensor,
     tokens: str,
     target_pearson: float,
     nsweeps: int,
@@ -41,6 +42,7 @@ def fit(
         params (dict): Initialization of the model's parameters.
         mask (torch.Tensor): Initialization of the coupling matrix's mask.
         chains (torch.Tensor): Initialization of the Markov chains.
+        log_weights (torch.Tensor): Log-weights of the chains. Used to estimate the log-likelihood.
         tokens (str): Tokens used for encoding the sequences.
         target_pearson (float): Pearson correlation coefficient on the two-points statistics to be reached.
         nsweeps (int): Number of Monte Carlo steps to update the state of the model.
@@ -69,8 +71,10 @@ def fit(
     mask_save = get_mask_save(L, q, device=device)
     
     # log_weights used for the online computing of the log-likelihood
-    log_weights = torch.zeros(len(chains), device=device)
-    logZ = 0.
+    logZ = (torch.logsumexp(log_weights, dim=0) - torch.log(torch.tensor(len(chains), device=device))).item()
+    all_states = enumerate_states(L, q, device=device)
+    logZ_exact = compute_logZ_exact(all_states=all_states, params=params)
+    
     
     # Compute the single-point and two-points frequencies of the simulated data
     pi = get_freq_single_point(data=chains, weights=None, pseudo_count=0.)
@@ -86,6 +90,13 @@ def fit(
     # Training loop
     time_start = time.time()
     log_likelihood = compute_log_likelihood(fi=fi_target, fij=fij_target, params=params, logZ=logZ)
+    log_likelihood_exact = compute_log_likelihood(fi=fi_target, fij=fij_target, params=params, logZ=logZ_exact)
+    
+    # csv file for recording log_likelihood and log_likelihood_exact
+    with open("LL.csv", "w") as f:
+        f.write("LL, LL_exact\n")
+        f.write(f"{log_likelihood:.3f}, {log_likelihood_exact:.3f}\n")
+    
     pbar = tqdm(initial=max(0, float(pearson)), total=target_pearson, colour="red", dynamic_ncols=True, ascii="-#",
                 bar_format="{desc}: {percentage:.2f}%[{bar}] Pearson: {n:.3f}/{total_fmt} [{elapsed}]")
     pbar.set_description(f"Training eaDCA - Graph updates: {graph_upd} - Density: {density:.3f}% - New active couplings: {0} - LL: {log_likelihood:.3f}")
@@ -130,6 +141,7 @@ def fit(
             file_paths=None,
             progress_bar=False,
             device=device,
+            all_states=all_states,
         )
 
         graph_upd += 1
