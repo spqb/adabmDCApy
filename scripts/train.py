@@ -123,7 +123,7 @@ if __name__ == '__main__':
             mask = torch.zeros(size=(L, q, L, q), device=device)
     
     if args.path_chains:
-        chains, log_weights = load_chains(fname=args.path_chains, tokens=dataset.tokens)
+        chains, log_weights = load_chains(fname=args.path_chains, tokens=dataset.tokens, load_weights=True)
         chains = one_hot(
             torch.tensor(chains, device=device),
             num_classes=q,

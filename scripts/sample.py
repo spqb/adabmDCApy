@@ -66,7 +66,7 @@ if __name__ == '__main__':
     
     # Import data
     print(f"Loading data from {args.data}...")
-    data, _ = load_chains(args.data, tokens)
+    data = load_chains(args.data, tokens)
     data = torch.tensor(data)
     
     if args.weights is None:

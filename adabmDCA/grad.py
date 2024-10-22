@@ -8,7 +8,7 @@ import torch
 from adabmDCA.stats import get_freq_single_point, get_freq_two_points, get_correlation_two_points
 from adabmDCA.io import save_chains, save_params
 from adabmDCA.utils import get_mask_save
-from adabmDCA.statmech import update_weights_AIS, compute_log_likelihood, enumerate_states, compute_logZ_exact
+from adabmDCA.statmech import update_weights_AIS, compute_log_likelihood
 
 
 @torch.jit.script
@@ -98,7 +98,6 @@ def train_graph(
     log_weights: torch.Tensor = None,
     file_paths: Dict[str, Path] = None,
     progress_bar: bool = True,
-    all_states: torch.Tensor = None,
     device: torch.device = torch.device("cpu"),
 ) -> Tuple[torch.Tensor, Dict[str, torch.Tensor], torch.Tensor]:
     """Trains the model on a given graph until the target Pearson correlation is reached or the maximum number of epochs is exceeded.
@@ -133,13 +132,6 @@ def train_graph(
         log_weights = torch.zeros(len(chains), device=device)
     logZ = (torch.logsumexp(log_weights, dim=0) - torch.log(torch.tensor(len(chains), device=device))).item()
     log_likelihood = compute_log_likelihood(fi=fi, fij=fij, params=params, logZ=logZ)
-    
-    logZ_exact = compute_logZ_exact(all_states=all_states, params=params)
-    log_likelihood_exact = compute_log_likelihood(fi=fi, fij=fij, params=params, logZ=logZ_exact)
-    
-    # Csv file for recording log_likelihood and log_likelihood_exact
-    with open("LL.csv", "a") as f:
-        f.write(f"{log_likelihood:.3f}, {log_likelihood_exact:.3f}\n")
     
     # Compute the single-point and two-points frequencies of the simulated data
     pi = get_freq_single_point(data=chains, weights=None, pseudo_count=0.)
@@ -215,13 +207,6 @@ def train_graph(
         
         logZ = (torch.logsumexp(log_weights, dim=0) - torch.log(torch.tensor(len(chains), device=device))).item()
         log_likelihood = compute_log_likelihood(fi=fi, fij=fij, params=params, logZ=logZ)
-        
-        logZ_exact = compute_logZ_exact(all_states=all_states, params=params)
-        log_likelihood_exact = compute_log_likelihood(fi=fi, fij=fij, params=params, logZ=logZ_exact)
-        
-        # append log_likelihood and log_likelihood_exact to the csv file
-        with open("LL.csv", "a") as f:
-            f.write(f"{log_likelihood:.3f}, {log_likelihood_exact:.3f}\n")
         
         if progress_bar:
             pbar.n = min(max(0, float(pearson)), target_pearson)

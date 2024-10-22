@@ -3,7 +3,6 @@ from typing import Callable, Dict
 import torch
 
 from adabmDCA.grad import train_graph
-from adabmDCA.statmech import enumerate_states
 
     
 def fit(
@@ -50,12 +49,6 @@ def fit(
     if chains.dim() != 3:
         raise ValueError("chains must be a 3D tensor")
     
-    L, q = params["bias"].shape
-    all_states = enumerate_states(L, q, device=device)
-    
-    with open("LL.csv", "w") as f:
-        f.write("LL, LL_exact\n")
-    
     # Training loop    
     train_graph(
         sampler=sampler,
@@ -73,5 +66,4 @@ def fit(
         check_slope=False,
         file_paths=file_paths,
         device=device,
-        all_states=all_states,
     )

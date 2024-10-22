@@ -7,16 +7,17 @@ import torch
 from adabmDCA.fasta_utils import write_fasta, encode_sequence, import_from_fasta, validate_alphabet
 
 
-def load_chains(fname: str, tokens: str) -> Tuple[np.ndarray, np.ndarray]:
+def load_chains(fname: str, tokens: str, load_weights: bool=False) -> np.ndarray | Tuple[np.ndarray, np.ndarray]:
     """Loads the sequences from a fasta file and returns the numeric-encoded version.
     If the sequences are weighted, the log-weights are also returned. If the sequences are not weighted, the log-weights are set to 0.
     
     Args:
         fname (str): Path to the file containing the sequences.
         tokens (str): "protein", "dna", "rna" or another string with the alphabet to be used.
+        load_weights (bool, optional): If True, the log-weights are loaded and returned. Defaults to False.
     
     Return:
-        Tuple[np.ndarray, np.ndarray]: Numeric-encoded sequences, log-weights.
+        np.ndarray | Tuple[np.ndarray, np.ndarray]: Numeric-encoded sequences and log-weights if load_weights is True.
     """
     def parse_header(header: str):
         h = header.split("|")
@@ -28,11 +29,14 @@ def load_chains(fname: str, tokens: str) -> Tuple[np.ndarray, np.ndarray]:
     
     headers, sequences = import_from_fasta(fasta_name=fname)
     validate_alphabet(sequences, tokens=tokens)
-    log_weights = np.vectorize(parse_header)(headers)
     encoded_sequences = encode_sequence(sequences, tokens=tokens)
     
-    return encoded_sequences, log_weights
-
+    if load_weights:
+        log_weights = np.vectorize(parse_header)(headers)
+        return encoded_sequences, log_weights
+    else:
+        return encoded_sequences
+    
 
 def save_chains(fname: str, chains: torch.Tensor, tokens: str, log_weights: torch.Tensor = None):
     """Saves the chains in a fasta file.
