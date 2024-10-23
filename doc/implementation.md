@@ -81,7 +81,7 @@ The default values for the hyperparameters are chosen to be a good compromise be
 By default, the learning rate is set to 0.05, which is a reasonable value in most cases. For some protein datasets, this value can be brought up to 0.05. If the resampling of the model is bad (very long thermalization time or mode collapse), one may try to decrease the learning rate through the argument `--lr` to some smaller value (e.g. 0.005 or 0.001).
 
 #### Number of Markov Chains
-By default, the number of Markov chains is set equal to 10000. Empirically, we observe that the number of chains should be higher than a certain value in order to guarantee the convergence of the training to the target Pearson correlation coefficient. The minimal number of chains needed depends on the dataset and can vary a lot. In the [figure](fig-pearsons) below, we trained a `bmDCA` model on the Chorisemate Mutase protein family for different numbers of Markov chains. The minimum number of chains we tried is $M_{\mathrm{eff}}$, that is the *effective number of sequences* of the dataset, defined as:
+By default, the number of Markov chains is set equal to 10000. Empirically, we observe that the number of chains should be higher than a certain value in order to guarantee the convergence of the training to the target Pearson correlation coefficient. The minimal number of chains needed depends on the dataset and can vary a lot. In the [figure](fig-pearsons) below, we trained a `bmDCA` model on the Chorismate Mutase protein family for different numbers of Markov chains. The minimum number of chains we tried is $M_{\mathrm{eff}}$, that is the *effective number of sequences* of the dataset, defined as:
 
 $$
 M_{\mathrm{eff}} = \sum_{m=1}^M w^{(m)} \leq M.
@@ -97,12 +97,12 @@ To change the number of chains we can use the argument `--nchains`.
 :align: center
 :scale: 50
 
-Evolution of the Pearson correlation coefficient for different training with a different number of Markov chains. The target pearson is set to 0.95 (black dashed line).
+Evolution of the Pearson correlation coefficient for trainings with a different number of Markov chains. The target pearson is set to 0.95 (black dashed line).
 ```
 
 #### Number of Monte Carlo steps
 The argument `--nsweeps` defines the number of Monte Carlo chain updates (sweeps) between one gradient update and the following. A single *sweep* is obtained once we propose a mutation for all the residues of the sequence. By default, this parameter is set to 10, which is a good choice for easily tractable MSAs. The higher this number is chosen the better the quality of the training will be, because in this way we allow the Markov chains to decorrelate more to the previous configuration. However, this parameter heavily impacts the training time, so we recommend choosing it in the interval 10 - 50.
 
 #### Regularization
-Another parameter that can be adjusted if the model does not resample correctly is the pseudo count, {math}`\alpha`, which can be changed using the key `--pseudocount`. The pseudo count is a regularization term that introduces a flat prior on the frequency profiles, modifying the frequencies as in equations [](eq:freq1) and [](eq:freq2).
-If {math}`\alpha = 1` we impose an equal probability to all the amino acids to be found in the residue at position $i$, while if $\alpha = 0$ we just use the empirical frequencies of the data. By default, the pseudo count is set as the inverse of the effective number of sequences, $1 / M_{\mathrm{eff}}$.
+Another parameter that can be adjusted if the model does not resample correctly is the pseudo count, $\alpha$, which can be changed using the key `--pseudocount`. The pseudo count is a regularization term that introduces a flat prior on the frequency profiles, modifying the frequencies as in equations [](eqn:freqs_pseudocount).
+If $\alpha = 1$ we impose an equal probability to all the amino acids to be found in the residue at position $i$, while if $\alpha = 0$ we just use the empirical frequencies of the data. By default, the pseudo count is set as the inverse of the effective number of sequences, $1 / M_{\mathrm{eff}}$.

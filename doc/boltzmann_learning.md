@@ -50,27 +50,21 @@ $$(eqn:freqs)
 are the empirical single-site and two-site frequencies computed from the data.
 Roughly speaking, $f_i(a)$ tells us what is the empirical probability of finding the amino acid $a$ in the position $i$ of the sequence, whereas $f_{ij}(a,b)$ tells us how likely it is to find together in a sequence of the data the amino acids $a$ and $b$ at positions respectively $i$ and $j$. 
 
-For a fixed graph {math}`\mathcal{G}`, we can maximize the log-likelihood by iteratively updating the parameters of the model in the direction of the gradient of the log-likelihood, meaning
-
-$$
-    h_i(a) \leftarrow h_i(a) + \gamma \frac{\partial \mathcal{L}(\{\pmb{a}^{(m)}\} | \pmb{J}, \pmb{h}, \mathcal{G})}{\partial h_i(a)} \qquad
-    J_{i j}(a, b) \leftarrow J_{i j}(a, b) + \gamma \frac{\partial \mathcal{L}(\{\pmb{a}^{(m)}\} | \pmb{J}, \pmb{h}, \mathcal{G})}{\partial J_{i j}(a, b)},
-$$(eqn:params_update)
-
-where $\gamma$ is a small rescaling parameter called \textit{learning rate}. By differentiating the log-likelihood [](#eqn:LL), we find the update rule for the Boltzmann learning:
+For a fixed graph {math}`\mathcal{G}`, we can maximize the log-likelihood by iteratively updating the parameters of the model in the direction of the gradient of the log-likelihood.
+By differentiating the log-likelihood [](#eqn:LL), we find the update rule for the Boltzmann learning:
 
 $$
     h_i(a) \leftarrow h_i(a) + \gamma (f_{i}(a) - p_i(a)) \qquad
     J_{i j}(a, b) \leftarrow J_{i j}(a, b) + \gamma (f_{ij}(a, b) - p_{ij}(a,b)),
-$$
-where $p_i(a) = \langle \delta_{a_i,a}\rangle$ and $p_{ij}(a, b)=\langle \delta_{a_i,a}\delta_{a_j,b}\rangle$ are the one-site and two-site marginals of the model [](eqn:probDCA).
+$$(eqn:params_update)
+where $p_i(a) = \langle \delta_{a_i,a}\rangle$, $p_{ij}(a, b)=\langle \delta_{a_i,a}\delta_{a_j,b}\rangle$ are the one-site and two-site marginals of the model [](eqn:probDCA) and $\gamma$ is a small rescaling parameter called *learning rate*.
 Notice that the convergence of the algorithm is reached when $p_i(a) = f_i(a)$ and $p_{ij}(a,b) = f_{ij}(a, b)$.
 
 #### Monte Carlo estimation of the gradient
-The difficult part of the algorithm consists of estimating $p_i(a)$ and $p_{ij}(a,b)$, because computing the normalization $Z$ of Eq. [](#eqn:probDCA) is computationally intractable, preventing us from directly computing the probability of any sequence. To tackle this issue, we estimate the first two moments of the distribution through a Monte Carlo simulation. This consists of sampling a certain number of fairly independent sequences from the probability distribution [](#eqn:probDCA) and using them to estimate $p_i(a)$ and $p_{ij}(a, b)$ at each learning epoch. There exist several equivalent strategies to deal with it. %in the same way we estimated $f_i(a)$ and $f_{ij}(a,b)$ from the data. 
-Samples from the model [](#eqn:probDCA) can be obtained via Markov Chain Monte Carlo (MCMC) simulations either at equilibrium or out-of-equilibrium, where we start from $N_c$ configurations (we refer to them as *chains*), chosen uniformly at random, from the data or the last configurations of the previous learning epoch, and update them using Gibbs or Metropolis-Hastings sampling steps up to a certain number of MCMC sweeps. %until their statistics converges to the model's one. 
-It has been shown in {cite:p}`muntoni_adabmdca_2021` for Boltzmann machines and, in general, for energy-based models {cite:p}`decelle_equilibrium_2021` that under certain conditions, learning from an out-of-equilibrium sampling leads to statistically equivalent models to those obtained from an equilibrium estimate of the gradient that may require an unfeasible running time. 
-For this reason, in `adabmDCA 2.0`, we implement the out-of-equilibrium procedure for the computation of the gradient. Whenever we want to sample from a model at convergence we compute the mixing time as explained in [Sampling](#sec:sampling). 
+
+The difficult part of the algorithm consists of estimating $p_i(a)$ and $p_{ij}(a,b)$, because computing the normalization $Z$ of Eq. [](#eqn:probDCA) is computationally intractable, preventing us from directly computing the probability of any sequence. To tackle this issue, we estimate the first two moments of the distribution through a *Monte Carlo simulation*. This consists of sampling a certain number of fairly independent sequences from the probability distribution [](#eqn:probDCA) and using them to estimate $p_i(a)$ and $p_{ij}(a, b)$ at each learning epoch. There exist several equivalent strategies to deal with it.
+Samples from the model [](#eqn:probDCA) can be obtained via Markov Chain Monte Carlo (MCMC) simulations either at equilibrium or out-of-equilibrium, where we start from $N_c$ configurations (we refer to them as *chains*), chosen uniformly at random, from the data or the last configurations of the previous learning epoch, and update them using Gibbs or Metropolis-Hastings sampling steps up to a certain number of MCMC sweeps.
+
 In particular, chains are *persistent*: because sampling from configurations that are already close to the stationary state of the model at the current training epoch is much more convenient, the chains are initialized at each learning epoch using the last sampled configurations of the previous epoch.  Furthermore, the number of sweeps to be performed should be enough to ensure that the updated chains represent an equilibrium sample of the probability [](#eqn:probDCA). In practice, this requirement is not guaranteed as we fix the number of sweeps to a convenient value, $k$, that trades off between a reasonable training time and a fair independence of the chains.
 
 #### Convergence criterium
