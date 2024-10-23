@@ -61,6 +61,18 @@ def update_weights_AIS(
 
 
 @torch.jit.script
+def compute_log_likelihood_(
+    fi: torch.Tensor,
+    fij: torch.Tensor,
+    params: Dict[str, torch.Tensor],
+    logZ: float,
+) -> float:
+    
+    mean_energy_data = - torch.sum(fi * params["bias"]) - 0.5 * torch.sum(fij * params["coupling_matrix"])
+    
+    return - mean_energy_data - logZ
+
+
 def compute_log_likelihood(
     fi: torch.Tensor,
     fij: torch.Tensor,
@@ -78,9 +90,7 @@ def compute_log_likelihood(
     Returns:
         float: Log-likelihood of the model.
     """
-    mean_energy_data = - torch.sum(fi * params["bias"]) - 0.5 * torch.sum(fij * params["coupling_matrix"])
-    
-    return - mean_energy_data - logZ
+    return compute_log_likelihood_(fi, fij, params, logZ)
 
 
 def enumerate_states(L: int, q: int, device: torch.device=torch.device("cpu")) -> torch.Tensor:

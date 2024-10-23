@@ -14,6 +14,8 @@ We provide three different training routines:
 
 Additionally, we provide several routines for sampling and analyzing the generated sequences once a DCA model is trained, for constructing and evaluating - according to a DCA model - a single mutant library from a given wild type, and finally, for computing the pairwise contact scores, in terms of average-product corrected Frobenius norms of the DCA couplings {cite:p}`ekeberg_improved_2013`.
 
+If you want to directly jump to the command-line interface for using the package go to the section [Quicklist](#Quicklist).
+
 ```{toctree}
 :caption: 'Contents:'
 :maxdepth: 4
@@ -21,6 +23,7 @@ Additionally, we provide several routines for sampling and analyzing the generat
 installation.md
 preprocessing.md
 implementation.md
+boltzmann_learning.md
 quicklist.md
 adabmDCApy.md
 bibliography.md

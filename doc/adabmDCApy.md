@@ -1,5 +1,7 @@
 # adabmDCApy APIs
 
+This section describe all the functions available in the **Python** implementation of `adabmDCA`.
+
 ## Submodules
 
 ### adabmDCA.dataset module

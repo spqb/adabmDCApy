@@ -106,7 +106,7 @@ def fit(
         f.write(f"Decimation rate: {drate}\n\n")
         f.write(template_log.format("Epoch", "Pearson", "LL", "Density", "Time [s]"))
         
-    # Template for frinting the results
+    # Template for wrinting the results
     template = "{0:15} | {1:15} | {2:15} | {3:15} | {4:15}"
     density = compute_density(mask)
     count = 0
@@ -157,7 +157,6 @@ def fit(
             check_slope=True,
             progress_bar=False,
             device=device,
-            #all_states=all_states,
         )
         
         # Compute the single-point and two-points frequencies of the simulated data

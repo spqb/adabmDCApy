@@ -4,10 +4,8 @@ import torch
 
 
 @torch.jit.script
-def one_hot(x: torch.Tensor, num_classes: int = -1, dtype: torch.dtype = torch.float32):
-    """A fast one-hot encoding function faster than the PyTorch one working with torch.int32 and returning a float Tensor.
-    Works only for 2D tensors."""
-    
+def _one_hot(x: torch.Tensor, num_classes: int = -1, dtype: torch.dtype = torch.float32):
+   
     if x.dim() != 2:
         raise ValueError("Input tensor x must be 2D")
     
@@ -24,3 +22,18 @@ def one_hot(x: torch.Tensor, num_classes: int = -1, dtype: torch.dtype = torch.f
     res.index_put_(index, values)
     
     return res
+
+
+def one_hot(x: torch.Tensor, num_classes: int = -1, dtype: torch.dtype = torch.float32):
+    """A fast one-hot encoding function faster than the PyTorch one working with torch.int32 and returning a float Tensor.
+    Works only for 2D tensors.
+    
+    Args:
+        x (torch.Tensor): Input tensor to be one-hot encoded.
+        num_classes (int, optional): Number of classes. If -1, the number of classes is inferred from the input tensor. Defaults to -1.
+        dtype (torch.dtype, optional): Data type of the output tensor. Defaults to torch.float32.
+        
+    Returns:
+        torch.Tensor: One-hot encoded tensor.
+    """
+    return _one_hot(x, num_classes, dtype)

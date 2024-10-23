@@ -58,6 +58,6 @@ $$
     f_i(a) &= (1 - \alpha) f^{\mathrm{data}}_i(a) + \frac{\alpha}{q}, \\
     f_{ij}(a, b) &= (1 - \alpha) f^{\mathrm{data}}_{ij}(a, b) + \frac{\alpha}{q^2}
 
-$$(eqn:freqs)
+$$
 
 where $f_i^{\mathrm{data}}(a)$ and $f_{ij}^{\mathrm{data}}(a, b)$ are computed from the MSA as in Eq. [](#eqn:freqs). 

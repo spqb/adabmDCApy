@@ -5,23 +5,11 @@ import torch
 
 
 @torch.jit.script
-def get_freq_single_point(
+def _get_freq_single_point(
     data: torch.Tensor,
     weights: torch.Tensor | None,
     pseudo_count: float = 0.,
-) -> torch.Tensor:
-    """Computes the single point frequencies of the input MSA.
-    Args:
-        data (torch.Tensor): One-hot encoded data array.
-        weights (torch.Tensor | None): Weights of the sequences.
-        pseudo_count (float, optional): Pseudo count to be added to the frequencies. Defaults to 0..
-
-    Returns:
-        torch.Tensor: Single point frequencies.
-    """
-    if data.dim() != 3:
-        raise ValueError(f"Expected data to be a 3D tensor, but got {data.dim()}D tensor instead")
-    
+) -> torch.Tensor:    
     M, _, q = data.shape
     if weights is not None:
         norm_weights = weights.reshape(M, 1, 1) / weights.sum()
@@ -33,25 +21,35 @@ def get_freq_single_point(
     return (1. - pseudo_count) * frequencies + (pseudo_count / q)
 
 
+def get_freq_single_point(
+    data: torch.Tensor,
+    weights: torch.Tensor | None,
+    pseudo_count: float = 0.,
+) -> torch.Tensor:
+    """Computes the single point frequencies of the input MSA.
+    Args:
+        data (torch.Tensor): One-hot encoded data array.
+        weights (torch.Tensor | None): Weights of the sequences.
+        pseudo_count (float, optional): Pseudo count to be added to the frequencies. Defaults to 0..
+    
+    Raises:
+        ValueError: If the input data is not a 3D tensor.
+
+    Returns:
+        torch.Tensor: Single point frequencies.
+    """
+    if data.dim() != 3:
+        raise ValueError(f"Expected data to be a 3D tensor, but got {data.dim()}D tensor instead")
+    
+    return _get_freq_single_point(data, weights, pseudo_count)
+
+
 @torch.jit.script
-def get_freq_two_points(
+def _get_freq_two_points(
     data: torch.Tensor,
     weights: torch.Tensor | None,
     pseudo_count: float=0.,
 ) -> torch.Tensor:
-    """
-    Computes the 2-points statistics of the input MSA.
-
-    Args:
-        data (torch.Tensor): One-hot encoded data array.
-        weights (torch.Tensor | None): Array of weights to assign to the sequences of shape.
-        pseudo_count (float, optional): Pseudo count for the single and two points statistics. Acts as a regularization. Defaults to 0..
-
-    Returns:
-        torch.Tensor: Matrix of two-point frequencies of shape (L, q, L, q).
-    """
-    if data.dim() != 3:
-        raise ValueError(f"Expected data to be a 3D tensor, but got {data.dim()}D tensor instead")
     
     M, L, q = data.shape
     data_oh = data.reshape(M, q * L)
@@ -72,6 +70,31 @@ def get_freq_two_points(
     fij = torch.diagonal_scatter(fij, fij_diag, dim1=0, dim2=1)
     
     return fij.reshape(L, q, L, q)
+
+
+def get_freq_two_points(
+    data: torch.Tensor,
+    weights: torch.Tensor | None,
+    pseudo_count: float=0.,
+) -> torch.Tensor:
+    """
+    Computes the 2-points statistics of the input MSA.
+
+    Args:
+        data (torch.Tensor): One-hot encoded data array.
+        weights (torch.Tensor | None): Array of weights to assign to the sequences of shape.
+        pseudo_count (float, optional): Pseudo count for the single and two points statistics. Acts as a regularization. Defaults to 0..
+    
+    Raises:
+        ValueError: If the input data is not a 3D tensor.
+
+    Returns:
+        torch.Tensor: Matrix of two-point frequencies of shape (L, q, L, q).
+    """
+    if data.dim() != 3:
+        raise ValueError(f"Expected data to be a 3D tensor, but got {data.dim()}D tensor instead")
+    
+    return _get_freq_two_points(data, weights, pseudo_count)
 
 
 def generate_unique_triplets(

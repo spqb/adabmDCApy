@@ -1,3 +1,4 @@
+(Quicklist)=
 ## Quicklist
 
 - Train a bmDCA model with default arguments:

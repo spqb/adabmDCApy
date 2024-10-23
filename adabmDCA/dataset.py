@@ -74,14 +74,29 @@ class DatasetDCA(Dataset):
     
     
     def get_num_residues(self) -> int:
+        """Returns the number of residues (L) in the multi-sequence alignment.
+
+        Returns:
+            int: Length of the MSA.
+        """
         return self.data.shape[1]
     
     
     def get_num_states(self) -> int:
+        """Returns the number of states (q) in the alphabet.
+
+        Returns:
+            int: Number of states.
+        """
         return np.max(self.data) + 1
     
     
     def get_effective_size(self) -> int:
+        """Returns the effective size (Meff) of the dataset.
+
+        Returns:
+            int: Effective size of the dataset.
+        """
         return int(self.weights.sum())
     
     
