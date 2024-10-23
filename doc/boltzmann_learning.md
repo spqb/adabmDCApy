@@ -37,7 +37,8 @@ The training consists of adjusting the biases, the coupling matrix, and the inte
 $$
     \mathcal{L}(\{\pmb{a}^{(m)}\} | \pmb{J}, \pmb{h},\mathcal{G}) &= \frac1{M_{\rm eff}}\sum_{m=1}^M w^{(m)} \left[ \sum_{(i,a)\in \mathcal{V}} h_i(a) \delta_{a_i^{(m)},a} + \sum_{(i,a,j,b)\in \mathcal{E}} J_{ij}(a, b) \delta_{a_i^{(m)},a} \delta_{a_j^{(m)},b} \right] - \log Z(\pmb{J}, \pmb{h}, \mathcal{G}) \\
     &=  \sum_{(i,a)\in \mathcal{V}} h_i(a) f_i(a) + \sum_{(i,a,j,b)\in \mathcal{E}} J_{ij}(a, b) f_{ij}(a,b)  - \log Z(\pmb{J}, \pmb{h}, \mathcal{G}) \ ,
-$$
+$$(eqn:LL)
+
 where $w^{(m)}$ is the weight of the data sequence $m$, with $\sum_{m=1}^M w^{(m)} =M_{\rm eff}$, and
 
 $$
@@ -56,7 +57,7 @@ $$
     J_{i j}(a, b) \leftarrow J_{i j}(a, b) + \gamma \frac{\partial \mathcal{L}(\{\pmb{a}^{(m)}\} | \pmb{J}, \pmb{h}, \mathcal{G})}{\partial J_{i j}(a, b)},
 $$(eqn:params_update)
 
-where $\gamma$ is a small rescaling parameter called \textit{learning rate}. By differentiating the log-likelihood \eqref{eq:LL}, we find the update rule for the Boltzmann learning:
+where $\gamma$ is a small rescaling parameter called \textit{learning rate}. By differentiating the log-likelihood [](#eqn:LL), we find the update rule for the Boltzmann learning:
 
 $$
     h_i(a) \leftarrow h_i(a) + \gamma (f_{i}(a) - p_i(a)) \qquad
@@ -90,17 +91,17 @@ What we have described so far is true for all the DCA models considered in this 
 To achieve this, we implemented two different routines: eaDCA which promotes initially inactive parameters to active coupling starting from a profile model, and edDCA, which iteratively prunes active but negligible parameters starting from a dense fully-connected DCA model.
 
 #### Element activation DCA
-In eaDCA (figure [](#fig-sparseDCA)-B), we start from an empty interaction graph {math}`\mathcal{E} = \oslash`, meaning that no connection is present. Each training step is divided into two different moments: first, we update the graph, and then we bring the model to convergence once the graph is fixed (a similar pipeline has been proposed in {cite:p}`calvanese_towards_2024`). 
+In eaDCA (figure [sparse models](#fig-sparseDCA)-B), we start from an empty interaction graph {math}`\mathcal{E} = \oslash`, meaning that no connection is present. Each training step is divided into two different moments: first, we update the graph, and then we bring the model to convergence once the graph is fixed (a similar pipeline has been proposed in {cite:p}`calvanese_towards_2024`). 
 
 To update the graph, we first estimate $p_{ij}(a, b)$ for the current model and, from all the possible quadruplets of indices $(i, j, a, b)$, we select a fixed number \texttt{nactivate} of them as being the ones for which $p_{ij}(a, b)$ is "the most distant" from the target statistics $f_{ij}(a,b)$. We then activate the couplings corresponding to those quadruplets, obtaining a new graph {math}`\mathcal{E}'' \supseteq \mathcal{E}`. Notice that the number of couplings that we add may change, because some of the selected ones might be already active.
 
 #### Element decimation DCA
-In edDCA (Figure [](#fig-sparseDCA)-A), we start from a previously trained bmDCA model and its fully connected graph {math}`\mathcal{G}`. We then apply the decimation algorithm, in which we prune connections from the edges {math}`\mathcal{E}` until a target density of the graph is reached, where the density is defined as the ratio between the number of active couplings and the number of couplings of the fully connected model. Similarly to eaDCA, each iteration consists of two separate moments: graph updating and activate parameter updating.
+In edDCA (Figure [sparse models](#fig-sparseDCA)-A), we start from a previously trained bmDCA model and its fully connected graph {math}`\mathcal{G}`. We then apply the decimation algorithm, in which we prune connections from the edges {math}`\mathcal{E}` until a target density of the graph is reached, where the density is defined as the ratio between the number of active couplings and the number of couplings of the fully connected model. Similarly to eaDCA, each iteration consists of two separate moments: graph updating and activate parameter updating.
 
 To update the graph, we remove the fraction `drate` of active couplings that, once removed, produce the smallest perturbation on the probability distribution at the current epoch. In particular, for each active coupling, one computes the symmetric Kullback-Leibler distances between the current model and a perturbed one, without that target element. One then removes the `drate` elements which exhibit the smallest distances (see {cite:p}`barrat-charlaix_sparse_2021` for further details).
 
 #### Parameter updates in between decimations/activations
-In both procedures, to bring the model to convergence on the graph, we perform a certain number of parameter updates in  between each step of edge activation or decimation, using the formula \eqref{eq:params update}. Between two subsequent parameter updates, $k$ sweeps are performed to update the Markov chains.
+In both procedures, to bring the model to convergence on the graph, we perform a certain number of parameter updates in  between each step of edge activation or decimation, using the formula [](#eqn:params_update). Between two subsequent parameter updates, $k$ sweeps are performed to update the Markov chains.
 
 In the case of element activation we perform a
 fixed number of parameter updates, 
