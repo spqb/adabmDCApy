@@ -12,6 +12,7 @@ def fit(
     params: Dict[str, torch.Tensor],
     mask: torch.Tensor,
     chains: torch.Tensor,
+    log_weights: torch.Tensor,
     tokens: str,
     target_pearson: float,
     nsweeps: int,
@@ -30,6 +31,7 @@ def fit(
         params (Dict[str, torch.Tensor]): Initialization of the model's parameters.
         mask (torch.Tensor): Initialization of the coupling matrix's mask.
         chains (torch.Tensor): Initialization of the Markov chains.
+        log_weights (torch.Tensor): Log-weights of the chains. Used to estimate the log-likelihood.
         tokens (str): Tokens used for encoding the sequences.
         target_pearson (float): Pearson correlation coefficient on the two-points statistics to be reached.
         nsweeps (int): Number of Monte Carlo steps to update the state of the model.
@@ -51,6 +53,7 @@ def fit(
     train_graph(
         sampler=sampler,
         chains=chains,
+        log_weights=log_weights,
         mask=mask,
         fi=fi_target,
         fij=fij_target,

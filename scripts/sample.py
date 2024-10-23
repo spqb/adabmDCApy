@@ -9,9 +9,10 @@ import torch
 from adabmDCA.fasta_utils import get_tokens, write_fasta, compute_weights
 from adabmDCA.resampling import compute_mixing_time
 from adabmDCA.io import load_params, load_chains
-from adabmDCA.utils import compute_energy, init_chains, resample_sequences, get_device
+from adabmDCA.utils import init_chains, resample_sequences, get_device
 from adabmDCA.sampling import get_sampler
 from adabmDCA.functional import one_hot
+from adabmDCA.statmech import compute_energy
 
 
 # import command-line input arguments
@@ -65,7 +66,8 @@ if __name__ == '__main__':
     
     # Import data
     print(f"Loading data from {args.data}...")
-    data = torch.tensor(load_chains(args.data, tokens))
+    data = load_chains(args.data, tokens)
+    data = torch.tensor(data)
     
     if args.weights is None:
         print("Computing the weights...")

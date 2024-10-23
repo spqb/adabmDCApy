@@ -123,10 +123,12 @@ if __name__ == '__main__':
             mask = torch.zeros(size=(L, q, L, q), device=device)
     
     if args.path_chains:
+        chains, log_weights = load_chains(fname=args.path_chains, tokens=dataset.tokens, load_weights=True)
         chains = one_hot(
-            torch.tensor(load_chains(fname=args.path_chains, tokens=dataset.tokens), device=device),
+            torch.tensor(chains, device=device),
             num_classes=q,
         ).float()
+        log_weights = torch.tensor(log_weights, device=device)
         args.nchains = chains.shape[0]
         
     else:
@@ -139,6 +141,7 @@ if __name__ == '__main__':
             print(f"Number of chains set to {args.nchains}.")
             
         chains = init_chains(num_chains=args.nchains, L=L, q=q, fi=fi_target, device=device)
+        log_weights = torch.zeros(size=(args.nchains,), device=device)
         
     # Select the sampling function
     sampler = get_sampler(args.sampler)
@@ -167,8 +170,8 @@ if __name__ == '__main__':
             f.write(template.format("factivate:", args.factivate))
         f.write(template.format("random seed:", args.seed))
         f.write("\n")
-        template = "{0:10} {1:10} {2:10} {3:10}\n"
-        f.write(template.format("Epoch", "Pearson", "Density", "Time [s]"))
+        template = "{0:10} {1:10} {2:10} {3:10} {4:10}\n"
+        f.write(template.format("Epoch", "Pearson", "LL", "Density", "Time [s]"))
 
     
     DCA_model.fit(
@@ -178,6 +181,7 @@ if __name__ == '__main__':
         params=params,
         mask=mask,
         chains=chains,
+        log_weights=log_weights,
         tokens=tokens,
         target_pearson=args.target,
         pseudo_count=args.pseudocount,

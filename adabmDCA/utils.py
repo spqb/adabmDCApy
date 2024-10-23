@@ -3,36 +3,6 @@ from typing import Dict
 import torch
 
 from adabmDCA.functional import one_hot
-
-
-def compute_energy(
-    X: torch.Tensor,
-    params: Dict[str, torch.Tensor],
-) -> torch.Tensor:
-    """Compute the DCA energy of the sequences in X.
-    
-    Args:
-        X (torch.Tensor): Sequences in one-hot encoding format.
-        params (Dict[str, torch.Tensor]): Parameters of the model.
-    
-    Returns:
-        torch.Tensor: DCA Energy of the sequences.
-    """
-    
-    if X.dim() != 3:
-        raise ValueError("Input tensor X must be 3-dimensional of size (_, L, q)")
-    
-    @torch.jit.script
-    def compute_energy_sequence(x: torch.Tensor, params: Dict[str, torch.Tensor]) -> torch.Tensor:
-        L, q = params["bias"].shape
-        x_oh = x.ravel()
-        bias_oh = params["bias"].ravel()
-        couplings_oh = params["coupling_matrix"].view(L * q, L * q)
-        energy = - x_oh @ bias_oh - 0.5 * x_oh @ (couplings_oh @ x_oh)
-        
-        return energy
-    
-    return torch.vmap(compute_energy_sequence, in_dims=(0, None))(X, params)
     
     
 def set_zerosum_gauge(params: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:

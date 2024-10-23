@@ -9,6 +9,7 @@ from adabmDCA.stats import get_freq_single_point, get_freq_two_points, get_corre
 from adabmDCA.grad import train_graph
 from adabmDCA.utils import get_mask_save
 from adabmDCA.graph import activate_graph, compute_density
+from adabmDCA.statmech import compute_log_likelihood
 
 
 def fit(
@@ -18,6 +19,7 @@ def fit(
     params: dict,
     mask: torch.Tensor,
     chains: torch.Tensor,
+    log_weights: torch.Tensor,
     tokens: str,
     target_pearson: float,
     nsweeps: int,
@@ -40,6 +42,7 @@ def fit(
         params (dict): Initialization of the model's parameters.
         mask (torch.Tensor): Initialization of the coupling matrix's mask.
         chains (torch.Tensor): Initialization of the Markov chains.
+        log_weights (torch.Tensor): Log-weights of the chains. Used to estimate the log-likelihood.
         tokens (str): Tokens used for encoding the sequences.
         target_pearson (float): Pearson correlation coefficient on the two-points statistics to be reached.
         nsweeps (int): Number of Monte Carlo steps to update the state of the model.
@@ -67,6 +70,9 @@ def fit(
     # Mask for saving only the upper-diagonal matrix
     mask_save = get_mask_save(L, q, device=device)
     
+    # log_weights used for the online computing of the log-likelihood
+    logZ = (torch.logsumexp(log_weights, dim=0) - torch.log(torch.tensor(len(chains), device=device))).item()
+    
     # Compute the single-point and two-points frequencies of the simulated data
     pi = get_freq_single_point(data=chains, weights=None, pseudo_count=0.)
     pij = get_freq_two_points(data=chains, weights=None, pseudo_count=0.)
@@ -80,11 +86,13 @@ def fit(
     
     # Training loop
     time_start = time.time()
+    log_likelihood = compute_log_likelihood(fi=fi_target, fij=fij_target, params=params, logZ=logZ)
+        
     pbar = tqdm(initial=max(0, float(pearson)), total=target_pearson, colour="red", dynamic_ncols=True, ascii="-#",
                 bar_format="{desc}: {percentage:.2f}%[{bar}] Pearson: {n:.3f}/{total_fmt} [{elapsed}]")
-    pbar.set_description(f"Training eaDCA - Graph updates: {graph_upd} - Density: {density:.3f}% - New active couplings: {0}")
+    pbar.set_description(f"Training eaDCA - Graph updates: {graph_upd} - Density: {density:.3f}% - New active couplings: {0} - LL: {log_likelihood:.3f}")
     # Template for wrinting the results
-    template = "{0:10} {1:10} {2:10} {3:10}\n"
+    template = "{0:10} {1:10} {2:10} {3:10} {4:10}\n"
     
     while pearson < target_pearson:
         
@@ -107,7 +115,7 @@ def fit(
         nactive = mask.sum()
         
         # Bring the model at convergence on the graph
-        chains, params = train_graph(
+        chains, params, log_weights = train_graph(
             sampler=sampler,
             chains=chains,
             mask=mask,
@@ -119,10 +127,12 @@ def fit(
             max_epochs=gsteps,
             target_pearson=target_pearson,
             tokens=tokens,
+            log_weights=log_weights,
             check_slope=False,
             file_paths=None,
             progress_bar=False,
             device=device,
+            #all_states=all_states,
         )
 
         graph_upd += 1
@@ -131,22 +141,24 @@ def fit(
         pi = get_freq_single_point(data=chains, weights=None, pseudo_count=0.)
         pij = get_freq_two_points(data=chains, weights=None, pseudo_count=0.)
         
-        # Global Pearson
+        # Compute statistics of the training
         pearson, _ = get_correlation_two_points(fij=fij_target, pij=pij, fi=fi_target, pi=pi)
         density = compute_density(mask) * 100
-        pbar.set_description(f"Training eaDCA - Graph updates: {graph_upd} - Density: {density:.3f}% - New active couplings: {int(nactive - nactive_old)}")
+        logZ = (torch.logsumexp(log_weights, dim=0) - torch.log(torch.tensor(len(chains), device=device))).item()
+        log_likelihood = compute_log_likelihood(fi=fi_target, fij=fij_target, params=params, logZ=logZ)
+        pbar.set_description(f"Training eaDCA - Graph updates: {graph_upd} - Density: {density:.3f}% - New active couplings: {int(nactive - nactive_old)} - LL: {log_likelihood:.3f}")
 
         # Save the model if a checkpoint is reached
         if (graph_upd % 10 == 0) or (graph_upd == nepochs):
             save_params(fname=file_paths["params"], params=params, mask=torch.logical_and(mask, mask_save), tokens=tokens)
-            save_chains(fname=file_paths["chains"], chains=chains.argmax(-1), tokens=tokens)
+            save_chains(fname=file_paths["chains"], chains=chains.argmax(-1), tokens=tokens, log_weights=log_weights)
             with open(file_paths["log"], "a") as f:
-                f.write(template.format(f"{graph_upd}", f"{pearson:.3f}", f"{density:.3f}", f"{(time.time() - time_start):.1f}"))
+                f.write(template.format(f"{graph_upd}", f"{pearson:.3f}", f"{log_likelihood:.3f}", f"{density:.3f}", f"{(time.time() - time_start):.1f}"))
         pbar.n = min(max(0, float(pearson)), target_pearson)
 
     save_params(fname=file_paths["params"], params=params, mask=torch.logical_and(mask, mask_save), tokens=tokens)
-    save_chains(fname=file_paths["chains"], chains=chains.argmax(-1), tokens=tokens)
+    save_chains(fname=file_paths["chains"], chains=chains.argmax(-1), tokens=tokens, log_weights=log_weights)
     with open(file_paths["log"], "a") as f:
-        f.write(f"{graph_upd}\t{pearson:.3f}\t{density:.3f}\t{(time.time() - time_start):.1f}\n")
+        f.write(template.format(f"{graph_upd}", f"{pearson:.3f}", f"{log_likelihood:.3f}", f"{density:.3f}", f"{(time.time() - time_start):.1f}"))
 
     pbar.close()

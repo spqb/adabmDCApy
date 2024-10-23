@@ -10,12 +10,14 @@ from adabmDCA.utils import get_mask_save
 from adabmDCA.io import save_chains, save_params
 from adabmDCA.stats import get_freq_single_point, get_freq_two_points, get_correlation_two_points
 from adabmDCA.graph import decimate_graph, compute_density
+from adabmDCA.statmech import compute_log_likelihood, enumerate_states, update_weights_AIS
 
 MAX_EPOCHS = 10000
 
 def fit(
     sampler: Callable,
     chains: torch.Tensor,
+    log_weights: torch.Tensor,
     fi_target: torch.Tensor,
     fij_target: torch.Tensor,
     params: Dict[str, torch.Tensor],
@@ -35,6 +37,7 @@ def fit(
     Args:
         sampler (Callable): Sampling function to be used.
         chains (torch.Tensor): Initialization of the Markov chains.
+        log_weights (torch.Tensor): Log-weights of the chains. Used to estimate the log-likelihood.
         fi_target (torch.Tensor): Single-point frequencies of the data.
         fij_target (torch.Tensor): Two-point frequencies of the data.
         params (Dict[str, torch.Tensor]): Initialization of the model's parameters.
@@ -60,10 +63,15 @@ def fit(
     
     L, q = params["bias"].shape
     
+    #all_states = enumerate_states(L, q, device=device)
+    #with open("LL.csv", "w") as f:
+    #    f.write("LL, LL_exact\n")
+    
     print("Bringing the model to the convergence threshold...")
-    chains, params = train_graph(
+    chains, params, log_weights = train_graph(
         sampler=sampler,
         chains=chains,
+        log_weights=log_weights,
         mask=mask,
         fi=fi_target,
         fij=fij_target,
@@ -76,6 +84,7 @@ def fit(
         check_slope=True,
         file_paths=file_paths,
         device=device,
+        #all_states=all_states,
     )
     
     # Get the single-point and two-points frequencies of the simulated data
@@ -95,20 +104,23 @@ def fit(
     file_paths["chains_dec"] = Path(parent).joinpath(new_name)
     
     print(f"\nStarting the decimation (target density = {target_density}):")
-    template_log = "{0:10} {1:10} {2:10} {3:10}\n"
+    template_log = "{0:10} {1:10} {2:10} {3:10} {4:10}\n"
     with open(file_paths["log"], "a") as f:
         f.write("\nDecimation\n")
         f.write(f"Target density: {target_density}\n")
         f.write(f"Decimation rate: {drate}\n\n")
-        f.write(template_log.format("Epoch", "Pearson", "Density", "Time [s]"))
+        f.write(template_log.format("Epoch", "Pearson", "LL", "Density", "Time [s]"))
         
     # Template for frinting the results
-    template = "{0:15} | {1:15} | {2:15} | {3:15}"
+    template = "{0:15} | {1:15} | {2:15} | {3:15} | {4:15}"
     density = compute_density(mask)
     count = 0
     
     while density > target_density:
         count += 1
+        
+        # Store the previous parameters
+        prev_params = {key: value.clone() for key, value in params.items()}
         
         # Decimate the model
         params, mask = decimate_graph(
@@ -125,10 +137,19 @@ def fit(
             nsweeps=nsweeps,
         )
         
+        # Update the log-weights
+        log_weights = update_weights_AIS(
+            prev_params=prev_params,
+            curr_params=params,
+            chains=chains,
+            log_weights=log_weights,
+        )
+        
         # Bring the model at convergence on the graph
-        chains, params = train_graph(
+        chains, params, log_weights = train_graph(
             sampler=sampler,
             chains=chains,
+            log_weights=log_weights,
             mask=mask,
             fi=fi_target,
             fij=fij_target,
@@ -141,6 +162,7 @@ def fit(
             check_slope=True,
             progress_bar=False,
             device=device,
+            #all_states=all_states,
         )
         
         # Compute the single-point and two-points frequencies of the simulated data
@@ -149,17 +171,19 @@ def fit(
         
         pearson, slope = get_correlation_two_points(fi=fi_target, pi=pi, fij=fij_target, pij=pij)
         density = compute_density(mask)
+        logZ = (torch.logsumexp(log_weights, dim=0) - torch.log(torch.tensor(len(chains), device=device))).item()
+        log_likelihood = compute_log_likelihood(fi=fi_target, fij=fij_target, params=params, logZ=logZ)
         
-        print(template.format(f"Dec. step: {count}", f"Density: {density:.3f}", f"Pearson: {pearson:.3f}", f"Slope: {slope:.3f}"))
+        print(template.format(f"Dec. step: {count}", f"Density: {density:.3f}", f"LL: {log_likelihood:.3f}", f"Pearson: {pearson:.3f}", f"Slope: {slope:.3f}"))
                 
         if count % 10 == 0:
             save_params(fname=file_paths["params_dec"], params=params, mask=torch.logical_and(mask, mask_save), tokens=tokens)
-            save_chains(fname=file_paths["chains_dec"], chains=chains.argmax(-1), tokens=tokens)
+            save_chains(fname=file_paths["chains_dec"], chains=chains.argmax(-1), tokens=tokens, log_weights=log_weights)
             with open(file_paths["log"], "a") as f:
-                f.write(template_log.format(f"{count}", f"{pearson:.3f}", f"{density:.3f}", f"{(time.time() - time_start):.1f}"))
+                f.write(template_log.format(f"{count}", f"{pearson:.3f}", f"{log_likelihood:.3f}", f"{density:.3f}", f"{(time.time() - time_start):.1f}"))
     
     save_params(fname=file_paths["params_dec"], params=params, mask=torch.logical_and(mask, mask_save), tokens=tokens)
-    save_chains(fname=file_paths["chains_dec"], chains=chains.argmax(-1), tokens=tokens)
+    save_chains(fname=file_paths["chains_dec"], chains=chains.argmax(-1), tokens=tokens, log_weights=log_weights)
     with open(file_paths["log"], "a") as f:
-        f.write(template_log.format(f"{count}", f"{pearson:.3f}", f"{density:.3f}", f"{(time.time() - time_start):.1f}"))
+        f.write(template_log.format(f"{count}", f"{pearson:.3f}", f"{log_likelihood:.3f}", f"{density:.3f}", f"{(time.time() - time_start):.1f}"))
     print(f"Completed, decimated model parameters saved in {file_paths['params_dec']}")
