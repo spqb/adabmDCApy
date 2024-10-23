@@ -63,9 +63,9 @@ def fit(
     
     L, q = params["bias"].shape
     
-    all_states = enumerate_states(L, q, device=device)
-    with open("LL.csv", "w") as f:
-        f.write("LL, LL_exact\n")
+    #all_states = enumerate_states(L, q, device=device)
+    #with open("LL.csv", "w") as f:
+    #    f.write("LL, LL_exact\n")
     
     print("Bringing the model to the convergence threshold...")
     chains, params, log_weights = train_graph(
@@ -84,7 +84,7 @@ def fit(
         check_slope=True,
         file_paths=file_paths,
         device=device,
-        all_states=all_states,
+        #all_states=all_states,
     )
     
     # Get the single-point and two-points frequencies of the simulated data
@@ -162,7 +162,7 @@ def fit(
             check_slope=True,
             progress_bar=False,
             device=device,
-            all_states=all_states,
+            #all_states=all_states,
         )
         
         # Compute the single-point and two-points frequencies of the simulated data
