@@ -2,7 +2,7 @@ from typing import Callable, Dict
 
 import torch
 
-from adabmDCA.grad import train_graph
+from adabmDCA.training import train_graph
 
     
 def fit(

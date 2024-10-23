@@ -228,6 +228,8 @@ def extract_Cij_from_freq(
 def extract_Cij_from_seqs(
     data: torch.Tensor,
     chains: torch.Tensor,
+    weights: torch.Tensor = None,
+    pseudo_count: float = 0.,
     mask: torch.Tensor = None,
 ) -> Tuple[float, float]:
     """Extracts the lower triangular part of the covariance matrices of the data and chains starting from the sequences.
@@ -240,9 +242,9 @@ def extract_Cij_from_seqs(
     Returns:
         Tuple[float, float]: Two-point frequencies of the data and chains.
     """
-    fi = get_freq_single_point(data, weights=None)
+    fi = get_freq_single_point(data, weights=weights, pseudo_count=pseudo_count)
     pi = get_freq_single_point(chains, weights=None)
-    fij = get_freq_two_points(data, weights=None)
+    fij = get_freq_two_points(data, weights=weights, pseudo_count=pseudo_count)
     pij = get_freq_two_points(chains, weights=None)
     
     return extract_Cij_from_freq(fij, pij, fi, pi, mask)

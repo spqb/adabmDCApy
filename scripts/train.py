@@ -130,16 +130,10 @@ if __name__ == '__main__':
         ).float()
         log_weights = torch.tensor(log_weights, device=device)
         args.nchains = chains.shape[0]
+        print(f"Loaded {args.nchains} chains.")
         
     else:
-        if args.nchains is None:
-            args.nchains = min(5000, dataset.get_effective_size())
-            
-            print(f"Number of chains automatically set to {args.nchains}.")
-            
-        else:
-            print(f"Number of chains set to {args.nchains}.")
-            
+        print(f"Number of chains set to {args.nchains}.")
         chains = init_chains(num_chains=args.nchains, L=L, q=q, fi=fi_target, device=device)
         log_weights = torch.zeros(size=(args.nchains,), device=device)
         

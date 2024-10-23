@@ -5,12 +5,12 @@ import time
 import torch
 
 from adabmDCA.stats import get_correlation_two_points
-from adabmDCA.grad import train_graph
+from adabmDCA.training import train_graph
 from adabmDCA.utils import get_mask_save
 from adabmDCA.io import save_chains, save_params
 from adabmDCA.stats import get_freq_single_point, get_freq_two_points, get_correlation_two_points
 from adabmDCA.graph import decimate_graph, compute_density
-from adabmDCA.statmech import compute_log_likelihood, enumerate_states, update_weights_AIS
+from adabmDCA.statmech import compute_log_likelihood, update_weights_AIS
 
 MAX_EPOCHS = 10000
 
@@ -63,10 +63,6 @@ def fit(
     
     L, q = params["bias"].shape
     
-    #all_states = enumerate_states(L, q, device=device)
-    #with open("LL.csv", "w") as f:
-    #    f.write("LL, LL_exact\n")
-    
     print("Bringing the model to the convergence threshold...")
     chains, params, log_weights = train_graph(
         sampler=sampler,
@@ -84,7 +80,6 @@ def fit(
         check_slope=True,
         file_paths=file_paths,
         device=device,
-        #all_states=all_states,
     )
     
     # Get the single-point and two-points frequencies of the simulated data

@@ -29,15 +29,6 @@
    :show-inheritance:
 ```
 
-### adabmDCA.grad module
-
-```{eval-rst}
-.. automodule:: adabmDCA.grad
-   :members:
-   :undoc-members:
-   :show-inheritance:
-```
-
 ### adabmDCA.graph module
 
 ```{eval-rst}
@@ -92,10 +83,28 @@
    :show-inheritance:
 ```
 
+### adabmDCA.statmech module
+
+```{eval-rst}
+.. automodule:: adabmDCA.statmech
+   :members:
+   :undoc-members:
+   :show-inheritance:
+```
+
 ### adabmDCA.stats module
 
 ```{eval-rst}
 .. automodule:: adabmDCA.stats
+   :members:
+   :undoc-members:
+   :show-inheritance:
+```
+
+### adabmDCA.training module
+
+```{eval-rst}
+.. automodule:: adabmDCA.training
    :members:
    :undoc-members:
    :show-inheritance:

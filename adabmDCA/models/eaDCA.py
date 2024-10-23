@@ -6,7 +6,7 @@ import torch
 
 from adabmDCA.io import save_chains, save_params
 from adabmDCA.stats import get_freq_single_point, get_freq_two_points, get_correlation_two_points
-from adabmDCA.grad import train_graph
+from adabmDCA.training import train_graph
 from adabmDCA.utils import get_mask_save
 from adabmDCA.graph import activate_graph, compute_density
 from adabmDCA.statmech import compute_log_likelihood

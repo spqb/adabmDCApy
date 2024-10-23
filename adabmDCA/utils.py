@@ -86,6 +86,33 @@ def get_mask_save(L: int, q: int, device: torch.device) -> torch.Tensor:
     
     return mask_save
 
+@torch.jit.script
+def systematic_resampling(
+    chains: torch.Tensor,
+    weights: torch.Tensor,
+) -> torch.Tensor:
+    """Performs the systematic resampling of the chains according to their relative weight.
+
+    Args:
+        chains (torch.Tensor): Chains.
+        weights (torch.Tensor): Weights of the chains.
+
+    Returns:
+        torch.Tensor: Resampled chains.
+    """
+    num_chains = len(chains)
+    device = chains.device
+    # Normalize the weights
+    weights = weights.view(-1) / weights.sum()
+    weights_span = torch.cumsum(weights.double(), dim=0).float()
+    rand_unif = torch.rand(size=(1,), device=device)
+    arrow_span = (torch.arange(num_chains, device=device) + rand_unif) / num_chains
+    mask = (weights_span.reshape(num_chains, 1) >= arrow_span).sum(1)
+    counts = torch.diff(mask, prepend=torch.tensor([0], device=device))
+    chains = torch.repeat_interleave(chains, counts, dim=0)
+
+    return chains
+
 
 def resample_sequences(
     data: torch.Tensor,
@@ -93,6 +120,7 @@ def resample_sequences(
     nextract: int,
 ) -> torch.Tensor:
     """Extracts nextract sequences from data with replacement according to the weights.
+    It implements the 'systematic resampling' algorithm, which is more accurate than the 'multinomial' one.
     
     Args:
         data (torch.Tensor): Data array.
@@ -102,9 +130,10 @@ def resample_sequences(
     Returns:
         torch.Tensor: Extracted sequences.
     """
-    indices = torch.multinomial(weights.view(-1), nextract, replacement=True)
+    data_resampled = systematic_resampling(data, weights)
+    indices = torch.randperm(len(data_resampled))
     
-    return data[indices]
+    return data_resampled[indices][:nextract]
 
 
 def get_device(device: str) -> torch.device:
