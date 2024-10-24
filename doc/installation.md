@@ -46,4 +46,17 @@ This will install all necessary dependencies and set up the package.
 This will set up the package for use.
 
 ### C++ implementation
-TODO
+
+1.    Clone the repository
+      ```bash
+      git clone git@github.com:spqb/adabmDCAc.git
+      ```
+2.    In the __src__ folder run
+      ```bash
+      make
+      ```
+3.    It will generate the executable file __adabmDCA__. See 
+      ```bash
+      ./adabmDCA -h
+      ```
+      for a complete list of features.

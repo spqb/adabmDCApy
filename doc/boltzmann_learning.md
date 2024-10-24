@@ -26,7 +26,7 @@ The interaction graph {math}`\mathcal{G}` can be chosen fully connected as in th
 :name: fig-bmDCA
 :alt: Scheme of the fully-connected DCA model (bmDCA)
 :align: center
-:scale: 50
+:scale: 80
 
 Scheme of the fully-connected DCA model (bmDCA)
 ```
@@ -106,7 +106,7 @@ Alternatively, when pruning the graph we keep updating the parameters with the f
 :name: fig-sparseDCA
 :alt: Scheme of the sparseDCA models
 :align: center
-:scale: 50
+:scale: 40
 
 Schematic representation of the sparse model training. A) edDCA, the sparsification is
 obtained by progressively pruning contacts from an initial fully connected model. B) eaDCA, the

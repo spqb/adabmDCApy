@@ -23,8 +23,10 @@ If you want to directly jump to the command-line interface for using the package
 installation.md
 preprocessing.md
 implementation.md
+applications.md
 boltzmann_learning.md
 quicklist.md
+script_arguments.md
 adabmDCApy.md
 bibliography.md
 ```
