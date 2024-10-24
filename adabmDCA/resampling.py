@@ -110,7 +110,7 @@ def compute_mixing_time(
                 break
 
         if i == n_max_sweeps:
-            print(f"Mixing time not reached within {n_max_sweeps} sweeps.")
+            print(f"Mixing time not reached within {n_max_sweeps // 2} sweeps.")
             
     pbar.close()
 

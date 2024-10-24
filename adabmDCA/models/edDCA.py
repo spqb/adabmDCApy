@@ -10,7 +10,7 @@ from adabmDCA.utils import get_mask_save
 from adabmDCA.io import save_chains, save_params
 from adabmDCA.stats import get_freq_single_point, get_freq_two_points, get_correlation_two_points
 from adabmDCA.graph import decimate_graph, compute_density
-from adabmDCA.statmech import compute_log_likelihood, update_weights_AIS
+from adabmDCA.statmech import compute_log_likelihood, update_weights_AIS, compute_entropy
 
 MAX_EPOCHS = 10000
 
@@ -99,12 +99,12 @@ def fit(
     file_paths["chains_dec"] = Path(parent).joinpath(new_name)
     
     print(f"\nStarting the decimation (target density = {target_density}):")
-    template_log = "{0:10} {1:10} {2:10} {3:10} {4:10}\n"
+    template_log = "{0:10} {1:10} {2:10} {3:10} {4:10} {5:10} {6:10}\n"
     with open(file_paths["log"], "a") as f:
         f.write("\nDecimation\n")
         f.write(f"Target density: {target_density}\n")
         f.write(f"Decimation rate: {drate}\n\n")
-        f.write(template_log.format("Epoch", "Pearson", "LL", "Density", "Time [s]"))
+        f.write(template_log.format("Epoch", "Pearson", "Slope", "LL", "Entropy", "Density", "Time [s]"))
         
     # Template for wrinting the results
     template = "{0:15} | {1:15} | {2:15} | {3:15} | {4:15}"
@@ -168,16 +168,18 @@ def fit(
         logZ = (torch.logsumexp(log_weights, dim=0) - torch.log(torch.tensor(len(chains), device=device))).item()
         log_likelihood = compute_log_likelihood(fi=fi_target, fij=fij_target, params=params, logZ=logZ)
         
-        print(template.format(f"Dec. step: {count}", f"Density: {density:.3f}", f"LL: {log_likelihood:.3f}", f"Pearson: {pearson:.3f}", f"Slope: {slope:.3f}"))
+        print(template.format(f"Step: {count}", f"Density: {density:.3f}", f"LL: {log_likelihood:.3f}", f"Pearson: {pearson:.3f}", f"Slope: {slope:.3f}"))
                 
         if count % 10 == 0:
+            entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
             save_params(fname=file_paths["params_dec"], params=params, mask=torch.logical_and(mask, mask_save), tokens=tokens)
             save_chains(fname=file_paths["chains_dec"], chains=chains.argmax(-1), tokens=tokens, log_weights=log_weights)
             with open(file_paths["log"], "a") as f:
-                f.write(template_log.format(f"{count}", f"{pearson:.3f}", f"{log_likelihood:.3f}", f"{density:.3f}", f"{(time.time() - time_start):.1f}"))
+                f.write(template_log.format(f"{count}", f"{pearson:.3f}", f"{slope:.3f}", f"{log_likelihood:.3f}", f"{entropy:.3f}", f"{density:.3f}", f"{(time.time() - time_start):.1f}"))
     
     save_params(fname=file_paths["params_dec"], params=params, mask=torch.logical_and(mask, mask_save), tokens=tokens)
     save_chains(fname=file_paths["chains_dec"], chains=chains.argmax(-1), tokens=tokens, log_weights=log_weights)
     with open(file_paths["log"], "a") as f:
-        f.write(template_log.format(f"{count}", f"{pearson:.3f}", f"{log_likelihood:.3f}", f"{density:.3f}", f"{(time.time() - time_start):.1f}"))
+        entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
+        f.write(template_log.format(f"{count}", f"{pearson:.3f}", f"{slope:.3f}", f"{log_likelihood:.3f}", f"{entropy:.3f}", f"{density:.3f}", f"{(time.time() - time_start):.1f}"))
     print(f"Completed, decimated model parameters saved in {file_paths['params_dec']}")

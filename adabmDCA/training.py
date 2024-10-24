@@ -8,7 +8,7 @@ import torch
 from adabmDCA.stats import get_freq_single_point, get_freq_two_points, get_correlation_two_points
 from adabmDCA.io import save_chains, save_params
 from adabmDCA.utils import get_mask_save
-from adabmDCA.statmech import update_weights_AIS, compute_log_likelihood
+from adabmDCA.statmech import update_weights_AIS, compute_log_likelihood, compute_entropy
 
 
 @torch.jit.script
@@ -33,6 +33,35 @@ def compute_gradient(
     grad = {}
     grad["bias"] = fi - pi
     grad["coupling_matrix"] = fij - pij
+    
+    return grad
+
+
+@torch.jit.script
+def compute_gradient_centred(
+    fi: torch.Tensor,
+    fij: torch.Tensor,
+    pi: torch.Tensor,
+    pij: torch.Tensor,
+) -> Dict[str, torch.Tensor]:
+    """Computes the gradient of the log-likelihood of the model using PyTorch.
+    Implements the centred gradient, which empirically improves the convergence of the model.
+
+    Args:
+        fi (torch.Tensor): Single-point frequencies of the data.
+        fij (torch.Tensor): Target two-points frequencies.
+        pi (torch.Tensor): Single-point marginals of the model.
+        pij (torch.Tensor): Two-points marginals of the model.
+
+    Returns:
+        Dict[str, torch.Tensor]: Gradient.
+    """
+    grad = {}
+    
+    C_data = fij - torch.einsum("ij,kl->ijkl", fi, fi)
+    C_model = pij - torch.einsum("ij,kl->ijkl", pi, pi)
+    grad["coupling_matrix"] = C_data - C_model
+    grad["bias"] = fi - pi - torch.einsum("iajb,jb->ia", grad["coupling_matrix"], fi)
     
     return grad
 
@@ -68,7 +97,7 @@ def update(
     """
     
     # Compute the gradient
-    grad = compute_gradient(fi=fi, fij=fij, pi=pi, pij=pij)
+    grad = compute_gradient_centred(fi=fi, fij=fij, pi=pi, pij=pij)
     
     # Update parameters
     with torch.no_grad():
@@ -132,6 +161,7 @@ def train_graph(
         log_weights = torch.zeros(len(chains), device=device)
     logZ = (torch.logsumexp(log_weights, dim=0) - torch.log(torch.tensor(len(chains), device=device))).item()
     log_likelihood = compute_log_likelihood(fi=fi, fij=fij, params=params, logZ=logZ)
+    entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
     
     # Compute the single-point and two-points frequencies of the simulated data
     pi = get_freq_single_point(data=chains, weights=None, pseudo_count=0.)
@@ -168,10 +198,10 @@ def train_graph(
             ascii="-#",
             bar_format="{desc} {percentage:.2f}%[{bar}] Pearson: {n:.3f}/{total_fmt} [{elapsed}]"
         )
-        pbar.set_description(f"Train graph - Epochs: {epochs} - Slope: {slope:.2f} - LL: {log_likelihood:.2f}")
+        pbar.set_description(f"Epochs: {epochs} - Slope: {slope:.2f} - LL: {log_likelihood:.2f}")
    
     # Template for wrinting the results
-    template = "{0:10} {1:10} {2:10} {3:10} {4:10}\n"
+    template = "{0:10} {1:10} {2:10} {3:10} {4:10} {5:10} {6:10}\n"
     
     while not halt_condition(epochs, pearson, slope, check_slope):
         
@@ -210,22 +240,23 @@ def train_graph(
         
         if progress_bar:
             pbar.n = min(max(0, float(pearson)), target_pearson)
-            pbar.set_description(f"Train graph - Epochs: {epochs} - Slope: {slope:.2f} - LL: {log_likelihood:.2f}")
+            pbar.set_description(f"Epochs: {epochs} - Slope: {slope:.2f} - LL: {log_likelihood:.2f}")
             
         # Save the model if a checkpoint is reached
         if (file_paths is not None) and (epochs % 50 == 0 or epochs == max_epochs):
+            entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
             save_params(fname=file_paths["params"], params=params, mask=mask_save, tokens=tokens)
             save_chains(fname=file_paths["chains"], chains=chains.argmax(dim=-1), tokens=tokens, log_weights=log_weights)
             with open(file_paths["log"], "a") as f:
-                f.write(template.format(f"{epochs}", f"{pearson:.3f}", f"{log_likelihood:.3f}", "1.000", f"{(time.time() - time_start):.1f}"))
+                f.write(template.format(f"{epochs}", f"{pearson:.3f}", f"{slope:.3f}", f"{log_likelihood:.3f}", f"{entropy:.3f}", "1.000", f"{(time.time() - time_start):.1f}"))
                 
     if progress_bar:
         pbar.close()
     
     if file_paths is not None:
+        entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
         save_params(fname=file_paths["params"], params=params, mask=mask_save, tokens=tokens)
         save_chains(fname=file_paths["chains"], chains=chains.argmax(dim=-1), tokens=tokens, log_weights=log_weights)
         with open(file_paths["log"], "a") as f:
-            f.write(template.format(f"{epochs}", f"{pearson:.3f}", f"{log_likelihood:.3f}", "1.000", f"{(time.time() - time_start):.1f}"))
-
+            f.write(template.format(f"{epochs}", f"{pearson:.3f}", f"{slope:.3f}", f"{log_likelihood:.3f}", f"{entropy:.3f}", "1.000", f"{(time.time() - time_start):.1f}"))
     return chains, params, log_weights

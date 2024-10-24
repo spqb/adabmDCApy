@@ -61,7 +61,7 @@ def update_weights_AIS(
 
 
 @torch.jit.script
-def compute_log_likelihood_(
+def _compute_log_likelihood(
     fi: torch.Tensor,
     fij: torch.Tensor,
     params: Dict[str, torch.Tensor],
@@ -90,7 +90,7 @@ def compute_log_likelihood(
     Returns:
         float: Log-likelihood of the model.
     """
-    return compute_log_likelihood_(fi, fij, params, logZ)
+    return _compute_log_likelihood(fi, fij, params, logZ)
 
 
 def enumerate_states(L: int, q: int, device: torch.device=torch.device("cpu")) -> torch.Tensor:
@@ -128,3 +128,24 @@ def compute_logZ_exact(
     logZ = torch.logsumexp(-energies, dim=0)
     
     return logZ.item()
+
+
+def compute_entropy(
+    chains: torch.Tensor,
+    params: Dict[str, torch.Tensor],
+    logZ: float,
+) -> float:
+    """Compute the entropy of the DCA model.
+
+    Args:
+        chains (torch.Tensor): Chains that are supposed to be an equilibrium realization of the model.
+        params (Dict[str, torch.Tensor]): Parameters of the model.
+        logZ (float): Log-partition function of the model.
+
+    Returns:
+        float: Entropy of the model.
+    """
+    mean_energy = compute_energy(chains, params).mean()
+    entropy = mean_energy + logZ
+    
+    return entropy.item()

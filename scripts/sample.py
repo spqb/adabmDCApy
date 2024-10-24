@@ -6,9 +6,9 @@ from tqdm import tqdm
 
 import torch
 
-from adabmDCA.fasta_utils import get_tokens, write_fasta, compute_weights
+from adabmDCA.fasta_utils import get_tokens, write_fasta, compute_weights, import_clean_dataset, encode_sequence
 from adabmDCA.resampling import compute_mixing_time
-from adabmDCA.io import load_params, load_chains
+from adabmDCA.io import load_params
 from adabmDCA.utils import init_chains, resample_sequences, get_device
 from adabmDCA.sampling import get_sampler
 from adabmDCA.functional import one_hot
@@ -68,7 +68,8 @@ if __name__ == '__main__':
     
     # Import data
     print(f"Loading data from {args.data}...")
-    data = load_chains(args.data, tokens)
+    headers, sequences = import_clean_dataset(args.data, tokens)
+    data = encode_sequence(sequences, tokens)
     data = torch.tensor(data, device=device)
     
     if args.weights is None:
@@ -95,7 +96,7 @@ if __name__ == '__main__':
         beta=args.beta,
     )
     mixing_time = results_mix["t_half"][-1]
-    print(f"Measured mixing time: {mixing_time} sweeps")
+    print(f"Measured mixing time (if converged): {mixing_time} sweeps")
     
     # Sample from random initialization
     print(f"Sampling for {args.nmix} * t_mix sweeps...")
