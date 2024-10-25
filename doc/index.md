@@ -14,7 +14,9 @@ We provide three different training routines:
 
 Additionally, we provide several routines for sampling and analyzing the generated sequences once a DCA model is trained, for constructing and evaluating - according to a DCA model - a single mutant library from a given wild type, and finally, for computing the pairwise contact scores, in terms of average-product corrected Frobenius norms of the DCA couplings {cite:p}`ekeberg_improved_2013`.
 
-If you want to directly jump to the command-line interface for using the package go to the section [Quicklist](#Quicklist).
+If you want to directly jump to the command-line interface for using the package, go to the section [Quicklist](#Quicklist).
+
+The main Github repository of the project can be found at [adabmDCA 2.0](https://github.com/spqb/adabmDCA.git).
 
 ```{toctree}
 :caption: 'Contents:'
