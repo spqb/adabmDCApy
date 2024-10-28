@@ -12,7 +12,7 @@ def add_args_dca(parser : argparse.ArgumentParser) -> argparse.ArgumentParser:
     dca_args.add_argument("-c", "--path_chains",  type=Path,  default=None,         help="(Defaults to None) Path to the fasta file containing the model's chains. Required for restoring the training.")
     dca_args.add_argument("-l", "--label",        type=str,   default=None,         help="(Defaults to None). If provoded, adds a label to the output files inside the output folder.")
     dca_args.add_argument("--alphabet",           type=str,   default="protein",    help="(Defaults to protein). Type of encoding for the sequences. Choose among ['protein', 'rna', 'dna'] or a user-defined string of tokens.")
-    dca_args.add_argument("--lr",                 type=float, default=0.01,         help="(Defaults to 0.01). Learning rate.")
+    dca_args.add_argument("--lr",                 type=float, default=0.05,         help="(Defaults to 0.05). Learning rate.")
     dca_args.add_argument("--nsweeps",            type=int,   default=10,           help="(Defaults to 10). Number of sweeps for each gradient estimation.")
     dca_args.add_argument("--sampler",            type=str,   default="gibbs",      help="(Defaults to gibbs). Sampling method to be used.", choices=["metropolis", "gibbs"])
     dca_args.add_argument("--nchains",            type=int,   default=10000,        help="(Defaults to 10000). Number of Markov chains to run in parallel.")
