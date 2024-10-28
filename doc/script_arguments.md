@@ -14,7 +14,7 @@ In this section we list all the possible command-line arguments for the main rou
 | `-c, --path_chains`     | None              | Path to the FASTA file containing the model's chains. Required for restoring the training.                                                            |
 | `-l, --label`           | None              | A label to identify different algorithm runs. It prefixes the output files with this label.                                                           |
 | `--alphabet`            | protein           | Type of encoding for the sequences. Choose among `protein`, `rna`, `dna`, or a user-defined string of tokens.                                         |
-| `--lr`                  | 0.01              | Learning rate.                                                                                                                                        |
+| `--lr`                  | 0.05              | Learning rate.                                                                                                                                        |
 | `--nsweeps`             | 10                | Number of sweeps for each gradient estimation.                                                                                                        |
 | `--sampler`             | gibbs             | Sampling method to be used. Possible options are `gibbs` and `metropolis`.                                                                            |
 | `--nchains`             | 10000             | Number of Markov chains to run in parallel.                                                                                                           |
@@ -23,6 +23,7 @@ In this section we list all the possible command-line arguments for the main rou
 | `--pseudocount`         | None              | Pseudo count for the single and two-sites statistics. Acts as a regularization. If `None`, it is set to $1/M_{\mathrm{eff}}$.                         |
 | `--seed`                | 0                 | Random seed.                                                                                                                                          |
 | `--nthreads`            | 1                 | Number of threads used in the Julia multithreads version.                                                                                             |
+| `--device`            | cuda                 | Device to use in the Python version, e.g. "cpu" or "cuda".                                                                                             |
 
 **eaDCA options**
 
