@@ -121,7 +121,6 @@ def resample_sequences(
     nextract: int,
 ) -> torch.Tensor:
     """Extracts nextract sequences from data with replacement according to the weights.
-    It implements the 'systematic resampling' algorithm, which is more accurate than the 'multinomial' one.
     
     Args:
         data (torch.Tensor): Data array.
@@ -131,10 +130,10 @@ def resample_sequences(
     Returns:
         torch.Tensor: Extracted sequences.
     """
-    data_resampled = systematic_resampling(data, weights)
-    indices = torch.randperm(len(data_resampled))
+    weights = weights.view(-1)
+    indices = torch.multinomial(weights, nextract, replacement=True)
     
-    return data_resampled[indices][:nextract]
+    return data[indices]
 
 
 def get_device(device: str) -> torch.device:
