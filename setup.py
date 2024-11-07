@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='adabmDCA',
-    version='0.1.1',
+    version='0.1.2',
     author='Lorenzo Rosset, Roberto Netti, Anna Paola Muntoni, Francesco Zamponi, Martin Weigt',
     maintainer='Lorenzo Rosset',
     author_email='rosset.lorenzo@gmail.com',
@@ -10,7 +10,7 @@ setup(
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
     url='https://github.com/spqb/adabmDCA',
-    packages=find_packages(),
+    packages=find_packages(include=['adabmDCA', 'adabmDCA.*']),
     include_package_data=True,
     python_requires='>=3.10',
     classifiers=[
