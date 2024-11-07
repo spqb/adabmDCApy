@@ -17,7 +17,7 @@ def create_parser():
     return parser
 
 
-if __name__ == '__main__':        
+def main():       
     
     # Parse arguments
     parser = create_parser()
@@ -37,3 +37,7 @@ if __name__ == '__main__':
     mask2[idx1_rm, :, idx2_rm, :] = np.zeros(shape=(q, q))
     save_params(fname_out, params, np.logical_and(mask1, mask2), tokens=tokens)
     print(f"Completed. Output saved in {fname_out}")
+    
+    
+if __name__ == '__main__':
+    main()

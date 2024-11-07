@@ -14,33 +14,19 @@ from adabmDCA.sampling import get_sampler
 from adabmDCA.functional import one_hot
 from adabmDCA.statmech import compute_energy
 from adabmDCA.stats import get_freq_single_point, get_freq_two_points, get_correlation_two_points
+from adabmDCA.parser import add_args_sample
 
 
 # import command-line input arguments
 def create_parser():
     # Important arguments
     parser = argparse.ArgumentParser(description='Samples from a DCA model.')
-    parser.add_argument("-p", "--path_params",  type=Path,   required=True,      help="Path to the file containing the parameters of DCA model to sample from.")
-    parser.add_argument("-d", "--data",         type=Path,   required=True,      help="Path to the file containing the data to sample from.")
-    parser.add_argument("-o", "--output",       type=Path,   required=True,      help="Path to the folder where to save the output.")
-    parser.add_argument("--ngen",               type=int,    required=True,      help="Number of sequences to be generated.") 
-    
-    # Optional arguments
-    parser.add_argument("-l", "--label",        type=str,    default="sampling", help="(Defaults to 'sampling'). Label to be used for the output files.")
-    parser.add_argument("-w", "--weights",      type=Path,   default=None,       help="(Defaults to None). Path to the file containing the weights of the sequences.")   
-    parser.add_argument("--nmeasure",           type=int,    default=10000,      help="(Defaults to min(10000, len(data)). Number of data sequences to use for computing the mixing time.")
-    parser.add_argument("--nmix",               type=int,    default=2,          help="(Defaults to 2). Number of mixing times used to generate 'ngen' sequences starting from random.")
-    parser.add_argument("--max_nsweeps",        type=int,    default=1000,       help="(Defaults to 1000). Maximum number of chain updates.")
-    parser.add_argument("--alphabet",           type=str,    default="protein",  help="(Defaults to protein). Type of encoding for the sequences. Choose among ['protein', 'rna', 'dna'] or a user-defined string of tokens.")
-    parser.add_argument("--sampler",            type=str,    default="gibbs",    help="(Defaults to gibbs). Sampling method to be used. Choose between 'metropolis' and 'gibbs'.")
-    parser.add_argument("--beta",               type=float,  default=1.0,        help="(Defaults to 1.0). Inverse temperature for the sampling.")
-    parser.add_argument("--pseudocount",        type=float,  default=None,       help="(Defaults to None). Pseudocount for the single and two points statistics used during the training. If None, 1/Meff is used.")
-    parser.add_argument("--device",             type=str,    default="cuda",     help="(Defaults to cuda). Device to perform computations on.")
+    parser = add_args_sample(parser)
     
     return parser
 
 
-if __name__ == '__main__':        
+def main():       
     
     # Parse arguments
     parser = create_parser()
@@ -167,3 +153,7 @@ if __name__ == '__main__':
     )
     
     print(f"\nDone, results saved in {str(folder)}")
+    
+    
+if __name__ == "__main__":
+    main()

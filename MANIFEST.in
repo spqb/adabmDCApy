@@ -1,0 +1,2 @@
+recursive-include scripts *
+include README.md

@@ -2,7 +2,7 @@
 
 # Check if the first positional argument is provided
 if [ -z "$1" ]; then
-  echo "Error: No command provided. Use 'train', 'sample', 'contacts', 'energies', 'DMS' or 'test'."
+  echo "Error: No command provided. Use 'train', 'sample', 'contacts', 'energies', or 'DMS'."
   exit 1
 fi
 
@@ -24,14 +24,11 @@ case "$COMMAND" in
   DMS)
     SCRIPT="dms.py"
     ;;
-  test)
-    SCRIPT="test_model.py"
-    ;;
   contacts)
     SCRIPT="contacts.py"
     ;;
   *)
-    echo "Error: Invalid command '$COMMAND'. Use 'train', 'sample', 'contacts', 'energies', 'DMS' or 'test'."
+    echo "Error: Invalid command '$COMMAND'. Use 'train', 'sample', 'contacts', 'energies' or 'DMS'."
     exit 1
     ;;
 esac

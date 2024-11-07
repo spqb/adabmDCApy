@@ -10,20 +10,18 @@ from adabmDCA.io import load_params, import_from_fasta
 from adabmDCA.fasta_utils import encode_sequence
 from adabmDCA.functional import one_hot
 from adabmDCA.statmech import compute_energy
+from adabmDCA.parser import add_args_energies
 
 
 # import command-line input arguments
 def create_parser():
     parser = argparse.ArgumentParser(description="Computes the DCA energies of a sequence dataset.")
-    parser.add_argument("-d", "--data",         type=Path,   required=True,      help="Path to the fasta file containing the sequences.")
-    parser.add_argument("-p", "--path_params",  type=Path,   required=True,      help="Path to the file containing the parameters of DCA model to sample from.")
-    parser.add_argument("-o", "--output",       type=Path,   required=True,      help="Path to the folder where to save the output.")
-    parser.add_argument("--alphabet",           type=str,    default="protein",  help="(Defaults to protein). Type of encoding for the sequences. Choose among ['protein', 'rna', 'dna'] or a user-defined string of tokens.")
-    parser.add_argument("--device",             type=str,    default="cuda",     help="(Defaults to cuda). Device to be used.")
+    parser = add_args_energies(parser)
+    
     return parser
 
 
-if __name__ == '__main__':        
+def main():     
     
     # Parse arguments
     parser = create_parser()
@@ -54,3 +52,7 @@ if __name__ == '__main__':
             f.write(f"{s}\n")
     
     print(f"Process completed. Output saved in {fname_out}")
+    
+    
+if __name__ == "__main__":
+    main()

@@ -1,5 +1,3 @@
-#!/usr/bin/python3
-
 from pathlib import Path
 import importlib
 import argparse
@@ -12,7 +10,7 @@ from adabmDCA.fasta_utils import get_tokens
 from adabmDCA.io import load_chains, load_params
 from adabmDCA.stats import get_freq_single_point, get_freq_two_points
 from adabmDCA.utils import init_chains, init_parameters, get_device
-from adabmDCA.parser import add_args_dca, add_args_eaDCA, add_args_edDCA
+from adabmDCA.parser import add_args_train
 from adabmDCA.sampling import get_sampler
 from adabmDCA.functional import one_hot
 
@@ -21,14 +19,12 @@ from adabmDCA.functional import one_hot
 def create_parser():
     # Important arguments
     parser = argparse.ArgumentParser(description='Train a DCA model.')
-    parser = add_args_dca(parser)
-    parser = add_args_eaDCA(parser)
-    parser = add_args_edDCA(parser)    
+    parser = add_args_train(parser)
     
     return parser
 
 
-if __name__ == '__main__':
+def main():
     
     # Load parser, training dataset and DCA model
     parser = create_parser()
@@ -189,3 +185,7 @@ if __name__ == '__main__':
         file_paths=file_paths,
         device=device,
     )
+    
+    
+if __name__ == "__main__":
+    main()

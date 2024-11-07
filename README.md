@@ -30,11 +30,12 @@ Clone the repository locally and then install the requirements and the package. 
 ```bash
 git clone git@github.com:spqb/adabmDCApy.git
 cd adabmDCApy
-pip install -r requirements.txt
-pip install -e .
+pip install .
 ```
 
 ## Usage
+
+After installation, all the main routines can be launched though the script `adabmDCA.sh` or directly form the terminal using the command `adabmDCA`.
 
 To get started with adabmDCA in Python, please refer to the [Documentation](https://spqb.github.io/adabmDCApy/) or the [Colab notebook](https://colab.research.google.com/drive/1l5e1W8pk4cB92JAlBElLzpkEk6Hdjk7B?usp=sharing).
 

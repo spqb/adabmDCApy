@@ -9,8 +9,7 @@ Open a terminal, clone the GitHub repository locally, and install the dependenci
 ```bash
 git clone git@github.com:spqb/adabmDCApy.git
 cd adabmDCApy
-pip install -r requirements.txt
-pip install -e .
+pip install .
 ```
 
 The main repository of the implementation can be found at [adabmDCApy](https://github.com/spqb/adabmDCApy.git).
