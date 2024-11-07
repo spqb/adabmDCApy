@@ -28,9 +28,9 @@ setup(
     },
     install_requires=[
         'matplotlib==3.9.2',
-        'numpy==1.24.4',
+        'numpy==2.1.3',
         'pandas==2.2.3',
-        'torch==2.3.0',
-        'tqdm==4.66.4',
+        'torch==2.5.1',
+        'tqdm==4.67.0',
     ],
 )
