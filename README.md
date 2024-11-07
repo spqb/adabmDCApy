@@ -25,6 +25,14 @@ The project's main repository can be found at [adabmDCA 2.0](https://github.com/
 - Compatible with protein and RNA family analysis.
 
 ## Installation
+
+### Option 1: Install from PyPI
+Open a terminal and run
+```bash
+pip install adabmDCA
+```
+
+### Option 2: Install from the GitHub repository
 Clone the repository locally and then install the requirements and the package. In a terminal, run:
 
 ```bash

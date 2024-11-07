@@ -4,7 +4,14 @@
 
 ## Python implementation
 
-Open a terminal, clone the GitHub repository locally, and install the dependencies and the package:
+### Option 1: Install from PyPI
+Open a terminal and run
+```bash
+pip install adabmDCA
+```
+
+### Option 2: Install from the GitHub repository
+Clone the repository locally and then install the requirements and the package. In a terminal, run:
 
 ```bash
 git clone git@github.com:spqb/adabmDCApy.git
