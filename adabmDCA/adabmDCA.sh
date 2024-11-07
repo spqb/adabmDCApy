@@ -1,5 +1,8 @@
 #!/bin/bash
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+echo "SCRIPT_DIR: $SCRIPT_DIR"
+
 # Check if the first positional argument is provided
 if [ -z "$1" ]; then
   echo "Error: No command provided. Use 'train', 'sample', 'contacts', 'energies', or 'DMS'."
@@ -34,4 +37,4 @@ case "$COMMAND" in
 esac
 
 # Run the corresponding Python script with the remaining optional arguments
-python3 scripts/$SCRIPT "$@"
+python3 $SCRIPT_DIR/scripts/$SCRIPT "$@"
