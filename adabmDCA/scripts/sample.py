@@ -62,7 +62,7 @@ def main():
         print("Computing the weights...")
         weights = compute_weights(data, device=device).view(-1)
     else:
-        weights = torch.tensor(np.loadtxt(args.weights), device=device)
+        weights = torch.tensor(np.loadtxt(args.weights), device=device, dtype=torch.float32)
     
     nmeasure = min(args.nmeasure, len(data))
     data = one_hot(data, num_classes=len(tokens))
