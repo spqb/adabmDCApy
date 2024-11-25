@@ -29,7 +29,6 @@ def fit(
     drate: float,
     tokens: str,
     file_paths: Dict[str, Path] = None,
-    device: torch.device = torch.device("cpu"),
     *args, **kwargs,
 ):
     """Fits an edDCA model on the training data and saves the results in a file.
@@ -49,7 +48,6 @@ def fit(
         drate (float): Percentage of active couplings to be pruned at each decimation step.
         tokens (str): Tokens used for encoding the sequences.
         file_paths (Dict[str, Path], optional): Dictionary containing the paths where to save log, params and chains. Defaults to None.
-        device (torch.device, optional): Device to be used. Defaults to "cpu".
     """
     time_start = time.time()
     
@@ -62,6 +60,9 @@ def fit(
         raise ValueError("chains must be a 3D tensor")
     
     L, q = params["bias"].shape
+    device = fi_target.device
+    dtype = fi_target.dtype
+    
     
     print("Bringing the model to the convergence threshold...")
     chains, params, log_weights = train_graph(
@@ -79,7 +80,6 @@ def fit(
         tokens=tokens,
         check_slope=True,
         file_paths=file_paths,
-        device=device,
     )
     
     # Get the single-point and two-points frequencies of the simulated data
@@ -156,7 +156,6 @@ def fit(
             tokens=tokens,
             check_slope=True,
             progress_bar=False,
-            device=device,
         )
         
         # Compute the single-point and two-points frequencies of the simulated data
@@ -165,7 +164,7 @@ def fit(
         
         pearson, slope = get_correlation_two_points(fi=fi_target, pi=pi, fij=fij_target, pij=pij)
         density = compute_density(mask)
-        logZ = (torch.logsumexp(log_weights, dim=0) - torch.log(torch.tensor(len(chains), device=device))).item()
+        logZ = (torch.logsumexp(log_weights, dim=0) - torch.log(torch.tensor(len(chains), device=device, dtype=dtype))).item()
         log_likelihood = compute_log_likelihood(fi=fi_target, fij=fij_target, params=params, logZ=logZ)
         
         print(template.format(f"Step: {count}", f"Density: {density:.3f}", f"LL: {log_likelihood:.3f}", f"Pearson: {pearson:.3f}", f"Slope: {slope:.3f}"))

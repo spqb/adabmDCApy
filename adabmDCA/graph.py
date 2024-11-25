@@ -48,7 +48,7 @@ def update_mask(
     # Get the threshold value for the top nactivate*2 elements (since Dkl is symmetric)
     Dkl_th = Dkl_flat_sorted[2 * nactivate]
     # Update the mask where Dkl is greater than the threshold
-    mask = torch.where(Dkl > Dkl_th, torch.tensor(1, device=mask.device), mask)
+    mask = torch.where(Dkl > Dkl_th, torch.tensor(1, device=Dkl.device, dtype=Dkl.dtype), mask)
     
     return mask
 

@@ -127,7 +127,6 @@ def train_graph(
     log_weights: torch.Tensor = None,
     file_paths: Dict[str, Path] = None,
     progress_bar: bool = True,
-    device: torch.device = torch.device("cpu"),
 ) -> Tuple[torch.Tensor, Dict[str, torch.Tensor], torch.Tensor]:
     """Trains the model on a given graph until the target Pearson correlation is reached or the maximum number of epochs is exceeded.
 
@@ -147,19 +146,19 @@ def train_graph(
         check_slope (bool, optional): Whether to take into account the slope for the convergence criterion or not. Defaults to False.
         file_paths (Dict[str, Path], optional): Dictionary containing the paths where to save log, params, and chains.  Defaults to None.
         progress_bar (bool, optional): Whether to display a progress bar or not. Defaults to True.
-        device (torch.device, optional): Device to be used. Defaults to "cpu".
 
     Returns:
         Tuple[torch.Tensor, Dict[str, torch.Tensor], torch.Tensor]: Updated chains and parameters, log-weights for the log-likelihood computation.
     """
-    
+    device = fi.device
+    dtype = fi.dtype
     L, q = fi.shape
     time_start = time.time()
     
     # log_weights used for the online computing of the log-likelihood
     if log_weights is None:
-        log_weights = torch.zeros(len(chains), device=device)
-    logZ = (torch.logsumexp(log_weights, dim=0) - torch.log(torch.tensor(len(chains), device=device))).item()
+        log_weights = torch.zeros(len(chains), device=device, dtype=dtype)
+    logZ = (torch.logsumexp(log_weights, dim=0) - torch.log(torch.tensor(len(chains), device=device, dtype=dtype))).item()
     log_likelihood = compute_log_likelihood(fi=fi, fij=fij, params=params, logZ=logZ)
     entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
     
@@ -235,7 +234,7 @@ def train_graph(
             log_weights=log_weights,
         )
         
-        logZ = (torch.logsumexp(log_weights, dim=0) - torch.log(torch.tensor(len(chains), device=device))).item()
+        logZ = (torch.logsumexp(log_weights, dim=0) - torch.log(torch.tensor(len(chains), device=device, dtype=dtype))).item()
         log_likelihood = compute_log_likelihood(fi=fi, fij=fij, params=params, logZ=logZ)
         
         if progress_bar:

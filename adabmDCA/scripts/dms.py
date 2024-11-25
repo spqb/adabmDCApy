@@ -5,7 +5,7 @@ import numpy as np
 import torch
 
 from adabmDCA.fasta_utils import get_tokens
-from adabmDCA.utils import get_device
+from adabmDCA.utils import get_device, get_dtype
 from adabmDCA.io import load_params, import_from_fasta
 from adabmDCA.fasta_utils import encode_sequence, decode_sequence
 from adabmDCA.functional import one_hot
@@ -29,6 +29,7 @@ def main():
     
     # Set the device
     device = get_device(args.device)
+    dtype = get_dtype(args.dtype)
     
     # import data and parameters
     tokens = get_tokens(args.alphabet)
@@ -38,7 +39,7 @@ def main():
     wt_name = "".join(e for e in wt_name if e.isalnum())
     wt_seq = torch.tensor(encode_sequence(sequences[0], tokens))
     
-    params = load_params(args.path_params, tokens=tokens, device=args.device)
+    params = load_params(args.path_params, tokens=tokens, device=device, dtype=dtype)
     L, q = params["bias"].shape
     
     # generate DMS
@@ -59,14 +60,14 @@ def main():
                 new_residues.append(tokens[a])
     
     print("Computing the DCA scores...")
-    dms = torch.vstack(dms).to(args.device)
-    dms = one_hot(dms, num_classes=q)
+    dms = torch.vstack(dms).to(device=device)
+    dms = one_hot(dms, num_classes=q).to(dtype)
     energies = compute_energy(dms, params)
-    energy_wt = compute_energy(one_hot(wt_seq.view(1, -1).to(args.device), num_classes=q), params)
+    energy_wt = compute_energy(one_hot(wt_seq.view(1, -1).to(device), num_classes=q).to(dtype), params)
     deltaE = energies - energy_wt
     
     dms = torch.argmax(dms, -1).cpu().numpy()
-    dms_decoded = np.vectorize(decode_sequence, excluded=["tokens"], signature="(l), () -> ()")(dms, tokens)
+    dms_decoded = decode_sequence(dms, tokens)
     
     print("Saving the results...")
     folder = args.output

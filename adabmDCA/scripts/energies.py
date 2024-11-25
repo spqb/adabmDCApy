@@ -1,11 +1,10 @@
 import argparse
 from pathlib import Path
-import numpy as np
 
 import torch
 
 from adabmDCA.fasta_utils import get_tokens
-from adabmDCA.utils import get_device
+from adabmDCA.utils import get_device, get_dtype
 from adabmDCA.io import load_params, import_from_fasta
 from adabmDCA.fasta_utils import encode_sequence
 from adabmDCA.functional import one_hot
@@ -29,17 +28,18 @@ def main():
     
     # Set the device
     device = get_device(args.device)
+    dtype = get_dtype(args.dtype)
     
     # import data
     tokens = get_tokens(args.alphabet)
     names, sequences = import_from_fasta(args.data)
-    data = np.vectorize(encode_sequence, excluded=["tokens"], signature="(), () -> (n)")(sequences, tokens)
-    data = torch.tensor(data, device=device)
+    data = encode_sequence(sequences, tokens)
+    data = torch.tensor(data, device=device, dtype=torch.int32)
     
     # import parameters and compute DCA energies
-    params = load_params(args.path_params, tokens=tokens, device=device)
+    params = load_params(args.path_params, tokens=tokens, device=device, dtype=dtype)
     q = params["bias"].shape[1]
-    data = one_hot(data, num_classes=q)
+    data = one_hot(data, num_classes=q).to(dtype)
     energies = compute_energy(data, params).cpu().numpy()
     
     # Save results in a file

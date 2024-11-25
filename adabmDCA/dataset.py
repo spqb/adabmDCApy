@@ -1,4 +1,4 @@
-from typing import Union, Any
+from typing import Any
 from pathlib import Path
 import numpy as np
 
@@ -17,22 +17,27 @@ class DatasetDCA(Dataset):
     
     def __init__(
         self,
-        path_data: Union[str, Path],
-        path_weights: Union[str, Path] = None,
+        path_data: str | Path,
+        path_weights: str | Path = None,
         alphabet: str = "protein",
+        clustering_th: float = 0.8,
         device: torch.device = torch.device("cpu"),
+        dtype: torch.dtype = torch.float32,
     ):
         """Initialize the dataset.
 
         Args:
-            path_data (Union[str, Path]): Path to multi sequence alignment in fasta format.
-            path_weights (Union[str, Path], optional): Path to the file containing the importance weights of the sequences. If None, the weights are computed automatically.
+            path_data (str | Path): Path to multi sequence alignment in fasta format.
+            path_weights (str | Path, optional): Path to the file containing the importance weights of the sequences. If None, the weights are computed automatically.
             alphabet (str, optional): Selects the type of encoding of the sequences. Default choices are ("protein", "rna", "dna"). Defaults to "protein".
             device (torch.device, optional): Device to be used. Defaults to "cpu".
+            dtype (torch.dtype, optional): Data type of the dataset. Defaults to torch.float32.
         """
         path_data = Path(path_data)
         self.names = []
         self.data = []
+        self.device = device
+        self.dtype = dtype
         
         # Select the proper encoding
         self.tokens = get_tokens(alphabet)
@@ -53,12 +58,12 @@ class DatasetDCA(Dataset):
         # Computes the weights to be assigned to the data
         if path_weights is None:
             print("Automatically computing the sequence weights...")
-            self.weights = compute_weights(data=self.data, th=0.8, device=device)
+            self.weights = compute_weights(data=self.data, th=clustering_th, device=device, dtype=dtype)
             
         else:
             with open(path_weights, "r") as f:
                 weights = [float(line.strip()) for line in f]
-            self.weights = torch.tensor(weights, device=device)
+            self.weights = torch.tensor(weights, device=device, dtype=dtype)
         
         print(f"Multi-sequence alignment imported: M = {self.data.shape[0]}, L = {self.data.shape[1]}, q = {self.get_num_states()}, M_eff = {int(self.weights.sum())}.")
 

@@ -14,9 +14,8 @@ def _get_freq_single_point(
     if weights is not None:
         norm_weights = weights.reshape(M, 1, 1) / weights.sum()
     else:
-        norm_weights = torch.ones((M, 1, 1), device=data.device) / M
-
-    frequencies = torch.clamp((data.float() * norm_weights).sum(dim=0), min=1e-6, max=1. - 1e-6)
+        norm_weights = torch.ones((M, 1, 1), device=data.device, dtype=data.dtype) / M
+    frequencies = (data * norm_weights).sum(dim=0)
 
     return (1. - pseudo_count) * frequencies + (pseudo_count / q)
 
@@ -57,7 +56,7 @@ def _get_freq_two_points(
     if weights is not None:
         norm_weights = weights.reshape(M, 1) / weights.sum()
     else:
-        norm_weights = torch.ones((M, 1), device=data.device) / M
+        norm_weights = torch.ones((M, 1), device=data.device, dtype=data.dtype) / M
     
     fij = (data_oh * norm_weights).T @ data_oh
     # Apply the pseudo count
@@ -123,7 +122,7 @@ def generate_unique_triplets(
 
 
 @torch.jit.script
-def get_C_ijk(
+def _get_C_ijk(
     triplet: torch.Tensor,
     data: torch.Tensor,
     weights: torch.Tensor,
@@ -134,15 +133,14 @@ def get_C_ijk(
     Args:
         triplet (torch.Tensor): Tensor of shape (3,) containing the indices of the triplet.
         data (torch.Tensor): Tensor of shape (M, L, q) containing the one-hot encoded data.
-        weights (torch.Tensor): Tensor of shape (M,) containing the weights of the sequences.
+        weights (torch.Tensor): Tensor of shape (M, 1) containing the normalized weights of the sequences.
 
     Returns:
         torch.Tensor: Tensor of shape (q, q, q) containing the third-order correlations.
     """
     # Center the dataset
     data_c = data - data.mean(dim=0, keepdim=True)
-    norm_weights = weights.view(-1, 1) / weights.sum()
-    x = data_c[:, triplet[0], :] * norm_weights
+    x = data_c[:, triplet[0], :] * weights
     y = data_c[:, triplet[1], :]
     z = data_c[:, triplet[2], :]
 
@@ -153,16 +151,16 @@ def get_C_ijk(
 
 def get_freq_three_points(
     data: torch.Tensor,
-    weights: torch.Tensor,
     ntriplets: int,
+    weights: torch.Tensor = None,
     device: torch.device = torch.device("cpu"),
 ) -> torch.Tensor:
     """Computes the 3-body statistics of the input MSA.
 
     Args:
         data (torch.Tensor): Input MSA in one-hot encoding.
-        weights (torch.Tensor): Importance weights for the sequences.
         ntriplets (int): Number of triplets to test.
+        weights (torch.Tensor, optional): Importance weights for the sequences. Defaults to None.
         device (torch.device, optional): Device to perform computations on. Defaults to "cpu".
 
     Returns:
@@ -171,11 +169,16 @@ def get_freq_three_points(
     if data.dim() != 3:
         raise ValueError(f"Expected data to be a 3D tensor, but got {data.dim()}D tensor instead")
     
+    if weights is not None:
+        norm_weights = weights.view(-1, 1) / weights.sum()
+    else:
+        norm_weights = torch.ones((M, 1), device=data.device, dtype=data.dtype) / M
+    
     L = data.shape[1]
     triplets = generate_unique_triplets(L=L, ntriplets=ntriplets, device=device)
     Cijk = []
     for triplet in triplets:
-        Cijk.append(get_C_ijk(triplet, data, weights).flatten())
+        Cijk.append(_get_C_ijk(triplet, data, norm_weights).flatten())
         
     return torch.stack(Cijk)
 
@@ -237,8 +240,8 @@ def extract_Cij_from_freq(
     
     # Only use a subset of couplings if a mask is provided
     if mask is not None:
-        cov_data = torch.where(mask, cov_data, torch.tensor(0.0, device=cov_data.device))
-        cov_chains = torch.where(mask, cov_chains, torch.tensor(0.0, device=cov_chains.device))
+        cov_data = torch.where(mask, cov_data, torch.tensor(0.0, device=cov_data.device, dtype=cov_data.dtype))
+        cov_chains = torch.where(mask, cov_chains, torch.tensor(0.0, device=cov_chains.device, dtype=cov_chains.dtype))
     
     # Extract only the entries of half the matrix and out of the diagonal blocks
     idx_row, idx_col = torch.tril_indices(L, L, offset=-1)
@@ -252,7 +255,7 @@ def extract_Cij_from_seqs(
     data: torch.Tensor,
     chains: torch.Tensor,
     weights: torch.Tensor = None,
-    pseudo_count: float = 0.,
+    pseudo_count: float = 0.0,
     mask: torch.Tensor = None,
 ) -> Tuple[float, float]:
     """Extracts the lower triangular part of the covariance matrices of the data and chains starting from the sequences.
@@ -260,6 +263,8 @@ def extract_Cij_from_seqs(
     Args:
         data (torch.Tensor): Data sequences.
         chains (torch.Tensor): Chain sequences.
+        weights (torch.Tensor, optional): Weights of the sequences. Defaults to None.
+        pseudo_count (float, optional): Pseudo count for the single and two points statistics. Acts as a regularization. Defaults to 0.0.
         mask (torch.Tensor, optional): Mask for comparing just a subset of the couplings. Defaults to None.
 
     Returns:

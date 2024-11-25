@@ -65,5 +65,4 @@ def fit(
         tokens=tokens,
         check_slope=False,
         file_paths=file_paths,
-        device=device,
     )
