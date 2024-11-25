@@ -9,7 +9,7 @@ import torch
 from adabmDCA.fasta_utils import get_tokens, write_fasta, compute_weights, import_clean_dataset, encode_sequence
 from adabmDCA.resampling import compute_mixing_time
 from adabmDCA.io import load_params
-from adabmDCA.utils import init_chains, resample_sequences, get_device
+from adabmDCA.utils import init_chains, resample_sequences, get_device, get_dtype
 from adabmDCA.sampling import get_sampler
 from adabmDCA.functional import one_hot
 from adabmDCA.statmech import compute_energy
@@ -41,11 +41,12 @@ def main():
     print("\n" + "".join(["*"] * 10) + f" Sampling from DCA model " + "".join(["*"] * 10) + "\n")
     # Set the device
     device = get_device(args.device)
+    dtype = get_dtype(args.dtype)
     tokens = get_tokens(args.alphabet)
         
     # Import parameters
     print(f"Loading parameters from {args.path_params}...")
-    params = load_params(fname=args.path_params, tokens=tokens, device=device)
+    params = load_params(fname=args.path_params, tokens=tokens, device=device, dtype=dtype)
     L, q = params["bias"].shape
     print(f"L = {L}, q = {q}")
     
@@ -60,12 +61,12 @@ def main():
     
     if args.weights is None:
         print("Computing the weights...")
-        weights = compute_weights(data, device=device).view(-1)
+        weights = compute_weights(data, device=device, dtype=dtype).view(-1)
     else:
-        weights = torch.tensor(np.loadtxt(args.weights), device=device, dtype=torch.float32)
+        weights = torch.tensor(np.loadtxt(args.weights), device=device, dtype=dtype).view(-1)
     
     nmeasure = min(args.nmeasure, len(data))
-    data = one_hot(data, num_classes=len(tokens))
+    data = one_hot(data, num_classes=len(tokens)).to(dtype)
     data_resampled = resample_sequences(data, weights, nmeasure)
     
     if args.pseudocount is None:
@@ -100,6 +101,7 @@ def main():
         L=L,
         q=q,
         device=device,
+        dtype=dtype,
     )
     
     # Compute single and two-site frequencies of the data

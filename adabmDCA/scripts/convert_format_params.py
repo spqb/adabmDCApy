@@ -24,7 +24,7 @@ def main():
     args = parser.parse_args()
     
     # Import parameters in the old format
-    params = load_params_oldformat(args.path_params) # This function will be modified
+    params = load_params_oldformat(args.path_params, device="cpu") # This function will be modified
     tokens = get_tokens(args.alphabet)
     
     # Save parameters in the new format

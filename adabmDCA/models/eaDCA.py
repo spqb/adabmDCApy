@@ -29,7 +29,6 @@ def fit(
     factivate: float,
     gsteps: int,
     file_paths: dict = None,
-    device: torch.device = torch.device("cpu"),
     *args, **kwargs
 ) -> None:
     """
@@ -52,7 +51,6 @@ def fit(
         factivate (float): Fraction of inactive couplings to activate at each step.
         gsteps (int): Number of gradient updates to be performed on a given graph.
         file_paths (dict, optional): Dictionary containing the paths where to save log, params, and chains. Defaults to None.
-        device (torch.device, optional): Device to be used. Defaults to "cpu".
     """
     
     # Check the input sizes
@@ -63,6 +61,9 @@ def fit(
     if chains.dim() != 3:
         raise ValueError("chains must be a 3D tensor")
     
+    device = fi_target.device
+    dtype = fi_target.dtype
+    
     graph_upd = 0
     density = compute_density(mask) * 100
     L, q = fi_target.shape
@@ -71,7 +72,7 @@ def fit(
     mask_save = get_mask_save(L, q, device=device)
     
     # log_weights used for the online computing of the log-likelihood
-    logZ = (torch.logsumexp(log_weights, dim=0) - torch.log(torch.tensor(len(chains), device=device))).item()
+    logZ = (torch.logsumexp(log_weights, dim=0) - torch.log(torch.tensor(len(chains), device=device, dtype=dtype))).item()
     
     # Compute the single-point and two-points frequencies of the simulated data
     pi = get_freq_single_point(data=chains, weights=None, pseudo_count=0.)
@@ -132,8 +133,6 @@ def fit(
             check_slope=False,
             file_paths=None,
             progress_bar=False,
-            device=device,
-            #all_states=all_states,
         )
 
         graph_upd += 1
@@ -145,7 +144,7 @@ def fit(
         # Compute statistics of the training
         pearson, slope = get_correlation_two_points(fij=fij_target, pij=pij, fi=fi_target, pi=pi)
         density = compute_density(mask) * 100
-        logZ = (torch.logsumexp(log_weights, dim=0) - torch.log(torch.tensor(len(chains), device=device))).item()
+        logZ = (torch.logsumexp(log_weights, dim=0) - torch.log(torch.tensor(len(chains), device=device, dtype=dtype))).item()
         log_likelihood = compute_log_likelihood(fi=fi_target, fij=fij_target, params=params, logZ=logZ)
         pbar.set_description(f"Graph updates: {graph_upd} - Density: {density:.3f}% - New active couplings: {int(nactive - nactive_old)} - LL: {log_likelihood:.3f}")
 

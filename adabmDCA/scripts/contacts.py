@@ -6,7 +6,7 @@ import torch
 
 from adabmDCA.fasta_utils import get_tokens
 from adabmDCA.io import load_params
-from adabmDCA.utils import set_zerosum_gauge, get_device
+from adabmDCA.utils import set_zerosum_gauge, get_device, get_dtype
 from adabmDCA.parser import add_args_contacts
 
 # import command-line input arguments
@@ -26,10 +26,11 @@ def main():
     
     # Set the device
     device = get_device(args.device)
+    dtype = get_dtype(args.dtype)
     
     # Import parameters
     tokens = get_tokens(args.alphabet)
-    params = load_params(args.path_params, tokens=tokens, device=device)
+    params = load_params(args.path_params, tokens=tokens, device=device, dtype=dtype)
     
     # Zero-sum gauge
     params = set_zerosum_gauge(params)

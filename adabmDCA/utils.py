@@ -36,7 +36,7 @@ def init_parameters(fi: torch.Tensor) -> Dict[str, torch.Tensor]:
     L, q = fi.shape
     params = {}
     params["bias"] = torch.log(fi)
-    params["coupling_matrix"] = torch.zeros((L, q, L, q), device=fi.device)
+    params["coupling_matrix"] = torch.zeros((L, q, L, q), device=fi.device, dtype=fi.dtype)
     
     return params
 
@@ -46,6 +46,7 @@ def init_chains(
     L: int,
     q: int,
     device: torch.device,
+    dtype: torch.dtype = torch.float32,
     fi: torch.Tensor = None,
 ) -> torch.Tensor:
     """Initialize the chains of the DCA model. If 'fi' is provided, the chains are sampled from the
@@ -56,6 +57,7 @@ def init_chains(
         L (int): Length of the MSA.
         q (int): Number of values that each residue can assume.
         device (torch.device): Device where to store the chains.
+        dtype (torch.dtype, optional): Data type of the chains. Defaults to torch.float32.
         fi (torch.Tensor, optional): Single-point frequencies. Defaults to None.
 
     Returns:
@@ -64,9 +66,9 @@ def init_chains(
     if fi is None:
         chains = torch.randint(low=0, high=q, size=(num_chains, L), device=device)
     else:
-        chains = torch.multinomial(fi, num_samples=num_chains, replacement=True).T
+        chains = torch.multinomial(fi, num_samples=num_chains, replacement=True).to(device=device).T
     
-    return one_hot(chains, num_classes=q).float()
+    return one_hot(chains, num_classes=q).to(dtype)
 
 
 def get_mask_save(L: int, q: int, device: torch.device) -> torch.Tensor:
@@ -152,3 +154,20 @@ def get_device(device: str) -> torch.device:
     else:
         print("Running on CPU")
         return torch.device("cpu")
+    
+    
+def get_dtype(dtype: str) -> torch.dtype:
+    """Returns the data type of the tensors.
+    
+    Args:
+        dtype (str): Data type.
+        
+    Returns:
+        torch.dtype: Data type.
+    """
+    if dtype == "float32":
+        return torch.float32
+    elif dtype == "float64":
+        return torch.float64
+    else:
+        raise ValueError(f"Data type {dtype} not supported.")

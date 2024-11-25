@@ -30,7 +30,7 @@ def gibbs_sweep(
         couplings_residue = params["coupling_matrix"][i].view(q, L * q)
         # Update the chains
         logit_residue = beta * (params["bias"][i].unsqueeze(0) + chains.reshape(N, L * q) @ couplings_residue.T) # (N, q)
-        chains[:, i, :] = one_hot(torch.multinomial(torch.softmax(logit_residue, -1), 1), num_classes=q).squeeze(1)
+        chains[:, i, :] = one_hot(torch.multinomial(torch.softmax(logit_residue, -1), 1), num_classes=q).to(logit_residue.dtype).squeeze(1)
         
     return chains
 
@@ -102,7 +102,7 @@ def metropolis_sweep(
         res_new = one_hot_torch(torch.randint(0, q, (N,), device=chains.device), num_classes=q).float()
         delta_E = get_deltaE(i, chains, res_old, res_new, params, L, q)
         accept_prob = torch.exp(- beta * delta_E).unsqueeze(-1)
-        chains[:, i, :] = torch.where(accept_prob > torch.rand((N, 1), device=chains.device), res_new, res_old)
+        chains[:, i, :] = torch.where(accept_prob > torch.rand((N, 1), device=chains.device, dtype=chains.dtype), res_new, res_old)
 
     return chains
     

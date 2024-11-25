@@ -1,6 +1,6 @@
 from pathlib import Path
 import numpy as np
-from typing import Union, Tuple
+from typing import Tuple
 
 import torch
 
@@ -30,11 +30,11 @@ def get_tokens(alphabet: str) -> str:
         return alphabet
     
     
-def encode_sequence(sequence: Union[str, np.ndarray], tokens: str) -> np.ndarray:
+def encode_sequence(sequence: str | np.ndarray, tokens: str) -> np.ndarray:
     """Encodes a sequence or a list of sequences into a numeric format.
 
     Args:
-        sequence (Union[str, Array]): Input sequence.
+        sequence (str | np.ndarray): Input sequence.
         tokens (str): Alphabet to be used for the encoding.
 
     Returns:
@@ -52,7 +52,7 @@ def encode_sequence(sequence: Union[str, np.ndarray], tokens: str) -> np.ndarray
         raise ValueError("Input sequence must be either a string or a numpy array.")
 
 
-def decode_sequence(sequence: np.ndarray, tokens: str) -> Union[str, np.ndarray]:
+def decode_sequence(sequence: np.ndarray, tokens: str) -> str | np.ndarray:
     """Takes a numeric sequence or list of seqences in input an returns the corresponding string encoding.
 
     Args:
@@ -70,11 +70,11 @@ def decode_sequence(sequence: np.ndarray, tokens: str) -> Union[str, np.ndarray]
         raise ValueError("Input sequence must be either a 1D or a 2D array.")
 
 
-def import_from_fasta(fasta_name: Union[str, Path], tokens: str = None) -> Tuple[np.ndarray, np.ndarray]:
+def import_from_fasta(fasta_name: str | Path, tokens: str = None) -> Tuple[np.ndarray, np.ndarray]:
     """Import data from a fasta file.
 
     Args:
-        fasta_name (Union[str, Path]): Path to the fasta file.
+        fasta_name (str | Path): Path to the fasta file.
         tokens (str): Alphabet to be used for the encoding. If provided, encodes the sequences in numeric format.
 
     Raises:
@@ -146,11 +146,11 @@ def write_fasta(
             f.write('\n')
          
                 
-def import_clean_dataset(filein: str, tokens: str = "protein") -> Tuple[np.ndarray, np.ndarray]:
+def import_clean_dataset(filein: str | Path, tokens: str = "protein") -> Tuple[np.ndarray, np.ndarray]:
     """Imports data from a fasta file and removes all the sequences whose tokens are not present in a specified alphabet.
 
     Args:
-        filein (str): Input fasta.
+        filein (str | Path): Input fasta.
         tokens (str, optional): Alphabet to be used for the encoding. Defaults to "protein".
     
     Returns:
@@ -181,6 +181,7 @@ def compute_weights(
     data: np.ndarray | torch.Tensor,
     th: float = 0.8,
     device: torch.device = torch.device("cpu"),
+    dtype: torch.dtype = torch.float32
 ) -> torch.Tensor:
     """Computes the weight to be assigned to each sequence 's' in 'data' as 1 / n_clust, where 'n_clust' is the number of sequences
     that have a sequence identity with 's' >= th.
@@ -189,6 +190,7 @@ def compute_weights(
         data (np.ndarray | torch.Tensor): Encoded input dataset.
         th (float, optional): Sequence identity threshold for the clustering. Defaults to 0.8.
         device (toch.device, optional): Device. Defaults to "cpu".
+        dtype (torch.dtype, optional): Data type. Defaults to torch.float32.
 
     Returns:
         torch.Tensor: Array with the weights of the sequences.
@@ -210,7 +212,7 @@ def compute_weights(
 
     weights = torch.vstack([get_sequence_weight(s, data, L, th) for s in data])
     
-    return weights
+    return weights.to(dtype)
 
 
 def validate_alphabet(sequences: np.ndarray, tokens: str):

@@ -9,7 +9,7 @@ from adabmDCA.dataset import DatasetDCA
 from adabmDCA.fasta_utils import get_tokens
 from adabmDCA.io import load_chains, load_params
 from adabmDCA.stats import get_freq_single_point, get_freq_two_points
-from adabmDCA.utils import init_chains, init_parameters, get_device
+from adabmDCA.utils import init_chains, init_parameters, get_device, get_dtype
 from adabmDCA.parser import add_args_train
 from adabmDCA.sampling import get_sampler
 from adabmDCA.functional import one_hot
@@ -33,6 +33,7 @@ def main():
     print("\n" + "".join(["*"] * 10) + f" Training {args.model} model " + "".join(["*"] * 10) + "\n")
     # Set the device
     device = get_device(args.device)
+    dtype = get_dtype(args.dtype)
     print("\n")
     print(f"Input MSA:\t\t{args.data}")
     print(f"Output folder:\t\t{args.output}")
@@ -44,6 +45,7 @@ def main():
     if args.pseudocount is not None:
         print(f"Pseudocount:\t\t{args.pseudocount}")
     print(f"Random seed:\t\t{args.seed}")
+    print(f"Data type:\t\t{args.dtype}")
     print("\n")
     
     # Create the folder where to save the model
@@ -66,7 +68,14 @@ def main():
     
     # Import dataset
     print("Importing dataset...")
-    dataset = DatasetDCA(path_data=args.data, path_weights=args.weights, alphabet=args.alphabet, device=device)
+    dataset = DatasetDCA(
+        path_data=args.data,
+        path_weights=args.weights,
+        alphabet=args.alphabet,
+        clustering_th=args.clustering_seqid,
+        device=device,
+        dtype=dtype,
+    )
     DCA_model = importlib.import_module(f"adabmDCA.models.{args.model}")
     tokens = get_tokens(args.alphabet)
     
@@ -96,7 +105,7 @@ def main():
     data_oh = one_hot(
         torch.tensor(dataset.data, device=device),
         num_classes=q,
-    ).float()
+    ).to(dtype)
     
     fi_target = get_freq_single_point(data=data_oh, weights=dataset.weights, pseudo_count=args.pseudocount)
     fij_target = get_freq_two_points(data=data_oh, weights=dataset.weights, pseudo_count=args.pseudocount) 
@@ -104,7 +113,7 @@ def main():
     # Initialize parameters and chains
     if args.path_params:
         tokens = get_tokens(args.alphabet)
-        params = load_params(fname=args.path_params, tokens=tokens, device=device)
+        params = load_params(fname=args.path_params, tokens=tokens, device=device, dtype=dtype)
         mask = torch.zeros(size=(L, q, L, q), dtype=torch.bool, device=device)
         mask[torch.nonzero(params["coupling_matrix"])] = 1
         
@@ -116,22 +125,22 @@ def main():
             mask[torch.arange(L), :, torch.arange(L), :] = 0
             
         else:
-            mask = torch.zeros(size=(L, q, L, q), device=device)
+            mask = torch.zeros(size=(L, q, L, q), device=device, dtype=torch.bool)
     
     if args.path_chains:
         chains, log_weights = load_chains(fname=args.path_chains, tokens=dataset.tokens, load_weights=True)
         chains = one_hot(
             torch.tensor(chains, device=device),
             num_classes=q,
-        ).float()
-        log_weights = torch.tensor(log_weights, device=device)
+        ).to(dtype)
+        log_weights = torch.tensor(log_weights, device=device, dtype=dtype)
         args.nchains = chains.shape[0]
         print(f"Loaded {args.nchains} chains.")
         
     else:
         print(f"Number of chains set to {args.nchains}.")
-        chains = init_chains(num_chains=args.nchains, L=L, q=q, fi=fi_target, device=device)
-        log_weights = torch.zeros(size=(args.nchains,), device=device)
+        chains = init_chains(num_chains=args.nchains, L=L, q=q, fi=fi_target, device=device, dtype=dtype)
+        log_weights = torch.zeros(size=(args.nchains,), device=device, dtype=dtype)
         
     # Select the sampling function
     sampler = get_sampler(args.sampler)
@@ -154,6 +163,7 @@ def main():
         f.write(template.format("nsweeps:", args.nsweeps))
         f.write(template.format("lr:", args.lr))
         f.write(template.format("pseudo count:", args.pseudocount))
+        f.write(template.format("data type:", args.dtype))
         f.write(template.format("target Pearson Cij:", args.target))
         if args.model == "eaDCA":
             f.write(template.format("gsteps:", args.gsteps))
@@ -183,7 +193,6 @@ def main():
         drate=args.drate,
         target_density=args.density,
         file_paths=file_paths,
-        device=device,
     )
     
     

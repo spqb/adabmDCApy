@@ -41,7 +41,7 @@ def update_weights_AIS(
     curr_params: Dict[str, torch.Tensor],
     chains: torch.Tensor,
     log_weights: torch.Tensor,
-) -> Tuple[torch.Tensor, torch.Tensor]:
+) -> torch.Tensor:
     """Update the weights used during  the trajectory Annealed Importance Sampling (AIS) algorithm.
 
     Args:
@@ -51,7 +51,7 @@ def update_weights_AIS(
         log_weights (torch.Tensor): Log-weights at time t-1.
 
     Returns:
-        Tuple[torch.Tensor, torch.Tensor]: Log-weights and chains at time t.
+        torch.Tensor: Log-weights at time t.
     """
     energy_prev = compute_energy(chains, prev_params)
     energy_curr = compute_energy(chains, curr_params)
