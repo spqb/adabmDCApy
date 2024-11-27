@@ -4,12 +4,12 @@ from typing import Callable
 
 import torch
 
-from adabmDCA.io import save_chains, save_params
 from adabmDCA.stats import get_freq_single_point, get_freq_two_points, get_correlation_two_points
 from adabmDCA.training import train_graph
 from adabmDCA.utils import get_mask_save
 from adabmDCA.graph import activate_graph, compute_density
 from adabmDCA.statmech import compute_log_likelihood, compute_entropy
+from adabmDCA.checkpoint import Checkpoint
 
 
 def fit(
@@ -20,7 +20,6 @@ def fit(
     mask: torch.Tensor,
     chains: torch.Tensor,
     log_weights: torch.Tensor,
-    tokens: str,
     target_pearson: float,
     nsweeps: int,
     nepochs: int,
@@ -28,7 +27,7 @@ def fit(
     lr: float,
     factivate: float,
     gsteps: int,
-    file_paths: dict = None,
+    checkpoint_fn: Checkpoint | None = None,
     *args, **kwargs
 ) -> None:
     """
@@ -42,7 +41,6 @@ def fit(
         mask (torch.Tensor): Initialization of the coupling matrix's mask.
         chains (torch.Tensor): Initialization of the Markov chains.
         log_weights (torch.Tensor): Log-weights of the chains. Used to estimate the log-likelihood.
-        tokens (str): Tokens used for encoding the sequences.
         target_pearson (float): Pearson correlation coefficient on the two-points statistics to be reached.
         nsweeps (int): Number of Monte Carlo steps to update the state of the model.
         nepochs (int): Maximum number of epochs to be performed. Defaults to 50000.
@@ -50,7 +48,7 @@ def fit(
         lr (float): Learning rate.
         factivate (float): Fraction of inactive couplings to activate at each step.
         gsteps (int): Number of gradient updates to be performed on a given graph.
-        file_paths (dict, optional): Dictionary containing the paths where to save log, params, and chains. Defaults to None.
+        checkpoint_fn (Checkpoint | None): Checkpoint class to be used to save the model. Defaults to None.
     """
     
     # Check the input sizes
@@ -63,6 +61,8 @@ def fit(
     
     device = fi_target.device
     dtype = fi_target.dtype
+    checkpoint_fn.checkpt_interval = 10 # Save the model every 10 graph updates
+    checkpoint_fn.max_epochs = nepochs
     
     graph_upd = 0
     density = compute_density(mask) * 100
@@ -80,7 +80,7 @@ def fit(
     pearson = max(0, float(get_correlation_two_points(fij=fij_target, pij=pij, fi=fi_target, pi=pi)[0]))
     
     # Save the chains
-    save_chains(fname=file_paths["chains"], chains=chains.argmax(-1), tokens=tokens)
+    #save_chains(fname=file_paths["chains"], chains=chains.argmax(-1), tokens=tokens)
     
     # Number of active couplings
     nactive = mask.sum()
@@ -93,8 +93,6 @@ def fit(
     pbar = tqdm(initial=max(0, float(pearson)), total=target_pearson, colour="red", dynamic_ncols=True, ascii="-#",
                 bar_format="{desc}: {percentage:.2f}%[{bar}] Pearson: {n:.3f}/{total_fmt} [{elapsed}]")
     pbar.set_description(f"Graph updates: {graph_upd} - Density: {density:.3f}% - New active couplings: {0} - LL: {log_likelihood:.3f}")
-    # Template for wrinting the results
-    template = "{0:10} {1:10} {2:10} {3:10} {4:10} {5:10} {6:10}\n"
     
     while pearson < target_pearson:
         
@@ -128,10 +126,9 @@ def fit(
             lr=lr,
             max_epochs=gsteps,
             target_pearson=target_pearson,
-            tokens=tokens,
             log_weights=log_weights,
             check_slope=False,
-            file_paths=None,
+            checkpoint_fn=None,
             progress_bar=False,
         )
 
@@ -149,18 +146,36 @@ def fit(
         pbar.set_description(f"Graph updates: {graph_upd} - Density: {density:.3f}% - New active couplings: {int(nactive - nactive_old)} - LL: {log_likelihood:.3f}")
 
         # Save the model if a checkpoint is reached
-        if (graph_upd % 10 == 0) or (graph_upd == nepochs):
+        if checkpoint_fn.check(graph_upd):
             entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
-            save_params(fname=file_paths["params"], params=params, mask=torch.logical_and(mask, mask_save), tokens=tokens)
-            save_chains(fname=file_paths["chains"], chains=chains.argmax(-1), tokens=tokens, log_weights=log_weights)
-            with open(file_paths["log"], "a") as f:
-                f.write(template.format(f"{graph_upd}", f"{pearson:.3f}", f"{slope:.3f}", f"{log_likelihood:.3f}", f"{entropy:.3f}", f"{density:.3f}", f"{(time.time() - time_start):.1f}"))
+            checkpoint_fn.save(
+                params=params,
+                mask=torch.logical_and(mask, mask_save),
+                chains=chains,
+                log_weights=log_weights,
+                epochs=graph_upd,
+                pearson=pearson,
+                slope=slope,
+                log_likelihood=log_likelihood,
+                entropy=entropy,
+                density=density,
+                time_start=time_start,
+                )
         pbar.n = min(max(0, float(pearson)), target_pearson)
 
-    save_params(fname=file_paths["params"], params=params, mask=torch.logical_and(mask, mask_save), tokens=tokens)
-    save_chains(fname=file_paths["chains"], chains=chains.argmax(-1), tokens=tokens, log_weights=log_weights)
-    with open(file_paths["log"], "a") as f:
-        entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
-        f.write(template.format(f"{graph_upd}", f"{pearson:.3f}", f"{slope:.3f}", f"{log_likelihood:.3f}", f"{entropy:.3f}", f"{density:.3f}", f"{(time.time() - time_start):.1f}"))
-    print(f"Completed, model parameters saved in {file_paths['params']}")
+    entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
+    checkpoint_fn.save(
+        params=params,
+        mask=torch.logical_and(mask, mask_save),
+        chains=chains,
+        log_weights=log_weights,
+        epochs=graph_upd,
+        pearson=pearson,
+        slope=slope,
+        log_likelihood=log_likelihood,
+        entropy=entropy,
+        density=density,
+        time_start=time_start,
+        )
+    print(f"Completed, model parameters saved in {checkpoint_fn.file_paths['params']}")
     pbar.close()

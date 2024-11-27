@@ -7,10 +7,10 @@ import torch
 from adabmDCA.stats import get_correlation_two_points
 from adabmDCA.training import train_graph
 from adabmDCA.utils import get_mask_save
-from adabmDCA.io import save_chains, save_params
 from adabmDCA.stats import get_freq_single_point, get_freq_two_points, get_correlation_two_points
 from adabmDCA.graph import decimate_graph, compute_density
 from adabmDCA.statmech import compute_log_likelihood, update_weights_AIS, compute_entropy
+from adabmDCA.checkpoint import Checkpoint
 
 MAX_EPOCHS = 10000
 
@@ -27,8 +27,7 @@ def fit(
     target_pearson: float,
     target_density: float,
     drate: float,
-    tokens: str,
-    file_paths: Dict[str, Path] = None,
+    checkpoint_fn: Checkpoint | None = None,
     *args, **kwargs,
 ):
     """Fits an edDCA model on the training data and saves the results in a file.
@@ -46,9 +45,8 @@ def fit(
         target_pearson (float): Pearson correlation coefficient on the two-points statistics to be reached.
         target_density (float): Target density of the coupling matrix.
         drate (float): Percentage of active couplings to be pruned at each decimation step.
-        tokens (str): Tokens used for encoding the sequences.
-        file_paths (Dict[str, Path], optional): Dictionary containing the paths where to save log, params and chains. Defaults to None.
-    """
+        checkpoint_fn (Checkpoint | None): Checkpoint class to be used to save the model. Defaults to None.
+        """
     time_start = time.time()
     
     # Check the input sizes
@@ -77,9 +75,8 @@ def fit(
         lr=lr,
         max_epochs=MAX_EPOCHS,
         target_pearson=target_pearson,
-        tokens=tokens,
         check_slope=True,
-        file_paths=file_paths,
+        checkpoint_fn=checkpoint_fn,
     )
     
     # Get the single-point and two-points frequencies of the simulated data
@@ -90,17 +87,17 @@ def fit(
     mask_save = get_mask_save(L, q, device=device)
     
     # Filenames for the decimated parameters and chains
-    parent, name = file_paths["params"].parent, file_paths["params"].name
+    parent, name = checkpoint_fn.file_paths["params"].parent, checkpoint_fn.file_paths["params"].name
     new_name = name.replace(".dat", "_dec.dat")
-    file_paths["params_dec"] = Path(parent).joinpath(new_name)
+    checkpoint_fn.file_paths["params_dec"] = Path(parent).joinpath(new_name)
     
-    name = file_paths["chains"].name
+    name = checkpoint_fn.file_paths["chains"].name
     new_name = name.replace(".fasta", "_dec.fasta")
-    file_paths["chains_dec"] = Path(parent).joinpath(new_name)
+    checkpoint_fn.file_paths["chains_dec"] = Path(parent).joinpath(new_name)
     
     print(f"\nStarting the decimation (target density = {target_density}):")
     template_log = "{0:10} {1:10} {2:10} {3:10} {4:10} {5:10} {6:10}\n"
-    with open(file_paths["log"], "a") as f:
+    with open(checkpoint_fn.file_paths["log"], "a") as f:
         f.write("\nDecimation\n")
         f.write(f"Target density: {target_density}\n")
         f.write(f"Decimation rate: {drate}\n\n")
@@ -110,6 +107,7 @@ def fit(
     template = "{0:15} | {1:15} | {2:15} | {3:15} | {4:15}"
     density = compute_density(mask)
     count = 0
+    checkpoint_fn.checkpt_interval = 10
     
     while density > target_density:
         count += 1
@@ -153,9 +151,9 @@ def fit(
             lr=lr,
             max_epochs=MAX_EPOCHS,
             target_pearson=target_pearson,
-            tokens=tokens,
             check_slope=True,
             progress_bar=False,
+            checkpoint_fn=None,
         )
         
         # Compute the single-point and two-points frequencies of the simulated data
@@ -169,16 +167,34 @@ def fit(
         
         print(template.format(f"Step: {count}", f"Density: {density:.3f}", f"LL: {log_likelihood:.3f}", f"Pearson: {pearson:.3f}", f"Slope: {slope:.3f}"))
                 
-        if count % 10 == 0:
+        if checkpoint_fn.check(count):
             entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
-            save_params(fname=file_paths["params_dec"], params=params, mask=torch.logical_and(mask, mask_save), tokens=tokens)
-            save_chains(fname=file_paths["chains_dec"], chains=chains.argmax(-1), tokens=tokens, log_weights=log_weights)
-            with open(file_paths["log"], "a") as f:
-                f.write(template_log.format(f"{count}", f"{pearson:.3f}", f"{slope:.3f}", f"{log_likelihood:.3f}", f"{entropy:.3f}", f"{density:.3f}", f"{(time.time() - time_start):.1f}"))
+            checkpoint_fn.save(
+                params=params,
+                mask=torch.logical_and(mask, mask_save),
+                chains=chains,
+                log_weights=log_weights,
+                epochs=count,
+                pearson=pearson,
+                slope=slope,
+                log_likelihood=log_likelihood,
+                entropy=entropy,
+                density=density,
+                time_start=time_start,
+            )
     
-    save_params(fname=file_paths["params_dec"], params=params, mask=torch.logical_and(mask, mask_save), tokens=tokens)
-    save_chains(fname=file_paths["chains_dec"], chains=chains.argmax(-1), tokens=tokens, log_weights=log_weights)
-    with open(file_paths["log"], "a") as f:
-        entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
-        f.write(template_log.format(f"{count}", f"{pearson:.3f}", f"{slope:.3f}", f"{log_likelihood:.3f}", f"{entropy:.3f}", f"{density:.3f}", f"{(time.time() - time_start):.1f}"))
-    print(f"Completed, decimated model parameters saved in {file_paths['params_dec']}")
+    entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
+    checkpoint_fn.save(
+        params=params,
+        mask=torch.logical_and(mask, mask_save),
+        chains=chains,
+        log_weights=log_weights,
+        epochs=count,
+        pearson=pearson,
+        slope=slope,
+        log_likelihood=log_likelihood,
+        entropy=entropy,
+        density=density,
+        time_start=time_start,
+    )
+    print(f"Completed, decimated model parameters saved in {checkpoint_fn.file_paths['params_dec']}")
