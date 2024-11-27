@@ -1,12 +1,9 @@
 from tqdm import tqdm
-from pathlib import Path
 import time
 from typing import Tuple, Callable, Dict
-
 import torch
 
 from adabmDCA.stats import get_freq_single_point, get_freq_two_points, get_correlation_two_points
-from adabmDCA.io import save_chains, save_params
 from adabmDCA.utils import get_mask_save
 from adabmDCA.statmech import update_weights_AIS, compute_log_likelihood, compute_entropy
 from adabmDCA.checkpoint import Checkpoint
@@ -123,7 +120,7 @@ def train_graph(
     lr: float,
     max_epochs: int,
     target_pearson: float,
-    checkpoint_fn: Checkpoint | None = None,
+    checkpoint: Checkpoint | None = None,
     check_slope: bool = False,
     log_weights: torch.Tensor = None,
     progress_bar: bool = True,
@@ -141,7 +138,7 @@ def train_graph(
         lr (float): Learning rate.
         max_epochs (int): Maximum number of gradient updates to be done.
         target_pearson (float): Target Pearson coefficient.
-        checkpoint_fn (Checkpoint | None, optional): Checkpoint class to be used for saving the model. Defaults to None.
+        checkpoint (Checkpoint | None, optional): Checkpoint class to be used for saving the model. Defaults to None.
         tokens (str, optional): Alphabet to be used for the encoding. Defaults to "protein".
         log_weights (torch.Tensor, optional): Log-weights used for the online computation of the log-likelihood. Defaults to None.
         check_slope (bool, optional): Whether to take into account the slope for the convergence criterion or not. Defaults to False.
@@ -198,9 +195,6 @@ def train_graph(
             bar_format="{desc} {percentage:.2f}%[{bar}] Pearson: {n:.3f}/{total_fmt} [{elapsed}]"
         )
         pbar.set_description(f"Epochs: {epochs} - Slope: {slope:.2f} - LL: {log_likelihood:.2f}")
-   
-    # Template for wrinting the results
-    template = "{0:10} {1:10} {2:10} {3:10} {4:10} {5:10} {6:10}\n"
     
     while not halt_condition(epochs, pearson, slope, check_slope):
         
@@ -242,10 +236,10 @@ def train_graph(
             pbar.set_description(f"Epochs: {epochs} - Slope: {slope:.2f} - LL: {log_likelihood:.2f}")
             
         # Save the model if a checkpoint is reached
-        if checkpoint_fn is not None:
-            if checkpoint_fn.check(epochs):
+        if checkpoint is not None:
+            if checkpoint.check(epochs, params, chains):
                 entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
-                checkpoint_fn.save(
+                checkpoint.save(
                     params=params,
                     mask=mask_save,
                     chains=chains,
@@ -262,20 +256,19 @@ def train_graph(
     if progress_bar:
         pbar.close()
     
-    if checkpoint_fn is not None:
-        if checkpoint_fn.check(epochs):
-            entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
-            checkpoint_fn.save(
-                params=params,
-                mask=mask_save,
-                chains=chains,
-                log_weights=log_weights,
-                epochs=epochs,
-                pearson=pearson,
-                slope=slope,
-                log_likelihood=log_likelihood,
-                entropy=entropy,
-                density=1.0,
-                time_start=time_start,
-            )
+    if checkpoint is not None:
+        entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
+        checkpoint.save(
+            params=params,
+            mask=mask_save,
+            chains=chains,
+            log_weights=log_weights,
+            epochs=epochs,
+            pearson=pearson,
+            slope=slope,
+            log_likelihood=log_likelihood,
+            entropy=entropy,
+            density=1.0,
+            time_start=time_start,
+        )
     return chains, params, log_weights

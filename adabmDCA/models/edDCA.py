@@ -27,7 +27,7 @@ def fit(
     target_pearson: float,
     target_density: float,
     drate: float,
-    checkpoint_fn: Checkpoint | None = None,
+    checkpoint: Checkpoint | None = None,
     *args, **kwargs,
 ):
     """Fits an edDCA model on the training data and saves the results in a file.
@@ -45,7 +45,7 @@ def fit(
         target_pearson (float): Pearson correlation coefficient on the two-points statistics to be reached.
         target_density (float): Target density of the coupling matrix.
         drate (float): Percentage of active couplings to be pruned at each decimation step.
-        checkpoint_fn (Checkpoint | None): Checkpoint class to be used to save the model. Defaults to None.
+        checkpoint (Checkpoint | None): Checkpoint class to be used to save the model. Defaults to None.
         """
     time_start = time.time()
     
@@ -76,7 +76,7 @@ def fit(
         max_epochs=MAX_EPOCHS,
         target_pearson=target_pearson,
         check_slope=True,
-        checkpoint_fn=checkpoint_fn,
+        checkpoint=checkpoint,
     )
     
     # Get the single-point and two-points frequencies of the simulated data
@@ -87,17 +87,17 @@ def fit(
     mask_save = get_mask_save(L, q, device=device)
     
     # Filenames for the decimated parameters and chains
-    parent, name = checkpoint_fn.file_paths["params"].parent, checkpoint_fn.file_paths["params"].name
+    parent, name = checkpoint.file_paths["params"].parent, checkpoint.file_paths["params"].name
     new_name = name.replace(".dat", "_dec.dat")
-    checkpoint_fn.file_paths["params_dec"] = Path(parent).joinpath(new_name)
+    checkpoint.file_paths["params_dec"] = Path(parent).joinpath(new_name)
     
-    name = checkpoint_fn.file_paths["chains"].name
+    name = checkpoint.file_paths["chains"].name
     new_name = name.replace(".fasta", "_dec.fasta")
-    checkpoint_fn.file_paths["chains_dec"] = Path(parent).joinpath(new_name)
+    checkpoint.file_paths["chains_dec"] = Path(parent).joinpath(new_name)
     
     print(f"\nStarting the decimation (target density = {target_density}):")
     template_log = "{0:10} {1:10} {2:10} {3:10} {4:10} {5:10} {6:10}\n"
-    with open(checkpoint_fn.file_paths["log"], "a") as f:
+    with open(checkpoint.file_paths["log"], "a") as f:
         f.write("\nDecimation\n")
         f.write(f"Target density: {target_density}\n")
         f.write(f"Decimation rate: {drate}\n\n")
@@ -107,7 +107,7 @@ def fit(
     template = "{0:15} | {1:15} | {2:15} | {3:15} | {4:15}"
     density = compute_density(mask)
     count = 0
-    checkpoint_fn.checkpt_interval = 10
+    checkpoint.checkpt_interval = 10
     
     while density > target_density:
         count += 1
@@ -153,7 +153,7 @@ def fit(
             target_pearson=target_pearson,
             check_slope=True,
             progress_bar=False,
-            checkpoint_fn=None,
+            checkpoint=None,
         )
         
         # Compute the single-point and two-points frequencies of the simulated data
@@ -167,9 +167,9 @@ def fit(
         
         print(template.format(f"Step: {count}", f"Density: {density:.3f}", f"LL: {log_likelihood:.3f}", f"Pearson: {pearson:.3f}", f"Slope: {slope:.3f}"))
                 
-        if checkpoint_fn.check(count):
+        if checkpoint.check(count, params, chains):
             entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
-            checkpoint_fn.save(
+            checkpoint.save(
                 params=params,
                 mask=torch.logical_and(mask, mask_save),
                 chains=chains,
@@ -184,7 +184,7 @@ def fit(
             )
     
     entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
-    checkpoint_fn.save(
+    checkpoint.save(
         params=params,
         mask=torch.logical_and(mask, mask_save),
         chains=chains,
@@ -197,4 +197,4 @@ def fit(
         density=density,
         time_start=time_start,
     )
-    print(f"Completed, decimated model parameters saved in {checkpoint_fn.file_paths['params_dec']}")
+    print(f"Completed, decimated model parameters saved in {checkpoint.file_paths['params_dec']}")

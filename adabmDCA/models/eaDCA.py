@@ -27,7 +27,7 @@ def fit(
     lr: float,
     factivate: float,
     gsteps: int,
-    checkpoint_fn: Checkpoint | None = None,
+    checkpoint: Checkpoint | None = None,
     *args, **kwargs
 ) -> None:
     """
@@ -48,7 +48,7 @@ def fit(
         lr (float): Learning rate.
         factivate (float): Fraction of inactive couplings to activate at each step.
         gsteps (int): Number of gradient updates to be performed on a given graph.
-        checkpoint_fn (Checkpoint | None): Checkpoint class to be used to save the model. Defaults to None.
+        checkpoint (Checkpoint | None): Checkpoint class to be used to save the model. Defaults to None.
     """
     
     # Check the input sizes
@@ -61,8 +61,8 @@ def fit(
     
     device = fi_target.device
     dtype = fi_target.dtype
-    checkpoint_fn.checkpt_interval = 10 # Save the model every 10 graph updates
-    checkpoint_fn.max_epochs = nepochs
+    checkpoint.checkpt_interval = 10 # Save the model every 10 graph updates
+    checkpoint.max_epochs = nepochs
     
     graph_upd = 0
     density = compute_density(mask) * 100
@@ -128,7 +128,7 @@ def fit(
             target_pearson=target_pearson,
             log_weights=log_weights,
             check_slope=False,
-            checkpoint_fn=None,
+            checkpoint=None,
             progress_bar=False,
         )
 
@@ -146,9 +146,9 @@ def fit(
         pbar.set_description(f"Graph updates: {graph_upd} - Density: {density:.3f}% - New active couplings: {int(nactive - nactive_old)} - LL: {log_likelihood:.3f}")
 
         # Save the model if a checkpoint is reached
-        if checkpoint_fn.check(graph_upd):
+        if checkpoint.check(graph_upd, params, chains):
             entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
-            checkpoint_fn.save(
+            checkpoint.save(
                 params=params,
                 mask=torch.logical_and(mask, mask_save),
                 chains=chains,
@@ -164,7 +164,7 @@ def fit(
         pbar.n = min(max(0, float(pearson)), target_pearson)
 
     entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
-    checkpoint_fn.save(
+    checkpoint.save(
         params=params,
         mask=torch.logical_and(mask, mask_save),
         chains=chains,
@@ -177,5 +177,5 @@ def fit(
         density=density,
         time_start=time_start,
         )
-    print(f"Completed, model parameters saved in {checkpoint_fn.file_paths['params']}")
+    print(f"Completed, model parameters saved in {checkpoint.file_paths['params']}")
     pbar.close()

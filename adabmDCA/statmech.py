@@ -149,3 +149,33 @@ def compute_entropy(
     entropy = mean_energy + logZ
     
     return entropy.item()
+
+
+def get_acceptance_rate(
+    prev_params: Dict[str, torch.Tensor],
+    curr_params: Dict[str, torch.Tensor],
+    prev_chains: torch.Tensor,
+    curr_chains: torch.Tensor,
+) -> float:
+    """Compute the acceptance rate of swapping the configurations between two models alonge the training.
+
+    Args:
+        prev_params (Dict[str, torch.Tensor]): Parameters at time t-1.
+        curr_params (Dict[str, torch.Tensor]): Parameters at time t.
+        prev_chains (torch.Tensor): Chains at time t-1.
+        curr_chains (torch.Tensor): Chains at time t.
+
+    Returns:
+        float: Acceptance rate of swapping the configurations between two models alonge the training.
+    """
+    nchains = len(prev_chains)
+    delta_energy = (
+        - compute_energy(curr_chains, prev_params)
+        + compute_energy(prev_chains, prev_params)
+        + compute_energy(curr_chains, curr_params)
+        - compute_energy(prev_chains, curr_params)
+    )
+    swap = torch.exp(delta_energy) > torch.rand(size=(nchains,), device=delta_energy.device)
+    acceptance_rate = swap.float().mean().item()
+    
+    return acceptance_rate

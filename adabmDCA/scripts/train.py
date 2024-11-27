@@ -13,7 +13,7 @@ from adabmDCA.utils import init_chains, init_parameters, get_device, get_dtype
 from adabmDCA.parser import add_args_train
 from adabmDCA.sampling import get_sampler
 from adabmDCA.functional import one_hot
-from adabmDCA.checkpoint import get_checkpoint_fn
+from adabmDCA.checkpoint import get_checkpoint
 
 
 # import command-line input arguments
@@ -174,7 +174,7 @@ def main():
         template = "{0:10} {1:10} {2:10} {3:10} {4:10} {5:10} {6:10}\n"
         f.write(template.format("Epoch", "Pearson", "Slope", "LL", "Entropy", "Density", "Time [s]"))
     
-    checkpoint_fn = get_checkpoint_fn(args.checkpoints)(
+    checkpoint = get_checkpoint(args.checkpoints)(
         file_paths=file_paths,
         tokens=tokens,
         params=params,
@@ -200,7 +200,7 @@ def main():
         gsteps=args.gsteps,
         drate=args.drate,
         target_density=args.density,
-        checkpoint_fn=checkpoint_fn,
+        checkpoint=checkpoint,
     )
     
     

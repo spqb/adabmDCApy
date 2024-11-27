@@ -18,7 +18,7 @@ def fit(
     nsweeps: int,
     nepochs: int,
     lr: float,
-    checkpoint_fn: Checkpoint | None = None,
+    checkpoint: Checkpoint | None = None,
     *args, **kwargs
 ) -> None:
     """Trains a bmDCA model on the input MSA and saves the results in a file.
@@ -35,7 +35,7 @@ def fit(
         nsweeps (int): Number of Monte Carlo steps to update the state of the model.
         nepochs (int): Maximum number of epochs to be performed.
         lr (float): Learning rate.
-        checkpoint_fn (Checkpoint | None): Checkpoint class to be used to save the model. Defaults to None.
+        checkpoint (Checkpoint | None): Checkpoint class to be used to save the model. Defaults to None.
         device (torch.device, optional): Device to be used. Defaults to "cpu".
     """
     
@@ -61,5 +61,5 @@ def fit(
         max_epochs=nepochs,
         target_pearson=target_pearson,
         check_slope=False,
-        checkpoint_fn=checkpoint_fn,
+        checkpoint=checkpoint,
     )
