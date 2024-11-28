@@ -179,3 +179,78 @@ def get_acceptance_rate(
     acceptance_rate = swap.float().mean().item()
     
     return acceptance_rate
+
+
+@torch.jit.script
+def tap_residue(
+    idx: int,
+    mag: torch.Tensor,
+    params: Dict[str, torch.Tensor],
+) -> torch.Tensor:
+    N, L, q = mag.shape
+    coupling_residue = params["coupling_matrix"][idx] # (q, L, q)
+    bias_residue = params["bias"][idx] # (q,)
+    mag_i = mag[:, idx] # (n, q)
+    
+    mf_term = bias_residue + torch.einsum("njb,ajb->na", mag, coupling_residue)
+    reaction_term_temp = (
+        0.5 * coupling_residue.view(1, q, L, q) + # (1, q, L, q)
+        torch.einsum("djc,nd,njc->nj", coupling_residue, mag_i, mag).view(N, 1, L, 1) -
+        0.5 * torch.einsum("njc,ajc->naj", mag, coupling_residue).view(N, q, L, 1) -
+        torch.einsum("nd,djb->njb", mag_i, coupling_residue).view(N, 1, L, q)
+    )
+    reaction_term = torch.einsum("najb,ajb,njb->na", reaction_term_temp, coupling_residue, mag)  
+    tap_residue = torch.softmax(mf_term + reaction_term, dim=1)
+    
+    return tap_residue
+
+
+def sweep_tap(
+    residue_idxs: torch.Tensor,
+    mag: torch.Tensor,
+    params: Dict[str, torch.Tensor],    
+) -> torch.Tensor:
+    """Updates the magnetizations using the TAP equations.
+
+    Args:
+        residue_idxs (torch.Tensor): List of residue indices in random order.
+        mag (torch.Tensor): Magnetizations of the residues.
+        params (Dict[str, torch.Tensor]): Parameters of the model.
+
+    Returns:
+        torch.Tensor: Updated magnetizations.
+    """
+    for idx in residue_idxs:
+        mag[:, idx] = tap_residue(idx, mag, params)  
+    
+    return mag
+
+
+def iterate_tap(
+    mag: torch.Tensor,
+    params: Dict[str, torch.Tensor],
+    max_iter: int=1000,
+    epsilon: float=1e-3,
+):
+    """Iterates the TAP equations until convergence.
+
+    Args:
+        mag (torch.Tensor): Initial magnetizations.
+        params (Dict[str, torch.Tensor]): Parameters of the model.
+        max_iter (int, optional): Maximum number of iterations. Defaults to 2000.
+        epsilon (float, optional): Convergence threshold. Defaults to 1e-6.
+
+    Returns:
+        torch.Tensor: Fixed point magnetizations of the TAP equations.
+    """
+    mag_ = mag.clone()
+    iterations = 0
+    while True:
+        mag_old = mag_.clone()
+        mag_ = sweep_tap(torch.randperm(mag_.shape[1]), mag_, params)
+        diff = torch.abs(mag_old - mag_).max()
+        iterations += 1
+        if diff < epsilon or iterations > max_iter:
+            break
+    
+    return mag_
