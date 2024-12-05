@@ -5,7 +5,7 @@ import time
 import h5py
 
 from adabmDCA.io import save_chains, save_params
-from adabmDCA.statmech import get_acceptance_rate
+from adabmDCA.statmech import _get_acceptance_rate
 
 
 class Checkpoint(ABC):
@@ -188,7 +188,7 @@ class AcceptanceCheckpoint(Checkpoint):
         Returns:
             bool: Whether a checkpoint has been reached.
         """
-        acc_rate = get_acceptance_rate(
+        acc_rate = _get_acceptance_rate(
             prev_params=self.params,
             curr_params=curr_params,
             prev_chains=self.chains,

@@ -5,7 +5,7 @@ import torch
 
 from adabmDCA.stats import get_freq_single_point, get_freq_two_points, get_correlation_two_points
 from adabmDCA.utils import get_mask_save
-from adabmDCA.statmech import update_weights_AIS, compute_log_likelihood, compute_entropy
+from adabmDCA.statmech import _update_weights_AIS, compute_log_likelihood, compute_entropy
 from adabmDCA.checkpoint import Checkpoint
 
 
@@ -221,7 +221,7 @@ def train_graph(
         pearson, slope = get_correlation_two_points(fij=fij, pij=pij, fi=fi, pi=pi)
         
         # Compute the log-likelihood
-        log_weights = update_weights_AIS(
+        log_weights = _update_weights_AIS(
             prev_params=params_prev,
             curr_params=params,
             chains=chains,

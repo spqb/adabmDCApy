@@ -1,4 +1,4 @@
-from typing import Dict, Tuple
+from typing import Dict
 import itertools
 
 import torch
@@ -36,7 +36,7 @@ def compute_energy(
     return torch.vmap(compute_energy_sequence, in_dims=(0, None))(X, params)
 
 
-def update_weights_AIS(
+def _update_weights_AIS(
     prev_params: Dict[str, torch.Tensor],
     curr_params: Dict[str, torch.Tensor],
     chains: torch.Tensor,
@@ -93,7 +93,11 @@ def compute_log_likelihood(
     return _compute_log_likelihood(fi, fij, params, logZ)
 
 
-def enumerate_states(L: int, q: int, device: torch.device=torch.device("cpu")) -> torch.Tensor:
+def enumerate_states(
+    L: int,
+    q: int,
+    device: torch.device=torch.device("cpu"),
+) -> torch.Tensor:
     """Enumerate all possible states of a system of L sites and q states.
 
     Args:
@@ -151,7 +155,7 @@ def compute_entropy(
     return entropy.item()
 
 
-def get_acceptance_rate(
+def _get_acceptance_rate(
     prev_params: Dict[str, torch.Tensor],
     curr_params: Dict[str, torch.Tensor],
     prev_chains: torch.Tensor,
@@ -182,7 +186,7 @@ def get_acceptance_rate(
 
 
 @torch.jit.script
-def tap_residue(
+def _tap_residue(
     idx: int,
     mag: torch.Tensor,
     params: Dict[str, torch.Tensor],
@@ -207,7 +211,7 @@ def tap_residue(
     return tap_residue
 
 
-def sweep_tap(
+def _sweep_tap(
     residue_idxs: torch.Tensor,
     mag: torch.Tensor,
     params: Dict[str, torch.Tensor],    
@@ -223,7 +227,7 @@ def sweep_tap(
         torch.Tensor: Updated magnetizations.
     """
     for idx in residue_idxs:
-        mag[:, idx] = tap_residue(idx, mag, params)  
+        mag[:, idx] = _tap_residue(idx, mag, params)  
     
     return mag
 
@@ -231,8 +235,8 @@ def sweep_tap(
 def iterate_tap(
     mag: torch.Tensor,
     params: Dict[str, torch.Tensor],
-    max_iter: int=1000,
-    epsilon: float=1e-3,
+    max_iter: int = 500,
+    epsilon: float = 1e-4,
 ):
     """Iterates the TAP equations until convergence.
 
@@ -249,7 +253,7 @@ def iterate_tap(
     iterations = 0
     while True:
         mag_old = mag_.clone()
-        mag_ = sweep_tap(torch.randperm(mag_.shape[1]), mag_, params)
+        mag_ = _sweep_tap(torch.randperm(mag_.shape[1]), mag_, params)
         diff = torch.abs(mag_old - mag_).max()
         iterations += 1
         if diff < epsilon or iterations > max_iter:

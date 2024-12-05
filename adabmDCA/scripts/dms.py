@@ -39,6 +39,7 @@ def main():
     wt_name = "".join(e for e in wt_name if e.isalnum())
     wt_seq = torch.tensor(encode_sequence(sequences[0], tokens))
     
+    print(f"Loading parameters from {args.path_params}...")
     params = load_params(args.path_params, tokens=tokens, device=device, dtype=dtype)
     L, q = params["bias"].shape
     

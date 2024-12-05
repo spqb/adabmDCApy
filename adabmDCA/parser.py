@@ -7,7 +7,6 @@ def add_args_dca(parser : argparse.ArgumentParser) -> argparse.ArgumentParser:
     dca_args.add_argument("-o", "--output",       type=Path,  default='DCA_model',  help="(Defaults to DCA_model). Path to the folder where to save the model.")
     dca_args.add_argument("-m", "--model",        type=str,   default="bmDCA",      help="(Defaults to bmDCA). Type of model to be trained.", choices=["bmDCA", "eaDCA", "edDCA"])
     # Optional arguments
-    dca_args.add_argument("-w", "--weights",      type=Path,  default=None,         help="(Defaults to None). Path to the file containing the weights of the sequences. If None, the weights are computed automatically.")
     dca_args.add_argument("-p", "--path_params",  type=Path,  default=None,         help="(Defaults to None) Path to the file containing the model's parameters. Required for restoring the training.")
     dca_args.add_argument("-c", "--path_chains",  type=Path,  default=None,         help="(Defaults to None) Path to the fasta file containing the model's chains. Required for restoring the training.")
     dca_args.add_argument("-l", "--label",        type=str,   default=None,         help="(Defaults to None). If provoded, adds a label to the output files inside the output folder.")
@@ -19,12 +18,21 @@ def add_args_dca(parser : argparse.ArgumentParser) -> argparse.ArgumentParser:
     dca_args.add_argument("--target",             type=float, default=0.95,         help="(Defaults to 0.95). Pearson correlation coefficient on the two-sites statistics to be reached.")
     dca_args.add_argument("--nepochs",            type=int,   default=50000,        help="(Defaults to 50000). Maximum number of epochs allowed.")
     dca_args.add_argument("--pseudocount",        type=float, default=None,         help="(Defaults to None). Pseudo count for the single and two-sites statistics. Acts as a regularization. If None, it is set to 1/Meff.")
-    dca_args.add_argument("--clustering_seqid",   type=float, default=0.8,          help="(Defaults to 0.8). Sequence Identity threshold for clustering. Used only if 'weights' is not provided.")
     dca_args.add_argument("--seed",               type=int,   default=0,            help="(Defaults to 0). Seed for the random number generator.")
     dca_args.add_argument("--device",             type=str,   default="cuda",       help="(Defaults to cuda). Device to be used.")
     dca_args.add_argument("--dtype",              type=str,   default="float32",    help="(Defaults to float32). Data type to be used.")
     
     return parser
+
+
+def add_args_reweighting(parser : argparse.ArgumentParser) -> argparse.ArgumentParser:
+    weight_args = parser.add_argument_group("Sequence reweighting arguments")
+    weight_args.add_argument("-w", "--weights",      type=Path,  default=None,         help="(Defaults to None). Path to the file containing the weights of the sequences. If None, the weights are computed automatically.")
+    weight_args.add_argument("--clustering_seqid",   type=float, default=0.8,          help="(Defaults to 0.8). Sequence Identity threshold for clustering. Used only if 'weights' is not provided.")
+    weight_args.add_argument("--no_reweighting",     action="store_true",              help="If provided, the reweighting of the sequences is not performed.")
+
+    return parser
+
 
 def add_args_checkpoint(parser : argparse.ArgumentParser) -> argparse.ArgumentParser:
     checkpoint_args = parser.add_argument_group("Checkpoint arguments")
@@ -54,6 +62,7 @@ def add_args_train(parser : argparse.ArgumentParser) -> argparse.ArgumentParser:
     parser = add_args_dca(parser)
     parser = add_args_eaDCA(parser)
     parser = add_args_edDCA(parser)
+    parser = add_args_reweighting(parser)
     parser = add_args_checkpoint(parser)
     
     return parser

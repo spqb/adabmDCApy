@@ -9,7 +9,7 @@ from adabmDCA.training import train_graph
 from adabmDCA.utils import get_mask_save
 from adabmDCA.stats import get_freq_single_point, get_freq_two_points, get_correlation_two_points
 from adabmDCA.graph import decimate_graph, compute_density
-from adabmDCA.statmech import compute_log_likelihood, update_weights_AIS, compute_entropy
+from adabmDCA.statmech import compute_log_likelihood, _update_weights_AIS, compute_entropy
 from adabmDCA.checkpoint import Checkpoint
 
 MAX_EPOCHS = 10000
@@ -131,7 +131,7 @@ def fit(
         )
         
         # Update the log-weights
-        log_weights = update_weights_AIS(
+        log_weights = _update_weights_AIS(
             prev_params=prev_params,
             curr_params=params,
             chains=chains,

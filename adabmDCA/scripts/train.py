@@ -74,6 +74,7 @@ def main():
         path_weights=args.weights,
         alphabet=args.alphabet,
         clustering_th=args.clustering_seqid,
+        no_reweighting=args.no_reweighting,
         device=device,
         dtype=dtype,
     )
@@ -103,10 +104,7 @@ def main():
         args.pseudocount = 1. / dataset.get_effective_size()
         print(f"Pseudocount automatically set to {args.pseudocount}.")
         
-    data_oh = one_hot(
-        torch.tensor(dataset.data, device=device),
-        num_classes=q,
-    ).to(dtype)
+    data_oh = one_hot(dataset.data, num_classes=q).to(dtype)
     
     fi_target = get_freq_single_point(data=data_oh, weights=dataset.weights, pseudo_count=args.pseudocount)
     fij_target = get_freq_two_points(data=data_oh, weights=dataset.weights, pseudo_count=args.pseudocount) 

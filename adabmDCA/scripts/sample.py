@@ -14,6 +14,7 @@ from adabmDCA.fasta import (
 )
 from adabmDCA.resampling import compute_mixing_time
 from adabmDCA.io import load_params
+from adabmDCA.dataset import DatasetDCA
 from adabmDCA.utils import init_chains, resample_sequences, get_device, get_dtype
 from adabmDCA.sampling import get_sampler
 from adabmDCA.functional import one_hot
@@ -60,17 +61,18 @@ def main():
     
     # Import data
     print(f"Loading data from {args.data}...")
-    headers, data = import_from_fasta(args.data, tokens=tokens, filter_sequences=True)
-    data = torch.tensor(data, device=device)
-    
-    if args.weights is None:
-        print("Computing the weights...")
-        weights = compute_weights(data, device=device, dtype=dtype).view(-1)
-    else:
-        weights = torch.tensor(np.loadtxt(args.weights), device=device, dtype=dtype).view(-1)
-    
+    dataset = DatasetDCA(
+        path_data=args.data,
+        path_weights=args.weights,
+        alphabet=tokens,
+        clustering_th=args.clustering_seqid,
+        no_reweighting=args.no_reweighting,
+        device=device,
+        dtype=dtype,
+    )
+    data = one_hot(dataset.data, num_classes=len(tokens)).to(dtype)
+    weights = dataset.weights
     nmeasure = min(args.nmeasure, len(data))
-    data = one_hot(data, num_classes=len(tokens)).to(dtype)
     data_resampled = resample_sequences(data, weights, nmeasure)
     
     if args.pseudocount is None:
