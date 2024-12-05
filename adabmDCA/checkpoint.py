@@ -124,16 +124,16 @@ class LinearCheckpoint(Checkpoint):
         """
         save_params(fname=self.file_paths["params"], params=params, mask=mask, tokens=self.tokens)
         save_chains(fname=self.file_paths["chains"], chains=chains.argmax(dim=-1), tokens=self.tokens, log_weights=log_weights)
-        template = "{0:10} {1:10} {2:10} {3:10} {4:10} {5:10} {6:10}\n"
+        template = "{epochs:10} {pearson:10} {slope:10} {log_likelihood:10} {entropy:10} {density:10} {time:10}\n"
         with open(self.file_paths["log"], "a") as f:
             f.write(template.format(
-                f"{kwargs["epochs"]}",
-                f"{kwargs["pearson"]:.3f}",
-                f"{kwargs["slope"]:.3f}",
-                f"{kwargs["log_likelihood"]:.3f}",
-                f"{kwargs["entropy"]:.3f}",
-                f"{kwargs["density"]:.3f}",
-                f"{(time.time() - kwargs["time_start"]):.1f}",
+                epochs = kwargs["epochs"],
+                pearson = kwargs["pearson"],
+                slope = kwargs["slope"],
+                log_likelihood = kwargs["log_likelihood"],
+                entropy = kwargs["entropy"],
+                density = kwargs["density"],
+                time = (time.time() - kwargs["time_start"]),
                 )
             )
             
@@ -229,16 +229,16 @@ class AcceptanceCheckpoint(Checkpoint):
         save_params(fname=self.file_paths["params"], params=params, mask=mask, tokens=self.tokens)
         save_chains(fname=self.file_paths["chains"], chains=chains.argmax(dim=-1), tokens=self.tokens, log_weights=log_weights)
         # Update the log file
-        template = "{0:10} {1:10} {2:10} {3:10} {4:10} {5:10} {6:10}\n"
+        template = "{epochs:10} {pearson:10} {slope:10} {log_likelihood:10} {entropy:10} {density:10} {time:10}\n"
         with open(self.file_paths["log"], "a") as f:
             f.write(template.format(
-                f"{kwargs["epochs"]}",
-                f"{kwargs["pearson"]:.3f}",
-                f"{kwargs["slope"]:.3f}",
-                f"{kwargs["log_likelihood"]:.3f}",
-                f"{kwargs["entropy"]:.3f}",
-                f"{kwargs["density"]:.3f}",
-                f"{(time.time() - kwargs["time_start"]):.1f}",
+                epochs = kwargs["epochs"],
+                pearson = kwargs["pearson"],
+                slope = kwargs["slope"],
+                log_likelihood = kwargs["log_likelihood"],
+                entropy = kwargs["entropy"],
+                density = kwargs["density"],
+                time = (time.time() - kwargs["time_start"]),
                 )
             )
         
