@@ -5,10 +5,9 @@ import numpy as np
 from torch.utils.data import Dataset
 import torch
 
-from adabmDCA.fasta_utils import (
+from adabmDCA.fasta import (
     get_tokens,
-    import_clean_dataset,
-    encode_sequence,
+    import_from_fasta,
     compute_weights,
 )
 
@@ -34,8 +33,8 @@ class DatasetDCA(Dataset):
             dtype (torch.dtype, optional): Data type of the dataset. Defaults to torch.float32.
         """
         path_data = Path(path_data)
-        self.names = []
-        self.data = []
+        self.names = None
+        self.data = None
         self.device = device
         self.dtype = dtype
         
@@ -46,12 +45,10 @@ class DatasetDCA(Dataset):
         with open(path_data, "r") as f:
             first_line = f.readline()
         if first_line.startswith(">"):
-            names, sequences = import_clean_dataset(path_data, tokens=self.tokens)
+            self.names, self.data = import_from_fasta(path_data, tokens=self.tokens, filter_sequences=True)
             # Check if data is empty
-            if len(sequences) == 0:
+            if len(self.data) == 0:
                 raise ValueError(f"The input dataset is empty. Check that the alphabet is correct. Current alphabet: {alphabet}")
-            self.names = np.array(names)
-            self.data = encode_sequence(sequences, tokens=self.tokens)
         else:
             raise KeyError("The input dataset is not in fasta format")
         

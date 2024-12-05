@@ -20,10 +20,16 @@ def add_args_dca(parser : argparse.ArgumentParser) -> argparse.ArgumentParser:
     dca_args.add_argument("--nepochs",            type=int,   default=50000,        help="(Defaults to 50000). Maximum number of epochs allowed.")
     dca_args.add_argument("--pseudocount",        type=float, default=None,         help="(Defaults to None). Pseudo count for the single and two-sites statistics. Acts as a regularization. If None, it is set to 1/Meff.")
     dca_args.add_argument("--clustering_seqid",   type=float, default=0.8,          help="(Defaults to 0.8). Sequence Identity threshold for clustering. Used only if 'weights' is not provided.")
-    dca_args.add_argument("--checkpoints",        type=str,   default="linear",     help="(Defaults to 'linear'). Choses the type of checkpoint criterium to be used.", choices=["linear", "acceptance"])
     dca_args.add_argument("--seed",               type=int,   default=0,            help="(Defaults to 0). Seed for the random number generator.")
     dca_args.add_argument("--device",             type=str,   default="cuda",       help="(Defaults to cuda). Device to be used.")
     dca_args.add_argument("--dtype",              type=str,   default="float32",    help="(Defaults to float32). Data type to be used.")
+    
+    return parser
+
+def add_args_checkpoint(parser : argparse.ArgumentParser) -> argparse.ArgumentParser:
+    checkpoint_args = parser.add_argument_group("Checkpoint arguments")
+    checkpoint_args.add_argument("--checkpoints",     type=str,   default="linear",     help="(Defaults to 'linear'). Choses the type of checkpoint criterium to be used.", choices=["linear", "acceptance"])
+    checkpoint_args.add_argument("--target_acc_rate", type=float, default=0.5,          help="(Defaults to 0.5). Target acceptance rate for deciding when to save the model when the 'acceptance' checkpoint is used.")
     
     return parser
 
@@ -48,6 +54,7 @@ def add_args_train(parser : argparse.ArgumentParser) -> argparse.ArgumentParser:
     parser = add_args_dca(parser)
     parser = add_args_eaDCA(parser)
     parser = add_args_edDCA(parser)
+    parser = add_args_checkpoint(parser)
     
     return parser
 

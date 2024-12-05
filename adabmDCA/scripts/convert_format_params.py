@@ -5,7 +5,7 @@ import argparse
 from pathlib import Path
 import numpy as np
 
-from adabmDCA.fasta_utils import get_tokens
+from adabmDCA.fasta import get_tokens
 from adabmDCA.io import load_params_oldformat, save_params
 
 

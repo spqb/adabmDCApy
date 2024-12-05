@@ -6,7 +6,7 @@ import numpy as np
 import torch
 
 from adabmDCA.dataset import DatasetDCA
-from adabmDCA.fasta_utils import get_tokens
+from adabmDCA.fasta import get_tokens
 from adabmDCA.io import load_chains, load_params
 from adabmDCA.stats import get_freq_single_point, get_freq_two_points
 from adabmDCA.utils import init_chains, init_parameters, get_device, get_dtype
@@ -180,6 +180,7 @@ def main():
         params=params,
         chains=chains,
         max_epochs=args.nepochs,
+        target_acc_rate=args.target_acc_rate,
     )
 
     DCA_model.fit(

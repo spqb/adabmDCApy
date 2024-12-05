@@ -6,7 +6,12 @@ from tqdm import tqdm
 
 import torch
 
-from adabmDCA.fasta_utils import get_tokens, write_fasta, compute_weights, import_clean_dataset, encode_sequence
+from adabmDCA.fasta import (
+    get_tokens,
+    write_fasta,
+    compute_weights,
+    import_from_fasta,
+)
 from adabmDCA.resampling import compute_mixing_time
 from adabmDCA.io import load_params
 from adabmDCA.utils import init_chains, resample_sequences, get_device, get_dtype
@@ -55,8 +60,7 @@ def main():
     
     # Import data
     print(f"Loading data from {args.data}...")
-    headers, sequences = import_clean_dataset(args.data, tokens)
-    data = encode_sequence(sequences, tokens)
+    headers, data = import_from_fasta(args.data, tokens=tokens, filter_sequences=True)
     data = torch.tensor(data, device=device)
     
     if args.weights is None:

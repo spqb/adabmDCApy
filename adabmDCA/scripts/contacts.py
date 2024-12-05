@@ -4,7 +4,7 @@ import numpy as np
 
 import torch
 
-from adabmDCA.fasta_utils import get_tokens
+from adabmDCA.fasta import get_tokens
 from adabmDCA.io import load_params
 from adabmDCA.utils import set_zerosum_gauge, get_device, get_dtype
 from adabmDCA.parser import add_args_contacts

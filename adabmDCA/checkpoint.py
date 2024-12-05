@@ -146,7 +146,7 @@ class AcceptanceCheckpoint(Checkpoint):
         max_epochs: int,
         params: Dict[str, torch.Tensor] = None,
         chains: Dict[str, torch.Tensor] = None,
-        target_acc_rate: float = 0.25,
+        target_acc_rate: float = 0.5,
         *args,
         **kwargs,
     ):
