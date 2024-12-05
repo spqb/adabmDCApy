@@ -13,10 +13,10 @@ This section describe all the functions available in the **Python** implementati
    :show-inheritance:
 ```
 
-### adabmDCA.fasta_utils module
+### adabmDCA.fasta module
 
 ```{eval-rst}
-.. automodule:: adabmDCA.fasta_utils
+.. automodule:: adabmDCA.fasta
    :members:
    :undoc-members:
    :show-inheritance:
@@ -49,28 +49,10 @@ This section describe all the functions available in the **Python** implementati
    :show-inheritance:
 ```
 
-### adabmDCA.parser module
-
-```{eval-rst}
-.. automodule:: adabmDCA.parser
-   :members:
-   :undoc-members:
-   :show-inheritance:
-```
-
 ### adabmDCA.plot module
 
 ```{eval-rst}
 .. automodule:: adabmDCA.plot
-   :members:
-   :undoc-members:
-   :show-inheritance:
-```
-
-### adabmDCA.resampling module
-
-```{eval-rst}
-.. automodule:: adabmDCA.resampling
    :members:
    :undoc-members:
    :show-inheritance:

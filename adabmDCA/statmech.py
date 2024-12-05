@@ -1,4 +1,4 @@
-from typing import Dict, Tuple
+from typing import Dict
 import itertools
 
 import torch
@@ -36,7 +36,7 @@ def compute_energy(
     return torch.vmap(compute_energy_sequence, in_dims=(0, None))(X, params)
 
 
-def update_weights_AIS(
+def _update_weights_AIS(
     prev_params: Dict[str, torch.Tensor],
     curr_params: Dict[str, torch.Tensor],
     chains: torch.Tensor,
@@ -93,7 +93,11 @@ def compute_log_likelihood(
     return _compute_log_likelihood(fi, fij, params, logZ)
 
 
-def enumerate_states(L: int, q: int, device: torch.device=torch.device("cpu")) -> torch.Tensor:
+def enumerate_states(
+    L: int,
+    q: int,
+    device: torch.device=torch.device("cpu"),
+) -> torch.Tensor:
     """Enumerate all possible states of a system of L sites and q states.
 
     Args:
@@ -149,3 +153,110 @@ def compute_entropy(
     entropy = mean_energy + logZ
     
     return entropy.item()
+
+
+def _get_acceptance_rate(
+    prev_params: Dict[str, torch.Tensor],
+    curr_params: Dict[str, torch.Tensor],
+    prev_chains: torch.Tensor,
+    curr_chains: torch.Tensor,
+) -> float:
+    """Compute the acceptance rate of swapping the configurations between two models alonge the training.
+
+    Args:
+        prev_params (Dict[str, torch.Tensor]): Parameters at time t-1.
+        curr_params (Dict[str, torch.Tensor]): Parameters at time t.
+        prev_chains (torch.Tensor): Chains at time t-1.
+        curr_chains (torch.Tensor): Chains at time t.
+
+    Returns:
+        float: Acceptance rate of swapping the configurations between two models alonge the training.
+    """
+    nchains = len(prev_chains)
+    delta_energy = (
+        - compute_energy(curr_chains, prev_params)
+        + compute_energy(prev_chains, prev_params)
+        + compute_energy(curr_chains, curr_params)
+        - compute_energy(prev_chains, curr_params)
+    )
+    swap = torch.exp(delta_energy) > torch.rand(size=(nchains,), device=delta_energy.device)
+    acceptance_rate = swap.float().mean().item()
+    
+    return acceptance_rate
+
+
+@torch.jit.script
+def _tap_residue(
+    idx: int,
+    mag: torch.Tensor,
+    params: Dict[str, torch.Tensor],
+) -> torch.Tensor:
+    N, L, q = mag.shape
+    coupling_residue = params["coupling_matrix"][idx] # (q, L, q)
+    bias_residue = params["bias"][idx] # (q,)
+    mag_i = mag[:, idx] # (n, q)
+    
+    mf_term = bias_residue + mag.view(N, L * q) @ coupling_residue.view(q, L * q).T
+    reaction_term_temp = (
+        0.5 * coupling_residue.view(1, q, L, q) + # (1, q, L, q)
+        (torch.tensordot(mag_i, coupling_residue, dims=[[1], [0]]) * mag).sum(dim=2).view(N, 1, L, 1) - # nd,djc,njc->nj
+        0.5 * torch.einsum("njc,ajc->naj", mag, coupling_residue).view(N, q, L, 1) -                    # njc,ajc->naj
+        torch.tensordot(mag_i, coupling_residue, dims=[[1], [0]]).view(N, 1, L, q)                      # nd,djb->njb
+    )
+    reaction_term = (
+        (reaction_term_temp * coupling_residue.view(1, q, L, q)) * mag.view(N, 1, L, q)
+    ).sum(dim=3).sum(dim=2) # najb,ajb,njb->na
+    tap_residue = torch.softmax(mf_term + reaction_term, dim=1)
+    
+    return tap_residue
+
+
+def _sweep_tap(
+    residue_idxs: torch.Tensor,
+    mag: torch.Tensor,
+    params: Dict[str, torch.Tensor],    
+) -> torch.Tensor:
+    """Updates the magnetizations using the TAP equations.
+
+    Args:
+        residue_idxs (torch.Tensor): List of residue indices in random order.
+        mag (torch.Tensor): Magnetizations of the residues.
+        params (Dict[str, torch.Tensor]): Parameters of the model.
+
+    Returns:
+        torch.Tensor: Updated magnetizations.
+    """
+    for idx in residue_idxs:
+        mag[:, idx] = _tap_residue(idx, mag, params)  
+    
+    return mag
+
+
+def iterate_tap(
+    mag: torch.Tensor,
+    params: Dict[str, torch.Tensor],
+    max_iter: int = 500,
+    epsilon: float = 1e-4,
+):
+    """Iterates the TAP equations until convergence.
+
+    Args:
+        mag (torch.Tensor): Initial magnetizations.
+        params (Dict[str, torch.Tensor]): Parameters of the model.
+        max_iter (int, optional): Maximum number of iterations. Defaults to 2000.
+        epsilon (float, optional): Convergence threshold. Defaults to 1e-6.
+
+    Returns:
+        torch.Tensor: Fixed point magnetizations of the TAP equations.
+    """
+    mag_ = mag.clone()
+    iterations = 0
+    while True:
+        mag_old = mag_.clone()
+        mag_ = _sweep_tap(torch.randperm(mag_.shape[1]), mag_, params)
+        diff = torch.abs(mag_old - mag_).max()
+        iterations += 1
+        if diff < epsilon or iterations > max_iter:
+            break
+    
+    return mag_

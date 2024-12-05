@@ -6,9 +6,15 @@ from tqdm import tqdm
 
 import torch
 
-from adabmDCA.fasta_utils import get_tokens, write_fasta, compute_weights, import_clean_dataset, encode_sequence
+from adabmDCA.fasta import (
+    get_tokens,
+    write_fasta,
+    compute_weights,
+    import_from_fasta,
+)
 from adabmDCA.resampling import compute_mixing_time
 from adabmDCA.io import load_params
+from adabmDCA.dataset import DatasetDCA
 from adabmDCA.utils import init_chains, resample_sequences, get_device, get_dtype
 from adabmDCA.sampling import get_sampler
 from adabmDCA.functional import one_hot
@@ -55,18 +61,18 @@ def main():
     
     # Import data
     print(f"Loading data from {args.data}...")
-    headers, sequences = import_clean_dataset(args.data, tokens)
-    data = encode_sequence(sequences, tokens)
-    data = torch.tensor(data, device=device)
-    
-    if args.weights is None:
-        print("Computing the weights...")
-        weights = compute_weights(data, device=device, dtype=dtype).view(-1)
-    else:
-        weights = torch.tensor(np.loadtxt(args.weights), device=device, dtype=dtype).view(-1)
-    
+    dataset = DatasetDCA(
+        path_data=args.data,
+        path_weights=args.weights,
+        alphabet=tokens,
+        clustering_th=args.clustering_seqid,
+        no_reweighting=args.no_reweighting,
+        device=device,
+        dtype=dtype,
+    )
+    data = one_hot(dataset.data, num_classes=len(tokens)).to(dtype)
+    weights = dataset.weights
     nmeasure = min(args.nmeasure, len(data))
-    data = one_hot(data, num_classes=len(tokens)).to(dtype)
     data_resampled = resample_sequences(data, weights, nmeasure)
     
     if args.pseudocount is None:

@@ -4,7 +4,7 @@ import numpy as np
 
 import torch
 
-from adabmDCA.fasta_utils import write_fasta, encode_sequence, import_from_fasta, validate_alphabet
+from adabmDCA.fasta import write_fasta, encode_sequence, import_from_fasta, validate_alphabet
 
 
 def load_chains(fname: str, tokens: str, load_weights: bool=False) -> np.ndarray | Tuple[np.ndarray, np.ndarray]:

@@ -4,7 +4,7 @@ import numpy as np
 
 import torch
 
-from adabmDCA.fasta_utils import get_tokens
+from adabmDCA.fasta import get_tokens
 from adabmDCA.io import load_params
 from adabmDCA.utils import set_zerosum_gauge, get_device, get_dtype
 from adabmDCA.parser import add_args_contacts
@@ -30,6 +30,7 @@ def main():
     
     # Import parameters
     tokens = get_tokens(args.alphabet)
+    print(f"Loading parameters from {args.path_params}...")
     params = load_params(args.path_params, tokens=tokens, device=device, dtype=dtype)
     
     # Zero-sum gauge
@@ -43,12 +44,14 @@ def main():
     cm_reduced = cm_reduced[:, :, :, gap_idx]
     
     # Compute the Frobenius norm
+    print("Computing the Frobenius norm...")
     F = torch.sqrt(torch.square(cm_reduced).sum([1, 3]))
     
     # Compute the average-product corrected Frobenius norm
     Fapc = F - (F.sum(1) * F.sum(0) / F.sum())
     
     # Save the results
+    print("Saving results...")
     if args.label is not None:
         fname_out = args.output / Path(f"{args.label}_frobenius.txt")
     else:

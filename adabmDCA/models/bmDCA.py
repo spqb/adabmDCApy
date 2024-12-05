@@ -3,6 +3,7 @@ from typing import Callable, Dict
 import torch
 
 from adabmDCA.training import train_graph
+from adabmDCA.checkpoint import Checkpoint
 
     
 def fit(
@@ -13,13 +14,11 @@ def fit(
     mask: torch.Tensor,
     chains: torch.Tensor,
     log_weights: torch.Tensor,
-    tokens: str,
     target_pearson: float,
     nsweeps: int,
     nepochs: int,
     lr: float,
-    file_paths: dict = None,
-    device: torch.device = torch.device("cpu"),
+    checkpoint: Checkpoint | None = None,
     *args, **kwargs
 ) -> None:
     """Trains a bmDCA model on the input MSA and saves the results in a file.
@@ -32,12 +31,11 @@ def fit(
         mask (torch.Tensor): Initialization of the coupling matrix's mask.
         chains (torch.Tensor): Initialization of the Markov chains.
         log_weights (torch.Tensor): Log-weights of the chains. Used to estimate the log-likelihood.
-        tokens (str): Tokens used for encoding the sequences.
         target_pearson (float): Pearson correlation coefficient on the two-points statistics to be reached.
         nsweeps (int): Number of Monte Carlo steps to update the state of the model.
         nepochs (int): Maximum number of epochs to be performed.
         lr (float): Learning rate.
-        file_paths (dict, optional): Dictionary containing the paths where to save log, params and chains. Defaults to None.
+        checkpoint (Checkpoint | None): Checkpoint class to be used to save the model. Defaults to None.
         device (torch.device, optional): Device to be used. Defaults to "cpu".
     """
     
@@ -62,7 +60,6 @@ def fit(
         lr=lr,
         max_epochs=nepochs,
         target_pearson=target_pearson,
-        tokens=tokens,
         check_slope=False,
-        file_paths=file_paths,
+        checkpoint=checkpoint,
     )

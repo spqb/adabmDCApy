@@ -3,10 +3,10 @@ from pathlib import Path
 
 import torch
 
-from adabmDCA.fasta_utils import get_tokens
+from adabmDCA.fasta import get_tokens
 from adabmDCA.utils import get_device, get_dtype
 from adabmDCA.io import load_params, import_from_fasta
-from adabmDCA.fasta_utils import encode_sequence
+from adabmDCA.fasta import encode_sequence
 from adabmDCA.functional import one_hot
 from adabmDCA.statmech import compute_energy
 from adabmDCA.parser import add_args_energies
@@ -37,12 +37,15 @@ def main():
     data = torch.tensor(data, device=device, dtype=torch.int32)
     
     # import parameters and compute DCA energies
+    print(f"Loading parameters from {args.path_params}...")
     params = load_params(args.path_params, tokens=tokens, device=device, dtype=dtype)
     q = params["bias"].shape[1]
     data = one_hot(data, num_classes=q).to(dtype)
+    print(f"Computing DCA energies...")
     energies = compute_energy(data, params).cpu().numpy()
     
     # Save results in a file
+    print("Saving results...")
     folder = args.output
     folder.mkdir(parents=True, exist_ok=True)
     fname_out = folder / Path(args.data.stem + "_energies.fasta")

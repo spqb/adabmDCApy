@@ -70,12 +70,17 @@ def decode_sequence(sequence: np.ndarray, tokens: str) -> str | np.ndarray:
         raise ValueError("Input sequence must be either a 1D or a 2D array.")
 
 
-def import_from_fasta(fasta_name: str | Path, tokens: str = None) -> Tuple[np.ndarray, np.ndarray]:
+def import_from_fasta(
+    fasta_name: str | Path,
+    tokens: str | None = None,
+    filter_sequences: bool = False,
+) -> Tuple[np.ndarray, np.ndarray]:
     """Import data from a fasta file.
 
     Args:
         fasta_name (str | Path): Path to the fasta file.
-        tokens (str): Alphabet to be used for the encoding. If provided, encodes the sequences in numeric format.
+        tokens (str | None, optional): Alphabet to be used for the encoding. If provided, encodes the sequences in numeric format.
+        filter_sequences (bool, optional): If True, removes the sequences whose tokens are not present in the alphabet. Defaults to False.
 
     Raises:
         RuntimeError: The file is not in fasta format.
@@ -83,6 +88,7 @@ def import_from_fasta(fasta_name: str | Path, tokens: str = None) -> Tuple[np.nd
     Returns:
         Tuple[np.ndarray, np.ndarray]: headers, sequences.
     """
+    # Import headers and sequences
     sequences = []
     names = []
     seq = ''
@@ -105,10 +111,37 @@ def import_from_fasta(fasta_name: str | Path, tokens: str = None) -> Tuple[np.nd
     if seq:
         sequences.append(seq)
     
-    if tokens is not None:
+    # Filter sequences
+    if filter_sequences:
+        if tokens is None:
+            raise ValueError("Argument 'tokens' must be provided if 'filter_sequences' is True.")
+        tokens = get_tokens(tokens)
+        tokens_list = [a for a in tokens]
+        clean_names = []
+        clean_sequences = []
+        for n, s in zip(names, sequences):
+            good_sequence = np.full(shape=(len(s),), fill_value=False)
+            splitline = np.array([a for a in s])
+            for token in tokens_list:
+                good_sequence += (token == splitline)
+            if np.all(good_sequence):
+                if n == "":
+                    n = "unknown_sequence"
+                clean_names.append(n)
+                clean_sequences.append(s)
+            else:
+                print(f"Unknown token found: removing sequence {n}")
+        names = np.array(clean_names)
+        sequences = np.array(clean_sequences)
+        
+    else:
+        names = np.array(names)
+        sequences = np.array(sequences)
+    
+    if (tokens is not None) and (len(sequences) > 0):
         sequences = encode_sequence(sequences, tokens)
     
-    return np.array(names), np.array(sequences)
+    return names, sequences
     
     
 def write_fasta(
@@ -144,38 +177,6 @@ def write_fasta(
             f.write('>' + name_seq + '\n')
             f.write(seq)
             f.write('\n')
-         
-                
-def import_clean_dataset(filein: str | Path, tokens: str = "protein") -> Tuple[np.ndarray, np.ndarray]:
-    """Imports data from a fasta file and removes all the sequences whose tokens are not present in a specified alphabet.
-
-    Args:
-        filein (str | Path): Input fasta.
-        tokens (str, optional): Alphabet to be used for the encoding. Defaults to "protein".
-    
-    Returns:
-        Tuple[np.ndarray, np.ndarray]: headers, sequences.
-    """
-    tokens = get_tokens(tokens)
-    names, sequences = import_from_fasta(filein)
-    tokens_list = [a for a in tokens]
-    clean_names = []
-    clean_sequences = []
-    for n, s in zip(names, sequences):
-        good_sequence = np.full(shape=(len(s),), fill_value=False)
-        splitline = np.array([a for a in s])
-        for token in tokens_list:
-            good_sequence += (token == splitline)
-        if np.all(good_sequence):
-            if n == "":
-                n = "unknown_sequence"
-            clean_names.append(n)
-            clean_sequences.append(s)
-        else:
-            print(f"Unknown token found: removing sequence {n}")
-            
-    return clean_names, clean_sequences
-
 
 def compute_weights(
     data: np.ndarray | torch.Tensor,

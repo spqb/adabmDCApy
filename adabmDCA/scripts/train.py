@@ -6,13 +6,14 @@ import numpy as np
 import torch
 
 from adabmDCA.dataset import DatasetDCA
-from adabmDCA.fasta_utils import get_tokens
+from adabmDCA.fasta import get_tokens
 from adabmDCA.io import load_chains, load_params
 from adabmDCA.stats import get_freq_single_point, get_freq_two_points
 from adabmDCA.utils import init_chains, init_parameters, get_device, get_dtype
 from adabmDCA.parser import add_args_train
 from adabmDCA.sampling import get_sampler
 from adabmDCA.functional import one_hot
+from adabmDCA.checkpoint import get_checkpoint
 
 
 # import command-line input arguments
@@ -73,6 +74,7 @@ def main():
         path_weights=args.weights,
         alphabet=args.alphabet,
         clustering_th=args.clustering_seqid,
+        no_reweighting=args.no_reweighting,
         device=device,
         dtype=dtype,
     )
@@ -102,10 +104,7 @@ def main():
         args.pseudocount = 1. / dataset.get_effective_size()
         print(f"Pseudocount automatically set to {args.pseudocount}.")
         
-    data_oh = one_hot(
-        torch.tensor(dataset.data, device=device),
-        num_classes=q,
-    ).to(dtype)
+    data_oh = one_hot(dataset.data, num_classes=q).to(dtype)
     
     fi_target = get_freq_single_point(data=data_oh, weights=dataset.weights, pseudo_count=args.pseudocount)
     fij_target = get_freq_two_points(data=data_oh, weights=dataset.weights, pseudo_count=args.pseudocount) 
@@ -172,8 +171,16 @@ def main():
         f.write("\n")
         template = "{0:10} {1:10} {2:10} {3:10} {4:10} {5:10} {6:10}\n"
         f.write(template.format("Epoch", "Pearson", "Slope", "LL", "Entropy", "Density", "Time [s]"))
-
     
+    checkpoint = get_checkpoint(args.checkpoints)(
+        file_paths=file_paths,
+        tokens=tokens,
+        params=params,
+        chains=chains,
+        max_epochs=args.nepochs,
+        target_acc_rate=args.target_acc_rate,
+    )
+
     DCA_model.fit(
         sampler=sampler,
         fij_target=fij_target,
@@ -192,7 +199,7 @@ def main():
         gsteps=args.gsteps,
         drate=args.drate,
         target_density=args.density,
-        file_paths=file_paths,
+        checkpoint=checkpoint,
     )
     
     

@@ -1,14 +1,12 @@
 from tqdm import tqdm
-from pathlib import Path
 import time
 from typing import Tuple, Callable, Dict
-
 import torch
 
 from adabmDCA.stats import get_freq_single_point, get_freq_two_points, get_correlation_two_points
-from adabmDCA.io import save_chains, save_params
 from adabmDCA.utils import get_mask_save
-from adabmDCA.statmech import update_weights_AIS, compute_log_likelihood, compute_entropy
+from adabmDCA.statmech import _update_weights_AIS, compute_log_likelihood, compute_entropy
+from adabmDCA.checkpoint import Checkpoint
 
 
 @torch.jit.script
@@ -122,10 +120,9 @@ def train_graph(
     lr: float,
     max_epochs: int,
     target_pearson: float,
-    tokens: str = "protein",
+    checkpoint: Checkpoint | None = None,
     check_slope: bool = False,
     log_weights: torch.Tensor = None,
-    file_paths: Dict[str, Path] = None,
     progress_bar: bool = True,
 ) -> Tuple[torch.Tensor, Dict[str, torch.Tensor], torch.Tensor]:
     """Trains the model on a given graph until the target Pearson correlation is reached or the maximum number of epochs is exceeded.
@@ -141,10 +138,10 @@ def train_graph(
         lr (float): Learning rate.
         max_epochs (int): Maximum number of gradient updates to be done.
         target_pearson (float): Target Pearson coefficient.
+        checkpoint (Checkpoint | None, optional): Checkpoint class to be used for saving the model. Defaults to None.
         tokens (str, optional): Alphabet to be used for the encoding. Defaults to "protein".
         log_weights (torch.Tensor, optional): Log-weights used for the online computation of the log-likelihood. Defaults to None.
         check_slope (bool, optional): Whether to take into account the slope for the convergence criterion or not. Defaults to False.
-        file_paths (Dict[str, Path], optional): Dictionary containing the paths where to save log, params, and chains.  Defaults to None.
         progress_bar (bool, optional): Whether to display a progress bar or not. Defaults to True.
 
     Returns:
@@ -198,9 +195,6 @@ def train_graph(
             bar_format="{desc} {percentage:.2f}%[{bar}] Pearson: {n:.3f}/{total_fmt} [{elapsed}]"
         )
         pbar.set_description(f"Epochs: {epochs} - Slope: {slope:.2f} - LL: {log_likelihood:.2f}")
-   
-    # Template for wrinting the results
-    template = "{0:10} {1:10} {2:10} {3:10} {4:10} {5:10} {6:10}\n"
     
     while not halt_condition(epochs, pearson, slope, check_slope):
         
@@ -227,7 +221,7 @@ def train_graph(
         pearson, slope = get_correlation_two_points(fij=fij, pij=pij, fi=fi, pi=pi)
         
         # Compute the log-likelihood
-        log_weights = update_weights_AIS(
+        log_weights = _update_weights_AIS(
             prev_params=params_prev,
             curr_params=params,
             chains=chains,
@@ -242,20 +236,39 @@ def train_graph(
             pbar.set_description(f"Epochs: {epochs} - Slope: {slope:.2f} - LL: {log_likelihood:.2f}")
             
         # Save the model if a checkpoint is reached
-        if (file_paths is not None) and (epochs % 50 == 0 or epochs == max_epochs):
-            entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
-            save_params(fname=file_paths["params"], params=params, mask=mask_save, tokens=tokens)
-            save_chains(fname=file_paths["chains"], chains=chains.argmax(dim=-1), tokens=tokens, log_weights=log_weights)
-            with open(file_paths["log"], "a") as f:
-                f.write(template.format(f"{epochs}", f"{pearson:.3f}", f"{slope:.3f}", f"{log_likelihood:.3f}", f"{entropy:.3f}", "1.000", f"{(time.time() - time_start):.1f}"))
+        if checkpoint is not None:
+            if checkpoint.check(epochs, params, chains):
+                entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
+                checkpoint.save(
+                    params=params,
+                    mask=mask_save,
+                    chains=chains,
+                    log_weights=log_weights,
+                    epochs=epochs,
+                    pearson=pearson,
+                    slope=slope,
+                    log_likelihood=log_likelihood,
+                    entropy=entropy,
+                    density=1.0,
+                    time_start=time_start,
+                )
                 
     if progress_bar:
         pbar.close()
     
-    if file_paths is not None:
+    if checkpoint is not None:
         entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
-        save_params(fname=file_paths["params"], params=params, mask=mask_save, tokens=tokens)
-        save_chains(fname=file_paths["chains"], chains=chains.argmax(dim=-1), tokens=tokens, log_weights=log_weights)
-        with open(file_paths["log"], "a") as f:
-            f.write(template.format(f"{epochs}", f"{pearson:.3f}", f"{slope:.3f}", f"{log_likelihood:.3f}", f"{entropy:.3f}", "1.000", f"{(time.time() - time_start):.1f}"))
+        checkpoint.save(
+            params=params,
+            mask=mask_save,
+            chains=chains,
+            log_weights=log_weights,
+            epochs=epochs,
+            pearson=pearson,
+            slope=slope,
+            log_likelihood=log_likelihood,
+            entropy=entropy,
+            density=1.0,
+            time_start=time_start,
+        )
     return chains, params, log_weights

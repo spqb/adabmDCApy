@@ -5,10 +5,9 @@ import numpy as np
 from torch.utils.data import Dataset
 import torch
 
-from adabmDCA.fasta_utils import (
+from adabmDCA.fasta import (
     get_tokens,
-    import_clean_dataset,
-    encode_sequence,
+    import_from_fasta,
     compute_weights,
 )
 
@@ -18,9 +17,10 @@ class DatasetDCA(Dataset):
     def __init__(
         self,
         path_data: str | Path,
-        path_weights: str | Path = None,
+        path_weights: str | Path | None = None,
         alphabet: str = "protein",
         clustering_th: float = 0.8,
+        no_reweighting: bool = False,
         device: torch.device = torch.device("cpu"),
         dtype: torch.dtype = torch.float32,
     ):
@@ -28,14 +28,16 @@ class DatasetDCA(Dataset):
 
         Args:
             path_data (str | Path): Path to multi sequence alignment in fasta format.
-            path_weights (str | Path, optional): Path to the file containing the importance weights of the sequences. If None, the weights are computed automatically.
+            path_weights (str | Path | None, optional): Path to the file containing the importance weights of the sequences. If None, the weights are computed automatically.
             alphabet (str, optional): Selects the type of encoding of the sequences. Default choices are ("protein", "rna", "dna"). Defaults to "protein".
+            clustering_th (float, optional): Sequence identity threshold for clustering. Defaults to 0.8.
+            no_reweighting (bool, optional): If True, the weights are not computed. Defaults to False.
             device (torch.device, optional): Device to be used. Defaults to "cpu".
             dtype (torch.dtype, optional): Data type of the dataset. Defaults to torch.float32.
         """
         path_data = Path(path_data)
-        self.names = []
-        self.data = []
+        self.names = None
+        self.data = None
         self.device = device
         self.dtype = dtype
         
@@ -46,20 +48,20 @@ class DatasetDCA(Dataset):
         with open(path_data, "r") as f:
             first_line = f.readline()
         if first_line.startswith(">"):
-            names, sequences = import_clean_dataset(path_data, tokens=self.tokens)
+            self.names, self.data = import_from_fasta(path_data, tokens=self.tokens, filter_sequences=True)
+            self.data = torch.tensor(self.data, device=device, dtype=torch.int32)
             # Check if data is empty
-            if len(sequences) == 0:
+            if len(self.data) == 0:
                 raise ValueError(f"The input dataset is empty. Check that the alphabet is correct. Current alphabet: {alphabet}")
-            self.names = np.array(names)
-            self.data = encode_sequence(sequences, tokens=self.tokens)
         else:
             raise KeyError("The input dataset is not in fasta format")
         
         # Computes the weights to be assigned to the data
-        if path_weights is None:
+        if no_reweighting:
+            self.weights = torch.ones(len(self.data), device=device, dtype=dtype)
+        elif path_weights is None:
             print("Automatically computing the sequence weights...")
             self.weights = compute_weights(data=self.data, th=clustering_th, device=device, dtype=dtype)
-            
         else:
             with open(path_weights, "r") as f:
                 weights = [float(line.strip()) for line in f]
@@ -93,7 +95,7 @@ class DatasetDCA(Dataset):
         Returns:
             int: Number of states.
         """
-        return np.max(self.data) + 1
+        return torch.max(self.data).item() + 1
     
     
     def get_effective_size(self) -> int:
