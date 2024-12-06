@@ -8,7 +8,7 @@ import torch
 def _get_freq_single_point(
     data: torch.Tensor,
     weights: torch.Tensor | None,
-    pseudo_count: float = 0.,
+    pseudo_count: float = 0.0,
 ) -> torch.Tensor:    
     M, _, q = data.shape
     if weights is not None:
@@ -23,13 +23,13 @@ def _get_freq_single_point(
 def get_freq_single_point(
     data: torch.Tensor,
     weights: torch.Tensor | None,
-    pseudo_count: float = 0.,
+    pseudo_count: float = 0.0,
 ) -> torch.Tensor:
     """Computes the single point frequencies of the input MSA.
     Args:
         data (torch.Tensor): One-hot encoded data array.
         weights (torch.Tensor | None): Weights of the sequences.
-        pseudo_count (float, optional): Pseudo count to be added to the frequencies. Defaults to 0..
+        pseudo_count (float, optional): Pseudo count to be added to the frequencies. Defaults to 0.0.
     
     Raises:
         ValueError: If the input data is not a 3D tensor.
@@ -47,7 +47,7 @@ def get_freq_single_point(
 def _get_freq_two_points(
     data: torch.Tensor,
     weights: torch.Tensor | None,
-    pseudo_count: float=0.,
+    pseudo_count: float=0.0,
 ) -> torch.Tensor:
     
     M, L, q = data.shape
@@ -74,7 +74,7 @@ def _get_freq_two_points(
 def get_freq_two_points(
     data: torch.Tensor,
     weights: torch.Tensor | None,
-    pseudo_count: float=0.,
+    pseudo_count: float = 0.0,
 ) -> torch.Tensor:
     """
     Computes the 2-points statistics of the input MSA.
@@ -82,7 +82,7 @@ def get_freq_two_points(
     Args:
         data (torch.Tensor): One-hot encoded data array.
         weights (torch.Tensor | None): Array of weights to assign to the sequences of shape.
-        pseudo_count (float, optional): Pseudo count for the single and two points statistics. Acts as a regularization. Defaults to 0..
+        pseudo_count (float, optional): Pseudo count for the single and two points statistics. Acts as a regularization. Defaults to 0.0.
     
     Raises:
         ValueError: If the input data is not a 3D tensor.
@@ -186,14 +186,14 @@ def get_freq_three_points(
 def get_covariance_matrix(
     data: torch.Tensor,
     weights: torch.Tensor,
-    pseudo_count: float = 0.
+    pseudo_count: float = 0.0,
 ) -> torch.Tensor:
     """Computes the weighted covariance matrix of the input multi sequence alignment.
 
     Args:
         data (torch.Tensor): Input MSA in one-hot variables.
         weights (torch.Tensor): Importance weights of the sequences.
-        pseudo_count (float, optional): Pseudo count. Defaults to 0..
+        pseudo_count (float, optional): Pseudo count. Defaults to 0.0.
 
     Returns:
         torch.Tensor: Covariance matrix.
@@ -206,7 +206,7 @@ def get_covariance_matrix(
     return cov_matrix.reshape(L * q, L * q)
 
 
-def get_slope(x, y):
+def _get_slope(x, y):
     n = len(x)
     num = n * (x @ y) - y.sum() * x.sum()
     den = n * (x @ x) - torch.square(x.sum())
@@ -218,7 +218,7 @@ def extract_Cij_from_freq(
     pij: torch.Tensor,
     fi: torch.Tensor,
     pi: torch.Tensor,
-    mask: torch.Tensor = None,
+    mask: torch.Tensor | None = None,
 ) -> Tuple[float, float]:
     """Extracts the lower triangular part of the covariance matrices of the data and chains starting from the frequencies.
 
@@ -227,7 +227,7 @@ def extract_Cij_from_freq(
         pij (torch.Tensor): Two-point frequencies of the chains.
         fi (torch.Tensor): Single-point frequencies of the data.
         pi (torch.Tensor): Single-point frequencies of the chains.
-        mask (torch.Tensor, optional): Mask for comparing just a subset of the couplings. Defaults to None.
+        mask (torch.Tensor | None, optional): Mask for comparing just a subset of the couplings. Defaults to None.
 
     Returns:
         Tuple[float, float]: Extracted two-point frequencies of the data and chains.
@@ -283,7 +283,7 @@ def get_correlation_two_points(
     pij: torch.Tensor,
     fi: torch.Tensor,
     pi: torch.Tensor,
-    mask: torch.Tensor = None,
+    mask: torch.Tensor | None = None,
 ) -> Tuple[float, float]:
     """Computes the Pearson coefficient and the slope between the two-point frequencies of data and chains.
 
@@ -292,7 +292,7 @@ def get_correlation_two_points(
         pij (torch.Tensor): Two-point frequencies of the chains.
         fi (torch.Tensor): Single-point frequencies of the data.
         pi (torch.Tensor): Single-point frequencies of the chains.
-        mask (torch.Tensor, optional): Mask to select the couplings to use for the correlation coefficient. Defaults to None. 
+        mask (torch.Tensor | None, optional): Mask to select the couplings to use for the correlation coefficient. Defaults to None. 
 
     Returns:
         Tuple[float, float]: Pearson correlation coefficient of the two-sites statistics and slope of the interpolating line.
@@ -300,6 +300,6 @@ def get_correlation_two_points(
     
     fij_extract, pij_extract = extract_Cij_from_freq(fij, pij, fi, pi, mask)
     pearson = torch.corrcoef(torch.stack([fij_extract, pij_extract]))[0, 1].item()
-    slope = get_slope(fij_extract, pij_extract).item()
+    slope = _get_slope(fij_extract, pij_extract).item()
     
     return pearson, slope

@@ -122,7 +122,7 @@ def train_graph(
     target_pearson: float,
     checkpoint: Checkpoint | None = None,
     check_slope: bool = False,
-    log_weights: torch.Tensor = None,
+    log_weights: torch.Tensor | None = None,
     progress_bar: bool = True,
 ) -> Tuple[torch.Tensor, Dict[str, torch.Tensor], torch.Tensor]:
     """Trains the model on a given graph until the target Pearson correlation is reached or the maximum number of epochs is exceeded.
@@ -139,9 +139,8 @@ def train_graph(
         max_epochs (int): Maximum number of gradient updates to be done.
         target_pearson (float): Target Pearson coefficient.
         checkpoint (Checkpoint | None, optional): Checkpoint class to be used for saving the model. Defaults to None.
-        tokens (str, optional): Alphabet to be used for the encoding. Defaults to "protein".
-        log_weights (torch.Tensor, optional): Log-weights used for the online computation of the log-likelihood. Defaults to None.
         check_slope (bool, optional): Whether to take into account the slope for the convergence criterion or not. Defaults to False.
+        log_weights (torch.Tensor, optional): Log-weights used for the online computation of the log-likelihood. Defaults to None.
         progress_bar (bool, optional): Whether to display a progress bar or not. Defaults to True.
 
     Returns:
@@ -271,4 +270,5 @@ def train_graph(
             density=1.0,
             time_start=time_start,
         )
+        
     return chains, params, log_weights

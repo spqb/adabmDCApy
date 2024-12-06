@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='adabmDCA',
-    version='0.2.0',
+    version='0.2.6',
     author='Lorenzo Rosset, Roberto Netti, Anna Paola Muntoni, Francesco Zamponi, Martin Weigt',
     maintainer='Lorenzo Rosset',
     author_email='rosset.lorenzo@gmail.com',
@@ -24,10 +24,11 @@ setup(
         ],
     },
     install_requires=[
-        'matplotlib==3.9.2',
-        'numpy==2.1.3',
-        'pandas==2.2.3',
-        'torch==2.5.1',
-        'tqdm==4.67.0',
+        'matplotlib>=3.8.0',
+        'numpy>=1.26.4',
+        'pandas>=2.2.2',
+        'torch>=2.5.1',
+        'tqdm>=4.66.6',
+        'h5py>=3.12.1',
     ],
 )

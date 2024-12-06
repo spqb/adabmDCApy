@@ -14,13 +14,19 @@ class Checkpoint(ABC):
         file_paths: dict,
         tokens: str,
         max_epochs: int,
-        params: Dict[str, torch.Tensor] = None,
-        chains: Dict[str, torch.Tensor] = None,
+        params: Dict[str, torch.Tensor] | None = None,
+        chains: Dict[str, torch.Tensor] | None = None,
     ):
         self.file_paths = file_paths
         self.tokens = tokens
-        self.params = {key: value.clone() for key, value in params.items()}
-        self.chains = chains.clone()
+        if params is not None:
+            self.params = {key: value.clone() for key, value in params.items()}
+        else:
+            self.params = None
+        if chains is not None:
+            self.chains = chains.clone()
+        else:
+            self.chains = None
         self.max_epochs = max_epochs
         self.updates = 0
         
@@ -70,8 +76,8 @@ class LinearCheckpoint(Checkpoint):
         file_paths: dict,
         tokens: str,
         max_epochs: int,
-        params: Dict[str, torch.Tensor] = None,
-        chains: Dict[str, torch.Tensor] = None,
+        params: Dict[str, torch.Tensor] | None = None,
+        chains: Dict[str, torch.Tensor] | None = None,
         checkpt_interval: int = 50,
         *args,
         **kwargs,
@@ -144,8 +150,8 @@ class AcceptanceCheckpoint(Checkpoint):
         file_paths: Dict,
         tokens: str,
         max_epochs: int,
-        params: Dict[str, torch.Tensor] = None,
-        chains: Dict[str, torch.Tensor] = None,
+        params: Dict[str, torch.Tensor] | None = None,
+        chains: Dict[str, torch.Tensor] | None = None,
         target_acc_rate: float = 0.5,
         *args,
         **kwargs,

@@ -1,5 +1,3 @@
-# Description: This file contains the custom functions used in the package.
-
 import torch
 
 

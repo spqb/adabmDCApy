@@ -1,6 +1,5 @@
 from typing import Any
 from pathlib import Path
-import numpy as np
 
 from torch.utils.data import Dataset
 import torch

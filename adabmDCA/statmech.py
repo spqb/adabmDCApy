@@ -96,7 +96,7 @@ def compute_log_likelihood(
 def enumerate_states(
     L: int,
     q: int,
-    device: torch.device=torch.device("cpu"),
+    device: torch.device = torch.device("cpu"),
 ) -> torch.Tensor:
     """Enumerate all possible states of a system of L sites and q states.
 

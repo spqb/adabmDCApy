@@ -150,7 +150,7 @@ def write_fasta(
     sequences: np.ndarray,
     numeric_input: bool = False,
     remove_gaps: bool = False,
-    alphabet: str = "protein"
+    tokens: str = "protein",
 ):
     """Generate a fasta file with the input sequences.
 
@@ -162,7 +162,7 @@ def write_fasta(
         remove_gaps (bool, optional): If True, removes the gap from the alignment. Defaults to False.
         tokens (str): Alphabet to be used for the encoding. Defaults to protein.
     """
-    tokens = get_tokens(alphabet)
+    tokens = get_tokens(tokens)
 
     if numeric_input:
         # Decode the sequences
@@ -178,11 +178,12 @@ def write_fasta(
             f.write(seq)
             f.write('\n')
 
+
 def compute_weights(
     data: np.ndarray | torch.Tensor,
     th: float = 0.8,
     device: torch.device = torch.device("cpu"),
-    dtype: torch.dtype = torch.float32
+    dtype: torch.dtype = torch.float32,
 ) -> torch.Tensor:
     """Computes the weight to be assigned to each sequence 's' in 'data' as 1 / n_clust, where 'n_clust' is the number of sequences
     that have a sequence identity with 's' >= th.

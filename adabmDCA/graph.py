@@ -1,5 +1,3 @@
-# Description: This module contains the functions to update the interaction graph of the model.
-
 from typing import Dict, Tuple
 
 import torch

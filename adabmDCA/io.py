@@ -63,7 +63,7 @@ def save_chains(fname: str, chains: torch.Tensor, tokens: str, log_weights: torc
         sequences=chains,
         numeric_input=True,
         remove_gaps=False,
-        alphabet=tokens
+        tokens=tokens,
     )
     
     
@@ -157,16 +157,33 @@ def save_params(
     L, q, *_ = mask.shape
     idx0 = np.arange(L * q).reshape(L * q) // q
     idx1 = np.arange(L * q).reshape(L * q) % q
-    idx1_aa = np.vectorize(lambda n, tokens : tokens[n], excluded=["tokens"])(idx1, tokens)
-    df_h = pd.DataFrame.from_dict({"param" : np.full(L * q, "h"), "idx0" : idx0, "idx1" : idx1_aa, "idx2" : params["bias"].flatten()}, orient="columns")
+    idx1_aa = np.vectorize(lambda n, tokens : tokens[n], excluded=["tokens"])(idx1, tokens).astype(str)
+    df_h = pd.DataFrame(
+        {
+            "param" : np.full(L * q, "h"),
+            "idx0" : idx0,
+            "idx1" : idx1_aa,
+            "idx2" : params["bias"].flatten(),
+        }
+    )
+    
     
     maskt = mask.transpose(0, 2, 1, 3) # Transpose mask and coupling matrix from (L, q, L, q) to (L, L, q, q)
     Jt = params["coupling_matrix"].transpose(0, 2, 1, 3)
     idx0, idx1, idx2, idx3 = maskt.nonzero()
-    idx2_aa = np.vectorize(lambda n, tokens : tokens[n], excluded=["tokens"])(idx2, tokens)
-    idx3_aa = np.vectorize(lambda n, tokens : tokens[n], excluded=["tokens"])(idx3, tokens)
+    idx2_aa = np.vectorize(lambda n, tokens : tokens[n], excluded=["tokens"])(idx2, tokens).astype(str)
+    idx3_aa = np.vectorize(lambda n, tokens : tokens[n], excluded=["tokens"])(idx3, tokens).astype(str)
     J_val = Jt[idx0, idx1, idx2, idx3]
-    df_J = pd.DataFrame.from_dict({"param" : np.full(len(J_val), "J"), "idx0" : idx0, "idx1" : idx1, "idx2" : idx2_aa, "idx3" : idx3_aa, "val" : J_val}, orient="columns")
+    df_J = pd.DataFrame(
+        {
+            "param" : np.full(len(J_val), "J").tolist(),
+            "idx0" : idx0,
+            "idx1" : idx1,
+            "idx2" : idx2_aa,
+            "idx3" : idx3_aa,
+            "val" : J_val,
+        }
+    )
     df_J.to_csv(fname, sep=" ", header=False, index=False)
     df_h.to_csv(fname, sep=" ", header=False, index=False, mode="a")
     

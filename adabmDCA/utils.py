@@ -47,7 +47,7 @@ def init_chains(
     q: int,
     device: torch.device,
     dtype: torch.dtype = torch.float32,
-    fi: torch.Tensor = None,
+    fi: torch.Tensor | None = None,
 ) -> torch.Tensor:
     """Initialize the chains of the DCA model. If 'fi' is provided, the chains are sampled from the
     profile model, otherwise they are sampled uniformly at random.
@@ -58,7 +58,7 @@ def init_chains(
         q (int): Number of values that each residue can assume.
         device (torch.device): Device where to store the chains.
         dtype (torch.dtype, optional): Data type of the chains. Defaults to torch.float32.
-        fi (torch.Tensor, optional): Single-point frequencies. Defaults to None.
+        fi (torch.Tensor | None, optional): Single-point frequencies. Defaults to None.
 
     Returns:
         torch.Tensor: Initialized parallel chains in one-hot encoding format.

@@ -19,7 +19,7 @@ def fit(
     nepochs: int,
     lr: float,
     checkpoint: Checkpoint | None = None,
-    *args, **kwargs
+    *args, **kwargs,
 ) -> None:
     """Trains a bmDCA model on the input MSA and saves the results in a file.
 
@@ -36,7 +36,6 @@ def fit(
         nepochs (int): Maximum number of epochs to be performed.
         lr (float): Learning rate.
         checkpoint (Checkpoint | None): Checkpoint class to be used to save the model. Defaults to None.
-        device (torch.device, optional): Device to be used. Defaults to "cpu".
     """
     
     # Check the input sizes

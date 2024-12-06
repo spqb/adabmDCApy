@@ -1,16 +1,11 @@
 import argparse
 from pathlib import Path
 import pandas as pd
-import numpy as np
 from tqdm import tqdm
-
-import torch
 
 from adabmDCA.fasta import (
     get_tokens,
     write_fasta,
-    compute_weights,
-    import_from_fasta,
 )
 from adabmDCA.resampling import compute_mixing_time
 from adabmDCA.io import load_params
@@ -145,7 +140,7 @@ def main():
         sequences=samples.argmax(-1).cpu().numpy(),
         numeric_input=True,
         remove_gaps=False,
-        alphabet=tokens,
+        tokens=tokens,
     )
     
     print("Writing sampling log...")

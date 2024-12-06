@@ -28,7 +28,7 @@ def fit(
     factivate: float,
     gsteps: int,
     checkpoint: Checkpoint | None = None,
-    *args, **kwargs
+    *args, **kwargs,
 ) -> None:
     """
     Fits an eaDCA model on the training data and saves the results in a file.
@@ -78,9 +78,6 @@ def fit(
     pi = get_freq_single_point(data=chains, weights=None, pseudo_count=0.)
     pij = get_freq_two_points(data=chains, weights=None, pseudo_count=0.)
     pearson = max(0, float(get_correlation_two_points(fij=fij_target, pij=pij, fi=fi_target, pi=pi)[0]))
-    
-    # Save the chains
-    #save_chains(fname=file_paths["chains"], chains=chains.argmax(-1), tokens=tokens)
     
     # Number of active couplings
     nactive = mask.sum()
