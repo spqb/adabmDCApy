@@ -30,6 +30,14 @@ def main():
     device = get_device(args.device)
     dtype = get_dtype(args.dtype)
     
+    # Check if the data file exists
+    if not Path(args.data).exists():
+        raise FileNotFoundError(f"Data file {args.data} not found.")
+    
+    # Check if the parameters file exists
+    if not Path(args.path_params).exists():
+        raise FileNotFoundError(f"Parameters file {args.path_params} not found.")
+    
     # import data and parameters
     tokens = get_tokens(args.alphabet)
     names, sequences = import_from_fasta(args.data)
