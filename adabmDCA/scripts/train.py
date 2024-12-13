@@ -48,6 +48,10 @@ def main():
     print(template.format("Random seed:", args.seed))
     print(template.format("Data type:", args.dtype))
     
+    # Check if the data file exists
+    if not Path(args.data).exists():
+        raise FileNotFoundError(f"Data file {args.data} not found.")
+    
     # Create the folder where to save the model
     folder = Path(args.output)
     folder.mkdir(parents=True, exist_ok=True)

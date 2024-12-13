@@ -44,6 +44,14 @@ def main():
     device = get_device(args.device)
     dtype = get_dtype(args.dtype)
     tokens = get_tokens(args.alphabet)
+    
+    # Check that the data file exists
+    if not Path(args.data).exists():
+        raise FileNotFoundError(f"Data file {args.data} not found.")
+    
+    # Check that the parameters file exists
+    if not Path(args.path_params).exists():
+        raise FileNotFoundError(f"Parameters file {args.path_params} not found.")
         
     # Import parameters
     print(f"Loading parameters from {args.path_params}...")
