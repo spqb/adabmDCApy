@@ -35,19 +35,18 @@ def main():
     # Set the device
     device = get_device(args.device)
     dtype = get_dtype(args.dtype)
-    print("\n")
-    print(f"Input MSA:\t\t{args.data}")
-    print(f"Output folder:\t\t{args.output}")
-    print(f"Alphabet:\t\t{args.alphabet}")
-    print(f"Learning rate:\t\t{args.lr}")
-    print(f"Number of sweeps:\t{args.nsweeps}")
-    print(f"Sampler:\t\t{args.sampler}")
-    print(f"Target Pearson Cij:\t{args.target}")
+    template = "{0:30} {1:1}"
+    print(template.format("Input MSA:", str(args.data)))
+    print(template.format("Output folder:", str(args.output)))
+    print(template.format("Alphabet:", args.alphabet))
+    print(template.format("Learning rate:", args.lr))
+    print(template.format("Number of sweeps:", args.nsweeps))
+    print(template.format("Sampler:", args.sampler))
+    print(template.format("Target Pearson Cij:", args.target))
     if args.pseudocount is not None:
-        print(f"Pseudocount:\t\t{args.pseudocount}")
-    print(f"Random seed:\t\t{args.seed}")
-    print(f"Data type:\t\t{args.dtype}")
-    print("\n")
+        print(template.format("Pseudocount:", args.pseudocount))
+    print(template.format("Random seed:", args.seed))
+    print(template.format("Data type:", args.dtype))
     
     # Create the folder where to save the model
     folder = Path(args.output)
@@ -147,7 +146,7 @@ def main():
     print("\n")
         
     # Save the hyperparameters of the model
-    template = "{0:20} {1:10}\n"  
+    template = "{0:20} {1:1}\n"  
     with open(file_paths["log"], "w") as f:
         if args.label is not None:
             f.write(template.format("label:", args.label))

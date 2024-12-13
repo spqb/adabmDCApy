@@ -132,7 +132,7 @@ def main():
     print("Computing the energy of the samples...")
     energies = compute_energy(samples, params=params).cpu().numpy()
     
-    print("\nSaving the samples...")
+    print("Saving the samples...")
     headers = [f"sequence {i+1} | DCAenergy: {energies[i]:.3f}" for i in range(args.ngen)]
     write_fasta(
         fname=folder / Path(f"{args.label}_samples.fasta"),
@@ -155,7 +155,7 @@ def main():
         index=False
     )
     
-    print(f"\nDone, results saved in {str(folder)}")
+    print(f"Done, results saved in {str(folder)}")
     
     
 if __name__ == "__main__":

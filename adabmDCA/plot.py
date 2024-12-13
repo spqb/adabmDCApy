@@ -4,49 +4,132 @@ import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 import numpy as np
 
-def plot_scatter_labels(ax, data1, data2, dim1, dim2, labels):    
-    ax.scatter(data1[:, dim1], data1[:, dim2], color='black', s=50, label=labels[0], zorder=0, alpha=0.3)
-    ax.scatter(data2[:, dim1], data2[:, dim2], color='red', label=labels[1], s=20, zorder=2, edgecolor='black', marker='o', alpha=1, linewidth=0.4)
+def _plot_scatter_labels(
+    ax: plt.Axes,
+    data1: np.ndarray,
+    pc1: int = 0,
+    pc2: int = 1,
+    data2: np.ndarray | None = None,
+    labels: List[str] | str | None = "Data",
+    colors: List[str] | str = "black",
+) -> plt.Axes:
+
+    if isinstance(labels, str):
+        labels = [labels,]
+    if isinstance(colors, str):
+        colors = [colors,]
+    if labels is None:
+        labels = [None, None]
+    ax.scatter(data1[:, pc1], data1[:, pc2], color=colors[0], s=50, label=labels[0], zorder=0, alpha=0.3)
+    if data2 is not None:
+        if len(labels) == 1:
+            labels.append("Generated")
+        if len(colors) == 1:
+            colors.append("red")
+        ax.scatter(data2[:, pc1], data2[:, pc2], color=colors[1], label=labels[1], s=20, zorder=2, edgecolor='black', marker='o', alpha=1, linewidth=0.4)
     
-def plot_hist(ax, data1, data2, color, dim, labels, orientation='vertical'):    
-    ax.hist(data1[:, dim], bins=40, color='black', histtype='step', label=labels[0], zorder=0, density=True, orientation=orientation, lw=1)
-    ax.hist(data2[:, dim], bins=40, color=color, histtype='step', label=labels[1], zorder=1, density=True, orientation=orientation, lw=1.5)
+    return ax
+    
+def _plot_hist(
+    ax: plt.Axes,
+    data1: np.ndarray,
+    pc: int,
+    data2: np.ndarray | None = None,
+    colors: List[str] | str = "black",
+    labels: List[str] | str | None = "Data",
+    orientation='vertical',
+) -> plt.Axes:
+    if isinstance(labels, str):
+        labels = [labels,]
+    if labels is None:
+        labels = [None, None]
+    if isinstance(colors, str):
+        colors = [colors,]
+    ax.hist(data1[:, pc], bins=40, color=colors[0], histtype='step', label=labels[0], zorder=0, density=True, orientation=orientation, lw=1)
+    if data2 is not None:
+        if len(labels) == 1:
+            labels.append("Generated")
+        if len(colors) == 1:
+            colors.append("red")
+    if data2 is not None:
+        ax.hist(data2[:, pc], bins=40, color=colors[1], histtype='step', label=labels[1], zorder=1, density=True, orientation=orientation, lw=1.5)
     ax.axis('off')
     
+    return ax
+    
 def plot_PCA(
-    fig : plt.figure,
-    data1 : np.array,
-    data2 : np.array,
-    dim1 : int,
-    dim2 : int,
-    labels : List[str],
-    title : str
-):
-    gs = GridSpec(4, 4)
+    fig: plt.figure,
+    data1: np.ndarray,
+    pc1: int = 0,
+    pc2: int = 1,
+    data2: np.ndarray | None = None,
+    labels: List[str] | str = "Data",
+    colors: List[str] | str = "black",
+    title: str | None = None,
+) -> plt.figure:
+    """Makes the scatter plot of the components (pc1, pc2) of the input data and shows the histograms of the components.
 
+    Args:
+        fig (plt.figure): Figure to plot the data.
+        data1 (np.ndarray): Data to plot.
+        pc1 (int, optional): First principal direction. Defaults to 0.
+        pc2 (int, optional): Second principal direction. Defaults to 1.
+        data2 (np.ndarray | None, optional): Data to be superimposed to data1. Defaults to None.
+        labels (List[str] | str, optional): Labels to put in the legend. Defaults to "Data".
+        colors (List[str] | str, optional): Colors to be used. Defaults to "black".
+        title (str | None, optional): Title of the plot. Defaults to None.
+
+    Returns:
+        plt.figure: Updated figure.
+    """
+    
+    gs = GridSpec(4, 4)
     ax_scatter = fig.add_subplot(gs[1:4, 0:3])
     ax_hist_x = fig.add_subplot(gs[0, 0:3])
     ax_hist_y = fig.add_subplot(gs[1:4, 3])
         
-    plot_scatter_labels(ax_scatter, data1, data2, dim1, dim2, labels=labels)
-    plot_hist(ax_hist_x, data1, data2, 'red', dim1, labels=labels)
-    plot_hist(ax_hist_y, data1, data2, 'red', dim2, orientation='horizontal', labels=labels)
+    ax_scatter = _plot_scatter_labels(
+        ax=ax_scatter,
+        data1=data1,
+        pc1=pc1,
+        pc2=pc2,
+        data2=data2,
+        labels=None,
+        colors=colors,
+    )
+    ax_hist_x = _plot_hist(
+        ax=ax_hist_x,
+        data1=data1,
+        pc=pc1,
+        data2=data2,
+        colors=colors,
+        labels=labels,
+        orientation='vertical',
+    )
+    ax_hist_y = _plot_hist(
+        ax=ax_hist_y,
+        data1=data1,
+        pc=pc2,
+        data2=data2,
+        colors=colors,
+        labels=None,
+        orientation='horizontal',
+    )
     
-    ax_scatter.set_xlabel(f"PC {dim1 + 1}")
-    ax_scatter.set_ylabel(f"PC {dim2 + 1}")
-    
+    ax_scatter.set_xlabel(f"PC {pc1 + 1}")
+    ax_scatter.set_ylabel(f"PC {pc2 + 1}")
     fig.suptitle(title)
-
-    ax_hist_x.legend(fontsize=12, bbox_to_anchor=(1, 1));
+    fig.legend(fontsize=12, bbox_to_anchor=(1, 1));
     h, l = ax_scatter.get_legend_handles_labels()
+    
     return fig
     
     
 def plot_pearson_sampling(
-    ax : plt.Axes,
-    checkpoints : np.array,
-    pearsons : np.array,
-    pearson_training : np.array = None
+    ax: plt.Axes,
+    checkpoints: np.ndarray,
+    pearsons: np.ndarray,
+    pearson_training: np.ndarray | None = None
 ):
     
     if pearson_training:
@@ -65,11 +148,11 @@ def plot_pearson_sampling(
 
 
 def plot_autocorrelation(
-    ax : plt.Axes,
-    checkpoints : np.array,
-    autocorr : np.array,
-    gen_seqid : np.array,
-    data_seqid : np.array
+    ax: plt.Axes,
+    checkpoints: np.ndarray,
+    autocorr: np.ndarray,
+    gen_seqid: np.ndarray,
+    data_seqid: np.ndarray
 ):
     ax.plot(checkpoints, autocorr, "-o", c="royalblue", lw=0.5, label="Time-autocorrelation", zorder=2)
     ax.axhline(y=gen_seqid, color="navy", lw=1, ls="dashed", label="Generated seqID", zorder=1)
@@ -86,17 +169,18 @@ def plot_autocorrelation(
                 verticalalignment='top', horizontalalignment='right', bbox=dict(facecolor='white', alpha=0.5))
     else:
         print(f"The mixing time could not be computed within {checkpoints[-1]} sweeps")
+    
     return ax
 
 
 def plot_scatter_correlations(
-    ax : plt.Axes,
-    Cij_data : np.array,
-    Cij_gen : np.array,
-    Cijk_data : np.array,
-    Cijk_gen : np.array,
-    pearson_Cij : float,
-    pearson_Cijk : float
+    ax: plt.Axes,
+    Cij_data: np.ndarray,
+    Cij_gen: np.ndarray,
+    Cijk_data: np.ndarray,
+    Cijk_gen: np.ndarray,
+    pearson_Cij: float,
+    pearson_Cijk: float
 ) -> plt.Axes:
     
     color_line = "#50424F"

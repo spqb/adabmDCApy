@@ -130,7 +130,7 @@ class LinearCheckpoint(Checkpoint):
         """
         save_params(fname=self.file_paths["params"], params=params, mask=mask, tokens=self.tokens)
         save_chains(fname=self.file_paths["chains"], chains=chains.argmax(dim=-1), tokens=self.tokens, log_weights=log_weights)
-        template = "{epochs:10} {pearson:10} {slope:10} {log_likelihood:10} {entropy:10} {density:10} {time:10}\n"
+        template = "{epochs:5} {pearson:10.3f} {slope:10.2f} {log_likelihood:10.2f} {entropy:10.2f} {density:10.3f} {time:10.1f}\n"
         with open(self.file_paths["log"], "a") as f:
             f.write(template.format(
                 epochs = kwargs["epochs"],
@@ -235,7 +235,7 @@ class AcceptanceCheckpoint(Checkpoint):
         save_params(fname=self.file_paths["params"], params=params, mask=mask, tokens=self.tokens)
         save_chains(fname=self.file_paths["chains"], chains=chains.argmax(dim=-1), tokens=self.tokens, log_weights=log_weights)
         # Update the log file
-        template = "{epochs:10} {pearson:10} {slope:10} {log_likelihood:10} {entropy:10} {density:10} {time:10}\n"
+        template = "{epochs:5} {pearson:10.3f} {slope:10.2f} {log_likelihood:10.2f} {entropy:10.2f} {density:10.3f} {time:10.1f}\n"
         with open(self.file_paths["log"], "a") as f:
             f.write(template.format(
                 epochs = kwargs["epochs"],
