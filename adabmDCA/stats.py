@@ -7,28 +7,24 @@ import torch
 @torch.jit.script
 def _get_freq_single_point(
     data: torch.Tensor,
-    weights: torch.Tensor | None,
-    pseudo_count: float = 0.0,
+    weights: torch.Tensor,
+    pseudo_count: float,
 ) -> torch.Tensor:    
-    M, _, q = data.shape
-    if weights is not None:
-        norm_weights = weights.reshape(M, 1, 1) / weights.sum()
-    else:
-        norm_weights = torch.ones((M, 1, 1), device=data.device, dtype=data.dtype) / M
-    frequencies = (data * norm_weights).sum(dim=0)
+    _, _, q = data.shape
+    frequencies = (data * weights).sum(dim=0)
 
     return (1. - pseudo_count) * frequencies + (pseudo_count / q)
 
 
 def get_freq_single_point(
     data: torch.Tensor,
-    weights: torch.Tensor | None,
+    weights: torch.Tensor | None = None,
     pseudo_count: float = 0.0,
 ) -> torch.Tensor:
     """Computes the single point frequencies of the input MSA.
     Args:
         data (torch.Tensor): One-hot encoded data array.
-        weights (torch.Tensor | None): Weights of the sequences.
+        weights (torch.Tensor | None, optional): Weights of the sequences.
         pseudo_count (float, optional): Pseudo count to be added to the frequencies. Defaults to 0.0.
     
     Raises:
@@ -39,26 +35,26 @@ def get_freq_single_point(
     """
     if data.dim() != 3:
         raise ValueError(f"Expected data to be a 3D tensor, but got {data.dim()}D tensor instead")
+    M = len(data)
+    if weights is not None:
+        norm_weights = weights.reshape(M, 1, 1) / weights.sum()
+    else:
+        norm_weights = torch.ones((M, 1, 1), device=data.device, dtype=data.dtype) / M
     
-    return _get_freq_single_point(data, weights, pseudo_count)
+    return _get_freq_single_point(data, norm_weights, pseudo_count)
 
 
 @torch.jit.script
 def _get_freq_two_points(
     data: torch.Tensor,
-    weights: torch.Tensor | None,
-    pseudo_count: float=0.0,
+    weights: torch.Tensor,
+    pseudo_count: float,
 ) -> torch.Tensor:
     
     M, L, q = data.shape
     data_oh = data.reshape(M, q * L)
     
-    if weights is not None:
-        norm_weights = weights.reshape(M, 1) / weights.sum()
-    else:
-        norm_weights = torch.ones((M, 1), device=data.device, dtype=data.dtype) / M
-    
-    fij = (data_oh * norm_weights).T @ data_oh
+    fij = (data_oh * weights).T @ data_oh
     # Apply the pseudo count
     fij = (1. - pseudo_count) * fij + (pseudo_count / q**2)
     # Diagonal terms must represent the single point frequencies
@@ -73,7 +69,7 @@ def _get_freq_two_points(
 
 def get_freq_two_points(
     data: torch.Tensor,
-    weights: torch.Tensor | None,
+    weights: torch.Tensor | None = None,
     pseudo_count: float = 0.0,
 ) -> torch.Tensor:
     """
@@ -81,7 +77,7 @@ def get_freq_two_points(
 
     Args:
         data (torch.Tensor): One-hot encoded data array.
-        weights (torch.Tensor | None): Array of weights to assign to the sequences of shape.
+        weights (torch.Tensor | None, optional): Array of weights to assign to the sequences of shape.
         pseudo_count (float, optional): Pseudo count for the single and two points statistics. Acts as a regularization. Defaults to 0.0.
     
     Raises:
@@ -93,7 +89,13 @@ def get_freq_two_points(
     if data.dim() != 3:
         raise ValueError(f"Expected data to be a 3D tensor, but got {data.dim()}D tensor instead")
     
-    return _get_freq_two_points(data, weights, pseudo_count)
+    M = len(data)
+    if weights is not None:
+        norm_weights = weights.reshape(M, 1) / weights.sum()
+    else:
+        norm_weights = torch.ones((M, 1), device=data.device, dtype=data.dtype) / M
+    
+    return _get_freq_two_points(data, norm_weights, pseudo_count)
 
 
 def generate_unique_triplets(
@@ -152,7 +154,7 @@ def _get_C_ijk(
 def get_freq_three_points(
     data: torch.Tensor,
     ntriplets: int,
-    weights: torch.Tensor = None,
+    weights: torch.Tensor | None = None,
     device: torch.device = torch.device("cpu"),
 ) -> torch.Tensor:
     """Computes the 3-body statistics of the input MSA.
@@ -160,7 +162,7 @@ def get_freq_three_points(
     Args:
         data (torch.Tensor): Input MSA in one-hot encoding.
         ntriplets (int): Number of triplets to test.
-        weights (torch.Tensor, optional): Importance weights for the sequences. Defaults to None.
+        weights (torch.Tensor | None, optional): Importance weights for the sequences. Defaults to None.
         device (torch.device, optional): Device to perform computations on. Defaults to "cpu".
 
     Returns:
@@ -254,18 +256,18 @@ def extract_Cij_from_freq(
 def extract_Cij_from_seqs(
     data: torch.Tensor,
     chains: torch.Tensor,
-    weights: torch.Tensor = None,
+    weights: torch.Tensor | None = None,
     pseudo_count: float = 0.0,
-    mask: torch.Tensor = None,
+    mask: torch.Tensor | None = None,
 ) -> Tuple[float, float]:
     """Extracts the lower triangular part of the covariance matrices of the data and chains starting from the sequences.
 
     Args:
         data (torch.Tensor): Data sequences.
         chains (torch.Tensor): Chain sequences.
-        weights (torch.Tensor, optional): Weights of the sequences. Defaults to None.
+        weights (torch.Tensor | None, optional): Weights of the sequences. Defaults to None.
         pseudo_count (float, optional): Pseudo count for the single and two points statistics. Acts as a regularization. Defaults to 0.0.
-        mask (torch.Tensor, optional): Mask for comparing just a subset of the couplings. Defaults to None.
+        mask (torch.Tensor | None, optional): Mask for comparing just a subset of the couplings. Defaults to None.
 
     Returns:
         Tuple[float, float]: Two-point frequencies of the data and chains.

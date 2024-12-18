@@ -64,9 +64,7 @@ def compute_gradient_centred(
     return grad
 
 
-def update(
-    sampler: Callable,
-    chains: torch.Tensor,
+def update_params(
     fi: torch.Tensor,
     fij: torch.Tensor,
     pi: torch.Tensor,
@@ -74,13 +72,10 @@ def update(
     params: Dict[str, torch.Tensor],
     mask: torch.Tensor,
     lr: float,
-    nsweeps: int,
-) -> Tuple[torch.Tensor, Dict[str, torch.Tensor]]:
-    """Updates the parameters of the model and the Markov chains.
+) -> Dict[str, torch.Tensor]:
+    """Updates the parameters of the model.
     
     Args:
-        sampler (Callable): Sampling function.
-        chains (torch.Tensor): Markov chains simulated with the model.
         fi (torch.Tensor): Single-point frequencies of the data.
         fij (torch.Tensor): Two-points frequencies of the data.
         pi (torch.Tensor): Single-point marginals of the model.
@@ -88,10 +83,9 @@ def update(
         params (Dict[str, torch.Tensor]): Parameters of the model.
         mask (torch.Tensor): Mask of the interaction graph.
         lr (float): Learning rate.
-        nsweeps (int): Number of Monte Carlo updates.
         
     Returns:
-        Tuple[torch.Tensor, Dict[str, torch.Tensor]]: Updated chains and parameters.
+        Dict[str, torch.Tensor]: Updated parameters.
     """
     
     # Compute the gradient
@@ -102,11 +96,8 @@ def update(
         for key in params:
             params[key] += lr * grad[key]
         params["coupling_matrix"] *= mask # Remove autocorrelations
-        
-    # Sample from the model
-    chains = sampler(chains=chains, params=params, nsweeps=nsweeps)
     
-    return chains, params
+    return params
 
 
 def train_graph(
@@ -156,7 +147,6 @@ def train_graph(
         log_weights = torch.zeros(len(chains), device=device, dtype=dtype)
     logZ = (torch.logsumexp(log_weights, dim=0) - torch.log(torch.tensor(len(chains), device=device, dtype=dtype))).item()
     log_likelihood = compute_log_likelihood(fi=fi, fij=fij, params=params, logZ=logZ)
-    entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
     
     # Compute the single-point and two-points frequencies of the simulated data
     pi = get_freq_single_point(data=chains, weights=None, pseudo_count=0.)
@@ -200,9 +190,8 @@ def train_graph(
         # Store the previous parameters
         params_prev = {key: value.clone() for key, value in params.items()}
         
-        chains, params = update(
-            sampler=sampler,
-            chains=chains,
+        # Update the parameters
+        params = update_params(
             fi=fi,
             fij=fij,
             pi=pi,
@@ -210,16 +199,9 @@ def train_graph(
             params=params,
             mask=mask,
             lr=lr,
-            nsweeps=nsweeps
         )
-        epochs += 1
         
-        # Compute the single-point and two-points frequencies of the simulated data
-        pi = get_freq_single_point(data=chains, weights=None, pseudo_count=0.)
-        pij = get_freq_two_points(data=chains, weights=None, pseudo_count=0.)
-        pearson, slope = get_correlation_two_points(fij=fij, pij=pij, fi=fi, pi=pi)
-        
-        # Compute the log-likelihood
+        # Compute the weights for the AIS
         log_weights = _update_weights_AIS(
             prev_params=params_prev,
             curr_params=params,
@@ -227,6 +209,14 @@ def train_graph(
             log_weights=log_weights,
         )
         
+        # Update the Markov chains
+        chains = sampler(chains=chains, params=params, nsweeps=nsweeps)
+        epochs += 1
+        
+        # Compute the single-point and two-points frequencies of the simulated data
+        pi = get_freq_single_point(data=chains)
+        pij = get_freq_two_points(data=chains)
+        pearson, slope = get_correlation_two_points(fij=fij, pij=pij, fi=fi, pi=pi)
         logZ = (torch.logsumexp(log_weights, dim=0) - torch.log(torch.tensor(len(chains), device=device, dtype=dtype))).item()
         log_likelihood = compute_log_likelihood(fi=fi, fij=fij, params=params, logZ=logZ)
         
@@ -238,18 +228,18 @@ def train_graph(
         if checkpoint is not None:
             if checkpoint.check(epochs, params, chains):
                 entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
+                checkpoint.log("Pearson", pearson)
+                checkpoint.log("Slope", slope)
+                checkpoint.log("LL", log_likelihood)
+                checkpoint.log("Entropy", entropy)
+                checkpoint.log("Density", 1.0)
+                checkpoint.log("Time", time.time() - time_start)
+
                 checkpoint.save(
                     params=params,
                     mask=mask_save,
                     chains=chains,
                     log_weights=log_weights,
-                    epochs=epochs,
-                    pearson=pearson,
-                    slope=slope,
-                    log_likelihood=log_likelihood,
-                    entropy=entropy,
-                    density=1.0,
-                    time_start=time_start,
                 )
                 
     if progress_bar:
@@ -257,18 +247,17 @@ def train_graph(
     
     if checkpoint is not None:
         entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
+        checkpoint.log("Pearson", pearson)
+        checkpoint.log("Slope", slope)
+        checkpoint.log("LL", log_likelihood)
+        checkpoint.log("Entropy", entropy)
+        checkpoint.log("Density", 1.0)
+        checkpoint.log("Time", time.time() - time_start)
         checkpoint.save(
             params=params,
             mask=mask_save,
             chains=chains,
             log_weights=log_weights,
-            epochs=epochs,
-            pearson=pearson,
-            slope=slope,
-            log_likelihood=log_likelihood,
-            entropy=entropy,
-            density=1.0,
-            time_start=time_start,
         )
         
     return chains, params, log_weights

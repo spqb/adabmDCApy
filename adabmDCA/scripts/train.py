@@ -35,7 +35,7 @@ def main():
     # Set the device
     device = get_device(args.device)
     dtype = get_dtype(args.dtype)
-    template = "{0:30} {1:1}"
+    template = "{0:<30} {1:<100}"
     print(template.format("Input MSA:", str(args.data)))
     print(template.format("Output folder:", str(args.output)))
     print(template.format("Alphabet:", args.alphabet))
@@ -47,6 +47,7 @@ def main():
         print(template.format("Pseudocount:", args.pseudocount))
     print(template.format("Random seed:", args.seed))
     print(template.format("Data type:", args.dtype))
+    print("\n")
     
     # Check if the data file exists
     if not Path(args.data).exists():
@@ -148,36 +149,11 @@ def main():
     sampler = get_sampler(args.sampler)
     
     print("\n")
-        
-    # Save the hyperparameters of the model
-    template = "{0:20} {1:1}\n"  
-    with open(file_paths["log"], "w") as f:
-        if args.label is not None:
-            f.write(template.format("label:", args.label))
-        else:
-            f.write(template.format("label:", "N/A"))
-            
-        f.write(template.format("model:", str(args.model)))
-        f.write(template.format("input MSA:", str(args.data)))
-        f.write(template.format("alphabet:", args.alphabet))
-        f.write(template.format("sampler:", args.sampler))
-        f.write(template.format("nchains:", args.nchains))
-        f.write(template.format("nsweeps:", args.nsweeps))
-        f.write(template.format("lr:", args.lr))
-        f.write(template.format("pseudo count:", args.pseudocount))
-        f.write(template.format("data type:", args.dtype))
-        f.write(template.format("target Pearson Cij:", args.target))
-        if args.model == "eaDCA":
-            f.write(template.format("gsteps:", args.gsteps))
-            f.write(template.format("factivate:", args.factivate))
-        f.write(template.format("random seed:", args.seed))
-        f.write("\n")
-        template = "{0:10} {1:10} {2:10} {3:10} {4:10} {5:10} {6:10}\n"
-        f.write(template.format("Epoch", "Pearson", "Slope", "LL", "Entropy", "Density", "Time [s]"))
     
     checkpoint = get_checkpoint(args.checkpoints)(
         file_paths=file_paths,
         tokens=tokens,
+        args=args,
         params=params,
         chains=chains,
         max_epochs=args.nepochs,

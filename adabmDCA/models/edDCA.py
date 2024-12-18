@@ -75,13 +75,13 @@ def fit(
         lr=lr,
         max_epochs=MAX_EPOCHS,
         target_pearson=target_pearson,
-        check_slope=True,
+        check_slope=False,
         checkpoint=checkpoint,
     )
     
     # Get the single-point and two-points frequencies of the simulated data
-    pi = get_freq_single_point(data=chains, weights=None, pseudo_count=0.)
-    pij = get_freq_two_points(data=chains, weights=None, pseudo_count=0.)
+    pi = get_freq_single_point(data=chains)
+    pij = get_freq_two_points(data=chains)
     
     # Mask for saving only the upper-diagonal matrix
     mask_save = get_mask_save(L, q, device=device)
@@ -96,15 +96,17 @@ def fit(
     checkpoint.file_paths["chains_dec"] = Path(parent).joinpath(new_name)
     
     print(f"\nStarting the decimation (target density = {target_density}):")
-    template_log = "{0:10} {1:10} {2:10} {3:10} {4:10} {5:10} {6:10}\n"
     with open(checkpoint.file_paths["log"], "a") as f:
         f.write("\nDecimation\n")
-        f.write(f"Target density: {target_density}\n")
-        f.write(f"Decimation rate: {drate}\n\n")
-        f.write(template_log.format("Epoch", "Pearson", "Slope", "LL", "Entropy", "Density", "Time [s]"))
+        template = "{0:<20} {1:<50}\n"
+        f.write(template.format("Target density:", target_density))
+        f.write(template.format("Decimation rate:", drate))
+        f.write("\n")
+        header_string = " ".join([f"{key:<10}" for key in checkpoint.logs.keys()])
+        f.write("{0:<10} {1}\n".format("Epoch", header_string))
         
     # Template for wrinting the results
-    template = "{0:15} | {1:15} | {2:15} | {3:15} | {4:15}"
+    template = "{0:<15} | {1:<15} | {2:<15} | {3:<15} | {4:<15}"
     density = compute_density(mask)
     count = 0
     checkpoint.checkpt_interval = 10
@@ -123,19 +125,19 @@ def fit(
             drate=drate
         )
         
-        # Equilibrate the model
-        chains = sampler(
-            chains=chains,
-            params=params,
-            nsweeps=nsweeps,
-        )
-        
         # Update the log-weights
         log_weights = _update_weights_AIS(
             prev_params=prev_params,
             curr_params=params,
             chains=chains,
             log_weights=log_weights,
+        )
+        
+        # Equilibrate the model
+        chains = sampler(
+            chains=chains,
+            params=params,
+            nsweeps=nsweeps,
         )
         
         # Bring the model at convergence on the graph
@@ -151,14 +153,14 @@ def fit(
             lr=lr,
             max_epochs=MAX_EPOCHS,
             target_pearson=target_pearson,
-            check_slope=True,
+            check_slope=False,
             progress_bar=False,
             checkpoint=None,
         )
         
         # Compute the single-point and two-points frequencies of the simulated data
-        pi = get_freq_single_point(data=chains, weights=None, pseudo_count=0.)
-        pij = get_freq_two_points(data=chains, weights=None, pseudo_count=0.)
+        pi = get_freq_single_point(data=chains)
+        pij = get_freq_two_points(data=chains)
         
         pearson, slope = get_correlation_two_points(fi=fi_target, pi=pi, fij=fij_target, pij=pij)
         density = compute_density(mask)
@@ -169,32 +171,30 @@ def fit(
                 
         if checkpoint.check(count, params, chains):
             entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
+            checkpoint.log("Pearson", pearson)
+            checkpoint.log("Slope", slope)
+            checkpoint.log("LL", log_likelihood)
+            checkpoint.log("Entropy", entropy)
+            checkpoint.log("Density", density)
+            checkpoint.log("Time", time.time() - time_start)
             checkpoint.save(
                 params=params,
                 mask=torch.logical_and(mask, mask_save),
                 chains=chains,
                 log_weights=log_weights,
-                epochs=count,
-                pearson=pearson,
-                slope=slope,
-                log_likelihood=log_likelihood,
-                entropy=entropy,
-                density=density,
-                time_start=time_start,
             )
     
     entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
+    checkpoint.log("Pearson", pearson)
+    checkpoint.log("Slope", slope)
+    checkpoint.log("LL", log_likelihood)
+    checkpoint.log("Entropy", entropy)
+    checkpoint.log("Density", density)
+    checkpoint.log("Time", time.time() - time_start)
     checkpoint.save(
         params=params,
         mask=torch.logical_and(mask, mask_save),
         chains=chains,
         log_weights=log_weights,
-        epochs=count,
-        pearson=pearson,
-        slope=slope,
-        log_likelihood=log_likelihood,
-        entropy=entropy,
-        density=density,
-        time_start=time_start,
     )
     print(f"Completed, decimated model parameters saved in {checkpoint.file_paths['params_dec']}")

@@ -75,8 +75,8 @@ def fit(
     logZ = (torch.logsumexp(log_weights, dim=0) - torch.log(torch.tensor(len(chains), device=device, dtype=dtype))).item()
     
     # Compute the single-point and two-points frequencies of the simulated data
-    pi = get_freq_single_point(data=chains, weights=None, pseudo_count=0.)
-    pij = get_freq_two_points(data=chains, weights=None, pseudo_count=0.)
+    pi = get_freq_single_point(data=chains)
+    pij = get_freq_two_points(data=chains)
     pearson = max(0, float(get_correlation_two_points(fij=fij_target, pij=pij, fi=fi_target, pi=pi)[0]))
     
     # Number of active couplings
@@ -132,8 +132,8 @@ def fit(
         graph_upd += 1
         
         # Compute the single-point and two-points frequencies of the simulated data
-        pi = get_freq_single_point(data=chains, weights=None, pseudo_count=0.)
-        pij = get_freq_two_points(data=chains, weights=None, pseudo_count=0.)
+        pi = get_freq_single_point(data=chains)
+        pij = get_freq_two_points(data=chains)
         
         # Compute statistics of the training
         pearson, slope = get_correlation_two_points(fij=fij_target, pij=pij, fi=fi_target, pi=pi)
@@ -145,34 +145,32 @@ def fit(
         # Save the model if a checkpoint is reached
         if checkpoint.check(graph_upd, params, chains):
             entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
+            checkpoint.log("Pearson", pearson)
+            checkpoint.log("Slope", slope)
+            checkpoint.log("LL", log_likelihood)
+            checkpoint.log("Entropy", entropy)
+            checkpoint.log("Density", density)
+            checkpoint.log("Time", time.time() - time_start)
             checkpoint.save(
                 params=params,
                 mask=torch.logical_and(mask, mask_save),
                 chains=chains,
                 log_weights=log_weights,
-                epochs=graph_upd,
-                pearson=pearson,
-                slope=slope,
-                log_likelihood=log_likelihood,
-                entropy=entropy,
-                density=density,
-                time_start=time_start,
                 )
         pbar.n = min(max(0, float(pearson)), target_pearson)
 
     entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
+    checkpoint.log("Pearson", pearson)
+    checkpoint.log("Slope", slope)
+    checkpoint.log("LL", log_likelihood)
+    checkpoint.log("Entropy", entropy)
+    checkpoint.log("Density", density)
+    checkpoint.log("Time", time.time() - time_start)
     checkpoint.save(
         params=params,
         mask=torch.logical_and(mask, mask_save),
         chains=chains,
         log_weights=log_weights,
-        epochs=graph_upd,
-        pearson=pearson,
-        slope=slope,
-        log_likelihood=log_likelihood,
-        entropy=entropy,
-        density=density,
-        time_start=time_start,
         )
     print(f"Completed, model parameters saved in {checkpoint.file_paths['params']}")
     pbar.close()

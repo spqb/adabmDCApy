@@ -1,7 +1,6 @@
-from typing import Dict
+from typing import Dict, Any
 from abc import ABC, abstractmethod
 import torch
-import time
 import h5py
 
 from adabmDCA.io import save_chains, save_params
@@ -9,14 +8,29 @@ from adabmDCA.statmech import _get_acceptance_rate
 
 
 class Checkpoint(ABC):
+    """Helper class to save the model's parameters and chains at regular intervals during training and to log the
+    progress of the training.
+    """
     def __init__(
         self,
         file_paths: dict,
         tokens: str,
-        max_epochs: int,
+        args: dict,
         params: Dict[str, torch.Tensor] | None = None,
         chains: Dict[str, torch.Tensor] | None = None,
     ):
+        """Initializes the Checkpoint class.
+
+        Args:
+            file_paths (dict): Dictionary containing the paths of the files to be saved.
+            tokens (str): Alphabet to be used for encoding the sequences.
+            args (dict): Dictionary containing the arguments of the training.
+            params (Dict[str, torch.Tensor] | None, optional): Parameters of the model. Defaults to None.
+            chains (Dict[str, torch.Tensor] | None, optional): Chains. Defaults to None.
+        """
+        if not isinstance(args, dict):
+            args = vars(args)
+            
         self.file_paths = file_paths
         self.tokens = tokens
         if params is not None:
@@ -27,8 +41,63 @@ class Checkpoint(ABC):
             self.chains = chains.clone()
         else:
             self.chains = None
-        self.max_epochs = max_epochs
+        self.max_epochs = args["nepochs"]
         self.updates = 0
+        
+        self.logs = {
+            "Pearson": 0.0,
+            "Slope": 0.0,
+            "LL": 0.0,
+            "Entropy": 0.0,
+            "Density": 0.0,
+            "Time": 0.0,
+        }
+        
+        template = "{0:<20} {1:<50}\n"  
+        with open(file_paths["log"], "w") as f:
+            if args["label"] is not None:
+                f.write(template.format("label:", args["label"]))
+            else:
+                f.write(template.format("label:", "N/A"))
+            
+            f.write(template.format("model:", str(args["model"])))
+            f.write(template.format("input MSA:", str(args["data"])))
+            f.write(template.format("alphabet:", args["alphabet"]))
+            f.write(template.format("sampler:", args["sampler"]))
+            f.write(template.format("nchains:", args["nchains"]))
+            f.write(template.format("nsweeps:", args["nsweeps"]))
+            f.write(template.format("lr:", args["lr"]))
+            f.write(template.format("pseudo count:", args["pseudocount"]))
+            f.write(template.format("data type:", args["dtype"]))
+            f.write(template.format("target Pearson Cij:", args["target"]))
+            if args["model"] == "eaDCA":
+                f.write(template.format("gsteps:", args["gsteps"]))
+                f.write(template.format("factivate:", args["factivate"]))
+            f.write(template.format("random seed:", args["seed"]))
+            f.write("\n")
+            # write the header of the log file
+            header_string = " ".join([f"{key:<10}" for key in self.logs.keys()])
+            f.write("{0:<10} {1}\n".format("Epoch", header_string))
+        
+        
+    def log(
+        self,
+        key: str,
+        value: Any,
+    ) -> None:
+        """Adds a key-value pair to the log dictionary
+
+        Args:
+            key (str): Key of the value.
+            value (Any): Value to be stored.
+        """
+        if key not in self.logs.keys():
+            raise ValueError(f"Key {key} not recognized.")
+        
+        if isinstance(value, torch.Tensor):
+            self.logs[key] = value.item()
+        else:
+            self.logs[key] = value
         
     
     @abstractmethod
@@ -48,16 +117,14 @@ class Checkpoint(ABC):
         """
         pass
         
-
-    @abstractmethod
+        
+    @abstractmethod 
     def save(
         self,
         params: Dict[str, torch.Tensor],
         mask: torch.Tensor,
         chains: Dict[str, torch.Tensor],
         log_weights: torch.Tensor,
-        *args,
-        **kwargs,
     ) -> None:
         """Saves the chains and the parameters of the model.
 
@@ -75,22 +142,20 @@ class LinearCheckpoint(Checkpoint):
         self,
         file_paths: dict,
         tokens: str,
-        max_epochs: int,
+        args: dict,
         params: Dict[str, torch.Tensor] | None = None,
         chains: Dict[str, torch.Tensor] | None = None,
         checkpt_interval: int = 50,
-        *args,
         **kwargs,
     ):
         super().__init__(
             file_paths=file_paths,
             tokens=tokens,
-            max_epochs=max_epochs,
+            args=args,
             params=params,
             chains=chains,
         )
         self.checkpt_interval = checkpt_interval
-        self.max_epochs = max_epochs
         
     
     def check(
@@ -117,31 +182,21 @@ class LinearCheckpoint(Checkpoint):
         mask: torch.Tensor,
         chains: Dict[str, torch.Tensor],
         log_weights: torch.Tensor,
-        *args,
-        **kwargs,
     ) -> None:
         """Saves the chains and the parameters of the model.
 
         Args:
             params (Dict[str, torch.Tensor]): Parameters of the model.
-            mask (torch.Tensor): Mask of the model's coupling matrix representing the interaction graph.
+            mask (torch.Tensor): Mask of the model's coupling matrix representing the interaction graph
             chains (Dict[str, torch.Tensor]): Chains.
             log_weights (torch.Tensor): Log of the chain weights. Used for AIS.
         """
         save_params(fname=self.file_paths["params"], params=params, mask=mask, tokens=self.tokens)
         save_chains(fname=self.file_paths["chains"], chains=chains.argmax(dim=-1), tokens=self.tokens, log_weights=log_weights)
-        template = "{epochs:5} {pearson:10.3f} {slope:10.2f} {log_likelihood:10.2f} {entropy:10.2f} {density:10.3f} {time:10.1f}\n"
+        
+        out_string = " ".join([f"{value:<10.3f}" for value in self.logs.values()])
         with open(self.file_paths["log"], "a") as f:
-            f.write(template.format(
-                epochs = kwargs["epochs"],
-                pearson = kwargs["pearson"],
-                slope = kwargs["slope"],
-                log_likelihood = kwargs["log_likelihood"],
-                entropy = kwargs["entropy"],
-                density = kwargs["density"],
-                time = (time.time() - kwargs["time_start"]),
-                )
-            )
+            f.write(f"{self.updates:<10} {out_string}\n")
             
             
 class AcceptanceCheckpoint(Checkpoint):
@@ -149,17 +204,16 @@ class AcceptanceCheckpoint(Checkpoint):
         self,
         file_paths: Dict,
         tokens: str,
-        max_epochs: int,
+        args: Dict,
         params: Dict[str, torch.Tensor] | None = None,
         chains: Dict[str, torch.Tensor] | None = None,
         target_acc_rate: float = 0.5,
-        *args,
         **kwargs,
     ):
         super().__init__(
             file_paths=file_paths,
             tokens=tokens,
-            max_epochs=max_epochs,
+            args=args,
             params=params,
             chains=chains,
         )
@@ -172,8 +226,6 @@ class AcceptanceCheckpoint(Checkpoint):
             f.create_group(f"update_{self.updates}")
             for key, value in params.items():
                 f[f"update_{self.updates}"].create_dataset(key, data=value.cpu().numpy())
-        
-        
         
     def check(
         self,
@@ -235,18 +287,9 @@ class AcceptanceCheckpoint(Checkpoint):
         save_params(fname=self.file_paths["params"], params=params, mask=mask, tokens=self.tokens)
         save_chains(fname=self.file_paths["chains"], chains=chains.argmax(dim=-1), tokens=self.tokens, log_weights=log_weights)
         # Update the log file
-        template = "{epochs:5} {pearson:10.3f} {slope:10.2f} {log_likelihood:10.2f} {entropy:10.2f} {density:10.3f} {time:10.1f}\n"
+        out_string = " ".join([f"{value:<10.3f}" for value in self.logs.values()])
         with open(self.file_paths["log"], "a") as f:
-            f.write(template.format(
-                epochs = kwargs["epochs"],
-                pearson = kwargs["pearson"],
-                slope = kwargs["slope"],
-                log_likelihood = kwargs["log_likelihood"],
-                entropy = kwargs["entropy"],
-                density = kwargs["density"],
-                time = (time.time() - kwargs["time_start"]),
-                )
-            )
+            f.write(f"{self.updates:<10} {out_string}\n")
         
             
 def get_checkpoint(chpt: str) -> Checkpoint:
