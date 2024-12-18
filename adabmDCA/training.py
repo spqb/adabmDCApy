@@ -5,7 +5,7 @@ import torch
 
 from adabmDCA.stats import get_freq_single_point, get_freq_two_points, get_correlation_two_points
 from adabmDCA.utils import get_mask_save
-from adabmDCA.statmech import _update_weights_AIS, compute_log_likelihood, compute_entropy
+from adabmDCA.statmech import _update_weights_AIS, compute_log_likelihood, compute_entropy, _compute_ess
 from adabmDCA.checkpoint import Checkpoint
 
 
@@ -111,6 +111,8 @@ def train_graph(
     lr: float,
     max_epochs: int,
     target_pearson: float,
+    fi_test: torch.Tensor | None = None,
+    fij_test: torch.Tensor | None = None,
     checkpoint: Checkpoint | None = None,
     check_slope: bool = False,
     log_weights: torch.Tensor | None = None,
@@ -129,6 +131,8 @@ def train_graph(
         lr (float): Learning rate.
         max_epochs (int): Maximum number of gradient updates to be done.
         target_pearson (float): Target Pearson coefficient.
+        fi_test (torch.Tensor | None, optional): Single-point frequencies of the test data. Defaults to None.
+        fij_test (torch.Tensor | None, optional): Two-point frequencies of the test data. Defaults to None.
         checkpoint (Checkpoint | None, optional): Checkpoint class to be used for saving the model. Defaults to None.
         check_slope (bool, optional): Whether to take into account the slope for the convergence criterion or not. Defaults to False.
         log_weights (torch.Tensor, optional): Log-weights used for the online computation of the log-likelihood. Defaults to None.
@@ -183,7 +187,7 @@ def train_graph(
             ascii="-#",
             bar_format="{desc} {percentage:.2f}%[{bar}] Pearson: {n:.3f}/{total_fmt} [{elapsed}]"
         )
-        pbar.set_description(f"Epochs: {epochs} - Slope: {slope:.2f} - LL: {log_likelihood:.2f}")
+        pbar.set_description(f"Epochs: {epochs} - LL: {log_likelihood:.2f}")
     
     while not halt_condition(epochs, pearson, slope, check_slope):
         
@@ -222,18 +226,25 @@ def train_graph(
         
         if progress_bar:
             pbar.n = min(max(0, float(pearson)), target_pearson)
-            pbar.set_description(f"Epochs: {epochs} - Slope: {slope:.2f} - LL: {log_likelihood:.2f}")
+            pbar.set_description(f"Epochs: {epochs} - LL: {log_likelihood:.2f}")
             
         # Save the model if a checkpoint is reached
         if checkpoint is not None:
             if checkpoint.check(epochs, params, chains):
                 entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
+                ess = _compute_ess(log_weights)
                 checkpoint.log("Pearson", pearson)
                 checkpoint.log("Slope", slope)
-                checkpoint.log("LL", log_likelihood)
+                checkpoint.log("LL_train", log_likelihood)
+                checkpoint.log("ESS", ess)
                 checkpoint.log("Entropy", entropy)
                 checkpoint.log("Density", 1.0)
                 checkpoint.log("Time", time.time() - time_start)
+                if fi_test is not None and fij_test is not None:
+                    log_likelihood_test = compute_log_likelihood(fi=fi_test, fij=fij_test, params=params, logZ=logZ)
+                    checkpoint.log("LL_test", log_likelihood_test)
+                else:
+                    checkpoint.log("LL_test", str(None))
 
                 checkpoint.save(
                     params=params,
@@ -247,12 +258,20 @@ def train_graph(
     
     if checkpoint is not None:
         entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
+        ess = _compute_ess(log_weights)
         checkpoint.log("Pearson", pearson)
         checkpoint.log("Slope", slope)
-        checkpoint.log("LL", log_likelihood)
+        checkpoint.log("LL_train", log_likelihood)
+        checkpoint.log("ESS", ess)
         checkpoint.log("Entropy", entropy)
         checkpoint.log("Density", 1.0)
         checkpoint.log("Time", time.time() - time_start)
+        if fi_test is not None and fij_test is not None:
+            log_likelihood_test = compute_log_likelihood(fi=fi_test, fij=fij_test, params=params, logZ=logZ)
+            checkpoint.log("LL_test", log_likelihood_test)
+        else:
+            checkpoint.log("LL_test", str(None))
+            
         checkpoint.save(
             params=params,
             mask=mask_save,

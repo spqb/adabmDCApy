@@ -8,7 +8,7 @@ from adabmDCA.stats import get_freq_single_point, get_freq_two_points, get_corre
 from adabmDCA.training import train_graph
 from adabmDCA.utils import get_mask_save
 from adabmDCA.graph import activate_graph, compute_density
-from adabmDCA.statmech import compute_log_likelihood, compute_entropy
+from adabmDCA.statmech import compute_log_likelihood, compute_entropy, _compute_ess
 from adabmDCA.checkpoint import Checkpoint
 
 
@@ -27,6 +27,8 @@ def fit(
     lr: float,
     factivate: float,
     gsteps: int,
+    fi_test: torch.Tensor | None = None,
+    fij_test: torch.Tensor | None = None,
     checkpoint: Checkpoint | None = None,
     *args, **kwargs,
 ) -> None:
@@ -48,6 +50,8 @@ def fit(
         lr (float): Learning rate.
         factivate (float): Fraction of inactive couplings to activate at each step.
         gsteps (int): Number of gradient updates to be performed on a given graph.
+        fi_test (torch.Tensor | None): Single-point frequencies of the test data. Defaults to None.
+        fij_test (torch.Tensor | None): Two-point frequencies of the test data. Defaults to None.
         checkpoint (Checkpoint | None): Checkpoint class to be used to save the model. Defaults to None.
     """
     
@@ -145,12 +149,20 @@ def fit(
         # Save the model if a checkpoint is reached
         if checkpoint.check(graph_upd, params, chains):
             entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
+            ess = _compute_ess(log_weights)
             checkpoint.log("Pearson", pearson)
             checkpoint.log("Slope", slope)
-            checkpoint.log("LL", log_likelihood)
+            checkpoint.log("LL_train", log_likelihood)
+            checkpoint.log("ESS", ess)
             checkpoint.log("Entropy", entropy)
             checkpoint.log("Density", density)
             checkpoint.log("Time", time.time() - time_start)
+            if fi_test is not None and fij_test is not None:
+                log_likelihood_test = compute_log_likelihood(fi=fi_test, fij=fij_test, params=params, logZ=logZ)
+                checkpoint.log("LL_test", log_likelihood_test)
+            else:
+                checkpoint.log("LL_test", str(None))
+            
             checkpoint.save(
                 params=params,
                 mask=torch.logical_and(mask, mask_save),
@@ -160,12 +172,20 @@ def fit(
         pbar.n = min(max(0, float(pearson)), target_pearson)
 
     entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
+    ess = _compute_ess(log_weights)
     checkpoint.log("Pearson", pearson)
     checkpoint.log("Slope", slope)
-    checkpoint.log("LL", log_likelihood)
+    checkpoint.log("LL_train", log_likelihood)
+    checkpoint.log("ESS", ess)
     checkpoint.log("Entropy", entropy)
     checkpoint.log("Density", density)
     checkpoint.log("Time", time.time() - time_start)
+    if fi_test is not None and fij_test is not None:
+        log_likelihood_test = compute_log_likelihood(fi=fi_test, fij=fij_test, params=params, logZ=logZ)
+        checkpoint.log("LL_test", log_likelihood_test)
+    else:
+        checkpoint.log("LL_test", str(None))
+                
     checkpoint.save(
         params=params,
         mask=torch.logical_and(mask, mask_save),

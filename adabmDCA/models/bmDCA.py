@@ -18,6 +18,8 @@ def fit(
     nsweeps: int,
     nepochs: int,
     lr: float,
+    fi_test: torch.Tensor | None = None,
+    fij_test: torch.Tensor | None = None,
     checkpoint: Checkpoint | None = None,
     *args, **kwargs,
 ) -> None:
@@ -35,7 +37,9 @@ def fit(
         nsweeps (int): Number of Monte Carlo steps to update the state of the model.
         nepochs (int): Maximum number of epochs to be performed.
         lr (float): Learning rate.
-        checkpoint (Checkpoint | None): Checkpoint class to be used to save the model. Defaults to None.
+        fi_test (torch.Tensor | None, optional): Single-point frequencies of the test data. Defaults to None.
+        fij_test (torch.Tensor | None, optional): Two-point frequencies of the test data. Defaults to None.
+        checkpoint (Checkpoint | None, optional): Checkpoint class to be used to save the model. Defaults to None.
     """
     
     # Check the input sizes
@@ -54,6 +58,8 @@ def fit(
         mask=mask,
         fi=fi_target,
         fij=fij_target,
+        fi_test=fi_test,
+        fij_test=fij_test,
         params=params,
         nsweeps=nsweeps,
         lr=lr,

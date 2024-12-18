@@ -6,7 +6,7 @@ import numpy as np
 import torch
 
 from adabmDCA.dataset import DatasetDCA
-from adabmDCA.fasta import get_tokens
+from adabmDCA.fasta import get_tokens, import_from_fasta
 from adabmDCA.io import load_chains, load_params
 from adabmDCA.stats import get_freq_single_point, get_freq_two_points
 from adabmDCA.utils import init_chains, init_parameters, get_device, get_dtype
@@ -49,9 +49,13 @@ def main():
     print(template.format("Data type:", args.dtype))
     print("\n")
     
-    # Check if the data file exists
+    # Check if the data file exist
     if not Path(args.data).exists():
         raise FileNotFoundError(f"Data file {args.data} not found.")
+    
+    if args.test is not None:
+        if not Path(args.test).exists():
+            raise FileNotFoundError(f"Test file {args.test} not found.")
     
     # Create the folder where to save the model
     folder = Path(args.output)
@@ -82,6 +86,27 @@ def main():
         device=device,
         dtype=dtype,
     )
+    
+    # Import the test dataset if provided
+    if args.test is not None:
+        print("Importing test dataset...")
+        test_dataset = DatasetDCA(
+            path_data=args.test,
+            path_weights=None,
+            alphabet=args.alphabet,
+            clustering_th=args.clustering_seqid,
+            no_reweighting=args.no_reweighting,
+            device=device,
+            dtype=dtype,
+        )
+        test_oh = one_hot(test_dataset.data, num_classes=dataset.get_num_states()).to(dtype)
+        pseudocount_test = 1. / test_dataset.get_effective_size()
+        fi_test = get_freq_single_point(data=test_oh, weights=test_dataset.weights, pseudo_count=pseudocount_test)
+        fij_test = get_freq_two_points(data=test_oh, weights=test_dataset.weights, pseudo_count=pseudocount_test)
+    else:
+        fi_test = None
+        fij_test = None
+    
     DCA_model = importlib.import_module(f"adabmDCA.models.{args.model}")
     tokens = get_tokens(args.alphabet)
     
@@ -109,12 +134,12 @@ def main():
         print(f"Pseudocount automatically set to {args.pseudocount}.")
         
     data_oh = one_hot(dataset.data, num_classes=q).to(dtype)
-    
     fi_target = get_freq_single_point(data=data_oh, weights=dataset.weights, pseudo_count=args.pseudocount)
     fij_target = get_freq_two_points(data=data_oh, weights=dataset.weights, pseudo_count=args.pseudocount) 
     
     # Initialize parameters and chains
     if args.path_params:
+        print("Loading parameters...")
         tokens = get_tokens(args.alphabet)
         params = load_params(fname=args.path_params, tokens=tokens, device=device, dtype=dtype)
         mask = torch.zeros(size=(L, q, L, q), dtype=torch.bool, device=device)
@@ -131,6 +156,7 @@ def main():
             mask = torch.zeros(size=(L, q, L, q), device=device, dtype=torch.bool)
     
     if args.path_chains:
+        print("Loading chains...")
         chains, log_weights = load_chains(fname=args.path_chains, tokens=dataset.tokens, load_weights=True)
         chains = one_hot(
             torch.tensor(chains, device=device),
@@ -164,6 +190,8 @@ def main():
         sampler=sampler,
         fij_target=fij_target,
         fi_target=fi_target,
+        fi_test=fi_test,
+        fij_test=fij_test,
         params=params,
         mask=mask,
         chains=chains,

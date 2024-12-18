@@ -60,6 +60,19 @@ def _update_weights_AIS(
     return log_weights
 
 
+def _compute_ess(log_weights: torch.Tensor) -> float:
+    """Computes the Effective Sample Size of the chains.
+
+    Args:
+        log_weights: log-weights of the chains.
+    """
+    lwc = log_weights - log_weights.min()
+    numerator = torch.square(torch.mean(torch.exp(-lwc))).item()
+    denominator = torch.mean(torch.exp(-2.0 * lwc)).item()
+
+    return numerator / denominator
+
+
 @torch.jit.script
 def _compute_log_likelihood(
     fi: torch.Tensor,

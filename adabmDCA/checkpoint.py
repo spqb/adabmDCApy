@@ -47,7 +47,9 @@ class Checkpoint(ABC):
         self.logs = {
             "Pearson": 0.0,
             "Slope": 0.0,
-            "LL": 0.0,
+            "LL_train": 0.0,
+            "LL_test": 0.0,
+            "ESS": 0.0,
             "Entropy": 0.0,
             "Density": 0.0,
             "Time": 0.0,

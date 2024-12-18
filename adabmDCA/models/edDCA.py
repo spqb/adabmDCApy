@@ -9,7 +9,7 @@ from adabmDCA.training import train_graph
 from adabmDCA.utils import get_mask_save
 from adabmDCA.stats import get_freq_single_point, get_freq_two_points, get_correlation_two_points
 from adabmDCA.graph import decimate_graph, compute_density
-from adabmDCA.statmech import compute_log_likelihood, _update_weights_AIS, compute_entropy
+from adabmDCA.statmech import compute_log_likelihood, _update_weights_AIS, compute_entropy, _compute_ess
 from adabmDCA.checkpoint import Checkpoint
 
 MAX_EPOCHS = 10000
@@ -27,6 +27,8 @@ def fit(
     target_pearson: float,
     target_density: float,
     drate: float,
+    fi_test: torch.Tensor | None = None,
+    fij_test: torch.Tensor | None = None,
     checkpoint: Checkpoint | None = None,
     *args, **kwargs,
 ):
@@ -45,6 +47,8 @@ def fit(
         target_pearson (float): Pearson correlation coefficient on the two-points statistics to be reached.
         target_density (float): Target density of the coupling matrix.
         drate (float): Percentage of active couplings to be pruned at each decimation step.
+        fi_test (torch.Tensor | None, optional): Single-point frequencies of the test data. Defaults to None.
+        fij_test (torch.Tensor | None, optional): Two-point frequencies of the test data. Defaults to None.
         checkpoint (Checkpoint | None): Checkpoint class to be used to save the model. Defaults to None.
         """
     time_start = time.time()
@@ -61,27 +65,29 @@ def fit(
     device = fi_target.device
     dtype = fi_target.dtype
     
-    
-    print("Bringing the model to the convergence threshold...")
-    chains, params, log_weights = train_graph(
-        sampler=sampler,
-        chains=chains,
-        log_weights=log_weights,
-        mask=mask,
-        fi=fi_target,
-        fij=fij_target,
-        params=params,
-        nsweeps=nsweeps,
-        lr=lr,
-        max_epochs=MAX_EPOCHS,
-        target_pearson=target_pearson,
-        check_slope=False,
-        checkpoint=checkpoint,
-    )
-    
     # Get the single-point and two-points frequencies of the simulated data
     pi = get_freq_single_point(data=chains)
     pij = get_freq_two_points(data=chains)
+    _, pearson = get_correlation_two_points(fi=fi_target, pi=pi, fij=fij_target, pij=pij)
+    if pearson < target_pearson:
+        print("Bringing the model to the convergence threshold...")
+        chains, params, log_weights = train_graph(
+            sampler=sampler,
+            chains=chains,
+            log_weights=log_weights,
+            mask=mask,
+            fi=fi_target,
+            fij=fij_target,
+            fi_test=fi_test,
+            fij_test=fij_test,
+            params=params,
+            nsweeps=nsweeps,
+            lr=lr,
+            max_epochs=MAX_EPOCHS,
+            target_pearson=target_pearson,
+            check_slope=False,
+            checkpoint=checkpoint,
+        )
     
     # Mask for saving only the upper-diagonal matrix
     mask_save = get_mask_save(L, q, device=device)
@@ -171,12 +177,20 @@ def fit(
                 
         if checkpoint.check(count, params, chains):
             entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
+            ess = _compute_ess(log_weights)
             checkpoint.log("Pearson", pearson)
             checkpoint.log("Slope", slope)
-            checkpoint.log("LL", log_likelihood)
+            checkpoint.log("LL_train", log_likelihood)
+            checkpoint.log("ESS", ess)
             checkpoint.log("Entropy", entropy)
             checkpoint.log("Density", density)
             checkpoint.log("Time", time.time() - time_start)
+            if fi_test is not None and fij_test is not None:
+                log_likelihood_test = compute_log_likelihood(fi=fi_test, fij=fij_test, params=params, logZ=logZ)
+                checkpoint.log("LL_test", log_likelihood_test)
+            else:
+                checkpoint.log("LL_test", str(None))
+            
             checkpoint.save(
                 params=params,
                 mask=torch.logical_and(mask, mask_save),
@@ -185,12 +199,20 @@ def fit(
             )
     
     entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
+    ess = _compute_ess(log_weights)
     checkpoint.log("Pearson", pearson)
     checkpoint.log("Slope", slope)
-    checkpoint.log("LL", log_likelihood)
+    checkpoint.log("LL_train", log_likelihood)
+    checkpoint.log("ESS", ess)
     checkpoint.log("Entropy", entropy)
     checkpoint.log("Density", density)
     checkpoint.log("Time", time.time() - time_start)
+    if fi_test is not None and fij_test is not None:
+        log_likelihood_test = compute_log_likelihood(fi=fi_test, fij=fij_test, params=params, logZ=logZ)
+        checkpoint.log("LL_test", log_likelihood_test)
+    else:
+        checkpoint.log("LL_test", str(None))
+                
     checkpoint.save(
         params=params,
         mask=torch.logical_and(mask, mask_save),
