@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='adabmDCA',
-    version='0.2.8',
+    version='0.3.0',
     author='Lorenzo Rosset, Roberto Netti, Anna Paola Muntoni, Francesco Zamponi, Martin Weigt',
     maintainer='Lorenzo Rosset',
     author_email='rosset.lorenzo@gmail.com',
@@ -30,5 +30,6 @@ setup(
         'torch>=2.5.1',
         'tqdm>=4.66.6',
         'h5py>=3.12.1',
+        'wandb>=0.12.0',
     ],
 )
