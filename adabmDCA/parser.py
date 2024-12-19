@@ -84,7 +84,7 @@ def add_args_energies(parser : argparse.ArgumentParser) -> argparse.ArgumentPars
 def add_args_contacts(parser : argparse.ArgumentParser) -> argparse.ArgumentParser:
     parser.add_argument("-p", "--path_params",  type=Path,   required=True,          help="Path to the file containing the parameters of DCA model to sample from.")
     parser.add_argument("-o", "--output",       type=Path,   required=True,          help="Path to the folder where to save the output.")
-    parser.add_argument("--label",              type=str,    default=None,           help="(Defaults to None). If provoded, adds a label to the output files inside the output folder.")
+    parser.add_argument("-l", "--label",        type=str,    default=None,           help="(Defaults to None). If provoded, adds a label to the output files inside the output folder.")
     parser.add_argument("--alphabet",           type=str,    default="protein",      help="(Defaults to protein). Type of encoding for the sequences. Choose among ['protein', 'rna', 'dna'] or a user-defined string of tokens.")
     parser.add_argument("--device",             type=str,    default="cuda",         help="(Defaults to cuda). Device to be used.")
     parser.add_argument("--dtype",              type=str,    default="float32",      help="(Defaults to float32). Data type to be used.")

@@ -57,7 +57,6 @@ def main():
     print(f"Loading parameters from {args.path_params}...")
     params = load_params(fname=args.path_params, tokens=tokens, device=device, dtype=dtype)
     L, q = params["bias"].shape
-    print(f"L = {L}, q = {q}")
     
     # Select the sampler
     sampler = get_sampler(args.sampler)

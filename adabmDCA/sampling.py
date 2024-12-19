@@ -7,7 +7,7 @@ from adabmDCA.functional import one_hot
 
 
 @torch.jit.script
-def gibbs_sweep(
+def _gibbs_sweep(
     chains: torch.Tensor,
     residue_idxs: torch.Tensor,
     params: Dict[str, torch.Tensor],
@@ -57,12 +57,12 @@ def gibbs_sampling(
     for t in torch.arange(nsweeps):
         # Random permutation of the residues
         residue_idxs = torch.randperm(L)
-        chains = gibbs_sweep(chains, residue_idxs, params, beta)
+        chains = _gibbs_sweep(chains, residue_idxs, params, beta)
         
     return chains
 
 
-def get_deltaE(
+def _get_deltaE(
         idx: int,
         chain: torch.Tensor,
         residue_old: torch.Tensor,
@@ -79,7 +79,7 @@ def get_deltaE(
         return E_new - E_old
     
 
-def metropolis_sweep(
+def _metropolis_sweep(
     chains: torch.Tensor,
     params: Dict[str, torch.Tensor],
     beta: float,
@@ -100,7 +100,7 @@ def metropolis_sweep(
     for i in residue_idxs:
         res_old = chains[:, i, :]
         res_new = one_hot_torch(torch.randint(0, q, (N,), device=chains.device), num_classes=q).float()
-        delta_E = get_deltaE(i, chains, res_old, res_new, params, L, q)
+        delta_E = _get_deltaE(i, chains, res_old, res_new, params, L, q)
         accept_prob = torch.exp(- beta * delta_E).unsqueeze(-1)
         chains[:, i, :] = torch.where(accept_prob > torch.rand((N, 1), device=chains.device, dtype=chains.dtype), res_new, res_old)
 
@@ -126,7 +126,7 @@ def metropolis(
     """
 
     for _ in range(nsweeps):
-        chains = metropolis_sweep(chains, params, beta)
+        chains = _metropolis_sweep(chains, params, beta)
 
     return chains
 

@@ -6,6 +6,20 @@ import torch
 from adabmDCA.functional import one_hot
 
 
+@torch.jit.script
+def _compute_energy_sequence(
+    x: torch.Tensor,
+    params: Dict[str, torch.Tensor],
+) -> torch.Tensor:
+    L, q = params["bias"].shape
+    x_oh = x.ravel()
+    bias_oh = params["bias"].ravel()
+    couplings_oh = params["coupling_matrix"].view(L * q, L * q)
+    energy = - x_oh @ bias_oh - 0.5 * x_oh @ (couplings_oh @ x_oh)
+    
+    return energy
+
+
 def compute_energy(
     X: torch.Tensor,
     params: Dict[str, torch.Tensor],
@@ -23,17 +37,7 @@ def compute_energy(
     if X.dim() != 3:
         raise ValueError("Input tensor X must be 3-dimensional of size (_, L, q)")
     
-    @torch.jit.script
-    def compute_energy_sequence(x: torch.Tensor, params: Dict[str, torch.Tensor]) -> torch.Tensor:
-        L, q = params["bias"].shape
-        x_oh = x.ravel()
-        bias_oh = params["bias"].ravel()
-        couplings_oh = params["coupling_matrix"].view(L * q, L * q)
-        energy = - x_oh @ bias_oh - 0.5 * x_oh @ (couplings_oh @ x_oh)
-        
-        return energy
-    
-    return torch.vmap(compute_energy_sequence, in_dims=(0, None))(X, params)
+    return torch.vmap(_compute_energy_sequence, in_dims=(0, None))(X, params)
 
 
 def _update_weights_AIS(
@@ -262,6 +266,10 @@ def iterate_tap(
     Returns:
         torch.Tensor: Fixed point magnetizations of the TAP equations.
     """
+    # ensure that mag is a 3D tensor
+    if mag.dim() != 3:
+        raise ValueError("Input tensor mag must be 3-dimensional of size (_, L, q)")
+    
     mag_ = mag.clone()
     iterations = 0
     while True:

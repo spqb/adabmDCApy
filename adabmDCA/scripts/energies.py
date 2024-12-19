@@ -20,7 +20,8 @@ def create_parser():
     return parser
 
 
-def main():     
+def main():
+    print("\n" + "".join(["*"] * 10) + f" Computing DCA energies " + "".join(["*"] * 10) + "\n")
     
     # Parse arguments
     parser = create_parser()
