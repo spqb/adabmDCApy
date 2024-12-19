@@ -171,6 +171,7 @@ def get_freq_three_points(
     if data.dim() != 3:
         raise ValueError(f"Expected data to be a 3D tensor, but got {data.dim()}D tensor instead")
     
+    M = len(data)
     if weights is not None:
         norm_weights = weights.view(-1, 1) / weights.sum()
     else:
@@ -187,14 +188,14 @@ def get_freq_three_points(
 
 def get_covariance_matrix(
     data: torch.Tensor,
-    weights: torch.Tensor,
+    weights: torch.Tensor | None = None,
     pseudo_count: float = 0.0,
 ) -> torch.Tensor:
     """Computes the weighted covariance matrix of the input multi sequence alignment.
 
     Args:
         data (torch.Tensor): Input MSA in one-hot variables.
-        weights (torch.Tensor): Importance weights of the sequences.
+        weights (torch.Tensor | None, optional): Importance weights of the sequences.
         pseudo_count (float, optional): Pseudo count. Defaults to 0.0.
 
     Returns:

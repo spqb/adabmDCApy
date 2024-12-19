@@ -12,7 +12,7 @@ from adabmDCA.fasta import (
 
 
 class DatasetDCA(Dataset):
-    
+    """Dataset class for handling multi-sequence alignments data."""
     def __init__(
         self,
         path_data: str | Path,

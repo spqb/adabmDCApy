@@ -31,15 +31,6 @@ This section describe all the functions available in the **Python** implementati
    :show-inheritance:
 ```
 
-### adabmDCA.graph module
-
-```{eval-rst}
-.. automodule:: adabmDCA.graph
-   :members:
-   :undoc-members:
-   :show-inheritance:
-```
-
 ### adabmDCA.io module
 
 ```{eval-rst}
@@ -80,15 +71,6 @@ This section describe all the functions available in the **Python** implementati
 
 ```{eval-rst}
 .. automodule:: adabmDCA.stats
-   :members:
-   :undoc-members:
-   :show-inheritance:
-```
-
-### adabmDCA.training module
-
-```{eval-rst}
-.. automodule:: adabmDCA.training
    :members:
    :undoc-members:
    :show-inheritance:

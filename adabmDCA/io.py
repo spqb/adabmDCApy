@@ -4,10 +4,20 @@ import numpy as np
 
 import torch
 
-from adabmDCA.fasta import write_fasta, encode_sequence, import_from_fasta, validate_alphabet
+from adabmDCA.fasta import (
+    write_fasta,
+    encode_sequence,
+    import_from_fasta,
+    validate_alphabet,
+    get_tokens,
+)
 
 
-def load_chains(fname: str, tokens: str, load_weights: bool=False) -> np.ndarray | Tuple[np.ndarray, np.ndarray]:
+def load_chains(
+    fname: str,
+    tokens: str,
+    load_weights: bool = False
+) -> np.ndarray | Tuple[np.ndarray, np.ndarray]:
     """Loads the sequences from a fasta file and returns the numeric-encoded version.
     If the sequences are weighted, the log-weights are also returned. If the sequences are not weighted, the log-weights are set to 0.
     
@@ -38,13 +48,19 @@ def load_chains(fname: str, tokens: str, load_weights: bool=False) -> np.ndarray
         return encoded_sequences
     
 
-def save_chains(fname: str, chains: torch.Tensor, tokens: str, log_weights: torch.Tensor = None):
+def save_chains(
+    fname: str,
+    chains: torch.Tensor,
+    tokens: str,
+    log_weights: torch.Tensor = None
+) -> None:
     """Saves the chains in a fasta file.
 
     Args:
         fname (str): Path to the file where to save the chains.
         chains (torch.Tensor): Chains.
         tokens (str): "protein", "dna", "rna" or another string with the alphabet to be used.
+        log_weights (torch.Tensor, optional): Log-weights of the chains. Defaults to None.
     """
     
     # Check if chains is a 3D tensor
@@ -105,6 +121,7 @@ def load_params(
     ).astype({"idx0" : int, "idx1" : str, "val" : float})
     
     # Convert from amino acid format to numeric format
+    tokens = get_tokens(tokens)
     validate_alphabet(df_h["idx1"].to_numpy(), tokens=tokens)
     df_J["idx2"] = encode_sequence(df_J["idx2"].to_numpy(), tokens=tokens)
     df_J["idx3"] = encode_sequence(df_J["idx3"].to_numpy(), tokens=tokens)
@@ -151,6 +168,7 @@ def save_params(
         mask (torch.Tensor): Mask of the coupling matrix that determines which are the non-zero entries.
         tokens (str): "protein", "dna", "rna" or another string with the alphabet to be used.
     """
+    tokens = get_tokens(tokens)
     mask = mask.cpu().numpy()
     params = {k : v.cpu().numpy() for k, v in params.items()}
     

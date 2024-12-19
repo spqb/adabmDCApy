@@ -153,7 +153,19 @@ def plot_autocorrelation(
     autocorr: np.ndarray,
     gen_seqid: np.ndarray,
     data_seqid: np.ndarray
-):
+) -> plt.Axes:
+    """Plots the time-autocorrelation curve of the sequence identity and the generated and data sequence identities.
+    
+    Args:
+        ax (plt.Axes): Axes to plot the data.
+        checkpoints (np.ndarray): Checkpoints of the sampling.
+        autocorr (np.ndarray): Time-autocorrelation of the sequence identity.
+        gen_seqid (np.ndarray): Sequence identity of the generated data.
+        data_seqid (np.ndarray): Sequence identity of the data.
+        
+    Returns:
+        plt.Axes: Updated axes.
+    """
     ax.plot(checkpoints, autocorr, "-o", c="royalblue", lw=0.5, label="Time-autocorrelation", zorder=2)
     ax.axhline(y=gen_seqid, color="navy", lw=1, ls="dashed", label="Generated seqID", zorder=1)
     ax.axhline(y=data_seqid, color="red", lw=1, ls="dashed", label="Data seqID", zorder=0)
@@ -182,6 +194,22 @@ def plot_scatter_correlations(
     pearson_Cij: float,
     pearson_Cijk: float
 ) -> plt.Axes:
+    """Plots the scatter plot of the data and generated Cij and Cijk values.
+    
+    Args:
+        ax (plt.Axes): Axes to plot the data. Must have 2 subplots.
+        Cij_data (np.ndarray): Data Cij values.
+        Cij_gen (np.ndarray): Generated Cij values.
+        Cijk_data (np.ndarray): Data Cijk values.
+        Cijk_gen (np.ndarray): Generated Cijk values.
+        pearson_Cij (float): Pearson correlation coefficient of Cij.
+        pearson_Cijk (float): Pearson correlation coefficient of Cijk.
+        
+    Returns:
+        plt.Axes: Updated axes.
+    """
+    if len(ax) != 2:
+        raise ValueError("The axes must have 2 subplots")
     
     color_line = "#50424F"
     color_scatter = "#FF6275"
