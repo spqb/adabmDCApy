@@ -1,0 +1,236 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Boltzmann learning of biological models &mdash; adabmDCA 1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=f2a433a1"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Quicklist" href="quicklist.html" />
+    <link rel="prev" title="Applications" href="applications.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            adabmDCA
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="preprocessing.html">Input data and preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="implementation.html">Implementation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="applications.html">Applications</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Boltzmann learning of biological models</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#structure-of-the-model-and-boltzmann-learning">Structure of the model and Boltzmann learning</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#training-the-model">Training the model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#monte-carlo-estimation-of-the-gradient">Monte Carlo estimation of the gradient</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#convergence-criterium">Convergence criterium</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#training-sparse-models">Training sparse models</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#element-activation-dca">Element activation DCA</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#element-decimation-dca">Element decimation DCA</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parameter-updates-in-between-decimations-activations">Parameter updates in between decimations/activations</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="quicklist.html">Quicklist</a></li>
+<li class="toctree-l1"><a class="reference internal" href="script_arguments.html">Script Arguments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="adabmDCApy.html">adabmDCApy APIs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bibliography.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">adabmDCA</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Boltzmann learning of biological models</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/boltzmann_learning.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="boltzmann-learning-of-biological-models">
+<h1>Boltzmann learning of biological models<a class="headerlink" href="#boltzmann-learning-of-biological-models" title="Link to this heading"></a></h1>
+<p>In this section, we describe the theoretical framework behind the DCA models.</p>
+<section id="structure-of-the-model-and-boltzmann-learning">
+<h2>Structure of the model and Boltzmann learning<a class="headerlink" href="#structure-of-the-model-and-boltzmann-learning" title="Link to this heading"></a></h2>
+<p>DCA models <a class="reference internal" href="#fig-bmdca"><span class="std std-ref">bmDCA</span></a> are probabilistic generative models that infer a probability distribution over sequence space. Their objective is to assign high probability values to sequences that are statistically similar to the natural sequences used to train the architecture while assigning low probabilities to those that significantly diverge. The input dataset is a Multiple Sequence Alignment (MSA), where each sequence is represented as a <span class="math notranslate nohighlight">\(L\)</span>-dimensional categorical vector <span class="math notranslate nohighlight">\(\pmb a = (a_1, \dots, a_L)\)</span> with <span class="math notranslate nohighlight">\(a_i \in \{1, \dots, q\}\)</span>, each number representing one of the possible amino acids or nucleotides, or the alignment gap. To simplify the exposition, from here on, we will assume them to be amino acids. The following equation then gives the DCA probability distribution:</p>
+<div class="math notranslate nohighlight" id="equation-eqn-probdca">
+<span class="eqno">(1)<a class="headerlink" href="#equation-eqn-probdca" title="Link to this equation"></a></span>\[\begin{split}
+    p(\pmb a | \pmb{J}, \pmb{h}, \mathcal{G}) &amp;= \frac{1}{Z(\pmb{J}, \pmb{h}, \mathcal{G})} e^{-E(a_1, \dots, a_L)}\\ &amp; =  \frac{1}{Z(\pmb{J}, \pmb{h}, \mathcal{G})}\exp \left( \sum_{(i,a)\in \mathcal{V}} h_i(a) \delta_{a_i,a} + \sum_{(i,a,j,b)\in \mathcal{E}} J_{ij}(a, b) \delta_{a_i,a} \delta_{a_j,b}\right).
+\end{split}\]</div>
+<p>In this expression, <span class="math notranslate nohighlight">\(Z\)</span> is the normalization constant and <span class="math notranslate nohighlight">\(E\)</span> is the DCA <em>energy function</em>.
+The interaction graph <span class="math notranslate nohighlight">\(\mathcal{G}=(\mathcal{V},\mathcal{E})\)</span> is
+represented in a <em>one-hot encoding</em> format: the vertices <span class="math notranslate nohighlight">\(\mathcal{V}\)</span> of the graph are the <span class="math notranslate nohighlight">\(L\times q\)</span> combinations of all possible symbols on all possible sites,
+labeled by <span class="math notranslate nohighlight">\({(i,a) \in \{1,\cdots,L\}\times \{1,\cdots,q\}}\)</span>,
+and the edges <span class="math notranslate nohighlight">\(\mathcal{E}\)</span> connect two vertices <span class="math notranslate nohighlight">\((i,a)\)</span> and <span class="math notranslate nohighlight">\((j,b)\)</span>.
+The <em>bias</em> (or field) <span class="math notranslate nohighlight">\(h_i(a)\)</span> corresponding to the amino acid <span class="math notranslate nohighlight">\(a\)</span> on the site <span class="math notranslate nohighlight">\(i\)</span>
+is activated by the Kronecker <span class="math notranslate nohighlight">\(\delta_{a_i,a}\)</span> if and only if <span class="math notranslate nohighlight">\(a_i=a\)</span>,
+and it encodes the conservation signal of the MSA. The <em>coupling matrix</em> <span class="math notranslate nohighlight">\(J_{ij}(a, b)\)</span> represents the coevolution (or epistatic) signal between pairs of amino acids at different sites, and is activated by the
+<span class="math notranslate nohighlight">\(\delta_{a_i,a} \delta_{a_j,b}\)</span> term if <span class="math notranslate nohighlight">\(a_i=a\)</span> and <span class="math notranslate nohighlight">\(a_j=b\)</span>.
+Note that <span class="math notranslate nohighlight">\(J_{ii}(a,b)=0\)</span> for all <span class="math notranslate nohighlight">\(a,b\)</span> to avoid a redundancy with the <span class="math notranslate nohighlight">\(h_i(a)\)</span> terms, and that <span class="math notranslate nohighlight">\(J_{ij}(a,b)=J_{ji}(b,a)\)</span> is imposed by the symmetry structure of the model.
+The interaction graph <span class="math notranslate nohighlight">\(\mathcal{G}\)</span> can be chosen fully connected as in the bmDCA model, or it can be a sparse graph as in eaDCA and edDCA.</p>
+<figure class="align-center" id="fig-bmdca">
+<a class="reference internal image-reference" href="_images/bmDCA.png"><img alt="Scheme of the fully-connected DCA model (bmDCA)" src="_images/bmDCA.png" style="width: 374.40000000000003px; height: 247.20000000000002px;" />
+</a>
+<figcaption>
+<p><span class="caption-text">Scheme of the fully-connected DCA model (bmDCA)</span><a class="headerlink" href="#fig-bmdca" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+<section id="training-the-model">
+<h3>Training the model<a class="headerlink" href="#training-the-model" title="Link to this heading"></a></h3>
+<p>The training consists of adjusting the biases, the coupling matrix, and the interaction graph to maximize the log-likelihood of the model for a given MSA, which can be written as</p>
+<div class="math notranslate nohighlight" id="equation-eqn-ll">
+<span class="eqno">(2)<a class="headerlink" href="#equation-eqn-ll" title="Link to this equation"></a></span>\[\begin{split}
+    \mathcal{L}(\{\pmb{a}^{(m)}\} | \pmb{J}, \pmb{h},\mathcal{G}) &amp;= \frac1{M_{\rm eff}}\sum_{m=1}^M w^{(m)} \left[ \sum_{(i,a)\in \mathcal{V}} h_i(a) \delta_{a_i^{(m)},a} + \sum_{(i,a,j,b)\in \mathcal{E}} J_{ij}(a, b) \delta_{a_i^{(m)},a} \delta_{a_j^{(m)},b} \right] - \log Z(\pmb{J}, \pmb{h}, \mathcal{G}) \\
+    &amp;=  \sum_{(i,a)\in \mathcal{V}} h_i(a) f_i(a) + \sum_{(i,a,j,b)\in \mathcal{E}} J_{ij}(a, b) f_{ij}(a,b)  - \log Z(\pmb{J}, \pmb{h}, \mathcal{G}) \ ,
+\end{split}\]</div>
+<p>where <span class="math notranslate nohighlight">\(w^{(m)}\)</span> is the weight of the data sequence <span class="math notranslate nohighlight">\(m\)</span>, with <span class="math notranslate nohighlight">\(\sum_{m=1}^M w^{(m)} =M_{\rm eff}\)</span>, and</p>
+<div class="math notranslate nohighlight" id="equation-eqn-freqs">
+<span class="eqno">(3)<a class="headerlink" href="#equation-eqn-freqs" title="Link to this equation"></a></span>\[
+    f_i(a) =\frac1{M_{\mathrm{eff}}}\sum_{m=1}^M w^{(m)} \delta_{a_i^{(m)},a} \ ,
+    \qquad
+        f_{ij}(a,b) = \frac1{M_{\mathrm{eff}}}\sum_{m=1}^M w^{(m)}\delta_{a_i^{(m)},a}\delta_{a_j^{(m)},b} \ ,
+\]</div>
+<p>are the empirical single-site and two-site frequencies computed from the data.
+Roughly speaking, <span class="math notranslate nohighlight">\(f_i(a)\)</span> tells us what is the empirical probability of finding the amino acid <span class="math notranslate nohighlight">\(a\)</span> in the position <span class="math notranslate nohighlight">\(i\)</span> of the sequence, whereas <span class="math notranslate nohighlight">\(f_{ij}(a,b)\)</span> tells us how likely it is to find together in a sequence of the data the amino acids <span class="math notranslate nohighlight">\(a\)</span> and <span class="math notranslate nohighlight">\(b\)</span> at positions respectively <span class="math notranslate nohighlight">\(i\)</span> and <span class="math notranslate nohighlight">\(j\)</span>.</p>
+<p>For a fixed graph <span class="math notranslate nohighlight">\(\mathcal{G}\)</span>, we can maximize the log-likelihood by iteratively updating the parameters of the model in the direction of the gradient of the log-likelihood.
+By differentiating the log-likelihood <a class="reference internal" href="#equation-eqn-ll">(2)</a>, we find the update rule for the Boltzmann learning:</p>
+<div class="math notranslate nohighlight" id="equation-eqn-params-update">
+<span class="eqno">(4)<a class="headerlink" href="#equation-eqn-params-update" title="Link to this equation"></a></span>\[
+    h_i(a) \leftarrow h_i(a) + \gamma (f_{i}(a) - p_i(a)) \qquad
+    J_{i j}(a, b) \leftarrow J_{i j}(a, b) + \gamma (f_{ij}(a, b) - p_{ij}(a,b)),
+\]</div>
+<p>where <span class="math notranslate nohighlight">\(p_i(a) = \langle \delta_{a_i,a}\rangle\)</span>, <span class="math notranslate nohighlight">\(p_{ij}(a, b)=\langle \delta_{a_i,a}\delta_{a_j,b}\rangle\)</span> are the one-site and two-site marginals of the model <a class="reference internal" href="#equation-eqn-probdca">(1)</a> and <span class="math notranslate nohighlight">\(\gamma\)</span> is a small rescaling parameter called <em>learning rate</em>.
+Notice that the convergence of the algorithm is reached when <span class="math notranslate nohighlight">\(p_i(a) = f_i(a)\)</span> and <span class="math notranslate nohighlight">\(p_{ij}(a,b) = f_{ij}(a, b)\)</span>.</p>
+</section>
+<section id="monte-carlo-estimation-of-the-gradient">
+<h3>Monte Carlo estimation of the gradient<a class="headerlink" href="#monte-carlo-estimation-of-the-gradient" title="Link to this heading"></a></h3>
+<p>The difficult part of the algorithm consists of estimating <span class="math notranslate nohighlight">\(p_i(a)\)</span> and <span class="math notranslate nohighlight">\(p_{ij}(a,b)\)</span>, because computing the normalization <span class="math notranslate nohighlight">\(Z\)</span> of Eq. <a class="reference internal" href="#equation-eqn-probdca">(1)</a> is computationally intractable, preventing us from directly computing the probability of any sequence. To tackle this issue, we estimate the first two moments of the distribution through a <em>Monte Carlo simulation</em>. This consists of sampling a certain number of fairly independent sequences from the probability distribution <a class="reference internal" href="#equation-eqn-probdca">(1)</a> and using them to estimate <span class="math notranslate nohighlight">\(p_i(a)\)</span> and <span class="math notranslate nohighlight">\(p_{ij}(a, b)\)</span> at each learning epoch. There exist several equivalent strategies to deal with it.
+Samples from the model <a class="reference internal" href="#equation-eqn-probdca">(1)</a> can be obtained via Markov Chain Monte Carlo (MCMC) simulations either at equilibrium or out-of-equilibrium, where we start from <span class="math notranslate nohighlight">\(N_c\)</span> configurations (we refer to them as <em>chains</em>), chosen uniformly at random, from the data or the last configurations of the previous learning epoch, and update them using Gibbs or Metropolis-Hastings sampling steps up to a certain number of MCMC sweeps.</p>
+<p>In particular, chains are <em>persistent</em>: because sampling from configurations that are already close to the stationary state of the model at the current training epoch is much more convenient, the chains are initialized at each learning epoch using the last sampled configurations of the previous epoch.  Furthermore, the number of sweeps to be performed should be enough to ensure that the updated chains represent an equilibrium sample of the probability <a class="reference internal" href="#equation-eqn-probdca">(1)</a>. In practice, this requirement is not guaranteed as we fix the number of sweeps to a convenient value, <span class="math notranslate nohighlight">\(k\)</span>, that trades off between a reasonable training time and a fair independence of the chains.</p>
+</section>
+<section id="convergence-criterium">
+<h3>Convergence criterium<a class="headerlink" href="#convergence-criterium" title="Link to this heading"></a></h3>
+<p>To decide when to terminate the training, we monitor the two-site connected correlation functions of the data and of the model, which are defined as</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+    C^{\mathrm{data}}_{ij}(a, b) &amp;= f_{ij}(a, b) - f_i(a) f_j(b) \\
+    C^{\mathrm{model}}_{ij}(a, b) &amp;= p_{ij}(a, b) - p_i(a) p_j(b)
+\end{split}\]</div>
+<p>When the Pearson correlation coefficient between the two reaches a target value, set by default at 0.95, the training stops.</p>
+<p>Once the model is trained, we can generate new sequences by sampling from the probability distribution <a class="reference internal" href="#equation-eqn-probdca">(1)</a>, infer contacts on the tertiary structure by analyzing the coupling matrix, or propose and assess mutations through the DCA energy function <span class="math notranslate nohighlight">\(E\)</span>.</p>
+</section>
+</section>
+<section id="training-sparse-models">
+<h2>Training sparse models<a class="headerlink" href="#training-sparse-models" title="Link to this heading"></a></h2>
+<p>What we have described so far is true for all the DCA models considered in this work, but we have not yet discussed how to adjust the topology of the interaction graph <span class="math notranslate nohighlight">\(\mathcal{G}\)</span>. In the most basic implementation, bmDCA, the graph is assumed to be fully connected (every amino acid of any residue is connected with all the rest) and the learning will only tweak the strength of the connections. This results in a coupling matrix with <span class="math notranslate nohighlight">\(L (L - 1) q^2 / 2\)</span> independent parameters, where <span class="math notranslate nohighlight">\(q = 21\)</span> for amino acid and <span class="math notranslate nohighlight">\(q=5\)</span> for nucleotide sequences. However, it is well known from the literature that the interaction network of protein families tends to be relatively <em>sparse</em>, suggesting that only a few connections should be necessary for reproducing the statistics of biological sequence data. This observation brings us to devising a training routine that produces a DCA model capable of reproducing the one and two-body statistics of the data with a minimal amount of couplings.</p>
+<p>To achieve this, we implemented two different routines: eaDCA which promotes initially inactive parameters to active coupling starting from a profile model, and edDCA, which iteratively prunes active but negligible parameters starting from a dense fully-connected DCA model.</p>
+<section id="element-activation-dca">
+<h3>Element activation DCA<a class="headerlink" href="#element-activation-dca" title="Link to this heading"></a></h3>
+<p>In eaDCA (figure <a class="reference internal" href="#fig-sparsedca"><span class="std std-ref">sparse models</span></a>-B), we start from an empty interaction graph <span class="math notranslate nohighlight">\(\mathcal{E} = \oslash\)</span>, meaning that no connection is present. Each training step is divided into two different moments: first, we update the graph, and then we bring the model to convergence once the graph is fixed (a similar pipeline has been proposed in <span id="id1">[<a class="reference internal" href="bibliography.html#id7" title="Francesco Calvanese, Camille N Lambert, Philippe Nghe, Francesco Zamponi, and Martin Weigt. Towards parsimonious generative modeling of RNA families. Nucleic Acids Research, 52(10):5465–5477, 2024. URL: https://doi.org/10.1093/nar/gkae289, doi:10.1093/nar/gkae289.">Calvanese <em>et al.</em>, 2024</a>]</span>).</p>
+<p>To update the graph, we first estimate <span class="math notranslate nohighlight">\(p_{ij}(a, b)\)</span> for the current model and, from all the possible quadruplets of indices <span class="math notranslate nohighlight">\((i, j, a, b)\)</span>, we select a fixed number \texttt{nactivate} of them as being the ones for which <span class="math notranslate nohighlight">\(p_{ij}(a, b)\)</span> is “the most distant” from the target statistics <span class="math notranslate nohighlight">\(f_{ij}(a,b)\)</span>. We then activate the couplings corresponding to those quadruplets, obtaining a new graph <span class="math notranslate nohighlight">\(\mathcal{E}'' \supseteq \mathcal{E}\)</span>. Notice that the number of couplings that we add may change, because some of the selected ones might be already active.</p>
+</section>
+<section id="element-decimation-dca">
+<h3>Element decimation DCA<a class="headerlink" href="#element-decimation-dca" title="Link to this heading"></a></h3>
+<p>In edDCA (Figure <a class="reference internal" href="#fig-sparsedca"><span class="std std-ref">sparse models</span></a>-A), we start from a previously trained bmDCA model and its fully connected graph <span class="math notranslate nohighlight">\(\mathcal{G}\)</span>. We then apply the decimation algorithm, in which we prune connections from the edges <span class="math notranslate nohighlight">\(\mathcal{E}\)</span> until a target density of the graph is reached, where the density is defined as the ratio between the number of active couplings and the number of couplings of the fully connected model. Similarly to eaDCA, each iteration consists of two separate moments: graph updating and activate parameter updating.</p>
+<p>To update the graph, we remove the fraction <code class="docutils literal notranslate"><span class="pre">drate</span></code> of active couplings that, once removed, produce the smallest perturbation on the probability distribution at the current epoch. In particular, for each active coupling, one computes the symmetric Kullback-Leibler distances between the current model and a perturbed one, without that target element. One then removes the <code class="docutils literal notranslate"><span class="pre">drate</span></code> elements which exhibit the smallest distances (see <span id="id2">[<a class="reference internal" href="bibliography.html#id8" title="Pierre Barrat-Charlaix, Anna Paola Muntoni, Kai Shimagaki, Martin Weigt, and Francesco Zamponi. Sparse generative modeling via parameter reduction of boltzmann machines: application to protein-sequence families. Physical Review E, 104(2):024407, 2021. URL: https://link.aps.org/doi/10.1103/PhysRevE.104.024407, doi:10.1103/PhysRevE.104.024407.">Barrat-Charlaix <em>et al.</em>, 2021</a>]</span> for further details).</p>
+</section>
+<section id="parameter-updates-in-between-decimations-activations">
+<h3>Parameter updates in between decimations/activations<a class="headerlink" href="#parameter-updates-in-between-decimations-activations" title="Link to this heading"></a></h3>
+<p>In both procedures, to bring the model to convergence on the graph, we perform a certain number of parameter updates in  between each step of edge activation or decimation, using the formula <a class="reference internal" href="#equation-eqn-params-update">(4)</a>. Between two subsequent parameter updates, <span class="math notranslate nohighlight">\(k\)</span> sweeps are performed to update the Markov chains.</p>
+<p>In the case of element activation we perform a
+fixed number of parameter updates,
+specified by the input parameter <code class="docutils literal notranslate"><span class="pre">gsteps</span></code>.
+Alternatively, when pruning the graph we keep updating the parameters with the formula <a class="reference internal" href="#equation-eqn-params-update">(4)</a> until the Pearson correlation coefficient reaches a target value and the slope of the straight line interpolating the connected correlation functions of the data and the model is in the range <span class="math notranslate nohighlight">\([0.9, 1.1]\)</span>.</p>
+<figure class="align-center" id="fig-sparsedca">
+<a class="reference internal image-reference" href="_images/sparseDCA.png"><img alt="Scheme of the sparseDCA models" src="_images/sparseDCA.png" style="width: 686.8000000000001px; height: 203.20000000000002px;" />
+</a>
+<figcaption>
+<p><span class="caption-text">Schematic representation of the sparse model training. A) edDCA, the sparsification is
+obtained by progressively pruning contacts from an initial fully connected model. B) eaDCA, the
+couplings are progressively added during the training.</span><a class="headerlink" href="#fig-sparsedca" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="applications.html" class="btn btn-neutral float-left" title="Applications" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="quicklist.html" class="btn btn-neutral float-right" title="Quicklist" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Lorenzo Rosset.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

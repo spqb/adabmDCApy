@@ -1,0 +1,242 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Implementation &mdash; adabmDCA 1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=f2a433a1"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Applications" href="applications.html" />
+    <link rel="prev" title="Input data and preprocessing" href="preprocessing.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            adabmDCA
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="preprocessing.html">Input data and preprocessing</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Implementation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#output-files">Output files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#restoring-an-interrupted-training">Restoring an interrupted training</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#importance-weights">Importance weights</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#choosing-the-alphabet">Choosing the alphabet</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#eadca">eaDCA</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#eddca">edDCA</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#how-to-choose-the-hyperparameters">How to choose the hyperparameters?</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#learning-rate">Learning rate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#number-of-markov-chains">Number of Markov Chains</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#number-of-monte-carlo-steps">Number of Monte Carlo steps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#regularization">Regularization</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="applications.html">Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="boltzmann_learning.html">Boltzmann learning of biological models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quicklist.html">Quicklist</a></li>
+<li class="toctree-l1"><a class="reference internal" href="script_arguments.html">Script Arguments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="adabmDCApy.html">adabmDCApy APIs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bibliography.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">adabmDCA</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Implementation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/implementation.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="implementation">
+<h1>Implementation<a class="headerlink" href="#implementation" title="Link to this heading"></a></h1>
+<p>All the software implementations that we propose (Python, Julia, and C++) offer the same interface from the terminal through the <code class="docutils literal notranslate"><span class="pre">adabmDCA.sh</span></code> file.
+The complete list of training options can be listed through the command</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>./adabmDCA.sh<span class="w"> </span>train<span class="w"> </span>-h
+</pre></div>
+</div>
+<p>The standard command for starting the training of a DCA model is</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>./adabmDCA.sh<span class="w"> </span>train<span class="w"> </span>-m<span class="w"> </span>&lt;model&gt;<span class="w"> </span>-d<span class="w"> </span>&lt;fasta_file&gt;<span class="w"> </span>-o<span class="w"> </span>&lt;output_folder&gt;<span class="w"> </span>-l<span class="w"> </span>&lt;label&gt;
+</pre></div>
+</div>
+<p>where:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;model&gt;</span></code><span class="math notranslate nohighlight">\(\in\)</span> {bmDCA, eaDCA, edDCA} selects the training routine. By default, the fully connected bmDCA algorithm is used. edDCA can follow two different routines: either it decimates a pre-trained bmDCA model, or it first trains a bmDCA model and then decimates it. The corresponding commands are shown below (see section <a class="reference internal" href="#eddca"><span class="std std-ref">edDCA</span></a>);</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;fasta_file&gt;</span></code> is the FASTA file, with the complete path, containing the MSA;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;output_folder&gt;</span></code> is the path to a (existing or not) folder where to store the output files;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;label&gt;</span></code> is an optional argument. If provided, it will label the output files. This is helpful when running the algorithm multiple times in the same output folder.</p></li>
+</ul>
+<p>Once started, the training will continue until the Pearson correlation coefficient between the two-point statistics of the model and the empirical one obtained from the data reaches a modifiable target value (set by default at <code class="docutils literal notranslate"><span class="pre">target</span> <span class="pre">=</span> <span class="pre">0.95</span></code>).</p>
+<section id="output-files">
+<h2>Output files<a class="headerlink" href="#output-files" title="Link to this heading"></a></h2>
+<p>By default the training algorithm outputs three kinds of text files:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;label&gt;_params.dat</span></code>: file containing the parameters of the model saved in this format:</p>
+<ul class="simple">
+<li><p>Lines starting with <code class="docutils literal notranslate"><span class="pre">J</span></code> represent entries of the coupling matrix, followed by the two interacting positions in the sequence and the two amino acids or nucleotides involved.</p></li>
+<li><p>Lines starting with <code class="docutils literal notranslate"><span class="pre">h</span></code> represent the bias, followed by a number and a letter indicating the position and the amino acid or nucleotide subject to the bias.</p></li>
+</ul>
+<p>Note that inactive, i.e. zero couplings are not included in the file.</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;label&gt;_chains.fasta</span></code>: FASTA file containing the sequences being the last state of the Markov chains used during the learning;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;label&gt;_adabmDCA.log</span></code>: .log file collecting the temporary information of the ongoing procedure.</p></li>
+</ul>
+<p>During the training the output files are overwritten every 50 epochs.</p>
+</section>
+<section id="restoring-an-interrupted-training">
+<h2>Restoring an interrupted training<a class="headerlink" href="#restoring-an-interrupted-training" title="Link to this heading"></a></h2>
+<p>It is possible to start the training by initializing the parameters of the model and the chains at a given checkpoint. To do so, two arguments specifying the path of the parameters and the chains are needed:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>./adabmDCA.sh<span class="w"> </span>train<span class="w"> </span><span class="o">[</span>...<span class="o">]</span><span class="w"> </span>-p<span class="w"> </span>&lt;file_params&gt;<span class="w"> </span>-c<span class="w"> </span>&lt;file_chains&gt;
+</pre></div>
+</div>
+</section>
+<section id="importance-weights">
+<h2>Importance weights<a class="headerlink" href="#importance-weights" title="Link to this heading"></a></h2>
+<p>It is possible to provide the algorithm with a pre-computed list of <a class="reference internal" href="#computing-the-importance-weights"><span class="xref myst">importance weights</span></a> to be assigned to the sequences by giving the path to the text file to the argument <code class="docutils literal notranslate"><span class="pre">-w</span></code>. If this argument is not provided, the algorithm will automatically compute the weights using Eq.<a class="reference internal" href="preprocessing.html#equation-eqn-weights">(1)</a> and it will store them into the folder <code class="docutils literal notranslate"><span class="pre">&lt;output_folder&gt;</span></code> as <code class="docutils literal notranslate"><span class="pre">&lt;label&gt;_weights.dat</span></code>.</p>
+</section>
+<section id="choosing-the-alphabet">
+<h2>Choosing the alphabet<a class="headerlink" href="#choosing-the-alphabet" title="Link to this heading"></a></h2>
+<p>By default, the algorithm will assume that the input MSA belongs to a protein family, and it will use the preset alphabet defined in Table <a class="reference internal" href="preprocessing.html#alphabets"><span class="std std-ref">Alphabets</span></a> (by default: <code class="docutils literal notranslate"><span class="pre">--alphabet</span> <span class="pre">protein</span></code>). If the input data comes from RNA or DNA sequences, it has to be specified by passing respectively <code class="docutils literal notranslate"><span class="pre">rna</span></code> or <code class="docutils literal notranslate"><span class="pre">dna</span></code> to the <code class="docutils literal notranslate"><span class="pre">--alphabet</span></code> argument. There is also the possibility of passing a user-defined alphabet, provided that all the tokens match with those that are found in the input MSA. This can be useful if one wants to use a different order than the default one for the tokens, or in the eventuality that one wants to handle additional symbols present in the alignment.</p>
+</section>
+<section id="eadca">
+<span id="id1"></span><h2>eaDCA<a class="headerlink" href="#eadca" title="Link to this heading"></a></h2>
+<p>To train an eaDCA model, we just have to specify <code class="docutils literal notranslate"><span class="pre">–model</span> <span class="pre">eaDCA</span></code>. Two
+more hyperparameters can be changed:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--factivate</span></code>: The fraction of inactive couplings that are selected
+for the activation at each update of the graph. By default, it is
+set to 0.001.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--gsteps</span></code>: The number of parameter updates to be performed on the given graph. By default, it is set to 10.</p></li>
+</ul>
+<p>For this routine, the number of sweeps for updating the chains can be typically reduced to 5, since only a fraction of all the possible couplings have to be updated at each iteration.</p>
+</section>
+<section id="eddca">
+<span id="id2"></span><h2>edDCA<a class="headerlink" href="#eddca" title="Link to this heading"></a></h2>
+<p>To launch a decimation with default hyperparameters, use the command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>./adabmDCA.sh<span class="w"> </span>train<span class="w"> </span>-m<span class="w"> </span>edDCA<span class="w"> </span>-d<span class="w"> </span>&lt;fasta_file&gt;<span class="w"> </span>-p<span class="w"> </span>&lt;file_params&gt;<span class="w"> </span>-c<span class="w"> </span>&lt;file_chains&gt;
+</pre></div>
+</div>
+<p>where <code class="docutils literal notranslate"><span class="pre">&lt;file_params&gt;</span></code> and <code class="docutils literal notranslate"><span class="pre">&lt;file_chains&gt;</span></code> are, respectively, the file name the parameters and the chains (including the path) of a previously trained bmDCA model. The edDCA can perform two routines as described above. In the first routine, it uses a pre-trained bmDCA model and its associated chains provided through the parameters <code class="docutils literal notranslate"><span class="pre">&lt;file_params&gt;</span></code> and <code class="docutils literal notranslate"><span class="pre">&lt;file_chains&gt;</span></code>. The routine makes sure everything has converged before starting the decimation of couplings. It repeats this process for up to 10000 iterations if needed. If these parameters are not supplied, the second routine initializes the model and chains randomly, trains the bmDCA model to meet convergence criteria, and then starts the decimation process as described. Some important parameters that can be changed are:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--gsteps</span></code>: The number of parameter updates to be performed at each step of the convergence process on the given graph. By default, it is set to 10.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--drate</span></code>: Fraction of active couplings to be pruned at each graph update. By default, it is set to 0.01.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--density</span></code>: Density of the graph that has to be reached after the decimation. The density is defined as the ratio between the number of active couplings and the number of couplings of the fully connected graph. By default, it is set to 0.02.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--target</span></code>: The Pearson correlation coefficient to be reached to assume the model to have converged. By default, it is set to 0.95. The range of the allowed slope values is fixed to the default interval.</p></li>
+</ul>
+</section>
+<section id="how-to-choose-the-hyperparameters">
+<h2>How to choose the hyperparameters?<a class="headerlink" href="#how-to-choose-the-hyperparameters" title="Link to this heading"></a></h2>
+<p>The default values for the hyperparameters are chosen to be a good compromise between having a relatively short training time and a good quality of the learned model for most of the <em>typical</em> input MSA, where for <em>typical</em> we mean a clean MSA with only a few gaps for each sequence and a not too structured dataset (not too clustered in subfamilies) that could create some ergodicity problems during the training. It may happen, though, that for some datasets some adjustments of the hyperparameters are needed to get a properly trained model. The most important ones are:</p>
+<section id="learning-rate">
+<h3>Learning rate<a class="headerlink" href="#learning-rate" title="Link to this heading"></a></h3>
+<p>By default, the learning rate is set to 0.05, which is a reasonable value in most cases. For some datasets, such as RNA, this value should be typically brought down to 0.01. If the resampling of the model is bad (very long thermalization time or mode collapse), one may try to decrease the learning rate through the argument <code class="docutils literal notranslate"><span class="pre">--lr</span></code> to some smaller value (e.g. 0.005 or 0.001).</p>
+</section>
+<section id="number-of-markov-chains">
+<h3>Number of Markov Chains<a class="headerlink" href="#number-of-markov-chains" title="Link to this heading"></a></h3>
+<p>By default, the number of Markov chains is set equal to 10000. Empirically, we observe that the number of chains should be higher than a certain value in order to guarantee the convergence of the training to the target Pearson correlation coefficient. The minimal number of chains needed depends on the dataset and can vary a lot. In the <a class="reference internal" href="#fig-pearsons"><span class="std std-ref">figure</span></a> below, we trained a <code class="docutils literal notranslate"><span class="pre">bmDCA</span></code> model on the Chorismate Mutase protein family for different numbers of Markov chains. The minimum number of chains we tried is <span class="math notranslate nohighlight">\(M_{\mathrm{eff}}\)</span>, that is the <em>effective number of sequences</em> of the dataset, defined as:</p>
+<div class="math notranslate nohighlight">
+\[
+M_{\mathrm{eff}} = \sum_{m=1}^M w^{(m)} \leq M.
+\]</div>
+<p>This number is displayed at the beginning of the training routine. We can see that with less than 5000 chains the algorithm is not able to converge at the target Pearson coefficient (here set to 0.95). Empirically, we observe that the default value of 10000 chains does the job in all the tested datasets.</p>
+<p>To change the number of chains we can use the argument <code class="docutils literal notranslate"><span class="pre">--nchains</span></code>.</p>
+<figure class="align-center" id="fig-pearsons">
+<a class="reference internal image-reference" href="_images/Pearsons.png"><img alt="Pearson vs training time" src="_images/Pearsons.png" style="width: 372.0px; height: 301.5px;" />
+</a>
+<figcaption>
+<p><span class="caption-text">Evolution of the Pearson correlation coefficient for trainings with a different number of Markov chains. The target pearson is set to 0.95 (black dashed line).</span><a class="headerlink" href="#fig-pearsons" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+</section>
+<section id="number-of-monte-carlo-steps">
+<h3>Number of Monte Carlo steps<a class="headerlink" href="#number-of-monte-carlo-steps" title="Link to this heading"></a></h3>
+<p>The argument <code class="docutils literal notranslate"><span class="pre">--nsweeps</span></code> defines the number of Monte Carlo chain updates (sweeps) between one gradient update and the following. A single <em>sweep</em> is obtained once we propose a mutation for all the residues of the sequence. By default, this parameter is set to 10, which is a good choice for easily tractable MSAs. The higher this number is chosen the better the quality of the training will be, because in this way we allow the Markov chains to decorrelate more to the previous configuration. However, this parameter heavily impacts the training time, so we recommend choosing it in the interval 10 - 50.</p>
+</section>
+<section id="regularization">
+<h3>Regularization<a class="headerlink" href="#regularization" title="Link to this heading"></a></h3>
+<p>Another parameter that can be adjusted if the model does not resample correctly is the pseudo count, <span class="math notranslate nohighlight">\(\alpha\)</span>, which can be changed using the key <code class="docutils literal notranslate"><span class="pre">--pseudocount</span></code>. The pseudo count is a regularization term that introduces a flat prior on the frequency profiles, modifying the frequencies as in equations <a class="reference internal" href="preprocessing.html#equation-eqn-freqs-pseudocount">(2)</a>.
+If <span class="math notranslate nohighlight">\(\alpha = 1\)</span> we impose an equal probability to all the amino acids to be found in the residue at position <span class="math notranslate nohighlight">\(i\)</span>, while if <span class="math notranslate nohighlight">\(\alpha = 0\)</span> we just use the empirical frequencies of the data. By default, the pseudo count is set as the inverse of the effective number of sequences, <span class="math notranslate nohighlight">\(1 / M_{\mathrm{eff}}\)</span>.</p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="preprocessing.html" class="btn btn-neutral float-left" title="Input data and preprocessing" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="applications.html" class="btn btn-neutral float-right" title="Applications" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Lorenzo Rosset.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
