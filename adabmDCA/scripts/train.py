@@ -184,6 +184,7 @@ def main():
         chains=chains,
         max_epochs=args.nepochs,
         target_acc_rate=args.target_acc_rate,
+        use_wandb=args.wandb,
     )
 
     DCA_model.fit(

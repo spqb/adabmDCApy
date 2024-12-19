@@ -178,18 +178,22 @@ def fit(
         if checkpoint.check(count, params, chains):
             entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
             ess = _compute_ess(log_weights)
-            checkpoint.log("Pearson", pearson)
-            checkpoint.log("Slope", slope)
-            checkpoint.log("LL_train", log_likelihood)
-            checkpoint.log("ESS", ess)
-            checkpoint.log("Entropy", entropy)
-            checkpoint.log("Density", density)
-            checkpoint.log("Time", time.time() - time_start)
+            checkpoint.log(
+                {
+                    "Pearson": pearson,
+                    "Slope": slope,
+                    "LL_train": log_likelihood,
+                    "ESS": ess,
+                    "Entropy": entropy,
+                    "Density": density,
+                    "Time": time.time() - time_start,
+                }
+            )
             if fi_test is not None and fij_test is not None:
                 log_likelihood_test = compute_log_likelihood(fi=fi_test, fij=fij_test, params=params, logZ=logZ)
-                checkpoint.log("LL_test", log_likelihood_test)
+                checkpoint.log({"LL_test": log_likelihood_test})
             else:
-                checkpoint.log("LL_test", str(None))
+                checkpoint.log({"LL_test": float("nan")})
             
             checkpoint.save(
                 params=params,
@@ -200,18 +204,22 @@ def fit(
     
     entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
     ess = _compute_ess(log_weights)
-    checkpoint.log("Pearson", pearson)
-    checkpoint.log("Slope", slope)
-    checkpoint.log("LL_train", log_likelihood)
-    checkpoint.log("ESS", ess)
-    checkpoint.log("Entropy", entropy)
-    checkpoint.log("Density", density)
-    checkpoint.log("Time", time.time() - time_start)
+    checkpoint.log(
+        {
+            "Pearson": pearson,
+            "Slope": slope,
+            "LL_train": log_likelihood,
+            "ESS": ess,
+            "Entropy": entropy,
+            "Density": density,
+            "Time": time.time() - time_start,
+        }
+    )
     if fi_test is not None and fij_test is not None:
         log_likelihood_test = compute_log_likelihood(fi=fi_test, fij=fij_test, params=params, logZ=logZ)
-        checkpoint.log("LL_test", log_likelihood_test)
+        checkpoint.log({"LL_test": log_likelihood_test})
     else:
-        checkpoint.log("LL_test", str(None))
+        checkpoint.log({"LL_test": float("nan")})
                 
     checkpoint.save(
         params=params,
