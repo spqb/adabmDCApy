@@ -204,6 +204,7 @@ class LinearCheckpoint(Checkpoint):
         """
         if self.wandb:
             wandb.log(self.logs)
+            wandb.log({"Update": self.updates})
             
         save_params(fname=self.file_paths["params"], params=params, mask=mask, tokens=self.tokens)
         save_chains(fname=self.file_paths["chains"], chains=chains.argmax(dim=-1), tokens=self.tokens, log_weights=log_weights)
@@ -292,6 +293,7 @@ class AcceptanceCheckpoint(Checkpoint):
         """
         if self.wandb:
             wandb.log(self.logs)
+            wandb.log({"Update": self.updates})
             
         # Store the current parameters and chains
         self.params = {key: value.clone() for key, value in params.items()}
