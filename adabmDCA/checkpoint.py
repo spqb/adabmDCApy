@@ -238,9 +238,9 @@ class AcceptanceCheckpoint(Checkpoint):
         self.file_paths["params_history"] = self.file_paths["params"].with_suffix(".h5")
         with h5py.File(self.file_paths["params_history"], "w") as f:
             f["alphabet"] = self.tokens
-            f.create_group(f"update_{self.logs["Epochs"]}")
+            f.create_group("update_{0}".format(self.logs["Epochs"]))
             for key, value in params.items():
-                f[f"update_{self.logs["Epochs"]}"].create_dataset(key, data=value.cpu().numpy())
+                f["update_{0}".format(self.logs["Epochs"])].create_dataset(key, data=value.cpu().numpy())
         
     def check(
         self,
@@ -298,7 +298,7 @@ class AcceptanceCheckpoint(Checkpoint):
         with h5py.File(self.file_paths["params_history"], "a") as f:
             f.create_group("update_{0}".format(self.logs["Epochs"]))
             for key, value in params.items():
-                f[f"update_{self.logs["Epochs"]}"].create_dataset(key, data=value.cpu().numpy())
+                f["update_{0}".format(self.logs["Epochs"])].create_dataset(key, data=value.cpu().numpy())
         # Save the current parameters and chains
         save_params(fname=self.file_paths["params"], params=params, mask=mask, tokens=self.tokens)
         save_chains(fname=self.file_paths["chains"], chains=chains.argmax(dim=-1), tokens=self.tokens, log_weights=log_weights)
