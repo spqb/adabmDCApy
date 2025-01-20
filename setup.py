@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='adabmDCA',
-    version='0.3.1',
+    version='0.3.2',
     author='Lorenzo Rosset, Roberto Netti, Anna Paola Muntoni, Francesco Zamponi, Martin Weigt',
     maintainer='Lorenzo Rosset',
     author_email='rosset.lorenzo@gmail.com',
