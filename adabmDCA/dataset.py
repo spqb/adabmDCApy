@@ -22,6 +22,7 @@ class DatasetDCA(Dataset):
         no_reweighting: bool = False,
         device: torch.device = torch.device("cpu"),
         dtype: torch.dtype = torch.float32,
+        message: bool = True,
     ):
         """Initialize the dataset.
 
@@ -33,6 +34,7 @@ class DatasetDCA(Dataset):
             no_reweighting (bool, optional): If True, the weights are not computed. Defaults to False.
             device (torch.device, optional): Device to be used. Defaults to "cpu".
             dtype (torch.dtype, optional): Data type of the dataset. Defaults to torch.float32.
+            message (bool, optional): Print the import message. Defaults to True.
         """
         path_data = Path(path_data)
         self.names = None
@@ -59,14 +61,16 @@ class DatasetDCA(Dataset):
         if no_reweighting:
             self.weights = torch.ones(len(self.data), device=device, dtype=dtype)
         elif path_weights is None:
-            print("Automatically computing the sequence weights...")
+            if message:
+                print("Automatically computing the sequence weights...")
             self.weights = compute_weights(data=self.data, th=clustering_th, device=device, dtype=dtype)
         else:
             with open(path_weights, "r") as f:
                 weights = [float(line.strip()) for line in f]
             self.weights = torch.tensor(weights, device=device, dtype=dtype)
         
-        print(f"Multi-sequence alignment imported: M = {self.data.shape[0]}, L = {self.data.shape[1]}, q = {self.get_num_states()}, M_eff = {int(self.weights.sum())}.")
+        if message:
+            print(f"Multi-sequence alignment imported: M = {self.data.shape[0]}, L = {self.data.shape[1]}, q = {self.get_num_states()}, M_eff = {int(self.weights.sum())}.")
 
 
     def __len__(self):

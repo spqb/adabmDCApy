@@ -138,21 +138,24 @@ def resample_sequences(
     return data[indices]
 
 
-def get_device(device: str) -> torch.device:
+def get_device(device: str, message: bool = True) -> torch.device:
     """Returns the device where to store the tensors.
     
     Args:
         device (str): Device to be used.
+        message (bool, optional): Print the device. Defaults to True.
         
     Returns:
         torch.device: Device.
     """
     if "cuda" in device and torch.cuda.is_available():
         device = torch.device(device)
-        print(f"Running on {torch.cuda.get_device_name(device)}")
+        if message:
+            print(f"Running on {torch.cuda.get_device_name(device)}")
         return device
     else:
-        print("Running on CPU")
+        if message:
+            print("Running on CPU")
         return torch.device("cpu")
     
     
