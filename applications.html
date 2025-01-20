@@ -1,0 +1,189 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Applications &mdash; adabmDCA 1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=f2a433a1"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Boltzmann learning of biological models" href="boltzmann_learning.html" />
+    <link rel="prev" title="Implementation" href="implementation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            adabmDCA
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="preprocessing.html">Input data and preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="implementation.html">Implementation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Applications</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#generate-sequences">Generate sequences</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#convergence-criterium">Convergence criterium</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#contact-prediction">Contact prediction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#scoring-a-sequence-set">Scoring a sequence set</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#single-mutant-library">Single mutant library</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="boltzmann_learning.html">Boltzmann learning of biological models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quicklist.html">Quicklist</a></li>
+<li class="toctree-l1"><a class="reference internal" href="script_arguments.html">Script Arguments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="adabmDCApy.html">adabmDCApy APIs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bibliography.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">adabmDCA</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Applications</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/applications.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="applications">
+<h1>Applications<a class="headerlink" href="#applications" title="Link to this heading"></a></h1>
+<section id="generate-sequences">
+<span id="sec-sampling"></span><h2>Generate sequences<a class="headerlink" href="#generate-sequences" title="Link to this heading"></a></h2>
+<p>Once we have a trained model, we can use it to generate new sequences. This can be done using the command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="w">  </span>$<span class="w"> </span>./adabmDCA.sh<span class="w"> </span>sample<span class="w"> </span>-p<span class="w"> </span>&lt;path_params&gt;<span class="w"> </span>-d<span class="w"> </span>&lt;fasta_file&gt;<span class="w"> </span>-o<span class="w"> </span>&lt;output_folder&gt;<span class="w"> </span>--ngen<span class="w"> </span>&lt;num_gen&gt;
+</pre></div>
+</div>
+<p>where <code class="docutils literal notranslate"><span class="pre">output_folder</span></code> is the directory where to save the data and <code class="docutils literal notranslate"><span class="pre">num_gen</span></code> is the number of sequences to be generated. The routine will first compute the mixing time (<span class="math notranslate nohighlight">\(t^{\mathrm{mix}}\)</span>) of the model by running a simulation starting from the sequences of the input MSA. After that, it will randomly initialize <code class="docutils literal notranslate"><span class="pre">num_gen</span></code> Markov chains and run for <code class="docutils literal notranslate"><span class="pre">nmix</span></code> <span class="math notranslate nohighlight">\(\cdot t^{\mathrm{mix}}\)</span> sweeps to ensure that the model equilibrates. It will save in the output directory a FASTA file containing the sequences sampled with the model and a text file containing the records used to determine the convergence of the algorithm. Figure <a class="reference internal" href="#fig-mixing-time">mixing time</a>-Right shows the comparison between the entries of the covariance matrices obtained from the data and from the generated sequences. The Pearson correlation coefficient is the same used as a target for the training and the slope is close to 1, meaning that the model is able to correctly recover the two-sites statistics of the data MSA.</p>
+<section id="convergence-criterium">
+<h3>Convergence criterium<a class="headerlink" href="#convergence-criterium" title="Link to this heading"></a></h3>
+<p>To determine the convergence of the Monte Carlo simulation, the following strategy is used. We extract \texttt{nmeasure}<span class="math notranslate nohighlight">\(=N\)</span> sequences from the data MSA according to their statistical weight and we make a copy of them. The first set represents the chains simulated up to time <span class="math notranslate nohighlight">\(t\)</span>, and we denote them as <span class="math notranslate nohighlight">\(\pmb{A}(t) = \{\pmb{a}_1(t), \dots, \pmb{a}_{N}(t)\}\)</span>, while the sequences of the second set are the chains simulated until time <span class="math notranslate nohighlight">\(t/2\)</span>, and we call them <span class="math notranslate nohighlight">\(\pmb{A}(t/2) = \{\pmb{a}_1(t/2), \dots, \pmb{a}_{N}(t/2)\}\)</span>.
+With some abuse of notation, we define the <em>intrachain correlation</em> and <em>autocorrelation</em> as</p>
+<div class="math notranslate nohighlight">
+\[
+    \mathrm{SeqID}(t) = \frac{1}{N} \sum_{i=1}^{N} \mathrm{SeqID}(\pmb{a}_i(t), \pmb{a}_{\sigma(i)}(t)) \qquad \mathrm{SeqID}(t, t/2) = \frac{1}{N} \sum_{i=1}^{N} \mathrm{SeqID}(\pmb{a}_i(t), \pmb{a}_i(t/2))
+\]</div>
+<p>where <span class="math notranslate nohighlight">\(\sigma(i)\)</span> is a random permutation of the index <span class="math notranslate nohighlight">\(i\)</span> and</p>
+<div class="math notranslate nohighlight">
+\[
+    \mathrm{SeqID}(\pmb{a}, \pmb{b}) = \frac{1}{L}\sum_{i=1}^L \delta_{a_i, b_i} \in [0, 1]
+\]</div>
+<p>is the normalized sequence identity (or overlap) between the sequences <span class="math notranslate nohighlight">\(\pmb{a}\)</span> and <span class="math notranslate nohighlight">\(\pmb{b}\)</span>. By construction, at the initialization we have <span class="math notranslate nohighlight">\(\mathrm{SeqID}(t, t/2) = 1\)</span> and <span class="math notranslate nohighlight">\(\mathrm{SeqID}(t)\)</span> somewhat close to the average sequence identity of the MSA.  The convergence is obtained when chains are <em>mixed</em>, meaning that the system has completely forgotten the initial configuration. This requirement is satisfied when the statistics of a set of independent chains is the same as the one between the initialization and the evolved chains, meaning <span class="math notranslate nohighlight">\(\mathrm{SeqID}(t) \cong \mathrm{SeqID}(t, t/2)\)</span>. The point at which the two curves merge is called <em>mixing time</em>, and we denote it as <span class="math notranslate nohighlight">\(t^{\mathrm{mix}}\)</span>. After reaching the mixing time of the model, the algorithm will initialize <code class="docutils literal notranslate"><span class="pre">ngen</span></code> chains at random. It will run a sampling for other <code class="docutils literal notranslate"><span class="pre">nmix</span></code> <span class="math notranslate nohighlight">\(\cdot t^{\mathrm{mix}}\)</span> steps to guarantee complete thermalization, with <code class="docutils literal notranslate"><span class="pre">nmix=2</span></code> by default. Together with the generated sequences, the script will output a text file containing the records of <span class="math notranslate nohighlight">\(\mathrm{SeqID}(t)\)</span> and <span class="math notranslate nohighlight">\(\mathrm{SeqID}(t, t/2)\)</span> and their standard deviations  (figure <a class="reference internal" href="#fig-mixing-time">mixing time</a>-Left).</p>
+<figure class="align-center" id="fig-mixing-time">
+<a class="reference internal image-reference" href="_images/bmDCA_mixingtime.png"><img alt="Minxing time and scatterplot of Cij" src="_images/bmDCA_mixingtime.png" style="width: 733.5px; height: 250.2px;" />
+</a>
+<figcaption>
+<p><span class="caption-text">Analysis of a bmDCA model. <strong>Left</strong>: measuring the mixing time of the model using <span class="math notranslate nohighlight">\(10^4\)</span> chains. The curves represent the average overlap among randomly initialized samples (dark blue) and the one among the same sequences between times <span class="math notranslate nohighlight">\(t\)</span> and <span class="math notranslate nohighlight">\(t/2\)</span> (light blue). Shaded areas represent the error of the mean. When the two curves merge, we can assume that the chains at time <span class="math notranslate nohighlight">\(t\)</span> forgot the memory of the chains at time <span class="math notranslate nohighlight">\(t/2\)</span>. This point gives us an estimate of the model’s mixing time, <span class="math notranslate nohighlight">\(t^{\mathrm{mix}}\)</span>.  Notice that the times start from 1, so the starting conditions are not shown. <strong>Right</strong>: Scatter plot of the entries of the Covariance matrix of the data versus that of the generated samples.</span><a class="headerlink" href="#fig-mixing-time" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+</section>
+</section>
+<section id="contact-prediction">
+<h2>Contact prediction<a class="headerlink" href="#contact-prediction" title="Link to this heading"></a></h2>
+<p>One of the principal applications of the DCA models has been that of predicting a tertiary structure of a protein or RNA domain. In particular, with each pair of sites <span class="math notranslate nohighlight">\(i\)</span> and <span class="math notranslate nohighlight">\(j\)</span> in the MSA, <code class="docutils literal notranslate"><span class="pre">adabmDCA</span> <span class="pre">2.0</span></code> computes a contact score that quantifies how likely the two associated positions in the chains are in contact in the three-dimensional structure.
+Formally, it corresponds to the average-product corrected (APC) Frobenius norms of the coupling matrices <span id="id1">[<a class="reference internal" href="bibliography.html#id11" title="Magnus Ekeberg, Cecilia Lövkvist, Yueheng Lan, Martin Weigt, and Erik Aurell. Improved contact prediction in proteins: using pseudolikelihoods to infer potts models. Physical Review E, 87(1):012707, 2013. URL: https://link.aps.org/doi/10.1103/PhysRevE.87.012707, doi:10.1103/PhysRevE.87.012707.">Ekeberg <em>et al.</em>, 2013</a>]</span>, i.e.</p>
+<div class="math notranslate nohighlight" id="equation-eqn-frob">
+<span class="eqno">(1)<a class="headerlink" href="#equation-eqn-frob" title="Link to this equation"></a></span>\[
+F_{i,j}^{\rm APC} = F_{i,j} - \frac{\sum_{k} F_{i,k} \sum_{k} F_{k,j}}{\sum_{kl} F_{k,l}}, \quad F_{i,j} = \sqrt{\sum_{a,b \neq `-`} J_{i,j}\left(a, b \right)^{2}}
+\]</div>
+<p>Note that the coupling parameters are usually transformed in a zero-sum gauge before computing the scores, and the gap symbol should be neglected while computing the sum in Eq. <a class="reference internal" href="#equation-eqn-frob">(1)</a> <span id="id2">[<a class="reference internal" href="bibliography.html#id14" title="Christoph Feinauer, Marcin J. Skwark, Andrea Pagnani, and Erik Aurell. Improving contact prediction along three dimensions. PLOS Computational Biology, 10(10):e1003847, 2014. URL: https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1003847, doi:10.1371/journal.pcbi.1003847.">Feinauer <em>et al.</em>, 2014</a>]</span>.
+The scores for all site pairs are provided in the output folder in a separate file called <code class="docutils literal notranslate"><span class="pre">&lt;label&gt;_frobenius.txt</span></code> The first two columns indicate the site indices and the third one contains the associated APC Frobenius norm. The command for computing the matrix of Frobenius norms is</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>./adabmDCA.sh<span class="w"> </span>contacts<span class="w"> </span>-p<span class="w"> </span>&lt;file_params&gt;<span class="w">  </span>-o<span class="w"> </span>&lt;output_folder&gt;
+</pre></div>
+</div>
+</section>
+<section id="scoring-a-sequence-set">
+<h2>Scoring a sequence set<a class="headerlink" href="#scoring-a-sequence-set" title="Link to this heading"></a></h2>
+<p>At convergence, users can score a set of input sequences according to a trained DCA model by using the command line</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="w">  </span>$<span class="w"> </span>./adabmDCA.sh<span class="w"> </span>energies<span class="w"> </span>-d<span class="w"> </span>&lt;fasta_file&gt;<span class="w">  </span>-p<span class="w"> </span>&lt;file_params&gt;<span class="w">  </span>-o<span class="w"> </span>&lt;output_folder&gt;
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">adabmDCA</span> <span class="pre">2.0</span></code> will produce a new FASTA file in the output folder <code class="docutils literal notranslate"><span class="pre">&lt;output_folder&gt;</span></code> where the input sequences in <code class="docutils literal notranslate"><span class="pre">&lt;fasta_file&gt;</span></code> have an additional field in the name that account for the DCA energy function computed according to the model in <code class="docutils literal notranslate"><span class="pre">&lt;file_params&gt;</span></code>. Note that <em>low</em> energies correspond to good sequences.</p>
+</section>
+<section id="single-mutant-library">
+<h2>Single mutant library<a class="headerlink" href="#single-mutant-library" title="Link to this heading"></a></h2>
+<p>Another possible application exploits the sequence-fitness score computable according to the energy function <span class="math notranslate nohighlight">\(E\)</span> in Eq. <a class="reference internal" href="boltzmann_learning.html#equation-eqn-probdca">(1)</a>. This routine provides a single-mutant library for a given wild type to possibly guide Deep Mutational Scanning (DMS) experiments. In particular, <code class="docutils literal notranslate"><span class="pre">adabmDCA</span> <span class="pre">2.0</span></code> allows one to predict the fitness reduction (increase) in terms of <span class="math notranslate nohighlight">\(\Delta E = E\left(\rm mutant \right) - E\left(\rm wildtype \right)\)</span> for positive (negative) value of <span class="math notranslate nohighlight">\(\Delta E\)</span>, respectively <span id="id3">[<a class="reference internal" href="bibliography.html#id15" title="Thomas A. Hopf, John B. Ingraham, Frank J. Poelwijk, Charlotta P. I. Schärfe, Michael Springer, Chris Sander, and Debora S. Marks. Mutation effects predicted from sequence co-variation. Nature Biotechnology, 35(2):128–135, 2017. URL: https://www.nature.com/articles/nbt.3769, doi:10.1038/nbt.3769.">Hopf <em>et al.</em>, 2017</a>]</span>.
+To produce a FASTA file containing all weighted single-mutants one has to run</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="w">  </span>$<span class="w"> </span>./adabmDCA.sh<span class="w"> </span>DMS<span class="w"> </span>-d<span class="w"> </span>&lt;WT&gt;<span class="w"> </span>-p<span class="w"> </span>&lt;file_params&gt;<span class="w"> </span>-o<span class="w"> </span>&lt;output_folder&gt;
+</pre></div>
+</div>
+<p>where <code class="docutils literal notranslate"><span class="pre">&lt;WT&gt;</span></code> is the name of the FASTA file containing the wild type sequence, <code class="docutils literal notranslate"><span class="pre">&lt;file_params&gt;</span></code> is a model file in a format compatible with <code class="docutils literal notranslate"><span class="pre">adabmDCA</span> <span class="pre">2.0</span></code> output, and <code class="docutils literal notranslate"><span class="pre">&lt;output_folder&gt;</span></code> corresponds to the folder that will contain the library file. The sequences in the output FASTA file are named after the introduced mutation and the corresponding <span class="math notranslate nohighlight">\(\Delta E\)</span>; for instance, <code class="docutils literal notranslate"><span class="pre">&gt;G27A</span> <span class="pre">|</span> <span class="pre">DCAscore:</span> <span class="pre">-0.6</span></code> denotes that position <code class="docutils literal notranslate"><span class="pre">27</span></code> has been changed from <code class="docutils literal notranslate"><span class="pre">G</span></code> to <code class="docutils literal notranslate"><span class="pre">A</span></code> and <span class="math notranslate nohighlight">\(\Delta E = -0.6\)</span>.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="implementation.html" class="btn btn-neutral float-left" title="Implementation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="boltzmann_learning.html" class="btn btn-neutral float-right" title="Boltzmann learning of biological models" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Lorenzo Rosset.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
