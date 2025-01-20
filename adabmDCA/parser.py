@@ -125,3 +125,10 @@ def add_args_sample(parser : argparse.ArgumentParser) -> argparse.ArgumentParser
     parser = add_args_reweighting(parser)
     
     return parser
+
+def add_args_reintegration(parser : argparse.ArgumentParser) -> argparse.ArgumentParser:
+    parser.add_argument("--reint",  type=Path,   required=True,  help="Path to the fasta file containing the reintegrated sequences.")
+    parser.add_argument("--adj",    type=Path,   required=True,  help="Path to the file containing the adjustment vector.")
+    parser.add_argument("--lambda_", type=float,    required=True,  help="Lambda parameter for the reintegration.")
+    
+    return parser

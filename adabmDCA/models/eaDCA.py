@@ -152,6 +152,7 @@ def fit(
             ess = _compute_ess(log_weights)
             checkpoint.log(
                 {
+                    "Epochs": graph_upd,
                     "Pearson": pearson,
                     "Slope": slope,
                     "LL_train": log_likelihood,
@@ -179,6 +180,7 @@ def fit(
     ess = _compute_ess(log_weights)
     checkpoint.log(
         {
+            "Epochs": graph_upd,
             "Pearson": pearson,
             "Slope": slope,
             "LL_train": log_likelihood,

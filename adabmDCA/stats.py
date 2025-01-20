@@ -12,6 +12,8 @@ def _get_freq_single_point(
 ) -> torch.Tensor:    
     _, _, q = data.shape
     frequencies = (data * weights).sum(dim=0)
+    # Set to zero the negative frequencies. Used for the reintegration.
+    torch.clamp_(frequencies, min=0.0)
 
     return (1. - pseudo_count) * frequencies + (pseudo_count / q)
 
@@ -63,6 +65,8 @@ def _get_freq_two_points(
     fij_diag = (1. - pseudo_count) * fi + (pseudo_count / q)
     # Set the diagonal terms of fij to the single point frequencies
     fij = torch.diagonal_scatter(fij, fij_diag, dim1=0, dim2=1)
+    # Set to zero the negative frequencies. Used for the reintegration.
+    torch.clamp_(fij, min=0.0)
     
     return fij.reshape(L, q, L, q)
 
