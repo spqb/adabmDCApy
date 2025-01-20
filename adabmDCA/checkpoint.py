@@ -238,9 +238,9 @@ class AcceptanceCheckpoint(Checkpoint):
         self.file_paths["params_history"] = self.file_paths["params"].with_suffix(".h5")
         with h5py.File(self.file_paths["params_history"], "w") as f:
             f["alphabet"] = self.tokens
-            f.create_group(f"update_{self.logs["Epochs"]}")
+            f.create_group("update_{0}".format(self.logs["Epochs"]))
             for key, value in params.items():
-                f[f"update_{self.logs["Epochs"]}"].create_dataset(key, data=value.cpu().numpy())
+                f["update_{0}".format(self.logs["Epochs"])].create_dataset(key, data=value.cpu().numpy())
         
     def check(
         self,
