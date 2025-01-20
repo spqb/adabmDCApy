@@ -35,7 +35,7 @@ def main():
     # Set the device
     device = get_device(args.device)
     dtype = get_dtype(args.dtype)
-    template = "{0:<30} {1:<100}"
+    template = "{0:<30} {1:<50}"
     print(template.format("Input MSA:", str(args.data)))
     print(template.format("Output folder:", str(args.output)))
     print(template.format("Alphabet:", args.alphabet))
