@@ -211,19 +211,6 @@ class LinearCheckpoint(Checkpoint):
         out_string = " ".join([f"{value:<10.3f}" for value in self.logs.values()])
         with open(self.file_paths["log"], "a") as f:
             f.write(f"{self.updates:<10} {out_string}\n")
-
-
-    def save_log(
-        self,
-    ) -> None:
-        """Saves the updates on the .log file."""
-        
-        if self.wandb:
-            wandb.log(self.logs)
-       
-        out_string = " ".join([f"{value:<10.3f}" for value in self.logs.values()])
-        with open(self.file_paths["log"], "a") as f:
-            f.write(f"{self.updates:<10} {out_string}\n")
             
             
 class AcceptanceCheckpoint(Checkpoint):
@@ -322,7 +309,97 @@ class AcceptanceCheckpoint(Checkpoint):
         with open(self.file_paths["log"], "a") as f:
             f.write(f"{self.updates:<10} {out_string}\n")
         
+        
+class Log_checkpoint(ABC):
+    """Helper class log the progress of the training.
+    """
+    def __init__(
+        self,
+        file_paths: dict,
+        tokens: str,
+        args: dict,
+        use_wandb: bool = False,
+    ):
+        """Initializes the Checkpoint class.
+
+        Args:
+            file_paths (dict): Dictionary containing the paths of the files to be saved.
+            tokens (str): Alphabet to be used for encoding the sequences.
+            args (dict): Dictionary containing the arguments of the training.
+            use_wandb (bool, optional): Whether to use Weights & Biases for logging. Defaults to False.
+        """
+        if not isinstance(args, dict):
+            args = vars(args)
             
+        self.file_paths = file_paths
+        self.tokens = tokens
+        
+        self.wandb = use_wandb
+        if self.wandb:
+            wandb.init(project="adabmDCA", config=args)
+        
+        self.updates = 0
+        
+        self.logs = {
+            "Theta": 0.0,
+            "Free Energy": 0.0,
+            "Entropy": 0.0,
+            "Time": 0.0,
+        }
+        
+        template = "{0:<20} {1:<50}\n"  
+        with open(file_paths["log"], "w") as f:
+            if args["label"] is not None:
+                f.write(template.format("label:", args["label"]))
+            else:
+                f.write(template.format("label:", "N/A"))
+            
+            f.write(template.format("input MSA:", str(args["data"])))
+            f.write(template.format("alphabet:", args["alphabet"]))
+            f.write(template.format("nchains:", args["ngen"]))
+            f.write(template.format("nsweeps:", args["nsweeps"]))
+            if args["nsweeps_theta"] is not None:
+                f.write(template.format("nsweeps_theta:", str(args["nsweeps_theta"])))
+                
+            if args["nsweeps_zero"] is not None:
+                f.write(template.format("nsweeps_zero:", str(args["nsweeps_zero"])))
+                
+            f.write(template.format("nsteps:", args["nsteps"]))
+            f.write(template.format("data type:", args["dtype"]))
+            f.write(template.format("random seed:", args["seed"]))
+            f.write("\n")
+            # write the header of the log file
+            header_string = " ".join([f"{key:<10}" for key in self.logs.keys()])
+            # f.write("{0:<10} {1}\n".format("Epoch", header_string))
+        
+    def log(
+        self,
+        record: Dict[str, Any],
+    ) -> None:
+        """Adds a key-value pair to the log dictionary
+
+        Args:
+            record (Dict[str, Any]): Key-value pairs to be added to the log dictionary.
+        """
+        for key, value in record.items():
+            if key not in self.logs.keys():
+                raise ValueError(f"Key {key} not recognized.")
+        
+            if isinstance(value, torch.Tensor):
+                self.logs[key] = value.item()
+            else:
+                self.logs[key] = value
+                
+    def save_log(
+        self,
+    ) -> None:
+        """Saves the updates on the .log file."""
+
+        out_string = " ".join([f"{value:<10.3f}" for value in self.logs.values()])
+        with open(self.file_paths["log"], "a") as f:
+            f.write(f"{self.updates:<10} {out_string}\n")
+ 
+
 def get_checkpoint(chpt: str) -> Checkpoint:
     if chpt == "linear":
         return LinearCheckpoint
