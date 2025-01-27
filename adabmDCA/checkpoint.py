@@ -355,6 +355,8 @@ class Log_checkpoint(ABC):
                 f.write(template.format("label:", "N/A"))
             
             f.write(template.format("input MSA:", str(args["data"])))
+            f.write(template.format("model path:", str(args["path_params"])))
+            f.write(template.format("target seq:", str(args["path_targetseq"])))
             f.write(template.format("alphabet:", args["alphabet"]))
             f.write(template.format("nchains:", args["ngen"]))
             f.write(template.format("nsweeps:", args["nsweeps"]))
@@ -370,7 +372,6 @@ class Log_checkpoint(ABC):
             f.write("\n")
             # write the header of the log file
             header_string = " ".join([f"{key:<10}" for key in self.logs.keys()])
-            # f.write("{0:<10} {1}\n".format("Epoch", header_string))
         
     def log(
         self,

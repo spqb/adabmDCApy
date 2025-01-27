@@ -152,11 +152,14 @@ def main():
 
     for i, theta in enumerate(thetas):
         print(f"\nstep n:{i}, theta={theta:.2f}")
+        # sampling and compute seqID
         params_theta["bias"] = params["bias"] + theta * targetseq
         chains_theta = sampler(chains_theta, params_theta, nsweeps)
         seqID = compute_seqID(chains_theta, targetseq)
         mean_seqID = seqID.mean()
         print(f"average seqID: {mean_seqID:.3f}", flush=True)
+        
+        # step of integration to compute entropy
         if i == 0 or i == int_step - 1:
             F += factor * torch.mean(seqID) 
             integral += factor * mean_seqID
