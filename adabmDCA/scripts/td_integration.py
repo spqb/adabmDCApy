@@ -14,8 +14,7 @@ from adabmDCA.sampling import get_sampler
 from adabmDCA.statmech import compute_energy
 from adabmDCA.parser import add_args_tdint
 from adabmDCA.resampling import compute_seqID 
-
-
+from adabmDCA.checkpoint import Checkpoint
 
 
 # import command-line input arguments
@@ -49,14 +48,20 @@ def main():
     if not Path(args.path_targetseq).exists():
         raise FileNotFoundError(f"Target Sequence file {args.path_targetseq} not found.")
 
+    # set file pahts
+    if args.label is not None:
+        file_paths = {"log" : folder / Path(f"{args.label}.log")}      
+    else:
+        file_paths = {"log" : folder / Path(f"adabmDCA.log")}
+
     # select sampler
     sampler = get_sampler("gibbs")
 
     # read and encode natural data
     tokens = get_tokens(args.alphabet)
-    _, sequences = import_from_fasta(args.data, tokens=tokens, filter_sequences=True)
-    M, L, q = len(sequences), len(sequences[0]), len(tokens)
-    nat_data = one_hot(torch.tensor(sequences, device=device, dtype=torch.int32), num_classes=q).to(dtype)
+    _, nat_data = import_from_fasta(args.data, tokens=tokens, filter_sequences=True)
+    M, L, q = len(nat_data), len(nat_data[0]), len(tokens)
+    nat_data = one_hot(torch.tensor(nat_data, device=device, dtype=torch.int32), num_classes=q).to(dtype)
     print(f"Number of sequences in the MSA: M={M}")
     print(f"Length of the MSA: L={L}")
     print(f"Number of Potts states: q={q}\n")
@@ -65,8 +70,8 @@ def main():
     params = load_params(args.path_params, tokens=tokens, device=device, dtype=dtype)
 
     # read chains
-    if chains_path is None:
-        chains = init_chains(args.ngen, L, q)
+    if args.path_chains is None:
+        chains = init_chains(args.ngen, L, q, device=device)
     else:   
         chains = load_chains(args.path_chains, tokens=tokens)
         chains = one_hot(torch.tensor(chains, device=device, dtype=torch.int32), num_classes=q).to(dtype)
@@ -88,7 +93,6 @@ def main():
     # Sampling to thermalize at theta = theta_max
     params_theta = copy.deepcopy(params)
     params_theta["bias"] += theta_max * targetseq
-    
     chains_theta = one_hot(torch.randint(0, q, size=(args.ngen, L), device=device), num_classes=q)
     nsweep_theta_max = 100
     chains_theta = sampler(chains_theta, params_theta, nsweep_theta_max)
@@ -96,6 +100,16 @@ def main():
     seqID_max = compute_seqID(chains_theta, targetseq)
     print(f"Average seqID at theta = {theta_max}: {seqID_max.mean():.2f}")
     print(f"Average energy at theta = {theta_max}: {ave_energy_theta:.2f}\n")
+
+    # initialize checkpoint
+    checkpoint = get_checkpoint(args.checkpoints)(
+            file_paths=file_paths,
+            tokens=tokens,
+            args=args,
+            params=params,
+            chains=chains_0,
+            use_wandb=args.wandb,
+        )
 
     # Find theta_max to generate 10% WT sequences
     p_wt =  (seqID_max == L).sum().item() / args.ngen
@@ -107,21 +121,32 @@ def main():
         chains_theta = sampler(chains_theta, params_theta, nsweep_find_theta)
         seqID = compute_seqID(chains_theta, targetseq)
         p_wt = (seqID == L).sum().item() / args.ngen
-        energy_theta = compute_energy(chains_theta, params)
-        ave_energy_theta = torch.mean(energy_theta)
+        # energy_theta = compute_energy(chains_theta, params)
+        # ave_energy_theta = torch.mean(energy_theta)
         print(f"{(p_wt * 100):.2f}% sequences collapse to wt", flush=True)
     
     # Thermodynamic Integration
     int_step = 200
     nsweeps = 100
-
     F_max = np.log(p_wt) + torch.mean(compute_energy(chains_theta[seqID == L], params_theta))
     thetas = torch.linspace(0, theta_max, int_step) 
     factor = theta_max / (2*int_step)
-
-    t_start = time.time()
     F, S, integral = F_max, 0, 0
     torch.set_printoptions(precision=2)
+
+    if progress_bar: 
+        pbar = tqdm(
+            initial=max(0, thetas[0]),
+            total=theta_max,
+            colour="red",
+            dynamic_ncols=True,
+            leave=False,
+            ascii="-#",
+            bar_format="{desc} {percentage:.2f}%[{bar}] Theta: {n:.3f}/{total_fmt} [{elapsed}]"
+        )
+        pbar.set_description(f"Theta: {theta} - Entropy: {0:.2f}")
+
+    time_start = time.time()
 
     for i, theta in enumerate(thetas):
         print(f"\nstep n:{i}, theta={theta:.2f}")
@@ -136,8 +161,22 @@ def main():
         else:
             F += 2 * factor * mean_seqID
             integral += 2 * factor * mean_seqID
-
         S = ave_energy_0 - F
+
+        if progress_bar:
+            pbar.n = min(max(0, float(theta)), theta_max)
+            pbar.set_description(f"Theta: {theta} - Entropy: {S:.2f}")
+
+        checkpoint.log(
+                    {   
+                        "Theta": theta,
+                        "Free Energy": F,
+                        "Entropy": S,
+                        "Time": time.time() - time_start,
+                    }
+                    )
+        checkpoint.save_log()
+
         print(f"Free energy: {F:.3f}")
         print(f"Integral: {integral:.3f}")
         print(f"Entropy: {S:.3f}")

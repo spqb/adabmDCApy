@@ -8,7 +8,7 @@ def main():
 
     # Check if the first positional argument is provided
     if len(sys.argv) < 2:
-        print("Error: No command provided. Use 'train', 'sample', 'contacts', 'energies', or 'DMS'.")
+        print("Error: No command provided. Use 'train', 'sample', 'contacts', 'energies', 'DMS' or 'entropy'.")
         sys.exit(1)
 
     # Assign the first positional argument to a variable
@@ -26,6 +26,8 @@ def main():
             SCRIPT = "energies.py"
         case "DMS":
             SCRIPT = "dms.py"
+        case "entropy":
+            SCRIPT = "td_integration.py"
         case _:
             print(f"Error: Invalid command '{COMMAND}'. Use 'train', 'sample', 'contacts', 'energies', or 'DMS'.")
             sys.exit(1)

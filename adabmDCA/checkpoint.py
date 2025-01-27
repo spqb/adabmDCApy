@@ -211,6 +211,19 @@ class LinearCheckpoint(Checkpoint):
         out_string = " ".join([f"{value:<10.3f}" for value in self.logs.values()])
         with open(self.file_paths["log"], "a") as f:
             f.write(f"{self.updates:<10} {out_string}\n")
+
+
+    def save_log(
+        self,
+    ) -> None:
+        """Saves the updates on the .log file."""
+        
+        if self.wandb:
+            wandb.log(self.logs)
+       
+        out_string = " ".join([f"{value:<10.3f}" for value in self.logs.values()])
+        with open(self.file_paths["log"], "a") as f:
+            f.write(f"{self.updates:<10} {out_string}\n")
             
             
 class AcceptanceCheckpoint(Checkpoint):
