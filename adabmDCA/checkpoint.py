@@ -372,6 +372,7 @@ class Log_checkpoint(ABC):
             f.write("\n")
             # write the header of the log file
             header_string = " ".join([f"{key:<10}" for key in self.logs.keys()])
+            f.write("{0:<10} {1}\n".format("Epoch", header_string))
         
     def log(
         self,
