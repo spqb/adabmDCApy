@@ -50,9 +50,9 @@ class Checkpoint(ABC):
         else:
             self.chains = None
         self.max_epochs = args["nepochs"]
-        self.updates = 0
         
         self.logs = {
+            "Epochs": 0,
             "Pearson": 0.0,
             "Slope": 0.0,
             "LL_train": 0.0,
@@ -87,7 +87,7 @@ class Checkpoint(ABC):
             f.write("\n")
             # write the header of the log file
             header_string = " ".join([f"{key:<10}" for key in self.logs.keys()])
-            f.write("{0:<10} {1}\n".format("Epoch", header_string))
+            f.write(header_string + "\n")
         
         
     def log(
@@ -183,7 +183,6 @@ class LinearCheckpoint(Checkpoint):
         Returns:
             bool: Whether a checkpoint has been reached.
         """
-        self.updates = updates
         return (updates % self.checkpt_interval == 0) or (updates == self.max_epochs)
     
     
@@ -208,9 +207,9 @@ class LinearCheckpoint(Checkpoint):
         save_params(fname=self.file_paths["params"], params=params, mask=mask, tokens=self.tokens)
         save_chains(fname=self.file_paths["chains"], chains=chains.argmax(dim=-1), tokens=self.tokens, log_weights=log_weights)
         
-        out_string = " ".join([f"{value:<10.3f}" for value in self.logs.values()])
+        out_string = " ".join([f"{value:<10.3f}" if isinstance(value, float) else f"{value:<10}" for value in self.logs.values()])
         with open(self.file_paths["log"], "a") as f:
-            f.write(f"{self.updates:<10} {out_string}\n")
+            f.write(out_string + "\n")
             
             
 class AcceptanceCheckpoint(Checkpoint):
@@ -239,9 +238,9 @@ class AcceptanceCheckpoint(Checkpoint):
         self.file_paths["params_history"] = self.file_paths["params"].with_suffix(".h5")
         with h5py.File(self.file_paths["params_history"], "w") as f:
             f["alphabet"] = self.tokens
-            f.create_group(f"update_{self.updates}")
+            f.create_group("update_{0}".format(self.logs["Epochs"]))
             for key, value in params.items():
-                f[f"update_{self.updates}"].create_dataset(key, data=value.cpu().numpy())
+                f["update_{0}".format(self.logs["Epochs"])].create_dataset(key, data=value.cpu().numpy())
         
     def check(
         self,
@@ -268,7 +267,6 @@ class AcceptanceCheckpoint(Checkpoint):
             prev_chains=self.chains,
             curr_chains=curr_chains,
         )
-        self.updates = updates
         return (acc_rate < self.target_acc_rate) or (updates == self.max_epochs)
     
     
@@ -298,16 +296,16 @@ class AcceptanceCheckpoint(Checkpoint):
         self.chains = chains.clone()
         # Append the current parameters to the history
         with h5py.File(self.file_paths["params_history"], "a") as f:
-            f.create_group(f"update_{self.updates}")
+            f.create_group("update_{0}".format(self.logs["Epochs"]))
             for key, value in params.items():
-                f[f"update_{self.updates}"].create_dataset(key, data=value.cpu().numpy())
+                f["update_{0}".format(self.logs["Epochs"])].create_dataset(key, data=value.cpu().numpy())
         # Save the current parameters and chains
         save_params(fname=self.file_paths["params"], params=params, mask=mask, tokens=self.tokens)
         save_chains(fname=self.file_paths["chains"], chains=chains.argmax(dim=-1), tokens=self.tokens, log_weights=log_weights)
         # Update the log file
-        out_string = " ".join([f"{value:<10.3f}" for value in self.logs.values()])
+        out_string = " ".join([f"{value:<10.3f}" if isinstance(value, float) else f"{value:<10}" for value in self.logs.values()])
         with open(self.file_paths["log"], "a") as f:
-            f.write(f"{self.updates:<10} {out_string}\n")
+            f.write(out_string + "\n")
         
         
 class Log_checkpoint(ABC):

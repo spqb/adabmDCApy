@@ -1,7 +1,7 @@
 # adabmDCA 2.0 - Direct Coupling Analysis in Python
 
 **Authors:**  
-- **Lorenzo Rosset** (Sorbonne Université, Sapienza Università di Roma)
+- **Lorenzo Rosset** (Ecole Normale Supérieure ENS, Sorbonne Université)
 - **Roberto Netti** (Sorbonne Université)
 - **Anna Paola Muntoni** (Politecnico di Torino)
 - **Martin Weigt** (Sorbonne Université)

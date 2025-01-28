@@ -166,3 +166,4 @@ doc/_build
 notebooks/
 Pipfile
 Pipfile.lock
+wandb/

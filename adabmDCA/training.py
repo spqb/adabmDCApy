@@ -235,6 +235,7 @@ def train_graph(
                 ess = _compute_ess(log_weights)
                 checkpoint.log(
                     {
+                        "Epochs": epochs,
                         "Pearson": pearson,
                         "Slope": slope,
                         "LL_train": log_likelihood,
@@ -265,6 +266,7 @@ def train_graph(
         ess = _compute_ess(log_weights)
         checkpoint.log(
             {
+                "Epochs": epochs,
                 "Pearson": pearson,
                 "Slope": slope,
                 "LL_train": log_likelihood,

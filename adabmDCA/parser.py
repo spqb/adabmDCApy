@@ -126,7 +126,6 @@ def add_args_sample(parser : argparse.ArgumentParser) -> argparse.ArgumentParser
     
     return parser
 
-
 def add_args_tdint(parser : argparse.ArgumentParser) -> argparse.ArgumentParser:
     parser.add_argument("-p", "--path_params",      type=Path,   required=True,           help="Path to the file containing the parameters of DCA model to sample from.")
     parser.add_argument("-d", "--data",             type=Path,   required=True,           help="Path to the file containing the data to sample from.")
@@ -149,5 +148,10 @@ def add_args_tdint(parser : argparse.ArgumentParser) -> argparse.ArgumentParser:
     parser.add_argument("--seed",               type=int,    default=0,               help="(Defaults to 0). Seed for the random number generator.")
 
     parser = add_args_checkpoint(parser)
+
+def add_args_reintegration(parser : argparse.ArgumentParser) -> argparse.ArgumentParser:
+    parser.add_argument("--reint",  type=Path,   required=True,  help="Path to the fasta file containing the reintegrated sequences.")
+    parser.add_argument("--adj",    type=Path,   required=True,  help="Path to the file containing the adjustment vector.")
+    parser.add_argument("--lambda_", type=float,    required=True,  help="Lambda parameter for the reintegration.")
 
     return parser
