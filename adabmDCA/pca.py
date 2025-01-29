@@ -73,15 +73,18 @@ class Pca():
     def fit(
         self,
         M: torch.Tensor,
+        num_directions: int = 2,
     ) -> None:
         """Fit the PCA model to the data.
 
         Args:
             M (torch.Tensor): Data matrix (num_samples, num_variables).
+            num_directions (int): Number of principal components to compute.
         """
         # Check that the input matrix is a 2D tensor
         if M.dim() != 2:
             raise ValueError("Input matrix must be a 2D tensor.")
+        self.num_directions = num_directions
         self.U = _compute_U(M, self.num_directions, M.device, M.dtype)
 
     def transform(
@@ -101,14 +104,16 @@ class Pca():
     def fit_transform(
         self,
         M: torch.Tensor,
+        num_directions: int = 2,
     ) -> torch.Tensor:
         """Fit the PCA model to the data and project the data onto the principal components.
 
         Args:
             M (torch.Tensor): Data matrix (num_samples, num_variables).
+            num_directions (int): Number of principal components to compute.
 
         Returns:
             torch.Tensor: Projected data matrix (num_samples, num_directions).
         """
-        self.fit(M)
+        self.fit(M, num_directions)
         return self.transform(M)
