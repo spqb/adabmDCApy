@@ -28,12 +28,16 @@ def create_parser():
 
 
 def main():
-    print("\n" + "".join(["*"] * 10) + f" Computing Entropy " + "".join(["*"] * 10) + "\n")
     
     # Parse arguments
     parser = create_parser()
     args = parser.parse_args()
+    
+    # Create output folder
+    folder = Path(args.output)
+    folder.mkdir(parents=True, exist_ok=True)
 
+    print("\n" + "".join(["*"] * 10) + f" Computing Entropy " + "".join(["*"] * 10) + "\n")
     # Set the device
     device = get_device(args.device)
     dtype = get_dtype(args.dtype)
@@ -49,11 +53,6 @@ def main():
     # Check if the target-sequence file exists
     if not Path(args.path_targetseq).exists():
         raise FileNotFoundError(f"Target Sequence file {args.path_targetseq} not found.")
-
-    
-    # Create the folder where to save the model
-    folder = Path(args.output)
-    folder.mkdir(parents=True, exist_ok=True)
     
     if args.label is not None:
         file_paths = {"log" : folder / Path(f"{args.label}.log")}      
@@ -62,6 +61,7 @@ def main():
 
     # select sampler
     sampler = get_sampler("gibbs")
+    
 
     # read and encode natural data
     tokens = get_tokens(args.alphabet)
@@ -88,12 +88,18 @@ def main():
     _, targetseq = import_from_fasta(args.path_targetseq, tokens=tokens, filter_sequences=True) 
     targetseq = one_hot(torch.tensor(targetseq, device=device, dtype=torch.int32), num_classes=q).to(dtype).squeeze(dim=0)
 
+
+    # initialize checkpoint
+    checkpoint = Log_checkpoint(
+            file_paths=file_paths,
+            tokens=tokens,
+            args=args,
+            use_wandb=False,
+        ) 
+    
     # Sampling to thermalize at theta = 0
     chains_0 = sampler(chains, params, args.nsweeps_zero) 
     ave_energy_0 = torch.mean(compute_energy(chains_0, params))
-    seqID_0 = compute_seqID(chains_0, targetseq)
-    print(f"Average seqID at theta = 0: {seqID_0.mean():.2f}")
-    print(f"Average energy at theta = 0: {ave_energy_0:.2f}")
 
     # Sampling to thermalize at theta = theta_max
     theta_max = args.theta_max
@@ -104,19 +110,9 @@ def main():
     energy_theta = compute_energy(chains_theta, params)
     ave_energy_theta = torch.mean(energy_theta)
     seqID_max = compute_seqID(chains_theta, targetseq)
-    print(f"\nAverage seqID at theta = {theta_max}: {seqID_max.mean():.2f}")
-    print(f"Average energy at theta = {theta_max}: {ave_energy_theta:.2f}\n")
-
-    # initialize checkpoint
-    checkpoint = Log_checkpoint(
-            file_paths=file_paths,
-            tokens=tokens,
-            args=args,
-            use_wandb=False,
-        )  
             
-    # Find theta_max to generate 10% WT sequences
-    p_wt =  (seqID_max == L).sum().item() / args.ngen
+    # Find theta_max to generate 10% target sequences in the sample
+    p_wt =  (seqID_max == L).sum().item() / args.ngen # percentage of targetseq in the sample
     nsweep_find_theta = 100
     while p_wt <= 0.1:
         theta_max += 0.01 * theta_max
@@ -127,7 +123,7 @@ def main():
         p_wt = (seqID == L).sum().item() / args.ngen
         print(f"{(p_wt * 100):.2f}% sequences collapse to wt", flush=True)
     
-    # Thermodynamic Integration
+    # initiaize Thermodynamic Integration
     int_step = args.nsteps
     nsweeps = args.nsweeps
     F_max = np.log(p_wt) + torch.mean(compute_energy(chains_theta[seqID == L], params_theta))
@@ -152,6 +148,7 @@ def main():
 
     for i, theta in enumerate(thetas):
         print(f"\nstep n:{i}, theta={theta:.2f}")
+        
         # sampling and compute seqID
         params_theta["bias"] = params["bias"] + theta * targetseq
         chains_theta = sampler(chains_theta, params_theta, nsweeps)
@@ -175,6 +172,7 @@ def main():
 
         # checkpoint
         checkpoint.log({   
+                        "Epoch": int(i),
                         "Theta": theta,
                         "Free Energy": F,
                         "Entropy": S,

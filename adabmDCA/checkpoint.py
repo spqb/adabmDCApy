@@ -339,6 +339,7 @@ class Log_checkpoint(ABC):
         self.updates = 0
         
         self.logs = {
+            "Epoch": 0,
             "Theta": 0.0,
             "Free Energy": 0.0,
             "Entropy": 0.0,
@@ -370,7 +371,7 @@ class Log_checkpoint(ABC):
             f.write("\n")
             # write the header of the log file
             header_string = " ".join([f"{key:<10}" for key in self.logs.keys()])
-            f.write("{0:<10} {1}\n".format("Epoch", header_string))
+            f.write(header_string + "\n") #f.write("{0:<10} {1}\n".format("Epoch", header_string))
         
     def log(
         self,
@@ -397,7 +398,7 @@ class Log_checkpoint(ABC):
 
         out_string = " ".join([f"{value:<10.3f}" for value in self.logs.values()])
         with open(self.file_paths["log"], "a") as f:
-            f.write(f"{self.updates:<10} {out_string}\n")
+            f.write(f"{out_string}\n")
  
 
 def get_checkpoint(chpt: str) -> Checkpoint:
