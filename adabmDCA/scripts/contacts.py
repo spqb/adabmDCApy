@@ -53,11 +53,10 @@ def main():
     # Compute the Frobenius norm
     print("Computing the Frobenius norm...")
     F = torch.sqrt(torch.square(cm_reduced).sum([1, 3]))
-    
+    # Set to zero the diagonal
+    F = F - torch.diag(F.diag())
     # Compute the average-product corrected Frobenius norm
     Fapc = F - torch.outer(F.sum(1), F.sum(0)) / F.sum()
-    # Set to zero the diagonal
-    Fapc = Fapc - torch.diag(Fapc.diag())
     
     # Save the results
     print("Saving results...")
