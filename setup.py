@@ -13,6 +13,7 @@ setup(
     packages=find_packages(include=['adabmDCA', 'adabmDCA.*']),
     include_package_data=True,
     python_requires='>=3.10',
+    license_files=["LICENSE"],
     classifiers=[
         'Programming Language :: Python :: 3',
         'License :: OSI Approved :: Apache Software License',
