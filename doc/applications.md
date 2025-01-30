@@ -70,3 +70,15 @@ To produce a FASTA file containing all weighted single-mutants one has to run
 ```
 
 where `<WT>` is the name of the FASTA file containing the wild type sequence, `<file_params>` is a model file in a format compatible with `adabmDCA 2.0` output, and `<output_folder>` corresponds to the folder that will contain the library file. The sequences in the output FASTA file are named after the introduced mutation and the corresponding $\Delta E$; for instance, `>G27A | DCAscore: -0.6` denotes that position `27` has been changed from `G` to `A` and $\Delta E = -0.6$. 
+
+
+## Compute Entropy
+
+DCA models, originating from statistical physics, define a probability distribution over the sequence space. As statistical models, their entropy can be estimated. 
+`adabmDCA 2.0` leverages Thermodynamical Integration to compute entropy by measuring the average distance of a sample from a target sequence. This process starts from zero entropy (when the sample consists solely of repetitions of the target sequence) and extends to the typical average distance of the model’s sample. This approach provides a precise estimate of the model's entropy along with its free energy.
+Estimating entropy is crucial not only for computing the partition function $\mathcal{Z}$, which normalizes the sequence probability distribution, but also for determining the 'effective number of sequences' the DCA model can generate. This serves as a measure of sequence diversity within the model.
+
+To generate a `.log` file containing the entropy and free energy estimates, use the following command:
+
+```bash
+$ ./adabmDCA.sh entropy -d <WT> -p <file_params> -t <fasta_file_target_sequence> -o <output_folder> 
