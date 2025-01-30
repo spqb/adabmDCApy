@@ -37,23 +37,27 @@ def main():
     tokens = get_tokens(args.alphabet)
     print(f"Loading parameters from {args.path_params}...")
     params = load_params(args.path_params, tokens=tokens, device=device, dtype=dtype)
+    L, q = params["bias"].shape
     
     # Zero-sum gauge
     params = set_zerosum_gauge(params)
     
     # Get index of the gap symbol
-    gap_idx = np.where(np.array([c for c in tokens]) == "-")[0]
+    gap_idx = tokens.index("-")
     
     cm_reduced = params["coupling_matrix"]
-    cm_reduced = cm_reduced[:, gap_idx, :, :]
-    cm_reduced = cm_reduced[:, :, :, gap_idx]
+    # Take all the entries of the coupling matrix except where the gap is involved
+    mask = torch.arange(q) != gap_idx
+    cm_reduced = cm_reduced[:, mask, :, :][:, :, :, mask]
     
     # Compute the Frobenius norm
     print("Computing the Frobenius norm...")
     F = torch.sqrt(torch.square(cm_reduced).sum([1, 3]))
     
     # Compute the average-product corrected Frobenius norm
-    Fapc = F - (F.sum(1) * F.sum(0) / F.sum())
+    Fapc = F - torch.outer(F.sum(1), F.sum(0)) / F.sum()
+    # Set to zero the diagonal
+    Fapc = Fapc - torch.diag(Fapc.diag())
     
     # Save the results
     print("Saving results...")
