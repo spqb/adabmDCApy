@@ -126,9 +126,34 @@ def add_args_sample(parser : argparse.ArgumentParser) -> argparse.ArgumentParser
     
     return parser
 
+def add_args_tdint(parser : argparse.ArgumentParser) -> argparse.ArgumentParser:
+    parser.add_argument("-p", "--path_params",      type=Path,   required=True,           help="Path to the file containing the parameters of DCA model to sample from.")
+    parser.add_argument("-d", "--data",             type=Path,   required=True,           help="Path to the file containing the data to sample from.")
+    parser.add_argument("-t", "--path_targetseq",   type=Path,   required=True,           help="Path to the file containing the target sequence.")
+    parser.add_argument("-o", "--output",           type=Path,   default='DCA_model',     help="Path to the folder where to save the output.")
+   
+    # Optional arguments
+    parser.add_argument("-c", "--path_chains",  type=Path,   default=None,            help="(Defaults to None). Path to the fasta file containing the model's chains. Required for restoring the training.")
+    parser.add_argument("-l", "--label",        type=str,    default="sampling",      help="(Defaults to 'sampling'). Label to be used for the output files.")
+    parser.add_argument("--ngen",               type=int,    default=10000,           help="(Defaults to 10_000). Number of sequences to be use.") 
+    parser.add_argument("--theta_max",          type=float,  default=5,               help="(Defaults to 5). Maximum integration strength") 
+    parser.add_argument("--nsteps",             type=int,    default=100,             help="(Defaults to 100). Number of integration steps.")
+    parser.add_argument("--nsweeps",            type=int,    default=100,             help="(Defaults to 100). Number of chain updates for each integration step.")
+    parser.add_argument("--nsweeps_theta",      type=int,    default=100,             help="(Defaults to 100). Number of chain updates to equilibrate chains at theta_max.")
+    parser.add_argument("--nsweeps_zero",       type=int,    default=100,             help="(Defaults to 100). Number of chain updates to equilibrate chains at theta=0.")
+    parser.add_argument("--alphabet",           type=str,    default="protein",       help="(Defaults to protein). Type of encoding for the sequences. Choose among ['protein', 'rna', 'dna'] or a user-defined string of tokens.")
+    parser.add_argument("--device",             type=str,    default="cuda",          help="(Defaults to cuda). Device to perform computations on.")
+    parser.add_argument("--dtype",              type=str,    default="float32",       help="(Defaults to float32). Data type to be used.")
+    parser.add_argument("--nepochs",            type=int,    default=0,               help="(Defaults to 50000). Maximum number of epochs allowed.")
+    parser.add_argument("--seed",               type=int,    default=0,               help="(Defaults to 0). Seed for the random number generator.")
+
+    parser = add_args_checkpoint(parser)
+    
+    return parser
+
 def add_args_reintegration(parser : argparse.ArgumentParser) -> argparse.ArgumentParser:
     parser.add_argument("--reint",  type=Path,   required=True,  help="Path to the fasta file containing the reintegrated sequences.")
     parser.add_argument("--adj",    type=Path,   required=True,  help="Path to the file containing the adjustment vector.")
     parser.add_argument("--lambda_", type=float,    required=True,  help="Lambda parameter for the reintegration.")
-    
+
     return parser

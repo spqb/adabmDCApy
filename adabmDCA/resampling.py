@@ -28,6 +28,28 @@ def get_mean_seqid(
     return mean_overlap, std_overlap
 
 
+def compute_seqID(a1: torch.Tensor, single_seq: torch.Tensor):
+    """
+    Computes the Hamming distance 
+    between a set of one-hot encoded sequences and a single one-hot encoded sequence.
+
+    Args:
+        a1 (torch.Tensor): Sequence dataset, shape (N, L, C), where N is the number of sequences,
+                           L is the length, and C is the number of categories (one-hot size).
+        single_seq (torch.Tensor): Single one-hot encoded sequence, shape (L, C).
+
+    Returns:
+        torch.Tensor: Hamming distances for each sequence in the dataset.
+    """
+    # print(a1.shape, single_seq.shape)
+    a1 = a1.view(a1.shape[0], -1)
+    single_seq = single_seq.view(1, -1)
+    # print(a1.shape, single_seq.shape)
+    seqID = (a1 * single_seq).sum(1) 
+
+    return seqID
+
+
 def compute_mixing_time(
     sampler: Callable,
     data: torch.Tensor,

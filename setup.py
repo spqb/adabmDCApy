@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='adabmDCA',
-    version='0.3.2',
+    version='0.3.3',
     author='Lorenzo Rosset, Roberto Netti, Anna Paola Muntoni, Francesco Zamponi, Martin Weigt',
     maintainer='Lorenzo Rosset',
     author_email='rosset.lorenzo@gmail.com',
@@ -13,6 +13,7 @@ setup(
     packages=find_packages(include=['adabmDCA', 'adabmDCA.*']),
     include_package_data=True,
     python_requires='>=3.10',
+    license_files=["LICENSE"],
     classifiers=[
         'Programming Language :: Python :: 3',
         'License :: OSI Approved :: Apache Software License',

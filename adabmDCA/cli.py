@@ -26,6 +26,8 @@ def main():
             SCRIPT = "energies.py"
         case "DMS":
             SCRIPT = "dms.py"
+        case "entropy":
+            SCRIPT = "td_integration.py"
         case "reintegrate":
             SCRIPT = "reintegrate.py"
         case _:
