@@ -3,20 +3,17 @@ from pathlib import Path
 
 import torch
 import numpy as np
-import copy
 from tqdm import tqdm
 import time
 
 from adabmDCA.fasta import get_tokens
-from adabmDCA.utils import init_parameters, init_chains, get_device, get_dtype
+from adabmDCA.utils import init_chains, get_device, get_dtype, resample_sequences
 from adabmDCA.io import load_params, load_chains, import_from_fasta
-# from adabmDCA.fasta import encode_sequence, decode_sequence
 from adabmDCA.functional import one_hot
 from adabmDCA.sampling import get_sampler
 from adabmDCA.statmech import compute_energy
 from adabmDCA.parser import add_args_tdint
 from adabmDCA.resampling import compute_seqID 
-from adabmDCA.checkpoint import Log_checkpoint
 
 
 # import command-line input arguments
@@ -37,7 +34,7 @@ def main():
     folder = Path(args.output)
     folder.mkdir(parents=True, exist_ok=True)
 
-    print("\n" + "".join(["*"] * 10) + f" Computing Entropy " + "".join(["*"] * 10) + "\n")
+    print("\n" + "".join(["*"] * 10) + f" Computing model's entropy " + "".join(["*"] * 10) + "\n")
     # Set the device
     device = get_device(args.device)
     dtype = get_dtype(args.dtype)
@@ -55,13 +52,12 @@ def main():
         raise FileNotFoundError(f"Target Sequence file {args.path_targetseq} not found.")
     
     if args.label is not None:
-        file_paths = {"log" : folder / Path(f"{args.label}.log")}      
+        file_log = folder / Path(f"{args.label}.log")      
     else:
-        file_paths = {"log" : folder / Path(f"adabmDCA.log")}
+        file_log = folder / Path(f"td_integration.log")
 
     # select sampler
-    sampler = get_sampler("gibbs")
-    
+    sampler = get_sampler(args.sampler)
 
     # read and encode natural data
     tokens = get_tokens(args.alphabet)
@@ -73,88 +69,117 @@ def main():
     print(f"Number of Potts states: q={q}\n")
 
     # read parameters
+    print(f"Loading parameters from {args.path_params}...")
     params = load_params(args.path_params, tokens=tokens, device=device, dtype=dtype)
 
     # read chains
     if args.path_chains is None:
-        chains = init_chains(args.ngen, L, q, device=device)
+        chains = init_chains(args.nchains, L, q, device=device, dtype=dtype)
     else:   
         chains = load_chains(args.path_chains, tokens=tokens)
         chains = one_hot(torch.tensor(chains, device=device, dtype=torch.int32), num_classes=q).to(dtype)
-        if chains.shape[0] != args.ngen:
-            chains = resample_sequences(chains, weights=torch.ones(chains.shape[0])/chains.shape[0], nextract=args.ngen)
+        if chains.shape[0] != args.nchains:
+            chains = resample_sequences(chains, weights=torch.ones(chains.shape[0])/chains.shape[0], nextract=args.nchains)
+    print(f"Number of chains set to {args.nchains}.")
         
     # target sequence
-    _, targetseq = import_from_fasta(args.path_targetseq, tokens=tokens, filter_sequences=True) 
-    targetseq = one_hot(torch.tensor(targetseq, device=device, dtype=torch.int32), num_classes=q).to(dtype).squeeze(dim=0)
-
+    _, targetseq = import_from_fasta(args.path_targetseq, tokens=tokens, filter_sequences=True)
+    targetseq = one_hot(torch.tensor(targetseq, device=device, dtype=torch.int32), num_classes=q).to(dtype)
+    if len(targetseq) != 1:
+        print(f"Target sequence file contains more than one sequence. Using the first sequence as target sequence.")
+        targetseq = targetseq[0]
 
     # initialize checkpoint
-    checkpoint = Log_checkpoint(
-            file_paths=file_paths,
-            tokens=tokens,
-            args=args,
-            use_wandb=False,
-        ) 
+    template = "{0:<20} {1:<50}\n"  
+    with open(file_log, "w") as f:
+        if args.label is not None:
+            f.write(template.format("label:", args.label))
+        else:
+            f.write(template.format("label:", "N/A"))
+        
+        f.write(template.format("input MSA:", str(args.data)))
+        f.write(template.format("model path:", str(args.path_params)))
+        f.write(template.format("target sequence:", str(args.path_targetseq)))
+        f.write(template.format("alphabet:", args.alphabet))
+        f.write(template.format("nchains:", args.nchains))
+        f.write(template.format("nsweeps:", args.nsweeps))
+        if args.nsweeps_theta is not None:
+            f.write(template.format("nsweeps  theta:", str(args.nsweeps_theta)))
+        if args.nsweeps_zero is not None:
+            f.write(template.format("nsweeps zero:", str(args.nsweeps_zero)))
+        f.write(template.format("nsteps:", args.nsteps))
+        f.write(template.format("data type:", args.dtype))
+        f.write(template.format("random seed:", args.seed))
+        f.write("\n")
+        # write the header of the log file
+        logs = {
+            "Epoch": 0,
+            "Theta": 0.0,
+            "Free Energy": 0.0,
+            "Entropy": 0.0,
+            "Time": 0.0
+        }
+        header_string = " ".join([f"{key:<15}" for key in logs.keys()])
+        f.write(header_string + "\n")
     
     # Sampling to thermalize at theta = 0
+    print("Thermalizing at theta = 0...")
     chains_0 = sampler(chains, params, args.nsweeps_zero) 
     ave_energy_0 = torch.mean(compute_energy(chains_0, params))
 
     # Sampling to thermalize at theta = theta_max
+    print("Thermalizing at theta = theta_max...")
     theta_max = args.theta_max
-    params_theta = copy.deepcopy(params)
+    params_theta = {k : v.clone() for k, v in params.items()}
     params_theta["bias"] += theta_max * targetseq
-    chains_theta = one_hot(torch.randint(0, q, size=(args.ngen, L), device=device), num_classes=q)
+    chains_theta = init_chains(args.nchains, L, q, device=device, dtype=dtype)
     chains_theta = sampler(chains_theta, params_theta, args.nsweeps_theta)
-    energy_theta = compute_energy(chains_theta, params)
-    ave_energy_theta = torch.mean(energy_theta)
     seqID_max = compute_seqID(chains_theta, targetseq)
             
     # Find theta_max to generate 10% target sequences in the sample
-    p_wt =  (seqID_max == L).sum().item() / args.ngen # percentage of targetseq in the sample
+    print("Finding theta_max to generate 10% target sequences in the sample...")
+    p_wt =  (seqID_max == L).sum().item() / args.nchains # percentage of targetseq in the sample
     nsweep_find_theta = 100
     while p_wt <= 0.1:
         theta_max += 0.01 * theta_max
-        print(f"Number of sequences collapsed to WT is less than 10%. Increasing theta max to: {theta_max:.2f}", flush=True)
+        print(f"{(p_wt * 100):.2f}% sequences collapse to WT")
+        print(f"Number of sequences collapsed to WT is less than 10%. Increasing theta max to: {theta_max:.2f}...")
         params_theta["bias"] = params["bias"] + theta_max * targetseq
         chains_theta = sampler(chains_theta, params_theta, nsweep_find_theta)
         seqID = compute_seqID(chains_theta, targetseq)
-        p_wt = (seqID == L).sum().item() / args.ngen
-        print(f"{(p_wt * 100):.2f}% sequences collapse to wt", flush=True)
+        p_wt = (seqID == L).sum().item() / args.nchains
     
     # initiaize Thermodynamic Integration
+    print("Starting Thermodynamic Integration...")
     int_step = args.nsteps
     nsweeps = args.nsweeps
     F_max = np.log(p_wt) + torch.mean(compute_energy(chains_theta[seqID == L], params_theta))
     thetas = torch.linspace(0, theta_max, int_step) 
-    factor = theta_max / (2*int_step)
+    factor = theta_max / (2 * int_step)
     F, S, integral = F_max, 0, 0
     torch.set_printoptions(precision=2)
 
     # initialize progress bar
     pbar = tqdm(
         initial=max(0, thetas[0]),
-        total=theta_max,
+        total=round(theta_max, 3),
         colour="red",
         dynamic_ncols=True,
         leave=False,
         ascii="-#",
         bar_format="{desc} {percentage:.2f}%[{bar}] Theta: {n:.3f}/{total_fmt} [{elapsed}]"
     )
-    pbar.set_description(f"Theta: {0} - Entropy: {0:.2f}")
+    pbar.set_description(f"Step: {0} - SeqID: Nan - Entropy: Nan")
 
     time_start = time.time()
 
     for i, theta in enumerate(thetas):
-        print(f"\nstep n:{i}, theta={theta:.2f}")
         
         # sampling and compute seqID
         params_theta["bias"] = params["bias"] + theta * targetseq
         chains_theta = sampler(chains_theta, params_theta, nsweeps)
         seqID = compute_seqID(chains_theta, targetseq)
         mean_seqID = seqID.mean()
-        print(f"average seqID: {mean_seqID:.3f}", flush=True)
         
         # step of integration to compute entropy
         if i == 0 or i == int_step - 1:
@@ -164,23 +189,22 @@ def main():
             F += 2 * factor * mean_seqID
             integral += 2 * factor * mean_seqID
         S = ave_energy_0 - F
-        print(f"Entropy: {S:.3f}")
    
         # progress bar
         pbar.n = min(max(0, float(theta)), theta_max)
-        pbar.set_description(f"Theta: {theta} - Entropy: {S:.2f}")
+        pbar.set_description(f"Step: {i} - SeqID: {mean_seqID:.3f} - Entropy: {S:.2f}")
 
         # checkpoint
-        checkpoint.log({   
-                        "Epoch": int(i),
-                        "Theta": theta,
-                        "Free Energy": F,
-                        "Entropy": S,
-                        "Time": time.time() - time_start,
-                    })
-        checkpoint.save_log()
+        logs["Epoch"] = i
+        logs["Theta"] = float(theta)
+        logs["Free Energy"] = F.item()
+        logs["Entropy"] = S.item()
+        logs["Time"] = time.time() - time_start
+        with open(file_log, "a") as f:
+            f.write(" ".join([f"{value:<15.3f}" if isinstance(value, float) else f"{value:<15}" for value in logs.values()]) + "\n")
         
-    print(f"Process completed. Results saved in {file_paths['log']}")
+    pbar.close()
+    print(f"Process completed. Results saved in {file_log}.")
 
 
 if __name__ == "__main__":
