@@ -306,3 +306,11 @@ class AcceptanceCheckpoint(Checkpoint):
         out_string = " ".join([f"{value:<10.3f}" if isinstance(value, float) else f"{value:<10}" for value in self.logs.values()])
         with open(self.file_paths["log"], "a") as f:
             f.write(out_string + "\n")
+            
+def get_checkpoint(chpt: str) -> Checkpoint:
+    if chpt == "linear":
+        return LinearCheckpoint
+    elif chpt == "acceptance":
+        return AcceptanceCheckpoint
+    else:
+        raise ValueError(f"Checkpoint type {chpt} not recognized.")        
