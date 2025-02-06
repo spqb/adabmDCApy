@@ -43,7 +43,7 @@ pip install .
 
 ## Usage
 
-After installation, all the main routines can be launched though the script `adabmDCA.sh` or directly form the terminal using the command `adabmDCA`.
+After installation, all the main routines can be launched through the command-line interface using the command `adabmDCA`.
 
 To get started with adabmDCA in Python, please refer to the [Documentation](https://spqb.github.io/adabmDCApy/) or the [Colab notebook](https://colab.research.google.com/drive/1l5e1W8pk4cB92JAlBElLzpkEk6Hdjk7B?usp=sharing).
 
