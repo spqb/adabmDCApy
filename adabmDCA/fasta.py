@@ -74,13 +74,18 @@ def import_from_fasta(
     fasta_name: str | Path,
     tokens: str | None = None,
     filter_sequences: bool = False,
+    remove_duplicates: bool = True,
 ) -> Tuple[np.ndarray, np.ndarray]:
-    """Import data from a fasta file.
+    """Import sequences from a fasta file. The following operations are performed:
+    - If 'tokens' is provided, encodes the sequences in numeric format.
+    - If 'filter_sequences' is True, removes the sequences whose tokens are not present in the alphabet.
+    - If 'remove_duplicates' is True, removes the duplicated sequences.
 
     Args:
         fasta_name (str | Path): Path to the fasta file.
         tokens (str | None, optional): Alphabet to be used for the encoding. If provided, encodes the sequences in numeric format.
         filter_sequences (bool, optional): If True, removes the sequences whose tokens are not present in the alphabet. Defaults to False.
+        remove_duplicates (bool, optional): If True, removes the duplicated sequences. Defaults to True.
 
     Raises:
         RuntimeError: The file is not in fasta format.
@@ -137,6 +142,11 @@ def import_from_fasta(
     else:
         names = np.array(names)
         sequences = np.array(sequences)
+    
+    # Remove duplicates
+    if remove_duplicates:
+        sequences, unique_ids = np.unique(sequences, return_index=True)
+        names = names[unique_ids]
     
     if (tokens is not None) and (len(sequences) > 0):
         sequences = encode_sequence(sequences, tokens)

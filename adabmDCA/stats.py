@@ -306,7 +306,8 @@ def get_correlation_two_points(
     """
     
     fij_extract, pij_extract = extract_Cij_from_freq(fij, pij, fi, pi, mask)
-    pearson = torch.corrcoef(torch.stack([fij_extract, pij_extract]))[0, 1].item()
-    slope = _get_slope(fij_extract, pij_extract).item()
+    # torch.corrcoef does not support half precision
+    pearson = torch.corrcoef(torch.stack([fij_extract.float(), pij_extract.float()]))[0, 1].item()
+    slope = _get_slope(fij_extract.float(), pij_extract.float()).item()
     
     return pearson, slope
