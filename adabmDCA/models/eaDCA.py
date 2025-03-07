@@ -1,5 +1,5 @@
 import time
-from tqdm import tqdm
+from tqdm.autonotebook import tqdm
 from typing import Callable
 
 import torch

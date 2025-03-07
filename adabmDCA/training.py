@@ -1,4 +1,4 @@
-from tqdm import tqdm
+from tqdm.autonotebook import tqdm
 import time
 from typing import Tuple, Callable, Dict
 import torch
