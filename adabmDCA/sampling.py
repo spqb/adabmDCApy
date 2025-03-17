@@ -99,7 +99,7 @@ def _metropolis_sweep(
     residue_idxs = torch.randperm(L)
     for i in residue_idxs:
         res_old = chains[:, i, :]
-        res_new = one_hot_torch(torch.randint(0, q, (N,), device=chains.device), num_classes=q).float()
+        res_new = one_hot_torch(torch.randint(0, q, (N,), device=chains.device), num_classes=q).type(chains.dtype)
         delta_E = _get_deltaE(i, chains, res_old, res_new, params, L, q)
         accept_prob = torch.exp(- beta * delta_E).unsqueeze(-1)
         chains[:, i, :] = torch.where(accept_prob > torch.rand((N, 1), device=chains.device, dtype=chains.dtype), res_new, res_old)
