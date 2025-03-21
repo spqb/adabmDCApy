@@ -1,6 +1,6 @@
 # adabmDCApy APIs
 
-This section describe all the functions available in the **Python** implementation of `adabmDCA`.
+This section describes all the functions available in the **Python** implementation of `adabmDCA`.
 
 ## Submodules
 
@@ -35,6 +35,15 @@ This section describe all the functions available in the **Python** implementati
 
 ```{eval-rst}
 .. automodule:: adabmDCA.io
+   :members:
+   :undoc-members:
+   :show-inheritance:
+```
+
+### adabmDCA.pca module
+
+```{eval-rst}
+.. automodule:: adabmDCA.pca
    :members:
    :undoc-members:
    :show-inheritance:

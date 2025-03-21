@@ -65,7 +65,9 @@ Notice that the convergence of the algorithm is reached when $p_i(a) = f_i(a)$ a
 The difficult part of the algorithm consists of estimating $p_i(a)$ and $p_{ij}(a,b)$, because computing the normalization $Z$ of Eq. [](#eqn:probDCA) is computationally intractable, preventing us from directly computing the probability of any sequence. To tackle this issue, we estimate the first two moments of the distribution through a *Monte Carlo simulation*. This consists of sampling a certain number of fairly independent sequences from the probability distribution [](#eqn:probDCA) and using them to estimate $p_i(a)$ and $p_{ij}(a, b)$ at each learning epoch. There exist several equivalent strategies to deal with it.
 Samples from the model [](#eqn:probDCA) can be obtained via Markov Chain Monte Carlo (MCMC) simulations either at equilibrium or out-of-equilibrium, where we start from $N_c$ configurations (we refer to them as *chains*), chosen uniformly at random, from the data or the last configurations of the previous learning epoch, and update them using Gibbs or Metropolis-Hastings sampling steps up to a certain number of MCMC sweeps.
 
-In particular, chains are *persistent*: because sampling from configurations that are already close to the stationary state of the model at the current training epoch is much more convenient, the chains are initialized at each learning epoch using the last sampled configurations of the previous epoch.  Furthermore, the number of sweeps to be performed should be enough to ensure that the updated chains represent an equilibrium sample of the probability [](#eqn:probDCA). In practice, this requirement is not guaranteed as we fix the number of sweeps to a convenient value, $k$, that trades off between a reasonable training time and a fair independence of the chains.
+It has been shown in {cite:p}`muntoni_adabmdca_2021` for Boltzmann machines and, in general, for energy-based models {cite:p}`decelle_equilibrium_2021` that under certain conditions, training the model estimating the marginals from an out-of-equilibrium sampling leads to good enough generative models. Depending on the training set, these models can even be fairly close to what is achieved with perfectly equilibrated training.
+For this reason, in `adabmDCA 2.0`, we implement a persistent contrastive divergence (PCD) scheme, in which the computation of the gradient is done with chains that may be slightly out of equilibrium. 
+In particular, chains are *persistent*, i.e. they are initialized at each learning epoch using the last sampled configurations of the previous epoch. This is done because sampling from configurations that are already close to the stationary state of the model at the current training epoch is much more convenient.   Furthermore, the number of sweeps to be performed should be large enough to ensure that the updated chains are close enough to an equilibrium sample of the probability [](#eqn:probDCA). In practice, this is done by fixing the number of sweeps to a convenient value, $k$, that trades off between a reasonable training time and a fair mixing of the chains. 
 
 #### Convergence criterium
 To decide when to terminate the training, we monitor the two-site connected correlation functions of the data and of the model, which are defined as
@@ -95,12 +97,13 @@ In edDCA (Figure [sparse models](#fig-sparseDCA)-A), we start from a previously 
 To update the graph, we remove the fraction `drate` of active couplings that, once removed, produce the smallest perturbation on the probability distribution at the current epoch. In particular, for each active coupling, one computes the symmetric Kullback-Leibler distances between the current model and a perturbed one, without that target element. One then removes the `drate` elements which exhibit the smallest distances (see {cite:p}`barrat-charlaix_sparse_2021` for further details).
 
 #### Parameter updates in between decimations/activations
-In both procedures, to bring the model to convergence on the graph, we perform a certain number of parameter updates in  between each step of edge activation or decimation, using the formula [](#eqn:params_update). Between two subsequent parameter updates, $k$ sweeps are performed to update the Markov chains.
+
+In both procedures, to bring the model to convergence on the graph, we perform a certain number of parameter updates in  between each step of edge activation or decimation, using the update rule [](#eqn:params_update). Between two subsequent parameter updates, $k$ sweeps are performed to update the Markov chains.
 
 In the case of element activation we perform a
 fixed number of parameter updates, 
 specified by the input parameter `gsteps`.
-Alternatively, when pruning the graph we keep updating the parameters with the formula [](#eqn:params_update) until the Pearson correlation coefficient reaches a target value and the slope of the straight line interpolating the connected correlation functions of the data and the model is in the range $[0.9, 1.1]$. 
+Instead, when pruning the graph, we keep updating the parameters with the rule [](#eqn:params_update) until the Pearson correlation coefficient reaches a target value. 
 
 ```{figure} images/sparseDCA.png
 :name: fig-sparseDCA

@@ -6,7 +6,7 @@
 Once we have a trained model, we can use it to generate new sequences. This can be done using the command:
 
 ```bash
-  $ ./adabmDCA.sh sample -p <path_params> -d <fasta_file> -o <output_folder> --ngen <num_gen>
+  $ adabmDCA sample -p <path_params> -d <fasta_file> -o <output_folder> --ngen <num_gen>
 ```
 
 where `output_folder` is the directory where to save the data and `num_gen` is the number of sequences to be generated. The routine will first compute the mixing time ($t^{\mathrm{mix}}$) of the model by running a simulation starting from the sequences of the input MSA. After that, it will randomly initialize `num_gen` Markov chains and run for `nmix` $\cdot t^{\mathrm{mix}}$ sweeps to ensure that the model equilibrates. It will save in the output directory a FASTA file containing the sequences sampled with the model and a text file containing the records used to determine the convergence of the algorithm. Figure [mixing time](#fig:mixing_time)-Right shows the comparison between the entries of the covariance matrices obtained from the data and from the generated sequences. The Pearson correlation coefficient is the same used as a target for the training and the slope is close to 1, meaning that the model is able to correctly recover the two-sites statistics of the data MSA.
@@ -49,14 +49,14 @@ Note that the coupling parameters are usually transformed in a zero-sum gauge be
 The scores for all site pairs are provided in the output folder in a separate file called `<label>_frobenius.txt` The first two columns indicate the site indices and the third one contains the associated APC Frobenius norm. The command for computing the matrix of Frobenius norms is
 
 ```bash
-$ ./adabmDCA.sh contacts -p <file_params>  -o <output_folder>
+$ adabmDCA contacts -p <file_params>  -o <output_folder>
 ```
 
 ## Scoring a sequence set
 At convergence, users can score a set of input sequences according to a trained DCA model by using the command line
 
 ```bash
-  $ ./adabmDCA.sh energies -d <fasta_file>  -p <file_params>  -o <output_folder>
+  $ adabmDCA energies -d <fasta_file>  -p <file_params>  -o <output_folder>
 ```
 
 `adabmDCA 2.0` will produce a new FASTA file in the output folder `<output_folder>` where the input sequences in `<fasta_file>` have an additional field in the name that account for the DCA energy function computed according to the model in `<file_params>`. Note that *low* energies correspond to good sequences.
@@ -66,7 +66,7 @@ Another possible application exploits the sequence-fitness score computable acco
 To produce a FASTA file containing all weighted single-mutants one has to run
 
 ```bash
-  $ ./adabmDCA.sh DMS -d <WT> -p <file_params> -o <output_folder>
+  $ adabmDCA DMS -d <WT> -p <file_params> -o <output_folder>
 ```
 
 where `<WT>` is the name of the FASTA file containing the wild type sequence, `<file_params>` is a model file in a format compatible with `adabmDCA 2.0` output, and `<output_folder>` corresponds to the folder that will contain the library file. The sequences in the output FASTA file are named after the introduced mutation and the corresponding $\Delta E$; for instance, `>G27A | DCAscore: -0.6` denotes that position `27` has been changed from `G` to `A` and $\Delta E = -0.6$. 

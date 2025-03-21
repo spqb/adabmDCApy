@@ -1,13 +1,13 @@
 ## Implementation
 
-All the software implementations that we propose (Python, Julia, and C++) offer the same interface from the terminal through the `adabmDCA.sh` file.
+All the software implementations that we propose (Python, Julia, and C++) offer the same interface from the terminal through the command `adabmDCA`.
 The complete list of training options can be listed through the command
 ```bash
-$ ./adabmDCA.sh train -h
+$ adabmDCA train -h
 ```
 The standard command for starting the training of a DCA model is
 ```bash
-$ ./adabmDCA.sh train -m <model> -d <fasta_file> -o <output_folder> -l <label>
+$ adabmDCA train -m <model> -d <fasta_file> -o <output_folder> -l <label>
 ```
 where:
 
@@ -16,7 +16,7 @@ where:
 - `<output_folder>` is the path to a (existing or not) folder where to store the output files;
 - `<label>` is an optional argument. If provided, it will label the output files. This is helpful when running the algorithm multiple times in the same output folder.
 
-Once started, the training will continue until the Pearson correlation coefficient between the two-point statistics of the model and the empirical one obtained from the data reaches a modifiable target value (set by default at `target = 0.95`).
+Once started, the training will continue until the Pearson correlation coefficient between the two-point statistics of the model and the empirical one obtained from the data reaches a modifiable target value (set by default at `--target 0.95`).
 
 #### Output files
 By default the training algorithm outputs three kinds of text files:
@@ -35,14 +35,14 @@ During the training the output files are overwritten every 50 epochs.
 #### Restoring an interrupted training
 It is possible to start the training by initializing the parameters of the model and the chains at a given checkpoint. To do so, two arguments specifying the path of the parameters and the chains are needed:
 ```bash
-$ ./adabmDCA.sh train [...] -p <file_params> -c <file_chains>
+$ adabmDCA train [...] -p <file_params> -c <file_chains>
 ```
 
 #### Importance weights
 It is possible to provide the algorithm with a pre-computed list of [importance weights](#computing-the-importance-weights) to be assigned to the sequences by giving the path to the text file to the argument `-w`. If this argument is not provided, the algorithm will automatically compute the weights using Eq.[](#eqn:weights) and it will store them into the folder `<output_folder>` as `<label>_weights.dat`.
 
 #### Choosing the alphabet
-By default, the algorithm will assume that the input MSA belongs to a protein family, and it will use the preset alphabet defined in Table [Alphabets](#alphabets) (by default: `--alphabet protein`). If the input data comes from RNA or DNA sequences, it has to be specified by passing respectively `rna` or `dna` to the `--alphabet` argument. There is also the possibility of passing a user-defined alphabet, provided that all the tokens match with those that are found in the input MSA. This can be useful if one wants to use a different order than the default one for the tokens, or in the eventuality that one wants to handle additional symbols present in the alignment.
+By default, the algorithm will assume that the input MSA belongs to a protein family, and it will use the preset alphabet defined in Table [Alphabets](#alphabets) (by default: `--alphabet protein`). If the input data comes from RNA or DNA sequences, it has to be specified by passing respectively `rna` or `dna` to the `--alphabet` argument. There is also the possibility of passing a user-defined alphabet, provided that all the tokens match with those that are found in the input MSA. This can be useful if one wants to use a different order than the default one for the tokens, or in the eventuality that one wants to handle additional symbols present in the alignment. This is done using `--alphabet ABCD-` if for example the alphabet contains the symbols `A, B, C, D, -`.
 
 (eaDCA)=
 ### eaDCA
@@ -61,7 +61,7 @@ For this routine, the number of sweeps for updating the chains can be typically 
 ### edDCA
 To launch a decimation with default hyperparameters, use the command:
 ```bash
-$ ./adabmDCA.sh train -m edDCA -d <fasta_file> -p <file_params> -c <file_chains>
+$ adabmDCA train -m edDCA -d <fasta_file> -p <file_params> -c <file_chains>
 ```
 
 where `<file_params>` and `<file_chains>` are, respectively, the file name the parameters and the chains (including the path) of a previously trained bmDCA model. The edDCA can perform two routines as described above. In the first routine, it uses a pre-trained bmDCA model and its associated chains provided through the parameters `<file_params>` and `<file_chains>`. The routine makes sure everything has converged before starting the decimation of couplings. It repeats this process for up to 10000 iterations if needed. If these parameters are not supplied, the second routine initializes the model and chains randomly, trains the bmDCA model to meet convergence criteria, and then starts the decimation process as described. Some important parameters that can be changed are:
@@ -78,18 +78,11 @@ where `<file_params>` and `<file_chains>` are, respectively, the file name the p
 The default values for the hyperparameters are chosen to be a good compromise between having a relatively short training time and a good quality of the learned model for most of the *typical* input MSA, where for *typical* we mean a clean MSA with only a few gaps for each sequence and a not too structured dataset (not too clustered in subfamilies) that could create some ergodicity problems during the training. It may happen, though, that for some datasets some adjustments of the hyperparameters are needed to get a properly trained model. The most important ones are:
 
 #### Learning rate
-By default, the learning rate is set to 0.05, which is a reasonable value in most cases. For some datasets, such as RNA, this value should be typically brought down to 0.01. If the resampling of the model is bad (very long thermalization time or mode collapse), one may try to decrease the learning rate through the argument `--lr` to some smaller value (e.g. 0.005 or 0.001).
+By default, the learning rate is set to 0.05, which is a reasonable value in most cases. If the resampling of the model is bad (very long thermalization time or mode collapse), one may try to decrease the learning rate through the argument `--lr` to some smaller value (e.g. 0.01 or 0.005).
 
 #### Number of Markov Chains
-By default, the number of Markov chains is set equal to 10000. Empirically, we observe that the number of chains should be higher than a certain value in order to guarantee the convergence of the training to the target Pearson correlation coefficient. The minimal number of chains needed depends on the dataset and can vary a lot. In the [figure](fig-pearsons) below, we trained a `bmDCA` model on the Chorismate Mutase protein family for different numbers of Markov chains. The minimum number of chains we tried is $M_{\mathrm{eff}}$, that is the *effective number of sequences* of the dataset, defined as:
-
-$$
-M_{\mathrm{eff}} = \sum_{m=1}^M w^{(m)} \leq M.
-$$
-
-This number is displayed at the beginning of the training routine. We can see that with less than 5000 chains the algorithm is not able to converge at the target Pearson coefficient (here set to 0.95). Empirically, we observe that the default value of 10000 chains does the job in all the tested datasets.
-
-To change the number of chains we can use the argument `--nchains`.
+By default, the number of Markov chains is set to 10000, which works well in most cases. Using fewer chains reduces the memory required to train the model, but it may also lead to a longer algorithm convergence time.
+To change the number of chains, we can use the argument `--nchains`.
 
 ```{figure} images/Pearsons.png
 :name: fig-pearsons
@@ -101,7 +94,7 @@ Evolution of the Pearson correlation coefficient for trainings with a different 
 ```
 
 #### Number of Monte Carlo steps
-The argument `--nsweeps` defines the number of Monte Carlo chain updates (sweeps) between one gradient update and the following. A single *sweep* is obtained once we propose a mutation for all the residues of the sequence. By default, this parameter is set to 10, which is a good choice for easily tractable MSAs. The higher this number is chosen the better the quality of the training will be, because in this way we allow the Markov chains to decorrelate more to the previous configuration. However, this parameter heavily impacts the training time, so we recommend choosing it in the interval 10 - 50.
+The argument `--nsweeps` defines the number of Monte Carlo chain updates (sweeps) between one gradient update and the following. A single *sweep* is obtained once we propose a mutation for all the residues of the sequence. By default, this parameter is set to 10, which is a good choice for easily tractable MSAs. The higher this number is chosen, the better the quality of the training will be, because in this way we allow the Markov chains to decorrelate more to the previous configuration. However, this parameter heavily impacts the training time, so we recommend choosing it in the interval 10 - 50.
 
 #### Regularization
 Another parameter that can be adjusted if the model does not resample correctly is the pseudo count, $\alpha$, which can be changed using the key `--pseudocount`. The pseudo count is a regularization term that introduces a flat prior on the frequency profiles, modifying the frequencies as in equations [](eqn:freqs_pseudocount).
