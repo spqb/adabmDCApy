@@ -29,7 +29,7 @@ The project's main repository can be found at [adabmDCA 2.0](https://github.com/
 ### Option 1: Install from PyPI
 Open a terminal and run
 ```bash
-pip install adabmDCA
+python -m pip install adabmDCA
 ```
 
 ### Option 2: Install from the GitHub repository
