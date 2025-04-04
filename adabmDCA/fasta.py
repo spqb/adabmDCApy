@@ -30,42 +30,57 @@ def get_tokens(alphabet: str) -> str:
         return alphabet
     
     
-def encode_sequence(sequence: str | np.ndarray, tokens: str) -> np.ndarray:
+def encode_sequence(sequence: str | np.ndarray | list, tokens: str) -> np.ndarray:
     """Encodes a sequence or a list of sequences into a numeric format.
 
     Args:
-        sequence (str | np.ndarray): Input sequence.
+        sequence (str | np.ndarray | list): Input sequence.
         tokens (str): Alphabet to be used for the encoding.
 
     Returns:
         np.ndarray: Encoded sequence or sequences.
     """
     letter_map = {l : n for n, l in enumerate(tokens)}
+    
+    def _encode(sequece):
+        return [letter_map[l] for l in sequece]
+    
     if isinstance(sequence, str):
-        return np.array([letter_map[l] for l in sequence])
+        return _encode(sequence)
     elif isinstance(sequence, np.ndarray):
-        return np.vectorize(encode_sequence, excluded=["tokens"], signature="(), () -> (n)")(sequence, tokens)
+        sequence = list(sequence)
+        return np.array(list(map(_encode, sequence)))
     elif isinstance(sequence, list):
-        sequence = np.array(sequence)
-        return encode_sequence(sequence, tokens)
+        return np.array(list(map(_encode, sequence)))
     else:        
         raise ValueError("Input sequence must be either a string or a numpy array.")
 
 
-def decode_sequence(sequence: np.ndarray, tokens: str) -> str | np.ndarray:
+def decode_sequence(sequence: list | np.ndarray | torch.Tensor, tokens: str) -> str | np.ndarray:
     """Takes a numeric sequence or list of seqences in input an returns the corresponding string encoding.
 
     Args:
-        sequence (np.ndarray): Input sequences. Can be either a 1D or a 2D array.
+        sequence (np.ndarray): Input sequences. Can be either a 1D or a 2D iterable.
         tokens (str): Alphabet to be used for the encoding.
 
     Returns:
-        str | np.ndarray: Decoded input.
+        str | np.ndarray: string or array of strings with the decoded input.
     """
-    if sequence.ndim == 1:
+    if isinstance(sequence, list):
+        sequence = np.array(sequence)
+    elif isinstance(sequence, torch.Tensor):
+        sequence = sequence.cpu().numpy()
+    assert isinstance(sequence, np.ndarray), "Input sequence must be either a numpy array, a list or a torch tensor."
+    sequence = sequence.astype(int)
+    
+    def _decode(sequence):
         return ''.join([tokens[aa] for aa in sequence])
+    
+    if sequence.ndim == 1:
+        return _decode(sequence)
     elif sequence.ndim == 2:
-        return np.vectorize(decode_sequence, signature="(m), () -> ()")(sequence, tokens)
+        sequence = list(sequence)
+        return np.array(list(map(_decode, sequence)))
     else:
         raise ValueError("Input sequence must be either a 1D or a 2D array.")
 
