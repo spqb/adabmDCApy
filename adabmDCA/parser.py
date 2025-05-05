@@ -1,7 +1,7 @@
 import argparse
 from pathlib import Path
 
-def add_args_dca(parser : argparse.ArgumentParser) -> argparse.ArgumentParser:
+def add_args_dca(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     dca_args = parser.add_argument_group("General DCA arguments")
     dca_args.add_argument("-d", "--data",         type=Path,  required=True,        help="Filename of the dataset to be used for training the model.")
     dca_args.add_argument("-o", "--output",       type=Path,  default='DCA_model',  help="(Defaults to DCA_model). Path to the folder where to save the model.")
@@ -27,7 +27,7 @@ def add_args_dca(parser : argparse.ArgumentParser) -> argparse.ArgumentParser:
     return parser
 
 
-def add_args_reweighting(parser : argparse.ArgumentParser) -> argparse.ArgumentParser:
+def add_args_reweighting(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     weight_args = parser.add_argument_group("Sequence reweighting arguments")
     weight_args.add_argument("-w", "--weights",      type=Path,  default=None,         help="(Defaults to None). Path to the file containing the weights of the sequences. If None, the weights are computed automatically.")
     weight_args.add_argument("--clustering_seqid",   type=float, default=0.8,          help="(Defaults to 0.8). Sequence Identity threshold for clustering. Used only if 'weights' is not provided.")
@@ -36,7 +36,7 @@ def add_args_reweighting(parser : argparse.ArgumentParser) -> argparse.ArgumentP
     return parser
 
 
-def add_args_checkpoint(parser : argparse.ArgumentParser) -> argparse.ArgumentParser:
+def add_args_checkpoint(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     checkpoint_args = parser.add_argument_group("Checkpoint arguments")
     checkpoint_args.add_argument("--checkpoints",     type=str,   default="linear",     help="(Defaults to 'linear'). Choses the type of checkpoint criterium to be used.", choices=["linear", "acceptance"])
     checkpoint_args.add_argument("--target_acc_rate", type=float, default=0.5,          help="(Defaults to 0.5). Target acceptance rate for deciding when to save the model when the 'acceptance' checkpoint is used.")
@@ -44,7 +44,7 @@ def add_args_checkpoint(parser : argparse.ArgumentParser) -> argparse.ArgumentPa
     return parser
 
 
-def add_args_eaDCA(parser : argparse.ArgumentParser) -> argparse.ArgumentParser:
+def add_args_eaDCA(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     eadca_args = parser.add_argument_group("eaDCA arguments")
     eadca_args.add_argument("--gsteps",           type=int,   default=10,           help="(Defaults to 10). Number of gradient updates to be performed on a given graph.")
     eadca_args.add_argument("--factivate",        type=float, default=0.001,        help="(Defaults to 0.001). Fraction of inactive couplings to be proposed for activation at each graph update.")
@@ -52,7 +52,7 @@ def add_args_eaDCA(parser : argparse.ArgumentParser) -> argparse.ArgumentParser:
     return parser
 
 
-def add_args_edDCA(parser : argparse.ArgumentParser) -> argparse.ArgumentParser:
+def add_args_edDCA(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     eddca_args = parser.add_argument_group("edDCA arguments")
     eddca_args.add_argument("--density",          type=float, default=0.02,         help="(Defaults to 0.02). Target density to be reached.")
     eddca_args.add_argument("--drate",            type=float, default=0.01,         help="(Defaults to 0.01). Fraction of remaining couplings to be pruned at each decimation step.")
@@ -60,7 +60,7 @@ def add_args_edDCA(parser : argparse.ArgumentParser) -> argparse.ArgumentParser:
     return parser
 
 
-def add_args_train(parser : argparse.ArgumentParser) -> argparse.ArgumentParser:
+def add_args_train(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     parser = add_args_dca(parser)
     parser = add_args_eaDCA(parser)
     parser = add_args_edDCA(parser)
@@ -70,7 +70,7 @@ def add_args_train(parser : argparse.ArgumentParser) -> argparse.ArgumentParser:
     return parser
 
 
-def add_args_energies(parser : argparse.ArgumentParser) -> argparse.ArgumentParser:
+def add_args_energies(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     parser.add_argument("-d", "--data",         type=Path,   required=True,      help="Path to the fasta file containing the sequences.")
     parser.add_argument("-p", "--path_params",  type=Path,   required=True,      help="Path to the file containing the parameters of DCA model.")
     parser.add_argument("-o", "--output",       type=Path,   required=True,      help="Path to the folder where to save the output.")
@@ -81,7 +81,7 @@ def add_args_energies(parser : argparse.ArgumentParser) -> argparse.ArgumentPars
     return parser
 
 
-def add_args_contacts(parser : argparse.ArgumentParser) -> argparse.ArgumentParser:
+def add_args_contacts(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     parser.add_argument("-p", "--path_params",  type=Path,   required=True,          help="Path to the file containing the parameters of DCA model to sample from.")
     parser.add_argument("-o", "--output",       type=Path,   required=True,          help="Path to the folder where to save the output.")
     parser.add_argument("-l", "--label",        type=str,    default=None,           help="(Defaults to None). If provoded, adds a label to the output files inside the output folder.")
@@ -92,7 +92,7 @@ def add_args_contacts(parser : argparse.ArgumentParser) -> argparse.ArgumentPars
     return parser
 
 
-def add_args_dms(parser : argparse.ArgumentParser) -> argparse.ArgumentParser:
+def add_args_dms(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     parser.add_argument("-d", "--data",         type=Path,   required=True,      
                         help="Path to the fasta file containing wild type sequence. If more than one sequence is present, the first one is used.")
     parser.add_argument("-p", "--path_params",  type=Path,   required=True,      help="Path to the file containing the parameters of DCA model to sample from.")
@@ -104,7 +104,7 @@ def add_args_dms(parser : argparse.ArgumentParser) -> argparse.ArgumentParser:
     return parser
 
 
-def add_args_sample(parser : argparse.ArgumentParser) -> argparse.ArgumentParser:
+def add_args_sample(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     parser.add_argument("-p", "--path_params",  type=Path,   required=True,      help="Path to the file containing the parameters of DCA model to sample from.")
     parser.add_argument("-d", "--data",         type=Path,   required=True,      help="Path to the file containing the data to sample from.")
     parser.add_argument("-o", "--output",       type=Path,   required=True,      help="Path to the folder where to save the output.")
@@ -126,7 +126,7 @@ def add_args_sample(parser : argparse.ArgumentParser) -> argparse.ArgumentParser
     
     return parser
 
-def add_args_tdint(parser : argparse.ArgumentParser) -> argparse.ArgumentParser:
+def add_args_tdint(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     parser.add_argument("-p", "--path_params",      type=Path,   required=True,           help="Path to the file containing the parameters of DCA model to sample from.")
     parser.add_argument("-d", "--data",             type=Path,   required=True,           help="Path to the file containing the data to sample from.")
     parser.add_argument("-t", "--path_targetseq",   type=Path,   required=True,           help="Path to the file containing the target sequence.")
@@ -152,9 +152,24 @@ def add_args_tdint(parser : argparse.ArgumentParser) -> argparse.ArgumentParser:
     
     return parser
 
-def add_args_reintegration(parser : argparse.ArgumentParser) -> argparse.ArgumentParser:
+def add_args_reintegration(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     parser.add_argument("--reint",  type=Path,   required=True,  help="Path to the fasta file containing the reintegrated sequences.")
     parser.add_argument("--adj",    type=Path,   required=True,  help="Path to the file containing the adjustment vector.")
     parser.add_argument("--lambda_", type=float,    required=True,  help="Lambda parameter for the reintegration.")
+
+    return parser
+
+def add_args_profmark(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
+    parser.add_argument("output_prefix", type=str, help="Prefix for the output files.")
+    parser.add_argument("input_msa", type=str, help="Fasta file containing the multiple sequence alignment.")
+    parser.add_argument("-t1", type=float, default=0.5, help="No sequence in S (the candidate training set) has more than this fraction of its residues identical to any sequence in T (the candidate test set). Default is 0.5.")
+    parser.add_argument("-t2", type=float, default=0.5, help="No pair of test sequences has more than this value fractional identity. Default is 0.5.")
+    parser.add_argument("-t3", type=float, default=1.0, help="No pair of training sequences has more than this value fractional identity. Default is 1.0.")
+    parser.add_argument("--bestof", type=int, default=1, help="Runs the algorithm n times and returns the one that maximizes |S| * |T|. Default is 1.")
+    parser.add_argument("--maxtrain", type=int, default=None, help="Maximum number of sequences in the training set.")
+    parser.add_argument("--maxtest", type=int, default=None, help="Maximum number of sequences in the test set.")
+    parser.add_argument("--alphabet", type=str, default="protein", help="Alphabet to use for encoding the sequences. Choose among 'protein', 'rna', 'dna' or a user-defined alphabet. Default is 'protein'.")
+    parser.add_argument("--seed", type=int, default=42, help="Random seed for reproducibility. Default is 42.")
+    parser.add_argument("--device", type=str, default="cuda", help="Device to use for computation. Default is 'cuda'.")
 
     return parser
