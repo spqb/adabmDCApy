@@ -35,3 +35,18 @@ def one_hot(x: torch.Tensor, num_classes: int = -1, dtype: torch.dtype = torch.f
         torch.Tensor: One-hot encoded tensor.
     """
     return _one_hot(x, num_classes, dtype)
+
+
+@torch.jit.script
+def multinomial_one_hot(logits: torch.Tensor) -> torch.Tensor:
+    """Sample from a multinomial distribution and return one-hot encoded samples."""
+    assert logits.dim() == 2, "Input logits must be a 2D tensor (N, q) where N is the number of samples and q is the number of classes."
+    batch_size = logits.size(0)
+    one_hot_samples = torch.zeros_like(logits)
+    probs = torch.softmax(logits, dim=-1)
+    cdf = torch.cumsum(probs, dim=1)
+    u = torch.rand(batch_size, 1, device=logits.device, dtype=logits.dtype) * cdf[:, -1].unsqueeze(1)
+    indices = torch.searchsorted(cdf, u, right=True)
+    one_hot_samples.scatter_(-1, indices, 1.0)
+    
+    return one_hot_samples

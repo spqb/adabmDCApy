@@ -1,9 +1,8 @@
 from typing import Dict, Callable
 
 import torch
-from torch.nn.functional import one_hot as one_hot_torch
-
-from adabmDCA.functional import one_hot
+from torch.nn.functional import one_hot
+from adabmDCA.functional import multinomial_one_hot
 
 
 @torch.jit.script
@@ -30,7 +29,7 @@ def _gibbs_sweep(
         couplings_residue = params["coupling_matrix"][i].view(q, L * q)
         # Update the chains
         logit_residue = beta * (params["bias"][i].unsqueeze(0) + chains.reshape(N, L * q) @ couplings_residue.T) # (N, q)
-        chains[:, i, :] = one_hot(torch.multinomial(torch.softmax(logit_residue, -1), 1), num_classes=q).to(logit_residue.dtype).squeeze(1)
+        chains[:, i, :] = multinomial_one_hot(logit_residue)
         
     return chains
 
@@ -81,6 +80,7 @@ def _get_deltaE(
 
 def _metropolis_sweep(
     chains: torch.Tensor,
+    residue_idxs: torch.Tensor,
     params: Dict[str, torch.Tensor],
     beta: float,
 ) -> torch.Tensor:
@@ -88,18 +88,17 @@ def _metropolis_sweep(
 
     Args:
         chains (torch.Tensor): One-hot encoded sequences.
+        residue_idxs (torch.Tensor): List of residue indices in random order.
         params (Dict[str, torch.Tensor]): Parameters of the model.
         beta (float): Inverse temperature.
 
     Returns:
         torch.Tensor: Updated chains.
     """
-    
     N, L, q = chains.shape
-    residue_idxs = torch.randperm(L)
     for i in residue_idxs:
         res_old = chains[:, i, :]
-        res_new = one_hot_torch(torch.randint(0, q, (N,), device=chains.device), num_classes=q).type(chains.dtype)
+        res_new = one_hot(torch.randint(0, q, (N,), device=chains.device), num_classes=q).type(chains.dtype)
         delta_E = _get_deltaE(i, chains, res_old, res_new, params, L, q)
         accept_prob = torch.exp(- beta * delta_E).unsqueeze(-1)
         chains[:, i, :] = torch.where(accept_prob > torch.rand((N, 1), device=chains.device, dtype=chains.dtype), res_new, res_old)
@@ -124,9 +123,11 @@ def metropolis(
     Returns:
         torch.Tensor: Updated chains.
     """
+    L = params["bias"].shape[0]
 
     for _ in range(nsweeps):
-        chains = _metropolis_sweep(chains, params, beta)
+        residue_idxs = torch.randperm(L)
+        chains = _metropolis_sweep(chains, residue_idxs, params, beta)
 
     return chains
 
