@@ -107,7 +107,12 @@ class Checkpoint(ABC):
                 self.logs[key] = value.item()
             else:
                 self.logs[key] = value
-        
+                
+        if self.wandb:
+            wandb.log(self.logs)        
+        out_string = " ".join([f"{value:<10.3f}" if isinstance(value, float) else f"{value:<10}" for value in self.logs.values()])
+        with open(self.file_paths["log"], "a") as f:
+            f.write(out_string + "\n")
     
     @abstractmethod
     def check(
@@ -200,16 +205,9 @@ class LinearCheckpoint(Checkpoint):
             mask (torch.Tensor): Mask of the model's coupling matrix representing the interaction graph
             chains (Dict[str, torch.Tensor]): Chains.
             log_weights (torch.Tensor): Log of the chain weights. Used for AIS.
-        """
-        if self.wandb:
-            wandb.log(self.logs)
-            
+        """            
         save_params(fname=self.file_paths["params"], params=params, mask=mask, tokens=self.tokens)
         save_chains(fname=self.file_paths["chains"], chains=chains.argmax(dim=-1), tokens=self.tokens, log_weights=log_weights)
-        
-        out_string = " ".join([f"{value:<10.3f}" if isinstance(value, float) else f"{value:<10}" for value in self.logs.values()])
-        with open(self.file_paths["log"], "a") as f:
-            f.write(out_string + "\n")
             
             
 class AcceptanceCheckpoint(Checkpoint):
@@ -288,8 +286,6 @@ class AcceptanceCheckpoint(Checkpoint):
             chains (Dict[str, torch.Tensor]): Chains.
             log_weights (torch.Tensor): Log of the chain weights. Used for AIS.
         """
-        if self.wandb:
-            wandb.log(self.logs)
             
         # Store the current parameters and chains
         self.params = {key: value.clone() for key, value in params.items()}
@@ -302,10 +298,7 @@ class AcceptanceCheckpoint(Checkpoint):
         # Save the current parameters and chains
         save_params(fname=self.file_paths["params"], params=params, mask=mask, tokens=self.tokens)
         save_chains(fname=self.file_paths["chains"], chains=chains.argmax(dim=-1), tokens=self.tokens, log_weights=log_weights)
-        # Update the log file
-        out_string = " ".join([f"{value:<10.3f}" if isinstance(value, float) else f"{value:<10}" for value in self.logs.values()])
-        with open(self.file_paths["log"], "a") as f:
-            f.write(out_string + "\n")
+            
             
 def get_checkpoint(chpt: str) -> Checkpoint:
     if chpt == "linear":

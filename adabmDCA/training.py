@@ -35,35 +35,6 @@ def compute_gradient(
     return grad
 
 
-@torch.jit.script
-def compute_gradient_centred(
-    fi: torch.Tensor,
-    fij: torch.Tensor,
-    pi: torch.Tensor,
-    pij: torch.Tensor,
-) -> Dict[str, torch.Tensor]:
-    """Computes the gradient of the log-likelihood of the model using PyTorch.
-    Implements the centred gradient, which empirically improves the convergence of the model.
-
-    Args:
-        fi (torch.Tensor): Single-point frequencies of the data.
-        fij (torch.Tensor): Target two-points frequencies.
-        pi (torch.Tensor): Single-point marginals of the model.
-        pij (torch.Tensor): Two-points marginals of the model.
-
-    Returns:
-        Dict[str, torch.Tensor]: Gradient.
-    """
-    grad = {}
-    
-    C_data = fij - torch.einsum("ij,kl->ijkl", fi, fi)
-    C_model = pij - torch.einsum("ij,kl->ijkl", pi, pi)
-    grad["coupling_matrix"] = C_data - C_model
-    grad["bias"] = fi - pi - torch.einsum("iajb,jb->ia", grad["coupling_matrix"], fi)
-    
-    return grad
-
-
 def update_params(
     fi: torch.Tensor,
     fij: torch.Tensor,
@@ -89,7 +60,7 @@ def update_params(
     """
     
     # Compute the gradient
-    grad = compute_gradient_centred(fi=fi, fij=fij, pi=pi, pij=pij)
+    grad = compute_gradient(fi=fi, fij=fij, pi=pi, pij=pij)
     
     # Update parameters
     with torch.no_grad():
@@ -153,8 +124,8 @@ def train_graph(
     log_likelihood = compute_log_likelihood(fi=fi, fij=fij, params=params, logZ=logZ)
     
     # Compute the single-point and two-points frequencies of the simulated data
-    pi = get_freq_single_point(data=chains, weights=None, pseudo_count=0.)
-    pij = get_freq_two_points(data=chains, weights=None, pseudo_count=0.)
+    pi = get_freq_single_point(data=chains)
+    pij = get_freq_two_points(data=chains)
     
     def halt_condition(epochs, pearson, slope, check_slope):
         c1 = pearson < target_pearson
@@ -168,15 +139,8 @@ def train_graph(
     # Mask for saving only the upper-diagonal coupling matrix
     mask_save = get_mask_save(L, q, device=device)
 
-    pearson, slope = get_correlation_two_points(
-        fij=fij,
-        pij=pij,
-        fi=fi,
-        pi=pi,
-    )
-    
-    epochs = 0   
-    
+    pearson, slope = get_correlation_two_points(fij=fij, pij=pij, fi=fi, pi=pi)
+    epochs = 0
     if progress_bar: 
         pbar = tqdm(
             initial=max(0, float(pearson)),
@@ -228,29 +192,29 @@ def train_graph(
             pbar.n = min(max(0, float(pearson)), target_pearson)
             pbar.set_description(f"Epochs: {epochs} - LL: {log_likelihood:.2f}")
             
-        # Save the model if a checkpoint is reached
         if checkpoint is not None:
+            entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
+            ess = _compute_ess(log_weights)
+            if fi_test is not None and fij_test is not None:
+                log_likelihood_test = compute_log_likelihood(fi=fi_test, fij=fij_test, params=params, logZ=logZ)
+            else:
+                log_likelihood_test = float("nan")
+            checkpoint.log(
+                {
+                    "Epochs": epochs,
+                    "Pearson": pearson,
+                    "Slope": slope,
+                    "LL_train": log_likelihood,
+                    "LL_test": log_likelihood_test,
+                    "ESS": ess,
+                    "Entropy": entropy,
+                    "Density": 1.0,
+                    "Time": time.time() - time_start,
+                }
+            )
+            
+            # Save the model if a checkpoint is reached
             if checkpoint.check(epochs, params, chains):
-                entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
-                ess = _compute_ess(log_weights)
-                checkpoint.log(
-                    {
-                        "Epochs": epochs,
-                        "Pearson": pearson,
-                        "Slope": slope,
-                        "LL_train": log_likelihood,
-                        "ESS": ess,
-                        "Entropy": entropy,
-                        "Density": 1.0,
-                        "Time": time.time() - time_start,
-                    }
-                )
-                if fi_test is not None and fij_test is not None:
-                    log_likelihood_test = compute_log_likelihood(fi=fi_test, fij=fij_test, params=params, logZ=logZ)
-                    checkpoint.log({"LL_test": log_likelihood_test})
-                else:
-                    checkpoint.log({"LL_test": float("nan")})
-
                 checkpoint.save(
                     params=params,
                     mask=mask_save,
@@ -261,27 +225,7 @@ def train_graph(
     if progress_bar:
         pbar.close()
     
-    if checkpoint is not None:
-        entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
-        ess = _compute_ess(log_weights)
-        checkpoint.log(
-            {
-                "Epochs": epochs,
-                "Pearson": pearson,
-                "Slope": slope,
-                "LL_train": log_likelihood,
-                "ESS": ess,
-                "Entropy": entropy,
-                "Density": 1.0,
-                "Time": time.time() - time_start,
-            }
-        )
-        if fi_test is not None and fij_test is not None:
-            log_likelihood_test = compute_log_likelihood(fi=fi_test, fij=fij_test, params=params, logZ=logZ)
-            checkpoint.log({"LL_test": log_likelihood_test})
-        else:
-            checkpoint.log({"LL_test": float("nan")})
-            
+    if checkpoint is not None:            
         checkpoint.save(
             params=params,
             mask=mask_save,
