@@ -233,7 +233,7 @@ def compute_weights(
     @torch.jit.script
     def get_sequence_weight(s: torch.Tensor, data: torch.Tensor, L: int, th: float):
         seq_id = torch.sum(s == data, dim=1) / L
-        n_clust = torch.sum(seq_id >= th)
+        n_clust = torch.sum(seq_id > th)
         
         return 1.0 / n_clust
 

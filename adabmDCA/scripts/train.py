@@ -2,11 +2,10 @@ from pathlib import Path
 import importlib
 import argparse
 import numpy as np
-
 import torch
 
 from adabmDCA.dataset import DatasetDCA
-from adabmDCA.fasta import get_tokens, import_from_fasta
+from adabmDCA.fasta import get_tokens
 from adabmDCA.io import load_chains, load_params
 from adabmDCA.stats import get_freq_single_point, get_freq_two_points
 from adabmDCA.utils import init_chains, init_parameters, get_device, get_dtype

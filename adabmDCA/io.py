@@ -11,6 +11,7 @@ from adabmDCA.fasta import (
     validate_alphabet,
     get_tokens,
 )
+from adabmDCA.utils import get_mask_save
 
 
 def load_chains(
@@ -157,18 +158,21 @@ def load_params(
 def save_params(
     fname: str,
     params: Dict[str, torch.Tensor],
-    mask: torch.Tensor,
     tokens: str,
+    mask: torch.Tensor | None = None,
 ) -> None:
     """Saves the parameters of the model in a file.
 
     Args:
         fname (str): Path to the file where to save the parameters.
         params (Dict[str, torch.Tensor]): Parameters of the model.
-        mask (torch.Tensor): Mask of the coupling matrix that determines which are the non-zero entries.
         tokens (str): "protein", "dna", "rna" or another string with the alphabet to be used.
+        mask (torch.Tensor | None): Mask of the coupling matrix that determines which are the non-zero entries.
+            If None, the lower-triangular part of the coupling matrix is masked. Defaults to None.
     """
     tokens = get_tokens(tokens)
+    if mask is None:
+        mask = get_mask_save(L, q, device="cpu")
     mask = mask.cpu().numpy()
     params = {k : v.cpu().numpy() for k, v in params.items()}
     
@@ -254,7 +258,7 @@ def load_params_oldformat(
 def save_params_oldformat(
     fname: str,
     params: Dict[str, torch.Tensor],
-    mask: torch.Tensor,
+    mask: torch.Tensor | None = None,
 ) -> None:
     """Saves the parameters of the model in a file. Assumes the old DCA format.
 
@@ -262,7 +266,10 @@ def save_params_oldformat(
         fname (str): Path to the file where to save the parameters.
         params (Dict[str, torch.Tensor]): Parameters of the model.
         mask (torch.Tensor): Mask of the coupling matrix that determines which are the non-zero entries.
+            If None, the lower-triangular part of the coupling matrix is masked. Defaults to None.
     """
+    if mask is None:
+        mask = get_mask_save(L, q, device="cpu")
     mask = mask.cpu().numpy()
     params = {k : v.cpu().numpy() for k, v in params.items()}
     
