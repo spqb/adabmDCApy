@@ -24,8 +24,9 @@ def main(args):
     logging.info(f"Using device: {device}")
     
     # check if the output directory exists
-    if not os.path.exists(os.path.dirname(args.output_prefix)):
-        os.makedirs(os.path.dirname(args.output_prefix))
+    if os.path.dirname(args.output_prefix):
+        if not os.path.exists(os.path.dirname(args.output_prefix)):
+            os.makedirs(os.path.dirname(args.output_prefix))
     # check if the input MSA exists
     if not os.path.exists(args.input_msa):
         raise FileNotFoundError(f"Input MSA file {args.input_msa} does not exist.")
