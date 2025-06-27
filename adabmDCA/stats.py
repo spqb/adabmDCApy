@@ -156,38 +156,45 @@ def _get_C_ijk(
 
 
 def get_freq_three_points(
-    data: torch.Tensor,
+    nat: torch.Tensor,
+    gen: torch.Tensor,
     ntriplets: int,
     weights: torch.Tensor | None = None,
     device: torch.device = torch.device("cpu"),
-) -> torch.Tensor:
-    """Computes the 3-body statistics of the input MSA.
+) -> Tuple[torch.Tensor, torch.Tensor]:
+    """Computes the 3-body connected correlation statistics of the input MSAs.
 
     Args:
-        data (torch.Tensor): Input MSA in one-hot encoding.
+        nat (torch.Tensor): Input MSA representing natural data in one-hot encoding.
+        gen (torch.Tensor): Input MSA representing generated data in one-hot encoding.
         ntriplets (int): Number of triplets to test.
         weights (torch.Tensor | None, optional): Importance weights for the sequences. Defaults to None.
         device (torch.device, optional): Device to perform computations on. Defaults to "cpu".
 
     Returns:
-        torch.Tensor: 3-points connected correlation for ntriplets randomly extracted triplets.
+        Tuple[torch.Tensor, torch.Tensor]: Natural and generated 3-points connected correlation for ntriplets randomly extracted triplets.
     """
-    if data.dim() != 3:
-        raise ValueError(f"Expected data to be a 3D tensor, but got {data.dim()}D tensor instead")
+    if nat.dim() != 3:
+        raise ValueError(f"Expected data to be a 3D tensor, but got {nat.dim()}D tensor instead")
+    if gen.dim() != 3:
+        raise ValueError(f"Expected data to be a 3D tensor, but got {gen.dim()}D tensor instead")
+    assert nat.shape[1] == gen.shape[1], f"The two MSAs must have the same length. Got {nat.shape[1]} and {gen.shape[1]}."
     
-    M = len(data)
+    M = len(nat)
     if weights is not None:
         norm_weights = weights.view(-1, 1) / weights.sum()
     else:
-        norm_weights = torch.ones((M, 1), device=data.device, dtype=data.dtype) / M
+        norm_weights = torch.ones((M, 1), device=nat.device, dtype=nat.dtype) / M
     
-    L = data.shape[1]
+    L = nat.shape[1]
     triplets = generate_unique_triplets(L=L, ntriplets=ntriplets, device=device)
-    Cijk = []
+    Cijk_nat = []
+    Cijk_gen = []
     for triplet in triplets:
-        Cijk.append(_get_C_ijk(triplet, data, norm_weights).flatten())
+        Cijk_nat.append(_get_C_ijk(triplet, nat, norm_weights).flatten())
+        Cijk_gen.append(_get_C_ijk(triplet, gen, norm_weights).flatten())
         
-    return torch.stack(Cijk)
+    return torch.stack(Cijk_nat).flatten(), torch.stack(Cijk_gen).flatten()
 
 
 def get_covariance_matrix(
