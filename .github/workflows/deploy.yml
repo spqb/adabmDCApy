@@ -27,7 +27,7 @@ jobs:
     - name: 🧪 Generate API documentation
       run: |
         lazydocs \
-          --output-dir docs/api \
+          --output-path docs/api \
           --overview-file docs/api/index.md \
           adabmDCA
 
