@@ -17,10 +17,9 @@ jobs:
         run: |
           #pip install sphinx sphinx_rtd_theme myst_parser sphinxcontrib-bibtex
           #pip install .
-          cd documentation
           pip install mkdocs mkdocs-material lazydocs
       - name: Build documentation
-        run: mkdocs gh-deploy --force
+        run: mkdocs gh-deploy
       # - name: Build documentation
       #   run: |
       #     cd documentation

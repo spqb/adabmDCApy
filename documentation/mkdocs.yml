@@ -1,4 +1,6 @@
 site_name: adabmDCA
+site_dir: site
+docs_dir: documentation
 nav:
   - Home: index.md
   - Installation: installation.md
