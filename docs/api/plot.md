@@ -16,7 +16,7 @@
 
 ```python
 plot_PCA(
-    fig: <function figure at 0x7606c21d1120>,
+    fig: <function figure at 0x782cf32f1120>,
     data1: ndarray,
     pc1: int = 0,
     pc2: int = 1,
@@ -24,7 +24,7 @@ plot_PCA(
     labels: Union[List[str], str] = 'Data',
     colors: Union[List[str], str] = 'black',
     title: str | None = None
-) → <function figure at 0x7606c21d1120>
+) → <function figure at 0x782cf32f1120>
 ```
 
 Makes the scatter plot of the components (pc1, pc2) of the input data and shows the histograms of the components. 

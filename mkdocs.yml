@@ -16,6 +16,7 @@ nav:
       - Import and export: api/io.md
       - Sampling functions: api/sampling.md
       - Utilities: api/utils.md
+      - Dataset class: api/dataset.md
       - Statistical mechanics functions: api/statmech.md
       - Train/test split: api/cobalt.md
       - Special functions: api/functional.md
