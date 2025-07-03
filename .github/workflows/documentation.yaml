@@ -17,7 +17,7 @@ jobs:
         run: |
           #pip install sphinx sphinx_rtd_theme myst_parser sphinxcontrib-bibtex
           #pip install .
-          pip install mkdocs mkdocs-material laxydocs
+          pip install mkdocs mkdocs-material lazydocs
 
       - name: Build documentation
         run: |
