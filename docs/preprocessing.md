@@ -30,7 +30,7 @@ The following steps are applied to every input MSA:
 
 ---
 
-### ⚖️ Sequence Reweighting
+### <span id="computing-the-importance-weights">⚖️ Sequence Reweighting</span>
 
 To downweight overrepresented or phylogenetically related sequences, `adabmDCA` uses a clustering threshold (default: **80% identity**). The **weight** for sequence $\mathbf{a}^{(m)}$ is:
 
@@ -61,6 +61,4 @@ $$
 $$
 being the _effective number of sequences._
 ---
-
-✅ *These preprocessing steps ensure robust and unbiased training for all DCA methods supported by `adabmDCA`.*
 

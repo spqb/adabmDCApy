@@ -22,7 +22,11 @@ jobs:
 
     - name: 📦 Install dependencies
       run: |
-        pip install mkdocs mkdocs-material
+        pip install mkdocs mkdocs-material lazydocs
+
+    - name: 📖 Build API documentation
+      run: |
+        lazydocs adabmDCA --output-path ./docs/api --src-base-url https://github.com/spqb/adabmDCApy/tree/main
 
     - name: 🚀 Deploy to GitHub Pages
       run: mkdocs gh-deploy --force

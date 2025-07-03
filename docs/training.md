@@ -56,7 +56,7 @@ This initializes the model and chains from previously saved states.
 
 ### ⚖️ Sequence Weights
 
-You can provide precomputed [importance weights](#computing-the-importance-weights) via:
+You can provide precomputed [importance weights](preprocessing.md#computing-the-importance-weights) via:
 
 ```bash
 -w <weights_file>
