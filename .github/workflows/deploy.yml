@@ -1,11 +1,11 @@
-name: Deploy MkDocs to GitHub Pages
+name: Deploy MkDocs with API docs
 
 on:
   push:
     branches: [main]
 
 permissions:
-  contents: write  # Needed to push to gh-pages
+  contents: write  # Allow pushing to gh-pages
 
 jobs:
   deploy:
@@ -24,9 +24,12 @@ jobs:
       run: |
         pip install mkdocs mkdocs-material lazydocs
 
-    - name: 📖 Build API documentation
+    - name: 🧪 Generate API documentation
       run: |
-        lazydocs adabmDCA --output-path ./docs/api --src-base-url https://github.com/spqb/adabmDCApy/tree/main
+        lazydocs \
+          --output-dir docs/api \
+          --overview-file docs/api/index.md \
+          adabmDCA
 
     - name: 🚀 Deploy to GitHub Pages
       run: mkdocs gh-deploy --force
