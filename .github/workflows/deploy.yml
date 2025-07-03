@@ -18,11 +18,11 @@ jobs:
     - name: 🐍 Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.x'
+        python-version: '3.11'
 
     - name: 📦 Install dependencies
       run: |
-        pip install mkdocs mkdocs-material lazydocs
+        pip install mkdocs mkdocs-material "lazydocs<0.4.0"
 
     - name: 🧪 Generate API documentation
       run: |
