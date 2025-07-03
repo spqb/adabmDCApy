@@ -1,0 +1,34 @@
+site_name: adabmDCA
+nav:
+  - Home: index.md
+  - Installation: installation.md
+  - Input data and preprocessing: preprocessing.md
+  - Training: training.md
+  - Applications: applications.md
+  - Quicklist: quicklist.md
+  - Script arguments: script_arguments.md
+  - Python APIs:
+      - Fasta utils: api/fasta.md
+      - Compute statistics: api/stats.md
+      - Import and export: api/io.md
+      - Sampling functions: api/sampling.md
+      - Utilities: api/utils.md
+      - Statistical mechanics functions: api/statmech.md
+      - Train/test split: api/cobalt.md
+      - Special functions: api/functional.md
+
+theme: 
+  name: material
+  features:
+    - content.code.annotate # Optional syntax highlighting
+    - content.tabs.link     # Optional tabs support
+
+markdown_extensions:
+    - pymdownx.arithmatex:  # Enables LaTeX math
+        generic: true       # Uses KaTeX by default
+    - pymdownx.snippets
+    - admonition  # Enables basic !!! syntax
+    - pymdownx.details  # For richer styles (optional)
+
+extra_javascript:
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
