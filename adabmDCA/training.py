@@ -1,6 +1,6 @@
 from tqdm.autonotebook import tqdm
 import time
-from typing import Tuple, Callable, Dict
+from typing import Tuple, Callable, Dict, List
 import torch
 
 from adabmDCA.stats import get_freq_single_point, get_freq_two_points, get_correlation_two_points
@@ -88,7 +88,7 @@ def train_graph(
     check_slope: bool = False,
     log_weights: torch.Tensor | None = None,
     progress_bar: bool = True,
-) -> Tuple[torch.Tensor, Dict[str, torch.Tensor], torch.Tensor]:
+) -> Tuple[torch.Tensor, Dict[str, torch.Tensor], torch.Tensor, Dict[str, List[float]]]:
     """Trains the model on a given graph until the target Pearson correlation is reached or the maximum number of epochs is exceeded.
 
     Args:
@@ -110,7 +110,7 @@ def train_graph(
         progress_bar (bool, optional): Whether to display a progress bar or not. Defaults to True.
 
     Returns:
-        Tuple[torch.Tensor, Dict[str, torch.Tensor], torch.Tensor]: Updated chains and parameters, log-weights for the log-likelihood computation.
+        Tuple[torch.Tensor, Dict[str, torch.Tensor], torch.Tensor, Dict[str, List[float]]]: Updated chains and parameters, log-weights for the log-likelihood computation.
     """
     device = fi.device
     dtype = fi.dtype
@@ -126,6 +126,11 @@ def train_graph(
     # Compute the single-point and two-points frequencies of the simulated data
     pi = get_freq_single_point(data=chains)
     pij = get_freq_two_points(data=chains)
+    history = {
+        "epochs": [],
+        "pearson": [],
+        "slope": [],
+    }
     
     def halt_condition(epochs, pearson, slope, check_slope):
         c1 = pearson < target_pearson
@@ -212,6 +217,9 @@ def train_graph(
                     "Time": time.time() - time_start,
                 }
             )
+            history["epochs"].append(epochs)
+            history["pearson"].append(pearson)
+            history["slope"].append(slope)
             
             # Save the model if a checkpoint is reached
             if checkpoint.check(epochs, params, chains):
@@ -233,4 +241,4 @@ def train_graph(
             log_weights=log_weights,
         )
         
-    return chains, params, log_weights
+    return chains, params, log_weights, history

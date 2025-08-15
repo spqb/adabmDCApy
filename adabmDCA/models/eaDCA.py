@@ -65,8 +65,9 @@ def fit(
     
     device = fi_target.device
     dtype = fi_target.dtype
-    checkpoint.checkpt_interval = 10 # Save the model every 10 graph updates
-    checkpoint.max_epochs = nepochs
+    if checkpoint is not None:
+        checkpoint.checkpt_interval = 10 # Save the model every 10 graph updates
+        checkpoint.max_epochs = nepochs
     
     graph_upd = 0
     density = compute_density(mask) * 100
@@ -116,7 +117,7 @@ def fit(
         nactive = mask.sum()
         
         # Bring the model at convergence on the graph
-        chains, params, log_weights = train_graph(
+        chains, params, log_weights, _ = train_graph(
             sampler=sampler,
             chains=chains,
             mask=mask,
@@ -147,7 +148,7 @@ def fit(
         pbar.set_description(f"Graph updates: {graph_upd} - Density: {density:.3f}% - New active couplings: {int(nactive - nactive_old)} - LL: {log_likelihood:.3f}")
 
         # Save the model if a checkpoint is reached
-        if checkpoint.check(graph_upd, params, chains):
+        if checkpoint is not None:
             entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
             ess = _compute_ess(log_weights)
             checkpoint.log(
@@ -167,40 +168,42 @@ def fit(
                 checkpoint.log({"LL_test": log_likelihood_test})
             else:
                 checkpoint.log({"LL_test": float("nan")})
-            
-            checkpoint.save(
-                params=params,
-                mask=torch.logical_and(mask, mask_save),
-                chains=chains,
-                log_weights=log_weights,
-                )
+                
+            if checkpoint.check(graph_upd, params, chains):
+                checkpoint.save(
+                    params=params,
+                    mask=torch.logical_and(mask, mask_save),
+                    chains=chains,
+                    log_weights=log_weights,
+                    )
         pbar.n = min(max(0, float(pearson)), target_pearson)
 
     entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
     ess = _compute_ess(log_weights)
-    checkpoint.log(
-        {
-            "Epochs": graph_upd,
-            "Pearson": pearson,
-            "Slope": slope,
-            "LL_train": log_likelihood,
-            "ESS": ess,
-            "Entropy": entropy,
-            "Density": density,
-            "Time": time.time() - time_start,
-        }
-    )
-    if fi_test is not None and fij_test is not None:
-        log_likelihood_test = compute_log_likelihood(fi=fi_test, fij=fij_test, params=params, logZ=logZ)
-        checkpoint.log({"LL_test": log_likelihood_test})
-    else:
-        checkpoint.log({"LL_test": float("nan")})
-                
-    checkpoint.save(
-        params=params,
-        mask=torch.logical_and(mask, mask_save),
-        chains=chains,
-        log_weights=log_weights,
+    if checkpoint is not None:
+        checkpoint.log(
+            {
+                "Epochs": graph_upd,
+                "Pearson": pearson,
+                "Slope": slope,
+                "LL_train": log_likelihood,
+                "ESS": ess,
+                "Entropy": entropy,
+                "Density": density,
+                "Time": time.time() - time_start,
+            }
         )
-    print(f"Completed, model parameters saved in {checkpoint.file_paths['params']}")
+        if fi_test is not None and fij_test is not None:
+            log_likelihood_test = compute_log_likelihood(fi=fi_test, fij=fij_test, params=params, logZ=logZ)
+            checkpoint.log({"LL_test": log_likelihood_test})
+        else:
+            checkpoint.log({"LL_test": float("nan")})
+
+        checkpoint.save(
+            params=params,
+            mask=torch.logical_and(mask, mask_save),
+            chains=chains,
+            log_weights=log_weights,
+            )
+        print(f"Completed, model parameters saved in {checkpoint.file_paths['params']}")
     pbar.close()

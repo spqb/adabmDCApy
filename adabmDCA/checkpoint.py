@@ -18,7 +18,7 @@ class Checkpoint(ABC):
         tokens: str,
         args: dict,
         params: Dict[str, torch.Tensor] | None = None,
-        chains: Dict[str, torch.Tensor] | None = None,
+        chains: torch.Tensor | None = None,
         use_wandb: bool = False,
     ):
         """Initializes the Checkpoint class.
@@ -28,7 +28,7 @@ class Checkpoint(ABC):
             tokens (str): Alphabet to be used for encoding the sequences.
             args (dict): Dictionary containing the arguments of the training.
             params (Dict[str, torch.Tensor] | None, optional): Parameters of the model. Defaults to None.
-            chains (Dict[str, torch.Tensor] | None, optional): Chains. Defaults to None.
+            chains (torch.Tensor | None, optional): Chains. Defaults to None.
             use_wandb (bool, optional): Whether to use Weights & Biases for logging. Defaults to False.
         """
         if not isinstance(args, dict):
@@ -50,6 +50,7 @@ class Checkpoint(ABC):
         else:
             self.chains = None
         self.max_epochs = args["nepochs"]
+        self.checkpt_interval = 50
         
         self.logs = {
             "Epochs": 0,
@@ -137,7 +138,7 @@ class Checkpoint(ABC):
         self,
         params: Dict[str, torch.Tensor],
         mask: torch.Tensor,
-        chains: Dict[str, torch.Tensor],
+        chains: torch.Tensor,
         log_weights: torch.Tensor,
     ) -> None:
         """Saves the chains and the parameters of the model.
@@ -145,7 +146,7 @@ class Checkpoint(ABC):
         Args:
             params (Dict[str, torch.Tensor]): Parameters of the model.
             mask (torch.Tensor): Mask of the model's coupling matrix representing the interaction graph
-            chains (Dict[str, torch.Tensor]): Chains.
+            chains (torch.Tensor): Chains.
             log_weights (torch.Tensor): Log of the chain weights. Used for AIS.
         """
         pass
@@ -158,7 +159,7 @@ class LinearCheckpoint(Checkpoint):
         tokens: str,
         args: dict,
         params: Dict[str, torch.Tensor] | None = None,
-        chains: Dict[str, torch.Tensor] | None = None,
+        chains: torch.Tensor | None = None,
         checkpt_interval: int = 50,
         use_wandb: bool = False,
         **kwargs,
@@ -195,7 +196,7 @@ class LinearCheckpoint(Checkpoint):
         self,
         params: Dict[str, torch.Tensor],
         mask: torch.Tensor,
-        chains: Dict[str, torch.Tensor],
+        chains: torch.Tensor,
         log_weights: torch.Tensor,
     ) -> None:
         """Saves the chains and the parameters of the model.
@@ -203,7 +204,7 @@ class LinearCheckpoint(Checkpoint):
         Args:
             params (Dict[str, torch.Tensor]): Parameters of the model.
             mask (torch.Tensor): Mask of the model's coupling matrix representing the interaction graph
-            chains (Dict[str, torch.Tensor]): Chains.
+            chains (torch.Tensor): Chains.
             log_weights (torch.Tensor): Log of the chain weights. Used for AIS.
         """            
         save_params(fname=self.file_paths["params"], params=params, mask=mask, tokens=self.tokens)
@@ -216,8 +217,8 @@ class AcceptanceCheckpoint(Checkpoint):
         file_paths: Dict,
         tokens: str,
         args: Dict,
-        params: Dict[str, torch.Tensor] | None = None,
-        chains: Dict[str, torch.Tensor] | None = None,
+        params: Dict[str, torch.Tensor],
+        chains: torch.Tensor | None = None,
         target_acc_rate: float = 0.5,
         use_wandb: bool = False,
         **kwargs,
@@ -244,7 +245,7 @@ class AcceptanceCheckpoint(Checkpoint):
         self,
         updates: int,
         curr_params: Dict[str, torch.Tensor],
-        curr_chains: Dict[str, torch.Tensor],
+        curr_chains: torch.Tensor,
         *args,
         **kwargs,
     ) -> bool:
@@ -254,7 +255,7 @@ class AcceptanceCheckpoint(Checkpoint):
         Args:
             updates (int): Number of gradient updates performed.
             curr_params (Dict[str, torch.Tensor]): Current parameters of the model.
-            curr_chains (Dict[str, torch.Tensor]): Current chains of the model.
+            curr_chains (torch.Tensor): Current chains of the model.
 
         Returns:
             bool: Whether a checkpoint has been reached.
@@ -272,7 +273,7 @@ class AcceptanceCheckpoint(Checkpoint):
         self,
         params: Dict[str, torch.Tensor],
         mask: torch.Tensor,
-        chains: Dict[str, torch.Tensor],
+        chains: torch.Tensor,
         log_weights: torch.Tensor,
         *args,
         **kwargs,
@@ -283,7 +284,7 @@ class AcceptanceCheckpoint(Checkpoint):
         Args:
             params (Dict[str, torch.Tensor]): Parameters of the model.
             mask (torch.Tensor): Mask of the model's coupling matrix representing the interaction graph.
-            chains (Dict[str, torch.Tensor]): Chains.
+            chains (torch.Tensor): Chains.
             log_weights (torch.Tensor): Log of the chain weights. Used for AIS.
         """
             

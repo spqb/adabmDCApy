@@ -27,9 +27,9 @@ def fit(
     target_pearson: float,
     target_density: float,
     drate: float,
+    checkpoint: Checkpoint,
     fi_test: torch.Tensor | None = None,
     fij_test: torch.Tensor | None = None,
-    checkpoint: Checkpoint | None = None,
     *args, **kwargs,
 ):
     """Fits an edDCA model on the training data and saves the results in a file.
@@ -47,9 +47,9 @@ def fit(
         target_pearson (float): Pearson correlation coefficient on the two-points statistics to be reached.
         target_density (float): Target density of the coupling matrix.
         drate (float): Percentage of active couplings to be pruned at each decimation step.
+        checkpoint (Checkpoint): Checkpoint class to be used to save the model.
         fi_test (torch.Tensor | None, optional): Single-point frequencies of the test data. Defaults to None.
         fij_test (torch.Tensor | None, optional): Two-point frequencies of the test data. Defaults to None.
-        checkpoint (Checkpoint | None): Checkpoint class to be used to save the model. Defaults to None.
         """
     time_start = time.time()
     
@@ -71,7 +71,7 @@ def fit(
     _, pearson = get_correlation_two_points(fi=fi_target, pi=pi, fij=fij_target, pij=pij)
     if pearson < target_pearson:
         print("Bringing the model to the convergence threshold...")
-        chains, params, log_weights = train_graph(
+        chains, params, log_weights, _ = train_graph(
             sampler=sampler,
             chains=chains,
             log_weights=log_weights,
@@ -147,7 +147,7 @@ def fit(
         )
         
         # Bring the model at convergence on the graph
-        chains, params, log_weights = train_graph(
+        chains, params, log_weights, _ = train_graph(
             sampler=sampler,
             chains=chains,
             log_weights=log_weights,
