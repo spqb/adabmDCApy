@@ -196,6 +196,10 @@ def train_graph(
         if progress_bar:
             pbar.n = min(max(0, float(pearson)), target_pearson)
             pbar.set_description(f"Epochs: {epochs} - LL: {log_likelihood:.2f}")
+        
+        history["epochs"].append(epochs)
+        history["pearson"].append(pearson)
+        history["slope"].append(slope)
             
         if checkpoint is not None:
             entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
@@ -217,9 +221,6 @@ def train_graph(
                     "Time": time.time() - time_start,
                 }
             )
-            history["epochs"].append(epochs)
-            history["pearson"].append(pearson)
-            history["slope"].append(slope)
             
             # Save the model if a checkpoint is reached
             if checkpoint.check(epochs, params, chains):
