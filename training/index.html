@@ -1,0 +1,1230 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../preprocessing/">
+      
+      
+        <link rel="next" href="../applications/">
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.16">
+    
+    
+      
+        <title>Training - adabmDCApy</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.7e37652d.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#training" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="adabmDCApy" class="md-header__button md-logo" aria-label="adabmDCApy" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            adabmDCApy
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Training
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="adabmDCApy" class="md-nav__button md-logo" aria-label="adabmDCApy" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    adabmDCApy
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Installation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../preprocessing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Input data and preprocessing
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Training
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Training
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#training" class="md-nav__link">
+    <span class="md-ellipsis">
+      ⚙️ Training
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="⚙️ Training">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#output-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      📦 Output Files
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#restart-from-a-checkpoint" class="md-nav__link">
+    <span class="md-ellipsis">
+      ♻️ Restart from a Checkpoint
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sequence-weights" class="md-nav__link">
+    <span class="md-ellipsis">
+      ⚖️ Sequence Weights
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#alphabet-specification" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔠 Alphabet Specification
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#training-algorithms" class="md-nav__link">
+    <span class="md-ellipsis">
+      🧠 Training Algorithms
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🧠 Training Algorithms">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bmdca-fully-connected-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      🧩 bmDCA: Fully Connected Model
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#eadca-progressive-coupling-activation" class="md-nav__link">
+    <span class="md-ellipsis">
+      🌱 eaDCA: Progressive Coupling Activation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#eddca-decimation-for-sparsity" class="md-nav__link">
+    <span class="md-ellipsis">
+      ✂️ edDCA: Decimation for Sparsity
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="✂️ edDCA: Decimation for Sparsity">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-from-pretrained-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. From Pretrained Model
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-train-decimate-no-input-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Train + Decimate (No Input Model)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperparameter-tuning" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔧 Hyperparameter Tuning
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔧 Hyperparameter Tuning">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#learning-rate-lr" class="md-nav__link">
+    <span class="md-ellipsis">
+      🚀 Learning Rate (--lr)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#number-of-markov-chains-nchains" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔗 Number of Markov Chains (--nchains)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#monte-carlo-sweeps-nsweeps" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔄 Monte Carlo Sweeps (--nsweeps)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pseudocount-regularization-pseudocount" class="md-nav__link">
+    <span class="md-ellipsis">
+      🧮 Pseudocount Regularization (--pseudocount)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../applications/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Applications
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../quicklist/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Quicklist
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../script_arguments/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Script arguments
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Python APIs
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            Python APIs
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/fasta/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Fasta utils
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/stats/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Compute statistics
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/io/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Import and export
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/sampling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Sampling functions
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/utils/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Utilities
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/dataset/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Dataset class
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/statmech/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Statistical mechanics functions
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/cobalt/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Train/test split
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/functional/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Special functions
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#training" class="md-nav__link">
+    <span class="md-ellipsis">
+      ⚙️ Training
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="⚙️ Training">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#output-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      📦 Output Files
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#restart-from-a-checkpoint" class="md-nav__link">
+    <span class="md-ellipsis">
+      ♻️ Restart from a Checkpoint
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sequence-weights" class="md-nav__link">
+    <span class="md-ellipsis">
+      ⚖️ Sequence Weights
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#alphabet-specification" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔠 Alphabet Specification
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#training-algorithms" class="md-nav__link">
+    <span class="md-ellipsis">
+      🧠 Training Algorithms
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🧠 Training Algorithms">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bmdca-fully-connected-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      🧩 bmDCA: Fully Connected Model
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#eadca-progressive-coupling-activation" class="md-nav__link">
+    <span class="md-ellipsis">
+      🌱 eaDCA: Progressive Coupling Activation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#eddca-decimation-for-sparsity" class="md-nav__link">
+    <span class="md-ellipsis">
+      ✂️ edDCA: Decimation for Sparsity
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="✂️ edDCA: Decimation for Sparsity">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-from-pretrained-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. From Pretrained Model
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-train-decimate-no-input-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Train + Decimate (No Input Model)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperparameter-tuning" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔧 Hyperparameter Tuning
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔧 Hyperparameter Tuning">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#learning-rate-lr" class="md-nav__link">
+    <span class="md-ellipsis">
+      🚀 Learning Rate (--lr)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#number-of-markov-chains-nchains" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔗 Number of Markov Chains (--nchains)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#monte-carlo-sweeps-nsweeps" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔄 Monte Carlo Sweeps (--nsweeps)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pseudocount-regularization-pseudocount" class="md-nav__link">
+    <span class="md-ellipsis">
+      🧮 Pseudocount Regularization (--pseudocount)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+  <h1>Training</h1>
+
+<h2 id="training">⚙️ Training</h2>
+<p>All <code>adabmDCA</code> implementations (Python, Julia, C++) provide a unified command-line interface. Training is performed using the command:</p>
+<pre><code class="language-bash">adabmDCA train -m &lt;model&gt; -d &lt;fasta_file&gt; -o &lt;output_folder&gt; -l &lt;label&gt;
+</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>-m &lt;model&gt;</code>: Type of model to train. Choose from:<ul>
+<li><code>bmDCA</code>: Fully-connected Boltzmann Machine (default)</li>
+<li><code>eaDCA</code>: Sparse model with progressively activated couplings</li>
+<li><code>edDCA</code>: Sparse model obtained by decimating an existing <code>bmDCA</code> model</li>
+</ul>
+</li>
+<li><code>-d &lt;fasta_file&gt;</code>: Path to the input MSA in FASTA format</li>
+<li><code>-o &lt;output_folder&gt;</code>: Output directory for storing results</li>
+<li><code>-l &lt;label&gt;</code>: Optional label prefix for output files</li>
+</ul>
+<div class="admonition info">
+<p class="admonition-title">Info</p>
+<p>All options are listed in <a href="../script_arguments/#script_arguments">Script arguments</a>. The same information can be shown from the command line using:</p>
+<p><code>adabmDCA train -h</code></p>
+</div>
+<p>Training proceeds until the Pearson correlation coefficient between the model and empirical two-point statistics reaches a target threshold (default: <code>--target 0.95</code>).</p>
+<hr />
+<h3 id="output-files">📦 Output Files</h3>
+<p>By default, the following files are generated during training (overwritten every 50 epochs):</p>
+<ul>
+<li>
+<p><code>&lt;label&gt;_params.dat</code>: Model parameters.</p>
+<ul>
+<li>Lines starting with <code>J</code> encode pairwise couplings: position1, position2, symbol1, symbol2</li>
+<li>Lines starting with <code>h</code> encode single-site biases: position, symbol</li>
+<li>Inactive couplings (i.e. value 0) are not saved</li>
+</ul>
+</li>
+<li>
+<p><code>&lt;label&gt;_chains.fasta</code>: Final state of Markov chains used during sampling</p>
+</li>
+<li>
+<p><code>&lt;label&gt;_adabmDCA.log</code>: Log file recording training progress</p>
+</li>
+</ul>
+<hr />
+<h3 id="restart-from-a-checkpoint">♻️ Restart from a Checkpoint</h3>
+<p>To resume an interrupted training, provide saved parameters and chains:</p>
+<pre><code class="language-bash">adabmDCA train [...] -p &lt;file_params&gt; -c &lt;file_chains&gt;
+</code></pre>
+<p>This initializes the model and chains from previously saved states.</p>
+<hr />
+<h3 id="sequence-weights">⚖️ Sequence Weights</h3>
+<p>You can provide precomputed <a href="../preprocessing/#computing-the-importance-weights">importance weights</a> via:</p>
+<pre><code class="language-bash">-w &lt;weights_file&gt;
+</code></pre>
+<p>Otherwise, weights are computed automatically using sequence identity clustering and saved to:</p>
+<pre><code>&lt;output_folder&gt;/&lt;label&gt;_weights.dat
+</code></pre>
+<p>Use <code>--clustering_seqid</code> to control the sequence identity threshold, or <code>--no_reweighting</code> to disable reweighting.</p>
+<hr />
+<h3 id="alphabet-specification">🔠 Alphabet Specification</h3>
+<p>By default, the alphabet is set to <code>protein</code>. To specify others:</p>
+<pre><code class="language-bash">--alphabet rna
+--alphabet dna
+</code></pre>
+<p>You can also define a <strong>custom alphabet</strong>:</p>
+<pre><code class="language-bash">--alphabet ABCD-
+</code></pre>
+<p>Just ensure the symbols match exactly with those in your MSA. Custom alphabets allow for specialized tokens or reordering.</p>
+<hr />
+<h2 id="training-algorithms">🧠 Training Algorithms</h2>
+<h3 id="bmdca-fully-connected-model"><span id="bmdca">🧩 <code>bmDCA</code>: Fully Connected Model</span></h3>
+<p>This is the default training mode, where all possible pairwise couplings are learned.</p>
+<hr />
+<h3 id="eadca-progressive-coupling-activation"><span id="eadca">🌱 <code>eaDCA</code>: Progressive Coupling Activation</span></h3>
+<p>This routine learns a sparse DCA model by gradually activating couplings.</p>
+<p>Use:</p>
+<pre><code class="language-bash">adabmDCA train -m eaDCA [...]
+</code></pre>
+<p>Key hyperparameters:</p>
+<ul>
+<li><code>--factivate &lt;float&gt;</code>: Fraction of inactive couplings activated per iteration (default: <code>0.001</code>)</li>
+<li><code>--gsteps &lt;int&gt;</code>: Number of parameter updates per fixed coupling graph (default: <code>10</code>)</li>
+<li><code>--nsweeps &lt;int&gt;</code>: MC sweeps per parameter update. Since only part of the model changes at each step, a smaller value (e.g. <code>5</code>) is usually sufficient.</li>
+</ul>
+<hr />
+<h3 id="eddca-decimation-for-sparsity"><span id="eddca">✂️ <code>edDCA</code>: Decimation for Sparsity</span></h3>
+<p>This routine builds a sparse model by pruning the least informative couplings from a <code>bmDCA</code> model.</p>
+<p>Two modes are available:</p>
+<h4 id="1-from-pretrained-model">1. <strong>From Pretrained Model</strong></h4>
+<pre><code class="language-bash">adabmDCA train -m edDCA -d &lt;fasta_file&gt; -p &lt;file_params&gt; -c &lt;file_chains&gt;
+</code></pre>
+<ul>
+<li>Requires parameters and chains from a previously trained <code>bmDCA</code> model</li>
+<li>Applies decimation until target sparsity is reached (up to 10,000 iterations)</li>
+</ul>
+<h4 id="2-train-decimate-no-input-model">2. <strong>Train + Decimate (No Input Model)</strong></h4>
+<p>If <code>-p</code> and <code>-c</code> are omitted, the model is initialized from scratch. A <code>bmDCA</code> is trained first, then decimated automatically.</p>
+<p>Key hyperparameters:</p>
+<ul>
+<li><code>--gsteps &lt;int&gt;</code>: Parameter updates per decimation step (default: <code>10</code>)</li>
+<li><code>--drate &lt;float&gt;</code>: Fraction of couplings to remove per step (default: <code>0.01</code>)</li>
+<li><code>--density &lt;float&gt;</code>: Target graph density (default: <code>0.02</code>)</li>
+<li><code>--target &lt;float&gt;</code>: Target Pearson correlation (default: <code>0.95</code>)</li>
+</ul>
+<hr />
+<h2 id="hyperparameter-tuning">🔧 Hyperparameter Tuning</h2>
+<p>Default values offer a good trade-off between performance and training time for clean MSAs. In other cases, consider adjusting the following:</p>
+<h3 id="learning-rate-lr">🚀 Learning Rate (<code>--lr</code>)</h3>
+<ul>
+<li>Default: <code>0.05</code></li>
+<li>Reduce to <code>0.01</code> or <code>0.005</code> if the training is unstable, does not converge, or yields poor generative models</li>
+</ul>
+<h3 id="number-of-markov-chains-nchains">🔗 Number of Markov Chains (<code>--nchains</code>)</h3>
+<ul>
+<li>Default: <code>10000</code></li>
+<li>Lowering this reduces memory use, but may slow convergence (see <a href="#fig-pearson">Fig. 2</a>)</li>
+</ul>
+<p><span id="fig-pearson"><em><strong>Figure 2</strong>: Evolution of the Pearson correlation coefficient for trainings with a different number of Markov chains. The target pearson is set to 0.95 (black dashed line).</em></span>
+<img alt="Example FASTA" src="../images/Pearsons.png" /></p>
+<h3 id="monte-carlo-sweeps-nsweeps">🔄 Monte Carlo Sweeps (<code>--nsweeps</code>)</h3>
+<ul>
+<li>Default: <code>10</code></li>
+<li>Controls the number of full sequence updates between parameter updates</li>
+<li>Higher values (up to <code>50</code>) improve chain decorrelation but increase runtime</li>
+</ul>
+<h3 id="pseudocount-regularization-pseudocount">🧮 Pseudocount Regularization (<code>--pseudocount</code>)</h3>
+<ul>
+<li>Default: <span class="arithmatex">\(\alpha = 1 / M_{\mathrm{eff}}\)</span> (effective number of sequences)</li>
+<li>Adjust to control the smoothness of empirical frequency estimates</li>
+<li><span class="arithmatex">\(\alpha = 0\)</span>: No regularization</li>
+<li><span class="arithmatex">\(\alpha = 1\)</span>: Flat prior (uniform frequencies)</li>
+<li>Set manually via <code>--pseudocount &lt;value&gt;</code></li>
+</ul>
+<hr />
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Choosing optimal hyperparameters depends on your dataset. MSAs with many gaps, high diversity, or strong subfamily structure may require more conservative settings to ensure convergence and good sampling.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "..", "features": ["content.code.annotate", "content.tabs.link"], "search": "../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.50899def.min.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>
