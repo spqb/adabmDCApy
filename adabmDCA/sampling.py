@@ -34,6 +34,35 @@ def _gibbs_sweep(
     return chains
 
 
+def gibbs_mutate(
+    chains: torch.Tensor,
+    num_mut: int,
+    params: Dict[str, torch.Tensor],
+    beta: float,
+) -> torch.Tensor:
+    """Performs a Gibbs sweep over the chains.
+
+    Args:
+        chains (torch.Tensor): One-hot encoded sequences.
+        num_mut (int): Number of proposed mutations.
+        params (Dict[str, torch.Tensor]): Parameters of the model.
+        beta (float): Inverse temperature.
+
+    Returns:
+        torch.Tensor: Updated chains.
+    """
+    N, L, q = chains.shape
+    idx_array = torch.randint(0, L, (num_mut,), device=chains.device)
+    for i in idx_array:
+        # Select the couplings attached to the residue we are considering (i) and flatten along the other residues ({j})
+        couplings_residue = params["coupling_matrix"][i].view(q, L * q)
+        # Update the chains
+        logit_residue = beta * (params["bias"][i].unsqueeze(0) + chains.reshape(N, L * q) @ couplings_residue.T) # (N, q)
+        chains[:, i, :] = multinomial_one_hot(logit_residue)
+        
+    return chains
+
+
 def gibbs_sampling(
     chains: torch.Tensor,
     params: Dict[str, torch.Tensor],
@@ -97,6 +126,35 @@ def _metropolis_sweep(
     """
     N, L, q = chains.shape
     for i in residue_idxs:
+        res_old = chains[:, i, :]
+        res_new = one_hot(torch.randint(0, q, (N,), device=chains.device), num_classes=q).type(chains.dtype)
+        delta_E = _get_deltaE(i, chains, res_old, res_new, params, L, q)
+        accept_prob = torch.exp(- beta * delta_E).unsqueeze(-1)
+        chains[:, i, :] = torch.where(accept_prob > torch.rand((N, 1), device=chains.device, dtype=chains.dtype), res_new, res_old)
+
+    return chains
+
+
+def metropolis_mutate(
+    chains: torch.Tensor,
+    num_mut: int,
+    params: Dict[str, torch.Tensor],
+    beta: float,
+) -> torch.Tensor:
+    """Performs a Metropolis sweep over the chains.
+
+    Args:
+        chains (torch.Tensor): One-hot encoded sequences.
+        num_mut (int): Number of proposed mutations.
+        params (Dict[str, torch.Tensor]): Parameters of the model.
+        beta (float): Inverse temperature.
+
+    Returns:
+        torch.Tensor: Updated chains.
+    """
+    N, L, q = chains.shape
+    idx_array = torch.randint(0, L, (num_mut,), device=chains.device)
+    for i in idx_array:
         res_old = chains[:, i, :]
         res_new = one_hot(torch.randint(0, q, (N,), device=chains.device), num_classes=q).type(chains.dtype)
         delta_E = _get_deltaE(i, chains, res_old, res_new, params, L, q)
