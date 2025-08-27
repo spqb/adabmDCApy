@@ -13,7 +13,7 @@ from adabmDCA.functional import one_hot
 from adabmDCA.sampling import get_sampler
 from adabmDCA.statmech import compute_energy
 from adabmDCA.parser import add_args_tdint
-from adabmDCA.resampling import compute_seqID 
+from adabmDCA.stats import get_seqid
 
 
 # import command-line input arguments
@@ -134,7 +134,7 @@ def main():
     params_theta["bias"] += theta_max * targetseq
     chains_theta = init_chains(args.nchains, L, q, device=device, dtype=dtype)
     chains_theta = sampler(chains_theta, params_theta, args.nsweeps_theta)
-    seqID_max = compute_seqID(chains_theta, targetseq)
+    seqID_max = get_seqid(chains_theta, targetseq)
             
     # Find theta_max to generate 10% target sequences in the sample
     print("Finding theta_max to generate 10% target sequences in the sample...")
@@ -146,7 +146,7 @@ def main():
         print(f"Number of sequences collapsed to WT is less than 10%. Increasing theta max to: {theta_max:.2f}...")
         params_theta["bias"] = params["bias"] + theta_max * targetseq
         chains_theta = sampler(chains_theta, params_theta, nsweep_find_theta)
-        seqID = compute_seqID(chains_theta, targetseq)
+        seqID = get_seqid(chains_theta, targetseq)
         p_wt = (seqID == L).sum().item() / args.nchains
     
     # initiaize Thermodynamic Integration
@@ -178,7 +178,7 @@ def main():
         # sampling and compute seqID
         params_theta["bias"] = params["bias"] + theta * targetseq
         chains_theta = sampler(chains_theta, params_theta, nsweeps)
-        seqID = compute_seqID(chains_theta, targetseq)
+        seqID = get_seqid(chains_theta, targetseq)
         mean_seqID = seqID.mean()
         
         # step of integration to compute entropy

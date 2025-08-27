@@ -51,27 +51,28 @@ def load_chains(
 
 def save_chains(
     fname: str,
-    chains: torch.Tensor,
+    chains: torch.Tensor | np.ndarray,
     tokens: str,
-    log_weights: torch.Tensor = None
+    log_weights: torch.Tensor | np.ndarray | None = None
 ) -> None:
     """Saves the chains in a fasta file.
 
     Args:
         fname (str): Path to the file where to save the chains.
-        chains (torch.Tensor): Chains.
+        chains (torch.Tensor | np.ndarray): Chains.
         tokens (str): "protein", "dna", "rna" or another string with the alphabet to be used.
-        log_weights (torch.Tensor, optional): Log-weights of the chains. Defaults to None.
+        log_weights (torch.Tensor | None, optional): Log-weights of the chains. Defaults to None.
     """
     
     # Check if chains is a 3D tensor
-    if chains.ndim != 2:
-        raise ValueError("chains must be a 2D tensor")
-    
-    chains = chains.cpu().numpy()
+    if len(chains.shape) != 2:
+        raise ValueError("chains must be a 2D tensor or array")
+    if isinstance(chains, torch.Tensor):
+        chains = chains.cpu().numpy()
     if log_weights is not None:
-        log_weigth = log_weights.cpu().numpy()
-        headers = [f"chain_{i}|log_weight={log_weigth[i]}" for i in range(len(chains))]
+        if isinstance(log_weights, torch.Tensor):
+            log_weights = log_weights.cpu().numpy()
+        headers = [f"chain_{i}|log_weight={log_weights[i]}" for i in range(len(chains))]
     else:
         headers = [f"chain_{i}" for i in range(len(chains))]
     write_fasta(

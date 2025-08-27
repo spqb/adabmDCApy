@@ -1,10 +1,9 @@
 from typing import Dict, Tuple
-
 import torch
 
 
 @torch.jit.script
-def compute_Dkl(
+def compute_Dkl_activation(
     fij: torch.Tensor,
     pij: torch.Tensor,
 ) -> torch.Tensor:
@@ -26,7 +25,7 @@ def compute_Dkl(
     return Dkl
 
 
-def update_mask(
+def update_mask_activation(
     Dkl: torch.Tensor,
     mask: torch.Tensor,
     nactivate: int,
@@ -71,9 +70,9 @@ def activate_graph(
     """
     
     # Compute the Kullback-Leibler divergence of all the couplings
-    Dkl = compute_Dkl(fij=fij, pij=pij)
+    Dkl = compute_Dkl_activation(fij=fij, pij=pij)
     # Update the graph
-    mask = update_mask(Dkl=Dkl, mask=mask, nactivate=nactivate)
+    mask = update_mask_activation(Dkl=Dkl, mask=mask, nactivate=nactivate)
     
     return mask
 
@@ -101,7 +100,7 @@ def compute_sym_Dkl(
 
 
 @torch.jit.script
-def compute_Dkl(
+def compute_Dkl_decimation(
     params: Dict[str, torch.Tensor],
     pij: torch.Tensor,
 ) -> torch.Tensor:
@@ -122,7 +121,7 @@ def compute_Dkl(
     return Dkl
 
 
-def update_mask(
+def update_mask_decimation(
     mask: torch.Tensor,
     Dkl: torch.Tensor,
     drate: float,
@@ -165,8 +164,8 @@ def decimate_graph(
         Tuple[Dict[str, torch.Tensor], torch.Tensor]: Updated parameters and mask.
     """
     
-    Dkl = compute_Dkl(params=params, pij=pij)
-    mask = update_mask(mask=mask, Dkl=Dkl, drate=drate)
+    Dkl = compute_Dkl_decimation(params=params, pij=pij)
+    mask = update_mask_decimation(mask=mask, Dkl=Dkl, drate=drate)
     params["coupling_matrix"] *= mask
     
     return params, mask
@@ -185,4 +184,4 @@ def compute_density(mask: torch.Tensor) -> float:
     L, q, _, _ = mask.shape
     density = mask.sum() / (q**2 * L * (L-1))
     
-    return density
+    return density.item()

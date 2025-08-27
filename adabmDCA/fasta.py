@@ -46,7 +46,7 @@ def encode_sequence(sequence: str | np.ndarray | list, tokens: str) -> np.ndarra
         return [letter_map[l] for l in sequece]
     
     if isinstance(sequence, str):
-        return _encode(sequence)
+        return np.array(_encode(sequence))
     elif isinstance(sequence, np.ndarray):
         sequence = list(sequence)
         return np.array(list(map(_encode, sequence)))
@@ -171,7 +171,7 @@ def import_from_fasta(
     
 def write_fasta(
     fname: str,
-    headers: np.ndarray,
+    headers: np.ndarray | list,
     sequences: np.ndarray,
     numeric_input: bool = False,
     remove_gaps: bool = False,
@@ -181,7 +181,7 @@ def write_fasta(
 
     Args:
         fname (str): Name of the output fasta file.
-        headers (np.ndarray): Array of sequences' headers.
+        headers (np.ndarray | list): Array or list of sequences' headers.
         sequences (np.ndarray): Array of sequences.
         numeric_input (bool, optional): Whether the sequences are in numeric (encoded) format or not. Defaults to False.
         remove_gaps (bool, optional): If True, removes the gap from the alignment. Defaults to False.

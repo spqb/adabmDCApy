@@ -8,7 +8,7 @@ def _one_hot(x: torch.Tensor, num_classes: int = -1, dtype: torch.dtype = torch.
         raise ValueError("Input tensor x must be 2D")
     
     if num_classes < 0:
-        num_classes = x.max() + 1
+        num_classes = int(x.max() + 1)
     res = torch.zeros(x.shape[0], x.shape[1], num_classes, device=x.device, dtype=dtype)
     tmp = torch.meshgrid(
         torch.arange(x.shape[0], device=x.device),

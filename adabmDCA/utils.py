@@ -149,10 +149,9 @@ def get_device(device: str, message: bool = True) -> torch.device:
         torch.device: Device.
     """
     if "cuda" in device and torch.cuda.is_available():
-        device = torch.device(device)
         if message:
             print(f"Running on {torch.cuda.get_device_name(device)}")
-        return device
+        return torch.device(device)
     else:
         if message:
             print("Running on CPU")
@@ -172,7 +171,7 @@ def get_dtype(dtype: str) -> torch.dtype:
         return torch.float32
     elif dtype == "float64":
         return torch.float64
-    elif dtype == "float16":
-        return torch.float16
+    #elif dtype == "float16":
+    #    return torch.float16
     else:
         raise ValueError(f"Data type {dtype} not supported.")
