@@ -1,5 +1,5 @@
 import itertools
-from typing import Tuple
+from typing import Tuple, Dict
 import torch
 import numpy as np
 
@@ -320,47 +320,3 @@ def get_correlation_two_points(
     slope = _get_slope(fij_extract.float(), pij_extract.float()).item()
     
     return pearson, slope
-
-
-def get_seqid(
-    s1: torch.Tensor,
-    s2: torch.Tensor | None = None,
-    average: bool = False,
-) -> torch.Tensor | Tuple[torch.Tensor, torch.Tensor]:
-    """
-    When average is True:
-    - If s2 is provided, computes the mean and the standard deviation of the mean sequence identity between two sets of one-hot encoded sequences.
-    - If s2 is a single sequence (L, q), it computes the mean and the standard deviation of the mean sequence identity between the dataset s1 and s2.
-    - If s2 is none, computes the mean and the standard deviation of the mean of the sequence identity between s1 and a permutation of s1.
-    
-    When average is False it returns the array of sequence identities.
-
-    Args:
-        s1 (torch.Tensor): Sequence dataset 1.
-        s2 (torch.Tensor | None): Sequence dataset 2. Defaults to None.
-        average (bool): Whether to return the average and standard deviation of the sequence identity or the array of sequence identities.
-
-    Returns:
-        torch.Tensor | Tuple[torch.Tensor, torch.Tensor]: List of sequence identities or mean sequence identity and standard deviation of the mean.
-    """
-    if len(s1.shape) == 2:
-        s1 = s1.unsqueeze(0)
-    if s2 is None:
-        s2 = s1[torch.randperm(s1.shape[0])]
-    if len(s2.shape) == 2:
-        s2 = s2.unsqueeze(0)
-        
-    s1 = s1.view(s1.shape[0], -1)
-    s2 = s2.view(s2.shape[0], -1)
-    
-    seqids = (s1 * s2).sum(1)
-    if average is False:
-        return seqids
-    else:
-        mean_seqid = seqids.mean()
-        if len(seqids) == 1:
-            std_seqid = torch.tensor(0.0, device=seqids.device)
-        else:
-            std_seqid = seqids.std() / np.sqrt(len(seqids))
-
-        return mean_seqid, std_seqid

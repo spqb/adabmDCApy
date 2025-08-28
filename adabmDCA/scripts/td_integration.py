@@ -13,7 +13,7 @@ from adabmDCA.functional import one_hot
 from adabmDCA.sampling import get_sampler
 from adabmDCA.statmech import compute_energy
 from adabmDCA.parser import add_args_tdint
-from adabmDCA.stats import get_seqid
+from adabmDCA.dca import get_seqid
 
 
 # import command-line input arguments
@@ -30,11 +30,12 @@ def main():
     parser = create_parser()
     args = parser.parse_args()
     
+    print("\n" + "".join(["*"] * 10) + f" Computing model's entropy " + "".join(["*"] * 10) + "\n")
+    
     # Create output folder
     folder = Path(args.output)
     folder.mkdir(parents=True, exist_ok=True)
 
-    print("\n" + "".join(["*"] * 10) + f" Computing model's entropy " + "".join(["*"] * 10) + "\n")
     # Set the device
     device = get_device(args.device)
     dtype = get_dtype(args.dtype)

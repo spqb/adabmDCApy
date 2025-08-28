@@ -14,14 +14,12 @@ def create_parser():
     parser = add_args_reintegration(parser)
     return parser
 
-def main():
-    
-    print("\n" + "".join(["*"] * 10) + f" Training a reintegrated DCA model " + "".join(["*"] * 10) + "\n")
-    
-    print("Generating the reintegrated dataset...")
-    
+def main():    
     parser = create_parser()
     args = parser.parse_args()
+    
+    print("\n" + "".join(["*"] * 10) + f" Training a reintegrated DCA model " + "".join(["*"] * 10) + "\n")
+    print("Generating the reintegrated dataset...")
     
     device = get_device(args.device, message=False)
     dtype = get_dtype(args.dtype)

@@ -8,7 +8,7 @@ def main():
 
     # Check if the first positional argument is provided
     if len(sys.argv) < 2:
-        print("Error: No command provided. Use 'train', 'sample', 'contacts', 'energies', 'reintegrate', 'DMS' or 'profmark'.")
+        print("Error: No command provided. Use 'train', 'sample', 'contacts', 'energies', 'entropy', 'reintegrate', 'DMS' or 'profmark'.")
         sys.exit(1)
 
     # Assign the first positional argument to a variable
@@ -33,7 +33,7 @@ def main():
         case "profmark":
             SCRIPT = "profmark.py"
         case _:
-            print(f"Error: Invalid command '{COMMAND}'. Use 'train', 'sample', 'contacts', 'energies', 'reintegrate', 'DMS' or 'profmark'.")
+            print(f"Error: Invalid command '{COMMAND}'. Use 'train', 'sample', 'contacts', 'energies', 'entropy', 'reintegrate', 'DMS' or 'profmark'.")
             sys.exit(1)
 
     # Run the corresponding Python script with the remaining optional arguments

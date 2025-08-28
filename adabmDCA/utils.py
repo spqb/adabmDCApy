@@ -1,27 +1,7 @@
 from typing import Dict
-
 import torch
 
 from adabmDCA.functional import one_hot
-    
-    
-def set_zerosum_gauge(params: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
-    """Sets the zero-sum gauge on the coupling matrix.
-    
-    Args:
-        params (Dict[str, torch.Tensor]): Parameters of the model.
-        
-    Returns:
-        Dict[str, torch.Tensor]: Parameters with fixed gauge.
-    """
-    coupling_matrix = params["coupling_matrix"]
-    coupling_matrix -= coupling_matrix.mean(dim=1, keepdim=True) + \
-                       coupling_matrix.mean(dim=3, keepdim=True) - \
-                       coupling_matrix.mean(dim=(1, 3), keepdim=True)
-    
-    params["coupling_matrix"] = coupling_matrix
-    
-    return params
 
 
 def init_parameters(fi: torch.Tensor) -> Dict[str, torch.Tensor]:
@@ -148,9 +128,13 @@ def get_device(device: str, message: bool = True) -> torch.device:
     Returns:
         torch.device: Device.
     """
+    if "mps" in device:
+        if message:
+            print(f"Running on M chip GPU, Metal Performance Shaders (MPS)")
+        return torch.device(device)
     if "cuda" in device and torch.cuda.is_available():
         if message:
-            print(f"Running on {torch.cuda.get_device_name(device)}")
+            print(f"Running on {torch.cuda.get_device_name(torch.device(device))}")
         return torch.device(device)
     else:
         if message:

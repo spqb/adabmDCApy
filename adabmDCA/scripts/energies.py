@@ -20,12 +20,12 @@ def create_parser():
     return parser
 
 
-def main():
-    print("\n" + "".join(["*"] * 10) + f" Computing DCA energies " + "".join(["*"] * 10) + "\n")
-    
+def main():    
     # Parse arguments
     parser = create_parser()
     args = parser.parse_args()
+    
+    print("\n" + "".join(["*"] * 10) + f" Computing DCA energies " + "".join(["*"] * 10) + "\n")
     
     # Set the device
     device = get_device(args.device)
