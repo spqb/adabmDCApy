@@ -1,7 +1,7 @@
 from typing import Dict, Callable
 from tqdm.autonotebook import tqdm
 import torch
-from adabmDCA.stats import get_seqid
+from adabmDCA.dca import get_seqid
 
 
 def compute_mixing_time(

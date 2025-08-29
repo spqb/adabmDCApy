@@ -1,7 +1,7 @@
 import numpy as np
 import torch
 from typing import Tuple, Dict
-from adabmDCA.stats import get_covariance_matrix, get_freq_single_point
+from adabmDCA.stats import get_covariance_matrix
 
 
 def get_seqid(
@@ -89,17 +89,17 @@ def get_contact_map(
     # Get index of the gap symbol
     gap_idx = tokens.index("-")
     
-    cm_reduced = params["coupling_matrix"]
+    Jij = params["coupling_matrix"]
     # Take all the entries of the coupling matrix except where the gap is involved
     mask = torch.arange(q) != gap_idx
-    cm_reduced = cm_reduced[:, mask, :, :][:, :, :, mask]
-    
+    Jij_reduced = Jij[:, mask, :, :][:, :, :, mask]
+
     # Compute the Frobenius norm
-    F = torch.sqrt(torch.square(cm_reduced).sum([1, 3]))
+    cm = torch.sqrt(torch.square(Jij_reduced).sum([1, 3]))
     # Set to zero the diagonal
-    F = F - torch.diag(F.diag())
+    cm = cm - torch.diag(cm.diag())
     # Compute the average-product corrected Frobenius norm
-    Fapc = F - torch.outer(F.sum(1), F.sum(0)) / F.sum()
+    Fapc = cm - torch.outer(cm.sum(1), cm.sum(0)) / cm.sum()
     # set to zero the diagonal
     Fapc = Fapc - torch.diag(Fapc.diag())
 
@@ -130,11 +130,12 @@ def get_mf_contact_map(
     
     # Compute the covariance matrix
     Cij = get_covariance_matrix(data, weights=weights)
-    # Add a small value to the diagonal for numerical stability
     shrink = 4.5 / torch.sqrt(torch.tensor(data.shape[0], dtype=dtype, device=device)) * torch.eye(Cij.shape[0], device=device, dtype=dtype)
+    Cij += shrink
+        
     # Invert the covariance matrix to get the coupling matrix
-    Jij = torch.linalg.inv(Cij + shrink)
-    
+    Jij = -torch.linalg.inv(Cij)
+
     # partial correlation coefficient
     Jij_diag = torch.diag(Jij)
     pcc = Jij / torch.sqrt(Jij_diag[:, None] * Jij_diag[None, :])
