@@ -1,6 +1,6 @@
 <!-- markdownlint-disable -->
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/graph.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/adabmDCA/graph.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 # <kbd>module</kbd> `graph`
 
@@ -10,12 +10,39 @@
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/graph.py#L125"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/adabmDCA/graph.py#L28"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
-## <kbd>function</kbd> `update_mask`
+## <kbd>function</kbd> `update_mask_activation`
 
 ```python
-update_mask(mask: Tensor, Dkl: Tensor, drate: float) → Tensor
+update_mask_activation(Dkl: Tensor, mask: Tensor, nactivate: int) → Tensor
+```
+
+Updates the mask by removing the nactivate couplings with the smallest Dkl. 
+
+
+
+**Args:**
+ 
+ - <b>`Dkl`</b> (torch.Tensor):  Kullback-Leibler divergence matrix. 
+ - <b>`mask`</b> (torch.Tensor):  Mask. 
+ - <b>`nactivate`</b> (int):  Number of couplings to be activated at each graph update. 
+
+
+
+**Returns:**
+ 
+ - <b>`torch.Tensor`</b>:  Updated mask. 
+
+
+---
+
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/adabmDCA/graph.py#L124"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+
+## <kbd>function</kbd> `update_mask_decimation`
+
+```python
+update_mask_decimation(mask: Tensor, Dkl: Tensor, drate: float) → Tensor
 ```
 
 Updates the mask by removing the n_remove couplings with the smallest Dkl. 
@@ -37,7 +64,7 @@ Updates the mask by removing the n_remove couplings with the smallest Dkl.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/graph.py#L150"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/adabmDCA/graph.py#L149"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `decimate_graph`
 

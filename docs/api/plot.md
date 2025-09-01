@@ -1,6 +1,6 @@
 <!-- markdownlint-disable -->
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/plot.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/adabmDCA/plot.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 # <kbd>module</kbd> `plot`
 
@@ -10,13 +10,13 @@
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/plot.py#L60"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/adabmDCA/plot.py#L64"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `plot_PCA`
 
 ```python
 plot_PCA(
-    fig: <function figure at 0x782cf32f1120>,
+    fig: Figure,
     data1: ndarray,
     pc1: int = 0,
     pc2: int = 1,
@@ -24,7 +24,7 @@ plot_PCA(
     labels: Union[List[str], str] = 'Data',
     colors: Union[List[str], str] = 'black',
     title: str | None = None
-) → <function figure at 0x782cf32f1120>
+) → Figure
 ```
 
 Makes the scatter plot of the components (pc1, pc2) of the input data and shows the histograms of the components. 
@@ -46,12 +46,12 @@ Makes the scatter plot of the components (pc1, pc2) of the input data and shows 
 
 **Returns:**
  
- - <b>`plt.figure`</b>:  Updated figure. 
+ - <b>`Figure`</b>:  Updated figure. 
 
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/plot.py#L128"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/adabmDCA/plot.py#L133"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `plot_pearson_sampling`
 
@@ -64,14 +64,27 @@ plot_pearson_sampling(
 )
 ```
 
+Plots the Pearson correlation coefficient over sampling time. 
 
 
 
+**Args:**
+ 
+ - <b>`ax`</b> (Axes):  Axes to plot the data. 
+ - <b>`checkpoints`</b> (np.ndarray):  Checkpoints of the sampling. 
+ - <b>`pearsons`</b> (np.ndarray):  Pearson correlation coefficients at different checkpoints. 
+ - <b>`pearson_training`</b> (np.ndarray | None, optional):  Pearson correlation coefficient obtained during training. Defaults to None. 
+
+
+
+**Returns:**
+ 
+ - <b>`Axes`</b>:  Updated axes. 
 
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/plot.py#L150"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/adabmDCA/plot.py#L166"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `plot_autocorrelation`
 
@@ -80,8 +93,8 @@ plot_autocorrelation(
     ax: Axes,
     checkpoints: ndarray,
     autocorr: ndarray,
-    gen_seqid: ndarray,
-    data_seqid: ndarray
+    gen_seqid: float,
+    data_seqid: float
 ) → Axes
 ```
 
@@ -91,28 +104,28 @@ Plots the time-autocorrelation curve of the sequence identity and the generated 
 
 **Args:**
  
- - <b>`ax`</b> (plt.Axes):  Axes to plot the data. 
+ - <b>`ax`</b> (Axes):  Axes to plot the data. 
  - <b>`checkpoints`</b> (np.ndarray):  Checkpoints of the sampling. 
  - <b>`autocorr`</b> (np.ndarray):  Time-autocorrelation of the sequence identity. 
- - <b>`gen_seqid`</b> (np.ndarray):  Sequence identity of the generated data. 
- - <b>`data_seqid`</b> (np.ndarray):  Sequence identity of the data. 
+ - <b>`gen_seqid`</b> (float):  Sequence identity of the generated data. 
+ - <b>`data_seqid`</b> (float):  Sequence identity of the data. 
 
 
 
 **Returns:**
  
- - <b>`plt.Axes`</b>:  Updated axes. 
+ - <b>`Axes`</b>:  Updated axes. 
 
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/plot.py#L188"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/adabmDCA/plot.py#L203"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `plot_scatter_correlations`
 
 ```python
 plot_scatter_correlations(
-    ax: Axes,
+    ax: Tuple[Axes, Axes],
     Cij_data: ndarray,
     Cij_gen: ndarray,
     Cijk_data: ndarray,
@@ -128,7 +141,7 @@ Plots the scatter plot of the data and generated Cij and Cijk values.
 
 **Args:**
  
- - <b>`ax`</b> (plt.Axes):  Axes to plot the data. Must have 2 subplots. 
+ - <b>`ax`</b> (Axes):  Axes to plot the data. Must have 2 subplots. 
  - <b>`Cij_data`</b> (np.ndarray):  Data Cij values. 
  - <b>`Cij_gen`</b> (np.ndarray):  Generated Cij values. 
  - <b>`Cijk_data`</b> (np.ndarray):  Data Cijk values. 
@@ -141,6 +154,33 @@ Plots the scatter plot of the data and generated Cij and Cijk values.
 **Returns:**
  
  - <b>`plt.Axes`</b>:  Updated axes. 
+
+
+---
+
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/adabmDCA/plot.py#L253"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+
+## <kbd>function</kbd> `plot_contact_map`
+
+```python
+plot_contact_map(ax: Axes, cm: ndarray, title: str | None = None) → Axes
+```
+
+Plots the contact map. 
+
+
+
+**Args:**
+ 
+ - <b>`ax`</b> (Axes):  Axes to plot the contact map. 
+ - <b>`cm`</b> (np.ndarray):  Contact map to plot. 
+ - <b>`title`</b> (str | None, optional):  Title of the plot. Defaults to None. 
+
+
+
+**Returns:**
+ 
+ - <b>`Axes`</b>:  Updated axes. 
 
 
 

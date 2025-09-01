@@ -6,9 +6,11 @@
 
 - [`cobalt`](./cobalt.md#module-cobalt)
 - [`dataset`](./dataset.md#module-dataset)
+- [`dca`](./dca.md#module-dca)
 - [`fasta`](./fasta.md#module-fasta)
 - [`functional`](./functional.md#module-functional)
-- [`io`](./io.md#module-io)
+- [`io`](./io.md#module-io): The io module provides the Python interfaces to stream handling. The
+- [`plot`](./plot.md#module-plot)
 - [`sampling`](./sampling.md#module-sampling)
 - [`statmech`](./statmech.md#module-statmech)
 - [`stats`](./stats.md#module-stats)
@@ -23,6 +25,10 @@
 - [`cobalt.prune_redundant_sequences`](./cobalt.md#function-prune_redundant_sequences): Prunes sequences from X such that no sequence has more than 'seqid_th' fraction of its residues identical to any other sequence in the set.
 - [`cobalt.run_cobalt`](./cobalt.md#function-run_cobalt): Runs the Cobalt algorithm to split the input MSA into training and test sets.
 - [`cobalt.split_train_test`](./cobalt.md#function-split_train_test): Splits X into two sets, T and S, such that no sequence in S has more than
+- [`dca.get_contact_map`](./dca.md#function-get_contact_map): Computes the contact map from the model coupling matrix.
+- [`dca.get_mf_contact_map`](./dca.md#function-get_mf_contact_map): Computes the contact map from the model coupling matrix.
+- [`dca.get_seqid`](./dca.md#function-get_seqid): When average is True:
+- [`dca.set_zerosum_gauge`](./dca.md#function-set_zerosum_gauge): Sets the zero-sum gauge on the coupling matrix.
 - [`fasta.compute_weights`](./fasta.md#function-compute_weights): Computes the weight to be assigned to each sequence 's' in 'data' as 1 / n_clust, where 'n_clust' is the number of sequences
 - [`fasta.decode_sequence`](./fasta.md#function-decode_sequence): Takes a numeric sequence or list of seqences in input an returns the corresponding string encoding.
 - [`fasta.encode_sequence`](./fasta.md#function-encode_sequence): Encodes a sequence or a list of sequences into a numeric format.
@@ -31,14 +37,22 @@
 - [`fasta.validate_alphabet`](./fasta.md#function-validate_alphabet): Check if the chosen alphabet is compatible with the input sequences.
 - [`fasta.write_fasta`](./fasta.md#function-write_fasta): Generate a fasta file with the input sequences.
 - [`functional.one_hot`](./functional.md#function-one_hot): A fast one-hot encoding function faster than the PyTorch one working with torch.int32 and returning a float Tensor.
+- [`io.load_chains`](./io.md#function-load_chains): Loads the sequences from a fasta file and returns the numeric-encoded version.
 - [`io.load_params`](./io.md#function-load_params): Import the parameters of the model from a file.
 - [`io.load_params_oldformat`](./io.md#function-load_params_oldformat): Import the parameters of the model from a file. Assumes the old DCA format.
 - [`io.save_chains`](./io.md#function-save_chains): Saves the chains in a fasta file.
 - [`io.save_params`](./io.md#function-save_params): Saves the parameters of the model in a file.
 - [`io.save_params_oldformat`](./io.md#function-save_params_oldformat): Saves the parameters of the model in a file. Assumes the old DCA format.
+- [`plot.plot_PCA`](./plot.md#function-plot_pca): Makes the scatter plot of the components (pc1, pc2) of the input data and shows the histograms of the components.
+- [`plot.plot_autocorrelation`](./plot.md#function-plot_autocorrelation): Plots the time-autocorrelation curve of the sequence identity and the generated and data sequence identities.
+- [`plot.plot_contact_map`](./plot.md#function-plot_contact_map): Plots the contact map.
+- [`plot.plot_pearson_sampling`](./plot.md#function-plot_pearson_sampling): Plots the Pearson correlation coefficient over sampling time.
+- [`plot.plot_scatter_correlations`](./plot.md#function-plot_scatter_correlations): Plots the scatter plot of the data and generated Cij and Cijk values.
 - [`sampling.get_sampler`](./sampling.md#function-get_sampler): Returns the sampling function corresponding to the chosen method.
+- [`sampling.gibbs_mutate`](./sampling.md#function-gibbs_mutate): Attempts to perform num_mut mutations using the Gibbs sampler.
 - [`sampling.gibbs_sampling`](./sampling.md#function-gibbs_sampling): Gibbs sampling.
 - [`sampling.metropolis`](./sampling.md#function-metropolis): Metropolis sampling.
+- [`sampling.metropolis_mutate`](./sampling.md#function-metropolis_mutate): Attempts to perform num_mut mutations using the Metropolis sampler.
 - [`statmech.compute_energy`](./statmech.md#function-compute_energy): Compute the DCA energy of the sequences in X.
 - [`statmech.compute_entropy`](./statmech.md#function-compute_entropy): Compute the entropy of the DCA model.
 - [`statmech.compute_logZ_exact`](./statmech.md#function-compute_logz_exact): Compute the log-partition function of the model.
@@ -59,4 +73,8 @@
 - [`utils.init_chains`](./utils.md#function-init_chains): Initialize the chains of the DCA model. If 'fi' is provided, the chains are sampled from the
 - [`utils.init_parameters`](./utils.md#function-init_parameters): Initialize the parameters of the DCA model.
 - [`utils.resample_sequences`](./utils.md#function-resample_sequences): Extracts nextract sequences from data with replacement according to the weights.
-- [`utils.set_zerosum_gauge`](./utils.md#function-set_zerosum_gauge): Sets the zero-sum gauge on the coupling matrix.
+
+
+---
+
+_This file was automatically generated via [lazydocs](https://github.com/ml-tooling/lazydocs)._

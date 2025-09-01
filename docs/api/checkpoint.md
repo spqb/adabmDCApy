@@ -1,6 +1,6 @@
 <!-- markdownlint-disable -->
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/checkpoint.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/adabmDCA/checkpoint.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 # <kbd>module</kbd> `checkpoint`
 
@@ -10,7 +10,7 @@
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/checkpoint.py#L303"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/adabmDCA/checkpoint.py#L304"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `get_checkpoint`
 
@@ -25,12 +25,12 @@ get_checkpoint(chpt: str) → Checkpoint
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/checkpoint.py#L11"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/adabmDCA/checkpoint.py#L11"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `Checkpoint`
 Helper class to save the model's parameters and chains at regular intervals during training and to log the progress of the training. 
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/checkpoint.py#L15"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/adabmDCA/checkpoint.py#L15"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `__init__`
 
@@ -40,7 +40,7 @@ __init__(
     tokens: str,
     args: dict,
     params: Optional[Dict[str, Tensor]] = None,
-    chains: Optional[Dict[str, Tensor]] = None,
+    chains: Tensor | None = None,
     use_wandb: bool = False
 )
 ```
@@ -55,7 +55,7 @@ Initializes the Checkpoint class.
  - <b>`tokens`</b> (str):  Alphabet to be used for encoding the sequences. 
  - <b>`args`</b> (dict):  Dictionary containing the arguments of the training. 
  - <b>`params`</b> (Dict[str, torch.Tensor] | None, optional):  Parameters of the model. Defaults to None. 
- - <b>`chains`</b> (Dict[str, torch.Tensor] | None, optional):  Chains. Defaults to None. 
+ - <b>`chains`</b> (torch.Tensor | None, optional):  Chains. Defaults to None. 
  - <b>`use_wandb`</b> (bool, optional):  Whether to use Weights & Biases for logging. Defaults to False. 
 
 
@@ -63,7 +63,7 @@ Initializes the Checkpoint class.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/checkpoint.py#L117"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/adabmDCA/checkpoint.py#L118"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `check`
 
@@ -87,7 +87,7 @@ Checks if a checkpoint has been reached.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/checkpoint.py#L93"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/adabmDCA/checkpoint.py#L94"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `log`
 
@@ -105,7 +105,7 @@ Adds a key-value pair to the log dictionary
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/checkpoint.py#L135"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/adabmDCA/checkpoint.py#L136"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `save`
 
@@ -113,7 +113,7 @@ Adds a key-value pair to the log dictionary
 save(
     params: Dict[str, Tensor],
     mask: Tensor,
-    chains: Dict[str, Tensor],
+    chains: Tensor,
     log_weights: Tensor
 ) → None
 ```
@@ -126,20 +126,20 @@ Saves the chains and the parameters of the model.
  
  - <b>`params`</b> (Dict[str, torch.Tensor]):  Parameters of the model. 
  - <b>`mask`</b> (torch.Tensor):  Mask of the model's coupling matrix representing the interaction graph 
- - <b>`chains`</b> (Dict[str, torch.Tensor]):  Chains. 
+ - <b>`chains`</b> (torch.Tensor):  Chains. 
  - <b>`log_weights`</b> (torch.Tensor):  Log of the chain weights. Used for AIS. 
 
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/checkpoint.py#L154"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/adabmDCA/checkpoint.py#L155"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `LinearCheckpoint`
 
 
 
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/checkpoint.py#L155"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/adabmDCA/checkpoint.py#L156"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `__init__`
 
@@ -149,7 +149,7 @@ __init__(
     tokens: str,
     args: dict,
     params: Optional[Dict[str, Tensor]] = None,
-    chains: Optional[Dict[str, Tensor]] = None,
+    chains: Tensor | None = None,
     checkpt_interval: int = 50,
     use_wandb: bool = False,
     **kwargs
@@ -165,7 +165,7 @@ __init__(
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/checkpoint.py#L177"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/adabmDCA/checkpoint.py#L178"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `check`
 
@@ -189,7 +189,7 @@ Checks if a checkpoint has been reached.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/checkpoint.py#L93"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/adabmDCA/checkpoint.py#L94"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `log`
 
@@ -207,7 +207,7 @@ Adds a key-value pair to the log dictionary
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/checkpoint.py#L194"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/adabmDCA/checkpoint.py#L195"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `save`
 
@@ -215,7 +215,7 @@ Adds a key-value pair to the log dictionary
 save(
     params: Dict[str, Tensor],
     mask: Tensor,
-    chains: Dict[str, Tensor],
+    chains: Tensor,
     log_weights: Tensor
 ) → None
 ```
@@ -228,20 +228,20 @@ Saves the chains and the parameters of the model.
  
  - <b>`params`</b> (Dict[str, torch.Tensor]):  Parameters of the model. 
  - <b>`mask`</b> (torch.Tensor):  Mask of the model's coupling matrix representing the interaction graph 
- - <b>`chains`</b> (Dict[str, torch.Tensor]):  Chains. 
+ - <b>`chains`</b> (torch.Tensor):  Chains. 
  - <b>`log_weights`</b> (torch.Tensor):  Log of the chain weights. Used for AIS. 
 
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/checkpoint.py#L213"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/adabmDCA/checkpoint.py#L214"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `AcceptanceCheckpoint`
 
 
 
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/checkpoint.py#L214"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/adabmDCA/checkpoint.py#L215"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `__init__`
 
@@ -250,8 +250,8 @@ __init__(
     file_paths: Dict,
     tokens: str,
     args: Dict,
-    params: Optional[Dict[str, Tensor]] = None,
-    chains: Optional[Dict[str, Tensor]] = None,
+    params: Dict[str, Tensor],
+    chains: Tensor | None = None,
     target_acc_rate: float = 0.5,
     use_wandb: bool = False,
     **kwargs
@@ -267,7 +267,7 @@ __init__(
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/checkpoint.py#L243"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/adabmDCA/checkpoint.py#L244"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `check`
 
@@ -275,7 +275,7 @@ __init__(
 check(
     updates: int,
     curr_params: Dict[str, Tensor],
-    curr_chains: Dict[str, Tensor],
+    curr_chains: Tensor,
     *args,
     **kwargs
 ) → bool
@@ -289,7 +289,7 @@ Checks if a checkpoint has been reached by computing the acceptance rate of swap
  
  - <b>`updates`</b> (int):  Number of gradient updates performed. 
  - <b>`curr_params`</b> (Dict[str, torch.Tensor]):  Current parameters of the model. 
- - <b>`curr_chains`</b> (Dict[str, torch.Tensor]):  Current chains of the model. 
+ - <b>`curr_chains`</b> (torch.Tensor):  Current chains of the model. 
 
 
 
@@ -299,7 +299,7 @@ Checks if a checkpoint has been reached by computing the acceptance rate of swap
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/checkpoint.py#L93"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/adabmDCA/checkpoint.py#L94"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `log`
 
@@ -317,7 +317,7 @@ Adds a key-value pair to the log dictionary
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/checkpoint.py#L271"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/adabmDCA/checkpoint.py#L272"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `save`
 
@@ -325,7 +325,7 @@ Adds a key-value pair to the log dictionary
 save(
     params: Dict[str, Tensor],
     mask: Tensor,
-    chains: Dict[str, Tensor],
+    chains: Tensor,
     log_weights: Tensor,
     *args,
     **kwargs
@@ -340,7 +340,7 @@ Saves the chains and the parameters of the model and appends the current paramet
  
  - <b>`params`</b> (Dict[str, torch.Tensor]):  Parameters of the model. 
  - <b>`mask`</b> (torch.Tensor):  Mask of the model's coupling matrix representing the interaction graph. 
- - <b>`chains`</b> (Dict[str, torch.Tensor]):  Chains. 
+ - <b>`chains`</b> (torch.Tensor):  Chains. 
  - <b>`log_weights`</b> (torch.Tensor):  Log of the chain weights. Used for AIS. 
 
 

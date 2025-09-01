@@ -1,6 +1,6 @@
 <!-- markdownlint-disable -->
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/models/edDCA.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/adabmDCA/models/edDCA.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 # <kbd>module</kbd> `models.edDCA`
 
@@ -13,7 +13,7 @@
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/models/edDCA.py#L17"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/adabmDCA/models/edDCA.py#L17"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `fit`
 
@@ -31,9 +31,9 @@ fit(
     target_pearson: float,
     target_density: float,
     drate: float,
+    checkpoint: Checkpoint,
     fi_test: Tensor | None = None,
     fij_test: Tensor | None = None,
-    checkpoint: Checkpoint | None = None,
     *args,
     **kwargs
 )
@@ -57,9 +57,9 @@ Fits an edDCA model on the training data and saves the results in a file.
  - <b>`target_pearson`</b> (float):  Pearson correlation coefficient on the two-points statistics to be reached. 
  - <b>`target_density`</b> (float):  Target density of the coupling matrix. 
  - <b>`drate`</b> (float):  Percentage of active couplings to be pruned at each decimation step. 
+ - <b>`checkpoint`</b> (Checkpoint):  Checkpoint class to be used to save the model. 
  - <b>`fi_test`</b> (torch.Tensor | None, optional):  Single-point frequencies of the test data. Defaults to None. 
  - <b>`fij_test`</b> (torch.Tensor | None, optional):  Two-point frequencies of the test data. Defaults to None. 
- - <b>`checkpoint`</b> (Checkpoint | None):  Checkpoint class to be used to save the model. Defaults to None. 
 
 
 
