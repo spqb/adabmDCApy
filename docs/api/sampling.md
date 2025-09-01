@@ -1,6 +1,6 @@
 <!-- markdownlint-disable -->
 
-<a href="https://github.com/spqb/adabmDCApy/adabmDCA/sampling.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/sampling.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 # <kbd>module</kbd> `sampling`
 
@@ -10,7 +10,7 @@
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/adabmDCA/sampling.py#L8"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/sampling.py#L8"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `gibbs_mutate`
 
@@ -43,7 +43,7 @@ Attempts to perform num_mut mutations using the Gibbs sampler.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/adabmDCA/sampling.py#L37"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/sampling.py#L37"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `gibbs_sampling`
 
@@ -76,7 +76,7 @@ Gibbs sampling.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/adabmDCA/sampling.py#L92"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/sampling.py#L92"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `metropolis_mutate`
 
@@ -109,7 +109,7 @@ Attempts to perform num_mut mutations using the Metropolis sampler.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/adabmDCA/sampling.py#L121"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/sampling.py#L121"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `metropolis`
 
@@ -142,7 +142,7 @@ Metropolis sampling.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/adabmDCA/sampling.py#L146"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/sampling.py#L146"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `get_sampler`
 

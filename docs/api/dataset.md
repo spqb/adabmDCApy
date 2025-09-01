@@ -1,6 +1,6 @@
 <!-- markdownlint-disable -->
 
-<a href="https://github.com/spqb/adabmDCApy/adabmDCA/dataset.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/dataset.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 # <kbd>module</kbd> `dataset`
 
@@ -11,12 +11,12 @@
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/adabmDCA/dataset.py#L14"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/dataset.py#L14"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `DatasetDCA`
 Dataset class for handling multi-sequence alignments data. 
 
-<a href="https://github.com/spqb/adabmDCApy/adabmDCA/dataset.py#L16"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/dataset.py#L16"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `__init__`
 
@@ -53,7 +53,7 @@ Initialize the dataset.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/adabmDCA/dataset.py#L104"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/dataset.py#L104"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `get_effective_size`
 
@@ -71,7 +71,7 @@ Returns the effective size (Meff) of the dataset.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/adabmDCA/dataset.py#L86"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/dataset.py#L86"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `get_num_residues`
 
@@ -89,7 +89,7 @@ Returns the number of residues (L) in the multi-sequence alignment.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/adabmDCA/dataset.py#L95"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/dataset.py#L95"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `get_num_states`
 
@@ -107,7 +107,7 @@ Returns the number of states (q) in the alphabet.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/adabmDCA/dataset.py#L113"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/dataset.py#L113"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `shuffle`
 

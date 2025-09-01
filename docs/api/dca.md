@@ -1,6 +1,6 @@
 <!-- markdownlint-disable -->
 
-<a href="https://github.com/spqb/adabmDCApy/adabmDCA/dca.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/dca.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 # <kbd>module</kbd> `dca`
 
@@ -10,7 +10,7 @@
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/adabmDCA/dca.py#L7"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/dca.py#L7"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `get_seqid`
 
@@ -46,7 +46,7 @@ When average is False it returns the array of sequence identities.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/adabmDCA/dca.py#L51"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/dca.py#L51"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `set_zerosum_gauge`
 
@@ -71,7 +71,7 @@ Sets the zero-sum gauge on the coupling matrix.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/adabmDCA/dca.py#L70"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/dca.py#L70"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `get_contact_map`
 
@@ -97,7 +97,7 @@ Computes the contact map from the model coupling matrix.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/adabmDCA/dca.py#L109"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/dca.py#L109"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `get_mf_contact_map`
 

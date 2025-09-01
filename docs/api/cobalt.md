@@ -1,6 +1,6 @@
 <!-- markdownlint-disable -->
 
-<a href="https://github.com/spqb/adabmDCApy/adabmDCA/cobalt.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/cobalt.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 # <kbd>module</kbd> `cobalt`
 
@@ -10,7 +10,7 @@
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/adabmDCA/cobalt.py#L17"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/cobalt.py#L17"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `split_train_test`
 
@@ -43,7 +43,7 @@ Splits X into two sets, T and S, such that no sequence in S has more than 'seqid
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/adabmDCA/cobalt.py#L66"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/cobalt.py#L66"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `prune_redundant_sequences`
 
@@ -76,7 +76,7 @@ Prunes sequences from X such that no sequence has more than 'seqid_th' fraction 
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/adabmDCA/cobalt.py#L95"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/cobalt.py#L95"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `run_cobalt`
 

@@ -1,6 +1,6 @@
 <!-- markdownlint-disable -->
 
-<a href="https://github.com/spqb/adabmDCApy/adabmDCA/checkpoint.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/checkpoint.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 # <kbd>module</kbd> `checkpoint`
 
@@ -10,7 +10,7 @@
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/adabmDCA/checkpoint.py#L304"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/checkpoint.py#L304"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `get_checkpoint`
 
@@ -25,12 +25,12 @@ get_checkpoint(chpt: str) → Checkpoint
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/adabmDCA/checkpoint.py#L11"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/checkpoint.py#L11"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `Checkpoint`
 Helper class to save the model's parameters and chains at regular intervals during training and to log the progress of the training. 
 
-<a href="https://github.com/spqb/adabmDCApy/adabmDCA/checkpoint.py#L15"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/checkpoint.py#L15"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `__init__`
 
@@ -63,7 +63,7 @@ Initializes the Checkpoint class.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/adabmDCA/checkpoint.py#L118"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/checkpoint.py#L118"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `check`
 
@@ -87,7 +87,7 @@ Checks if a checkpoint has been reached.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/adabmDCA/checkpoint.py#L94"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/checkpoint.py#L94"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `log`
 
@@ -105,7 +105,7 @@ Adds a key-value pair to the log dictionary
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/adabmDCA/checkpoint.py#L136"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/checkpoint.py#L136"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `save`
 
@@ -132,14 +132,14 @@ Saves the chains and the parameters of the model.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/adabmDCA/checkpoint.py#L155"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/checkpoint.py#L155"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `LinearCheckpoint`
 
 
 
 
-<a href="https://github.com/spqb/adabmDCApy/adabmDCA/checkpoint.py#L156"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/checkpoint.py#L156"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `__init__`
 
@@ -165,7 +165,7 @@ __init__(
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/adabmDCA/checkpoint.py#L178"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/checkpoint.py#L178"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `check`
 
@@ -189,7 +189,7 @@ Checks if a checkpoint has been reached.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/adabmDCA/checkpoint.py#L94"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/checkpoint.py#L94"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `log`
 
@@ -207,7 +207,7 @@ Adds a key-value pair to the log dictionary
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/adabmDCA/checkpoint.py#L195"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/checkpoint.py#L195"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `save`
 
@@ -234,14 +234,14 @@ Saves the chains and the parameters of the model.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/adabmDCA/checkpoint.py#L214"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/checkpoint.py#L214"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `AcceptanceCheckpoint`
 
 
 
 
-<a href="https://github.com/spqb/adabmDCApy/adabmDCA/checkpoint.py#L215"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/checkpoint.py#L215"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `__init__`
 
@@ -267,7 +267,7 @@ __init__(
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/adabmDCA/checkpoint.py#L244"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/checkpoint.py#L244"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `check`
 
@@ -299,7 +299,7 @@ Checks if a checkpoint has been reached by computing the acceptance rate of swap
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/adabmDCA/checkpoint.py#L94"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/checkpoint.py#L94"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `log`
 
@@ -317,7 +317,7 @@ Adds a key-value pair to the log dictionary
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/adabmDCA/checkpoint.py#L272"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/checkpoint.py#L272"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `save`
 
