@@ -1,6 +1,6 @@
 <!-- markdownlint-disable -->
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/adabmDCA/fasta.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/adabmDCA/fasta.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 # <kbd>module</kbd> `fasta`
 
@@ -15,7 +15,7 @@
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/adabmDCA/fasta.py#L13"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/adabmDCA/fasta.py#L13"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `get_tokens`
 
@@ -40,7 +40,7 @@ Converts the alphabet into the corresponding tokens.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/adabmDCA/fasta.py#L33"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/adabmDCA/fasta.py#L33"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `encode_sequence`
 
@@ -66,7 +66,7 @@ Encodes a sequence or a list of sequences into a numeric format.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/adabmDCA/fasta.py#L59"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/adabmDCA/fasta.py#L59"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `decode_sequence`
 
@@ -92,7 +92,7 @@ Takes a numeric sequence or list of seqences in input an returns the correspondi
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/adabmDCA/fasta.py#L88"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/adabmDCA/fasta.py#L88"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `import_from_fasta`
 
@@ -134,7 +134,7 @@ Import sequences from a fasta file. The following operations are performed:
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/adabmDCA/fasta.py#L172"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/adabmDCA/fasta.py#L172"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `write_fasta`
 
@@ -165,7 +165,7 @@ Generate a fasta file with the input sequences.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/adabmDCA/fasta.py#L207"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/adabmDCA/fasta.py#L207"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `compute_weights`
 
@@ -198,7 +198,7 @@ Computes the weight to be assigned to each sequence 's' in 'data' as 1 / n_clust
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/adabmDCA/fasta.py#L245"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/adabmDCA/fasta.py#L245"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `validate_alphabet`
 

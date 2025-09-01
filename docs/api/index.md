@@ -11,6 +11,7 @@
 - [`functional`](./functional.md#module-functional)
 - [`io`](./io.md#module-io): The io module provides the Python interfaces to stream handling. The
 - [`plot`](./plot.md#module-plot)
+- [`resampling`](./resampling.md#module-resampling)
 - [`sampling`](./sampling.md#module-sampling)
 - [`statmech`](./statmech.md#module-statmech)
 - [`stats`](./stats.md#module-stats)

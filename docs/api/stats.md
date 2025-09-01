@@ -1,6 +1,6 @@
 <!-- markdownlint-disable -->
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/adabmDCA/stats.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/adabmDCA/stats.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 # <kbd>module</kbd> `stats`
 
@@ -10,7 +10,7 @@
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/adabmDCA/stats.py#L21"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/adabmDCA/stats.py#L21"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `get_freq_single_point`
 
@@ -45,7 +45,7 @@ Computes the single point frequencies of the input MSA.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/adabmDCA/stats.py#L74"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/adabmDCA/stats.py#L74"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `get_freq_two_points`
 
@@ -82,7 +82,7 @@ Computes the 2-points statistics of the input MSA.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/adabmDCA/stats.py#L105"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/adabmDCA/stats.py#L105"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `generate_unique_triplets`
 
@@ -113,7 +113,7 @@ Generates a set of unique triplets of positions. Used to compute the 3-points st
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/adabmDCA/stats.py#L158"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/adabmDCA/stats.py#L158"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `get_freq_three_points`
 
@@ -148,7 +148,7 @@ Computes the 3-body connected correlation statistics of the input MSAs.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/adabmDCA/stats.py#L202"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/adabmDCA/stats.py#L202"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `get_covariance_matrix`
 
@@ -179,7 +179,7 @@ Computes the weighted covariance matrix of the input multi sequence alignment.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/adabmDCA/stats.py#L232"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/adabmDCA/stats.py#L232"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `extract_Cij_from_freq`
 
@@ -214,7 +214,7 @@ Extracts the lower triangular part of the covariance matrices of the data and ch
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/adabmDCA/stats.py#L270"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/adabmDCA/stats.py#L270"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `extract_Cij_from_seqs`
 
@@ -249,7 +249,7 @@ Extracts the lower triangular part of the covariance matrices of the data and ch
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/adabmDCA/stats.py#L297"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/adabmDCA/stats.py#L297"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `get_correlation_two_points`
 

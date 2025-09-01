@@ -1,6 +1,6 @@
 <!-- markdownlint-disable -->
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/adabmDCA/parser.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/adabmDCA/parser.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 # <kbd>module</kbd> `parser`
 
@@ -10,7 +10,7 @@
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/adabmDCA/parser.py#L4"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/adabmDCA/parser.py#L4"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `add_args_dca`
 
@@ -25,7 +25,7 @@ add_args_dca(parser: ArgumentParser) → ArgumentParser
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/adabmDCA/parser.py#L30"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/adabmDCA/parser.py#L30"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `add_args_reweighting`
 
@@ -40,7 +40,7 @@ add_args_reweighting(parser: ArgumentParser) → ArgumentParser
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/adabmDCA/parser.py#L39"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/adabmDCA/parser.py#L39"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `add_args_checkpoint`
 
@@ -55,7 +55,7 @@ add_args_checkpoint(parser: ArgumentParser) → ArgumentParser
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/adabmDCA/parser.py#L47"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/adabmDCA/parser.py#L47"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `add_args_eaDCA`
 
@@ -70,7 +70,7 @@ add_args_eaDCA(parser: ArgumentParser) → ArgumentParser
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/adabmDCA/parser.py#L55"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/adabmDCA/parser.py#L55"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `add_args_edDCA`
 
@@ -85,7 +85,7 @@ add_args_edDCA(parser: ArgumentParser) → ArgumentParser
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/adabmDCA/parser.py#L63"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/adabmDCA/parser.py#L63"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `add_args_train`
 
@@ -100,7 +100,7 @@ add_args_train(parser: ArgumentParser) → ArgumentParser
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/adabmDCA/parser.py#L73"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/adabmDCA/parser.py#L73"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `add_args_energies`
 
@@ -115,7 +115,7 @@ add_args_energies(parser: ArgumentParser) → ArgumentParser
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/adabmDCA/parser.py#L84"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/adabmDCA/parser.py#L84"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `add_args_contacts`
 
@@ -130,7 +130,7 @@ add_args_contacts(parser: ArgumentParser) → ArgumentParser
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/adabmDCA/parser.py#L95"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/adabmDCA/parser.py#L95"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `add_args_dms`
 
@@ -145,7 +145,7 @@ add_args_dms(parser: ArgumentParser) → ArgumentParser
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/adabmDCA/parser.py#L107"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/adabmDCA/parser.py#L107"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `add_args_sample`
 
@@ -160,7 +160,7 @@ add_args_sample(parser: ArgumentParser) → ArgumentParser
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/adabmDCA/parser.py#L129"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/adabmDCA/parser.py#L129"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `add_args_tdint`
 
@@ -175,7 +175,7 @@ add_args_tdint(parser: ArgumentParser) → ArgumentParser
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/adabmDCA/parser.py#L153"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/adabmDCA/parser.py#L153"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `add_args_reintegration`
 
@@ -190,7 +190,7 @@ add_args_reintegration(parser: ArgumentParser) → ArgumentParser
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/adabmDCA/parser.py#L160"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/adabmDCA/parser.py#L160"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `add_args_profmark`
 
