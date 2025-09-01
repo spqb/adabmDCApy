@@ -1,53 +1,7 @@
-from typing import Tuple, Dict, Callable
+from typing import Dict, Callable
 from tqdm.autonotebook import tqdm
-
 import torch
-
-
-@torch.jit.script
-def get_mean_seqid(
-    a1: torch.Tensor,
-    a2: torch.Tensor,
-) -> Tuple[torch.Tensor, torch.Tensor]:
-    """Computes the mean and the standard deviation of the mean sequence identity between two sets of one-hot encoded sequences.
-
-    Args:
-        a1 (torch.Tensor): Sequence dataset 1.
-        a2 (torch.Tensor): Sequence dataset 2.
-
-    Returns:
-        Tuple[torch.Tensor, torch.Tensor]: Mean sequence identity and standard deviation of the mean.
-    """
-    
-    a1 = a1.view(a1.shape[0], -1)
-    a2 = a2.view(a2.shape[0], -1)
-    overlaps = (a1 * a2).sum(1)
-    mean_overlap = overlaps.mean()
-    std_overlap = overlaps.std() / torch.sqrt(overlaps.shape[0])
-    
-    return mean_overlap, std_overlap
-
-
-def compute_seqID(a1: torch.Tensor, single_seq: torch.Tensor):
-    """
-    Computes the Hamming distance 
-    between a set of one-hot encoded sequences and a single one-hot encoded sequence.
-
-    Args:
-        a1 (torch.Tensor): Sequence dataset, shape (N, L, C), where N is the number of sequences,
-                           L is the length, and C is the number of categories (one-hot size).
-        single_seq (torch.Tensor): Single one-hot encoded sequence, shape (L, C).
-
-    Returns:
-        torch.Tensor: Hamming distances for each sequence in the dataset.
-    """
-    # print(a1.shape, single_seq.shape)
-    a1 = a1.view(a1.shape[0], -1)
-    single_seq = single_seq.view(1, -1)
-    # print(a1.shape, single_seq.shape)
-    seqID = (a1 * single_seq).sum(1) 
-
-    return seqID
+from adabmDCA.dca import get_seqid
 
 
 def compute_mixing_time(
@@ -113,11 +67,11 @@ def compute_mixing_time(
 
             # Calculate the average distance between sample_t and itself shuffled
             perm = torch.randperm(len(sample_t))
-            seqid_t, std_seqid_t = get_mean_seqid(sample_t, sample_t[perm])
+            seqid_t, std_seqid_t = get_seqid(sample_t, sample_t[perm], average=True)
             seqid_t, std_seqid_t = seqid_t / L, std_seqid_t / L
 
             # Calculate the average distance between sample_t and sample_t_half
-            seqid_t_t_half, std_seqid_t_t_half = get_mean_seqid(sample_t, sample_t_half)
+            seqid_t_t_half, std_seqid_t_t_half = get_seqid(sample_t, sample_t_half, average=True)
             seqid_t_t_half, std_seqid_t_t_half = seqid_t_t_half / L, std_seqid_t_t_half / L
 
             # Store the results

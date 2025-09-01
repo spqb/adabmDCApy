@@ -36,7 +36,7 @@ def load_chains(
             log_weigth = float(h[1].split("=")[1])
             return log_weigth
         else:
-            return 0.
+            return 0.0
     
     headers, sequences = import_from_fasta(fasta_name=fname)
     validate_alphabet(sequences, tokens=tokens)
@@ -51,27 +51,28 @@ def load_chains(
 
 def save_chains(
     fname: str,
-    chains: torch.Tensor,
+    chains: torch.Tensor | np.ndarray,
     tokens: str,
-    log_weights: torch.Tensor = None
+    log_weights: torch.Tensor | np.ndarray | None = None
 ) -> None:
     """Saves the chains in a fasta file.
 
     Args:
         fname (str): Path to the file where to save the chains.
-        chains (torch.Tensor): Chains.
+        chains (torch.Tensor | np.ndarray): Chains.
         tokens (str): "protein", "dna", "rna" or another string with the alphabet to be used.
-        log_weights (torch.Tensor, optional): Log-weights of the chains. Defaults to None.
+        log_weights (torch.Tensor | None, optional): Log-weights of the chains. Defaults to None.
     """
     
     # Check if chains is a 3D tensor
-    if chains.ndim != 2:
-        raise ValueError("chains must be a 2D tensor")
-    
-    chains = chains.cpu().numpy()
+    if len(chains.shape) != 2:
+        raise ValueError("chains must be a 2D tensor or array")
+    if isinstance(chains, torch.Tensor):
+        chains = chains.cpu().numpy()
     if log_weights is not None:
-        log_weigth = log_weights.cpu().numpy()
-        headers = [f"chain_{i}|log_weight={log_weigth[i]}" for i in range(len(chains))]
+        if isinstance(log_weights, torch.Tensor):
+            log_weights = log_weights.cpu().numpy()
+        headers = [f"chain_{i}|log_weight={log_weights[i]}" for i in range(len(chains))]
     else:
         headers = [f"chain_{i}" for i in range(len(chains))]
     write_fasta(
@@ -171,12 +172,12 @@ def save_params(
             If None, the lower-triangular part of the coupling matrix is masked. Defaults to None.
     """
     tokens = get_tokens(tokens)
+    L, q = params["bias"].shape
     if mask is None:
-        mask = get_mask_save(L, q, device="cpu")
+        mask = get_mask_save(L, q, device=torch.device("cpu"))
     mask = mask.cpu().numpy()
     params = {k : v.cpu().numpy() for k, v in params.items()}
     
-    L, q, *_ = mask.shape
     idx0 = np.arange(L * q).reshape(L * q) // q
     idx1 = np.arange(L * q).reshape(L * q) % q
     idx1_aa = np.vectorize(lambda n, tokens : tokens[n], excluded=["tokens"])(idx1, tokens).astype(str)
@@ -278,8 +279,8 @@ def save_params_oldformat(
     idx1 = np.arange(L * q).reshape(L * q) % q
     df_h = pd.DataFrame.from_dict({"param" : np.full(L * q, "h"), "idx0" : idx0, "idx1" : idx1, "idx2" : params["bias"].flatten()}, orient="columns")
     
-    maskt = mask.transpose(0, 2, 1, 3) # Transpose mask and coupling matrix from (L, q, L, q) to (L, L, q, q)
-    Jt = params["coupling_matrix"].transpose(0, 2, 1, 3)
+    maskt = np.transpose(mask, (0, 2, 1, 3)) # Transpose mask and coupling matrix from (L, q, L, q) to (L, L, q, q)
+    Jt = np.transpose(params["coupling_matrix"], (0, 2, 1, 3))
     idx0, idx1, idx2, idx3 = maskt.nonzero()
     J_val = Jt[idx0, idx1, idx2, idx3]
     df_J = pd.DataFrame.from_dict({"param" : np.full(len(J_val), "J"), "idx0" : idx0, "idx1" : idx1, "idx2" : idx2, "idx3" : idx3, "val" : J_val}, orient="columns")

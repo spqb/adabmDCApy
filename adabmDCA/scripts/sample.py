@@ -33,13 +33,14 @@ def main():
     parser = create_parser()
     args = parser.parse_args()
     
+    print("\n" + "".join(["*"] * 10) + f" Sampling from DCA model " + "".join(["*"] * 10) + "\n")
+    
     # Create output folder
     filename = Path(args.output)
     folder = filename.parent / Path(filename.name)
     # Create the folder where to save the samples
     folder.mkdir(parents=True, exist_ok=True)
     
-    print("\n" + "".join(["*"] * 10) + f" Sampling from DCA model " + "".join(["*"] * 10) + "\n")
     # Set the device
     device = get_device(args.device)
     dtype = get_dtype(args.dtype)

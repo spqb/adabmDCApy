@@ -1,18 +1,21 @@
 
-from typing import List
+from typing import List, Tuple
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
+from matplotlib.axes import Axes
+from matplotlib.figure import Figure
 import numpy as np
+import seaborn as sns
 
 def _plot_scatter_labels(
-    ax: plt.Axes,
+    ax: Axes,
     data1: np.ndarray,
     pc1: int = 0,
     pc2: int = 1,
     data2: np.ndarray | None = None,
     labels: List[str] | str | None = "Data",
     colors: List[str] | str = "black",
-) -> plt.Axes:
+) -> Axes:
 
     if isinstance(labels, str):
         labels = [labels,]
@@ -31,14 +34,14 @@ def _plot_scatter_labels(
     return ax
     
 def _plot_hist(
-    ax: plt.Axes,
+    ax: Axes,
     data1: np.ndarray,
     pc: int,
     data2: np.ndarray | None = None,
     colors: List[str] | str = "black",
     labels: List[str] | str | None = "Data",
     orientation='vertical',
-) -> plt.Axes:
+) -> Axes:
     if isinstance(labels, str):
         labels = [labels,]
     if labels is None:
@@ -56,9 +59,10 @@ def _plot_hist(
     ax.axis('off')
     
     return ax
-    
+
+
 def plot_PCA(
-    fig: plt.figure,
+    fig: Figure,
     data1: np.ndarray,
     pc1: int = 0,
     pc2: int = 1,
@@ -66,7 +70,7 @@ def plot_PCA(
     labels: List[str] | str = "Data",
     colors: List[str] | str = "black",
     title: str | None = None,
-) -> plt.figure:
+) -> Figure:
     """Makes the scatter plot of the components (pc1, pc2) of the input data and shows the histograms of the components.
 
     Args:
@@ -80,7 +84,7 @@ def plot_PCA(
         title (str | None, optional): Title of the plot. Defaults to None.
 
     Returns:
-        plt.figure: Updated figure.
+        Figure: Updated figure.
     """
     
     gs = GridSpec(4, 4)
@@ -118,7 +122,8 @@ def plot_PCA(
     
     ax_scatter.set_xlabel(f"PC {pc1 + 1}")
     ax_scatter.set_ylabel(f"PC {pc2 + 1}")
-    fig.suptitle(title)
+    if title is not None:
+        fig.suptitle(title)
     fig.legend(fontsize=12, bbox_to_anchor=(1, 1));
     h, l = ax_scatter.get_legend_handles_labels()
     
@@ -126,17 +131,28 @@ def plot_PCA(
     
     
 def plot_pearson_sampling(
-    ax: plt.Axes,
+    ax: Axes,
     checkpoints: np.ndarray,
     pearsons: np.ndarray,
     pearson_training: np.ndarray | None = None
 ):
+    """Plots the Pearson correlation coefficient over sampling time.
+
+    Args:
+        ax (Axes): Axes to plot the data.
+        checkpoints (np.ndarray): Checkpoints of the sampling.
+        pearsons (np.ndarray): Pearson correlation coefficients at different checkpoints.
+        pearson_training (np.ndarray | None, optional): Pearson correlation coefficient obtained during training. Defaults to None.
+
+    Returns:
+        Axes: Updated axes.
+    """
     
-    if pearson_training:
+    if pearson_training is not None:
         ax.axhline(y=pearson_training, ls="dashed", color="red", label="Training", lw=1, zorder=0)
         annotation_text = f"Training: {pearson_training:.3f}\nSampling: {pearsons[-1]:.3f}"
     else:
-        annotation_text = annotation_text = f"Sampling: {pearsons[-1]:.3f}"
+        annotation_text = f"Sampling: {pearsons[-1]:.3f}"
     ax.plot(checkpoints, pearsons, "-o", label="Resampling", lw=0.5, color="royalblue", zorder=1)
     ax.set_xscale("log")
     ax.set_xlabel("Sampling time [sweeps]")
@@ -148,23 +164,23 @@ def plot_pearson_sampling(
 
 
 def plot_autocorrelation(
-    ax: plt.Axes,
+    ax: Axes,
     checkpoints: np.ndarray,
     autocorr: np.ndarray,
-    gen_seqid: np.ndarray,
-    data_seqid: np.ndarray
-) -> plt.Axes:
+    gen_seqid: float,
+    data_seqid: float
+) -> Axes:
     """Plots the time-autocorrelation curve of the sequence identity and the generated and data sequence identities.
     
     Args:
-        ax (plt.Axes): Axes to plot the data.
+        ax (Axes): Axes to plot the data.
         checkpoints (np.ndarray): Checkpoints of the sampling.
         autocorr (np.ndarray): Time-autocorrelation of the sequence identity.
-        gen_seqid (np.ndarray): Sequence identity of the generated data.
-        data_seqid (np.ndarray): Sequence identity of the data.
-        
+        gen_seqid (float): Sequence identity of the generated data.
+        data_seqid (float): Sequence identity of the data.
+
     Returns:
-        plt.Axes: Updated axes.
+        Axes: Updated axes.
     """
     ax.plot(checkpoints, autocorr, "-o", c="royalblue", lw=0.5, label="Time-autocorrelation", zorder=2)
     ax.axhline(y=gen_seqid, color="navy", lw=1, ls="dashed", label="Generated seqID", zorder=1)
@@ -184,20 +200,19 @@ def plot_autocorrelation(
     
     return ax
 
-
 def plot_scatter_correlations(
-    ax: plt.Axes,
+    ax: Tuple[Axes, Axes],
     Cij_data: np.ndarray,
     Cij_gen: np.ndarray,
     Cijk_data: np.ndarray,
     Cijk_gen: np.ndarray,
     pearson_Cij: float,
-    pearson_Cijk: float
-) -> plt.Axes:
+    pearson_Cijk: float,
+) -> Axes:
     """Plots the scatter plot of the data and generated Cij and Cijk values.
     
     Args:
-        ax (plt.Axes): Axes to plot the data. Must have 2 subplots.
+        ax (Axes): Axes to plot the data. Must have 2 subplots.
         Cij_data (np.ndarray): Data Cij values.
         Cij_gen (np.ndarray): Generated Cij values.
         Cijk_data (np.ndarray): Data Cijk values.
@@ -232,4 +247,29 @@ def plot_scatter_correlations(
     ax[1].annotate(r"$\rho=$" + f"{pearson_Cijk:.2f}", xy=(0.05, 0.95), xycoords='axes fraction', fontsize=12,
                     verticalalignment='top', horizontalalignment='left', bbox=dict(facecolor='white', alpha=0.5))
     
+    return ax
+
+
+def plot_contact_map(
+    ax: Axes,
+    cm: np.ndarray,
+    title: str | None = None,
+) -> Axes:
+    """Plots the contact map.
+
+    Args:
+        ax (Axes): Axes to plot the contact map.
+        cm (np.ndarray): Contact map to plot.
+        title (str | None, optional): Title of the plot. Defaults to None.
+
+    Returns:
+        Axes: Updated axes.
+    """
+    sns.heatmap(cm, ax=ax, cmap="coolwarm", cbar_kws={'label': 'Frobenius norm'})
+    ax.invert_yaxis()
+    ax.set_xlabel("Residue index")
+    ax.set_ylabel("Residue index")
+    if title is not None:
+        ax.set_title(title)
+
     return ax

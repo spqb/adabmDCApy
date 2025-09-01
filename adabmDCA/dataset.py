@@ -37,8 +37,8 @@ class DatasetDCA(Dataset):
             message (bool, optional): Print the import message. Defaults to True.
         """
         path_data = Path(path_data)
-        self.names = None
-        self.data = None
+        self.names = []
+        self.data = torch.tensor([], device=device, dtype=dtype)
         self.device = device
         self.dtype = dtype
         
@@ -98,7 +98,7 @@ class DatasetDCA(Dataset):
         Returns:
             int: Number of states.
         """
-        return torch.max(self.data).item() + 1
+        return int(torch.max(self.data).item() + 1)
     
     
     def get_effective_size(self) -> int:

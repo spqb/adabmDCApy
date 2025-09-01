@@ -1,7 +1,7 @@
 import itertools
-from typing import Tuple
-
+from typing import Tuple, Dict
 import torch
+import numpy as np
 
 
 @torch.jit.script
@@ -235,7 +235,7 @@ def extract_Cij_from_freq(
     fi: torch.Tensor,
     pi: torch.Tensor,
     mask: torch.Tensor | None = None,
-) -> Tuple[float, float]:
+) -> Tuple[torch.Tensor, torch.Tensor]:
     """Extracts the lower triangular part of the covariance matrices of the data and chains starting from the frequencies.
 
     Args:
@@ -246,7 +246,7 @@ def extract_Cij_from_freq(
         mask (torch.Tensor | None, optional): Mask for comparing just a subset of the couplings. Defaults to None.
 
     Returns:
-        Tuple[float, float]: Extracted two-point frequencies of the data and chains.
+        Tuple[torch.Tensor, torch.Tensor]: Extracted two-point frequencies of the data and chains.
     """
     L = fi.shape[0]
     
@@ -273,7 +273,7 @@ def extract_Cij_from_seqs(
     weights: torch.Tensor | None = None,
     pseudo_count: float = 0.0,
     mask: torch.Tensor | None = None,
-) -> Tuple[float, float]:
+) -> Tuple[torch.Tensor, torch.Tensor]:
     """Extracts the lower triangular part of the covariance matrices of the data and chains starting from the sequences.
 
     Args:
@@ -284,7 +284,7 @@ def extract_Cij_from_seqs(
         mask (torch.Tensor | None, optional): Mask for comparing just a subset of the couplings. Defaults to None.
 
     Returns:
-        Tuple[float, float]: Two-point frequencies of the data and chains.
+        Tuple[torch.Tensor, torch.Tensor]: Two-point frequencies of the data and chains.
     """
     fi = get_freq_single_point(data, weights=weights, pseudo_count=pseudo_count)
     pi = get_freq_single_point(chains, weights=None)

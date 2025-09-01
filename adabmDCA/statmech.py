@@ -86,8 +86,8 @@ def _compute_log_likelihood(
 ) -> float:
     
     mean_energy_data = - torch.sum(fi * params["bias"]) - 0.5 * torch.sum(fij * params["coupling_matrix"])
-    
-    return - mean_energy_data - logZ
+
+    return - mean_energy_data.item() - logZ
 
 
 def compute_log_likelihood(
