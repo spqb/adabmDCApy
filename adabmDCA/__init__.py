@@ -1,26 +1,28 @@
-from adabmDCA.fasta import (
+__version__ = '0.5.0'
+
+from .fasta import (
     import_from_fasta,
     get_tokens,
     write_fasta,
     encode_sequence,
     decode_sequence,
 )
-from adabmDCA.stats import (
+from .stats import (
     get_freq_single_point,
     get_freq_two_points,
     get_freq_three_points,
     get_correlation_two_points,
 )
-from adabmDCA.io import (
+from .io import (
     load_params,
     save_params,
 )
-from adabmDCA.sampling import (
+from .sampling import (
     get_sampler,
     gibbs_sampling,
     metropolis,
 )
-from adabmDCA.functional import one_hot
+from .functional import one_hot
 
 __all__ = [
     "import_from_fasta",

@@ -1,5 +1,6 @@
 import torch
 from tqdm.autonotebook import trange
+import numpy as np
 
 @torch.jit.script
 def has_neighbours(seq: torch.Tensor, db: torch.Tensor, threshold: float) -> bool:
@@ -15,27 +16,28 @@ def has_neighbours(seq: torch.Tensor, db: torch.Tensor, threshold: float) -> boo
 
 
 def split_train_test(
-    headers: list[str],
+    headers: np.ndarray,
     X: torch.Tensor,
     seqid_th: float,
     rnd_gen: torch.Generator | None = None,
-) -> tuple[list, torch.Tensor, list, torch.Tensor]:
+) -> tuple[np.ndarray, torch.Tensor, np.ndarray, torch.Tensor]:
     """Splits X into two sets, T and S, such that no sequence in S has more than
     'seqid_th' fraction of its residues identical to any sequence in T.
     
     Args:
-        headers (list[str]): List of sequence headers.
+        headers (np.ndarray): Array of sequence headers.
         X (torch.Tensor): Encoded input MSA.
         seqid_th (float): Threshold sequence identity.
         rnd_gen (torch.Generator, optional): Random number generator. Defaults to None.
 
     Returns:
-        tuple[list, torch.Tensor, list, torch.Tensor]: Training and test sets.
+        tuple[np.ndarray, torch.Tensor, np.ndarray, torch.Tensor]: Training and test sets.
     """
     T_mask = torch.tensor([False] * len(X), dtype=torch.bool, device=X.device)
     S_mask = torch.tensor([False] * len(X), dtype=torch.bool, device=X.device)
     perm = torch.randperm(len(X), generator=rnd_gen, device=X.device)
     X = X[perm]
+    headers = headers[perm.cpu().numpy()]
     for i in trange(len(X), desc="Train/test splitting", leave=False):
         has_neighbours_in_S = has_neighbours(X[i], X[S_mask], seqid_th)
         has_neighbours_in_T = has_neighbours(X[i], X[T_mask], seqid_th)
@@ -64,24 +66,25 @@ def split_train_test(
     
     
 def prune_redundant_sequences(
-    headers: list[str],
+    headers: np.ndarray,
     X: torch.Tensor,
     seqid_th: float,
     rnd_gen: torch.Generator | None = None,
-) -> tuple[list, torch.Tensor]:
+) -> tuple[np.ndarray, torch.Tensor]:
     """Prunes sequences from X such that no sequence has more than 'seqid_th' fraction of its residues identical to any other sequence in the set.
 
     Args:
-        headers (list[str]): List of sequence headers.
+        headers (np.ndarray): Array of sequence headers.
         X (torch.Tensor): Encoded input MSA.
         seqid_th (float): Threshold sequence identity.
         rnd_gen (torch.Generator, optional): Random generator. Defaults to None.
 
     Returns:
-        tuple[list, torch.Tensor]: Pruned sequences.
+        tuple[np.ndarray, torch.Tensor]: Pruned sequences.
     """
     perm = torch.randperm(len(X), generator=rnd_gen, device=X.device)
     X = X[perm]
+    headers = headers[perm.cpu().numpy()]
     U_mask = torch.tensor([False] * len(X), dtype=torch.bool, device=X.device)
     for i in trange(len(X), desc="Pruning redundant sequences", leave=False):
         has_neighbours_in_U = has_neighbours(X[i], X[U_mask], seqid_th)
@@ -93,7 +96,7 @@ def prune_redundant_sequences(
 
 
 def run_cobalt(
-    headers: list[str],
+    headers: np.ndarray,
     X: torch.Tensor,
     t1: float,
     t2: float,
@@ -101,12 +104,12 @@ def run_cobalt(
     max_train: int | None,
     max_test: int | None,
     rnd_gen: torch.Generator | None = None,
-) -> tuple[list, torch.Tensor, list, torch.Tensor]:
+) -> tuple[np.ndarray, torch.Tensor, np.ndarray, torch.Tensor]:
     """
     Runs the Cobalt algorithm to split the input MSA into training and test sets.
     
     Args:
-        headers (list[str]): List of sequence headers.
+        headers (np.ndarray): Array of sequence headers.
         X (torch.Tensor): Encoded input MSA.
         t1 (float): No sequence in S has more than this fraction of its residues identical to any sequence in T.
         t2 (float): No pair of test sequences has more than this value fractional identity.
@@ -116,7 +119,7 @@ def run_cobalt(
         rnd_gen (torch.Generator, optional): Random number generator. Defaults to None.
 
     Returns:
-        tuple[list, torch.Tensor, list, torch.Tensor]: Training and test sets.
+        tuple[np.ndarray, torch.Tensor, np.ndarray, torch.Tensor]: Training and test sets.
     """
     # Cobalt step 1
     headers_train, train, headers_test, test = split_train_test(headers, X, t1, rnd_gen)

@@ -1,6 +1,7 @@
 from pathlib import Path
 import numpy as np
 from typing import Tuple
+from Bio import SeqIO
 
 import torch
 
@@ -89,7 +90,7 @@ def import_from_fasta(
     fasta_name: str | Path,
     tokens: str | None = None,
     filter_sequences: bool = False,
-    remove_duplicates: bool = True,
+    remove_duplicates: bool = False,
 ) -> Tuple[np.ndarray, np.ndarray]:
     """Import sequences from a fasta file. The following operations are performed:
     - If 'tokens' is provided, encodes the sequences in numeric format.
@@ -100,7 +101,7 @@ def import_from_fasta(
         fasta_name (str | Path): Path to the fasta file.
         tokens (str | None, optional): Alphabet to be used for the encoding. If provided, encodes the sequences in numeric format.
         filter_sequences (bool, optional): If True, removes the sequences whose tokens are not present in the alphabet. Defaults to False.
-        remove_duplicates (bool, optional): If True, removes the duplicated sequences. Defaults to True.
+        remove_duplicates (bool, optional): If True, removes the duplicated sequences. Defaults to False.
 
     Raises:
         RuntimeError: The file is not in fasta format.
@@ -111,25 +112,9 @@ def import_from_fasta(
     # Import headers and sequences
     sequences = []
     names = []
-    seq = ''
-    with open(fasta_name, 'r') as f:
-        first_line = f.readline()
-        if not first_line.startswith('>'):
-            raise RuntimeError(f"The file {fasta_name} is not in a fasta format.")
-        f.seek(0)
-        for line in f:
-            if not line.strip():
-                continue
-            if line.startswith('>'):
-                if seq:
-                    sequences.append(seq)
-                header = line[1:].strip()
-                names.append(header)
-                seq = ''
-            else:
-                seq += line.strip()
-    if seq:
-        sequences.append(seq)
+    for record in SeqIO.parse(fasta_name, "fasta"):
+        names.append(str(record.id))
+        sequences.append(str(record.seq))
     
     # Filter sequences
     if filter_sequences:
