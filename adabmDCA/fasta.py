@@ -61,7 +61,7 @@ def decode_sequence(sequence: list | np.ndarray | torch.Tensor, tokens: str) -> 
     """Takes a numeric sequence or list of seqences in input an returns the corresponding string encoding.
 
     Args:
-        sequence (np.ndarray): Input sequences. Can be either a 1D or a 2D iterable.
+        sequence (np.ndarray): Input sequences. Can be either a 1D, 2D or a 3D (one-hot encoded) iterable.
         tokens (str): Alphabet to be used for the encoding.
 
     Returns:
@@ -82,8 +82,13 @@ def decode_sequence(sequence: list | np.ndarray | torch.Tensor, tokens: str) -> 
     elif sequence.ndim == 2:
         sequence = list(sequence)
         return np.array(list(map(_decode, sequence)))
+    elif sequence.ndim == 3:
+        assert sequence.shape[2] == len(tokens), "The last dimension of the input one-hot encoded sequence must be equal to the length of the alphabet."
+        sequence = np.argmax(sequence, axis=2)
+        sequence = list(sequence)
+        return np.array(list(map(_decode, sequence)))
     else:
-        raise ValueError("Input sequence must be either a 1D or a 2D array.")
+        raise ValueError("Input sequence must be either a 1D, 2D or a 3D (one-hot encoded) iterable.")
 
 
 def import_from_fasta(
@@ -125,11 +130,7 @@ def import_from_fasta(
         clean_names = []
         clean_sequences = []
         for n, s in zip(names, sequences):
-            good_sequence = np.full(shape=(len(s),), fill_value=False)
-            splitline = np.array([a for a in s])
-            for token in tokens_list:
-                good_sequence += (token == splitline)
-            if np.all(good_sequence):
+            if all(c in tokens_list for c in s):
                 if n == "":
                     n = "unknown_sequence"
                 clean_names.append(n)
@@ -146,7 +147,10 @@ def import_from_fasta(
     # Remove duplicates
     if remove_duplicates:
         sequences, unique_ids = np.unique(sequences, return_index=True)
-        names = names[unique_ids]
+        # sort to preserve the original order
+        order = np.argsort(unique_ids)
+        sequences = sequences[order]
+        names = names[unique_ids[order]]
     
     if (tokens is not None) and (len(sequences) > 0):
         sequences = encode_sequence(sequences, tokens)

@@ -23,6 +23,12 @@ from .sampling import (
     metropolis,
 )
 from .functional import one_hot
+from .statmech import compute_energy
+from .dca import (
+    get_seqid,
+    get_contact_map,
+    get_mf_contact_map,
+)
 
 __all__ = [
     "import_from_fasta",
@@ -40,4 +46,8 @@ __all__ = [
     "gibbs_sampling",
     "metropolis",
     "one_hot",
+    "compute_energy",
+    "get_seqid",
+    "get_contact_map",
+    "get_mf_contact_map",
 ]
