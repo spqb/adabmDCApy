@@ -1,7 +1,7 @@
 from typing import Dict, Callable
 from tqdm.autonotebook import tqdm
 import torch
-from adabmDCA.dca import get_seqid
+from adabmDCA.dca import get_seqid_stats
 
 
 def compute_mixing_time(
@@ -67,11 +67,11 @@ def compute_mixing_time(
 
             # Calculate the average distance between sample_t and itself shuffled
             perm = torch.randperm(len(sample_t))
-            seqid_t, std_seqid_t = get_seqid(sample_t, sample_t[perm], average=True)
+            seqid_t, std_seqid_t = get_seqid_stats(sample_t, sample_t[perm])
             seqid_t, std_seqid_t = seqid_t / L, std_seqid_t / L
 
             # Calculate the average distance between sample_t and sample_t_half
-            seqid_t_t_half, std_seqid_t_t_half = get_seqid(sample_t, sample_t_half, average=True)
+            seqid_t_t_half, std_seqid_t_t_half = get_seqid_stats(sample_t, sample_t_half)
             seqid_t_t_half, std_seqid_t_t_half = seqid_t_t_half / L, std_seqid_t_t_half / L
 
             # Store the results

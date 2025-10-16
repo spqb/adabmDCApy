@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 
 import torch
+from torch.nn.functional import one_hot
 
 from adabmDCA.fasta import (
     write_fasta,
@@ -17,18 +18,22 @@ from adabmDCA.utils import get_mask_save
 def load_chains(
     fname: str,
     tokens: str,
-    load_weights: bool = False
-) -> np.ndarray | Tuple[np.ndarray, np.ndarray]:
-    """Loads the sequences from a fasta file and returns the numeric-encoded version.
+    load_weights: bool = False,
+    device: torch.device = torch.device("cpu"),
+    dtype: torch.dtype = torch.float32,
+) -> torch.Tensor | Tuple[torch.Tensor, torch.Tensor]:
+    """Loads the sequences from a fasta file and returns the one-hot encoded version.
     If the sequences are weighted, the log-weights are also returned. If the sequences are not weighted, the log-weights are set to 0.
     
     Args:
         fname (str): Path to the file containing the sequences.
         tokens (str): "protein", "dna", "rna" or another string with the alphabet to be used.
         load_weights (bool, optional): If True, the log-weights are loaded and returned. Defaults to False.
+        device (torch.device, optional): Device where to store the sequences. Defaults to "cpu".
+        dtype (torch.dtype, optional): Data type of the sequences. Defaults to torch.float32
     
     Return:
-        np.ndarray | Tuple[np.ndarray, np.ndarray]: Numeric-encoded sequences and log-weights if load_weights is True.
+        torch.Tensor | Tuple[torch.Tensor, torch.Tensor]: One-hot encoded sequences and log-weights if load_weights is True.
     """
     def parse_header(header: str):
         h = header.split("|")
@@ -41,13 +46,16 @@ def load_chains(
     headers, sequences = import_from_fasta(fasta_name=fname)
     validate_alphabet(sequences, tokens=tokens)
     encoded_sequences = encode_sequence(sequences, tokens=tokens)
+    encoded_sequences = torch.tensor(encoded_sequences, dtype=torch.int64)
+    sequences_oh = one_hot(encoded_sequences, num_classes=len(tokens)).to(device=device, dtype=dtype)
     
     if load_weights:
         log_weights = np.vectorize(parse_header)(headers)
-        return encoded_sequences, log_weights
+        log_weights = torch.tensor(log_weights, device=device, dtype=dtype)
+        return sequences_oh, log_weights
     else:
-        return encoded_sequences
-    
+        return sequences_oh
+
 
 def save_chains(
     fname: str,

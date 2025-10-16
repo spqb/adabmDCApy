@@ -7,23 +7,19 @@ from adabmDCA.stats import get_covariance_matrix
 def get_seqid(
     s1: torch.Tensor,
     s2: torch.Tensor | None = None,
-    average: bool = False,
-) -> torch.Tensor | Tuple[torch.Tensor, torch.Tensor]:
+) -> torch.Tensor:
     """
-    When average is True:
-    - If s2 is provided, computes the mean and the standard deviation of the mean sequence identity between two sets of one-hot encoded sequences.
-    - If s2 is a single sequence (L, q), it computes the mean and the standard deviation of the mean sequence identity between the dataset s1 and s2.
-    - If s2 is none, computes the mean and the standard deviation of the mean of the sequence identity between s1 and a permutation of s1.
-    
-    When average is False it returns the array of sequence identities.
+    Returns a tensor containing the sequence identities between two sets of one-hot encoded sequences.
+    - If s2 is provided, computes the sequence identity between the corresponding sequences in s1 and s2.
+    - If s2 is a single sequence (L, q), it computes the sequence identities between the dataset s1 and s2.
+    - If s2 is none, computes the sequence identity between s1 and a permutation of s1.
 
     Args:
-        s1 (torch.Tensor): Sequence dataset 1.
-        s2 (torch.Tensor | None): Sequence dataset 2. Defaults to None.
-        average (bool): Whether to return the average and standard deviation of the sequence identity or the array of sequence identities.
+        s1 (torch.Tensor): One-hot encoded sequence dataset 1 of shape (batch_size, L, q).
+        s2 (torch.Tensor | None): One-hot encoded sequence dataset 2 of shape (batch_size, L, q) or (L, q). Defaults to None.
 
     Returns:
-        torch.Tensor | Tuple[torch.Tensor, torch.Tensor]: List of sequence identities or mean sequence identity and standard deviation of the mean.
+        torch.Tensor: Tensor of sequence identities.
     """
     if len(s1.shape) == 2:
         s1 = s1.unsqueeze(0)
@@ -34,18 +30,35 @@ def get_seqid(
         
     s1 = s1.view(s1.shape[0], -1)
     s2 = s2.view(s2.shape[0], -1)
-    
     seqids = (s1 * s2).sum(1)
-    if average is False:
-        return seqids
+    
+    return seqids
+    
+
+def get_seqid_stats(
+    s1: torch.Tensor,
+    s2: torch.Tensor | None = None,
+) -> Tuple[torch.Tensor, torch.Tensor]:
+    """
+    - If s2 is provided, computes the mean and the standard deviation of the mean sequence identity between two sets of one-hot encoded sequences.
+    - If s2 is a single sequence (L, q), it computes the mean and the standard deviation of the mean sequence identity between the dataset s1 and s2.
+    - If s2 is none, computes the mean and the standard deviation of the mean of the sequence identity between s1 and a permutation of s1.
+
+    Args:
+        s1 (torch.Tensor): One-hot encoded sequence dataset 1 of shape (batch_size, L, q).
+        s2 (torch.Tensor | None): One-hot encoded sequence dataset 2 of shape (batch_size, L, q) or (L, q). Defaults to None.
+
+    Returns:
+        Tuple[torch.Tensor, torch.Tensor]: Mean sequence identity and standard deviation of the mean.
+    """
+    seqids = get_seqid(s1, s2)
+    if len(seqids) == 1:
+        mean_seqid = seqids[0]
+        std_seqid = torch.tensor(0.0, device=seqids.device)
     else:
         mean_seqid = seqids.mean()
-        if len(seqids) == 1:
-            std_seqid = torch.tensor(0.0, device=seqids.device)
-        else:
-            std_seqid = seqids.std() / np.sqrt(len(seqids))
-
-        return mean_seqid, std_seqid
+        std_seqid = seqids.std() / np.sqrt(len(seqids))
+    return mean_seqid, std_seqid
 
 
 def set_zerosum_gauge(params: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:

@@ -35,7 +35,7 @@ def compute_energy(
     """
     
     if X.dim() != 3:
-        raise ValueError("Input tensor X must be 3-dimensional of size (_, L, q)")
+        raise ValueError("Input tensor X must be 3-dimensional of size (batch_size, L, q)")
     
     return torch.vmap(_compute_energy_sequence, in_dims=(0, None))(X, params)
 

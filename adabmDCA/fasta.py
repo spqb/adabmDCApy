@@ -160,8 +160,8 @@ def import_from_fasta(
     
 def write_fasta(
     fname: str,
-    headers: np.ndarray | list,
-    sequences: np.ndarray,
+    headers: list | np.ndarray | torch.Tensor,
+    sequences: list | np.ndarray | torch.Tensor,
     numeric_input: bool = False,
     remove_gaps: bool = False,
     tokens: str = "protein",
@@ -170,19 +170,33 @@ def write_fasta(
 
     Args:
         fname (str): Name of the output fasta file.
-        headers (np.ndarray | list): Array or list of sequences' headers.
-        sequences (np.ndarray): Array of sequences.
-        numeric_input (bool, optional): Whether the sequences are in numeric (encoded) format or not. Defaults to False.
+        headers (list | np.ndarray | torch.Tensor): Iterable with sequences' headers.
+        sequences (list | np.ndarray | torch.Tensor): Iterable with sequences in string, categorical or one-hot encoded format.
+        numeric_input (bool, optional): Whether the sequences are in categorical format or not. Defaults to False.
         remove_gaps (bool, optional): If True, removes the gap from the alignment. Defaults to False.
         tokens (str): Alphabet to be used for the encoding. Defaults to protein.
     """
+    if isinstance(headers, torch.Tensor):
+        headers = headers.cpu().numpy()
+    if isinstance(sequences, torch.Tensor):
+        sequences = sequences.cpu().numpy()
+    if isinstance(headers, list):
+        headers = np.array(headers)
+    if isinstance(sequences, list):
+        sequences = np.array(sequences)
     tokens = get_tokens(tokens)
-
-    if numeric_input:
-        # Decode the sequences
+    
+    # Handle the case when the sequenes are one-hot encoded
+    if len(sequences.shape) == 3:
+        assert sequences.shape[2] == len(tokens), "The last dimension of the input one-hot encoded sequence must be equal to the length of the alphabet."
+        sequences = np.argmax(sequences, axis=2)
         seqs_decoded = decode_sequence(sequences, tokens)
     else:
-        seqs_decoded = sequences.copy()
+        if numeric_input:
+            # Decode the sequences
+            seqs_decoded = decode_sequence(sequences, tokens)
+        else:
+            seqs_decoded = sequences.copy()
     if remove_gaps:
         seqs_decoded = np.vectorize(lambda s: s.replace("-", ""))(seqs_decoded)
         
@@ -203,21 +217,22 @@ def compute_weights(
     that have a sequence identity with 's' >= th.
 
     Args:
-        data (np.ndarray | torch.Tensor): Encoded input dataset.
+        data (np.ndarray | torch.Tensor): Input dataset. Must be either a 2D or a 3D (one-hot encoded) array.
         th (float, optional): Sequence identity threshold for the clustering. Defaults to 0.8.
-        device (toch.device, optional): Device. Defaults to "cpu".
+        device (torch.device, optional): Device. Defaults to "cpu".
         dtype (torch.dtype, optional): Data type. Defaults to torch.float32.
 
     Returns:
         torch.Tensor: Array with the weights of the sequences.
     """
-    if isinstance(data, torch.Tensor):
-        data = data.to(device)
-    else:
+    assert len(data.shape) == 2 or len(data.shape) == 3, "'data' must be either a 2D or a 3D array"
+    if isinstance(data, np.ndarray):
         data = torch.tensor(data, device=device)
-
-    assert len(data.shape) == 2, "'data' must be a 2-dimensional array"
-    _, L = data.shape
+    if len(data.shape) == 3:
+        data_encoded = data.argmax(dim=2)
+    else:
+        data_encoded = data
+    _, L = data_encoded.shape
 
     @torch.jit.script
     def get_sequence_weight(s: torch.Tensor, data: torch.Tensor, L: int, th: float):
@@ -226,8 +241,8 @@ def compute_weights(
         
         return 1.0 / n_clust
 
-    weights = torch.vstack([get_sequence_weight(s, data, L, th) for s in data])
-    
+    weights = torch.vstack([get_sequence_weight(s, data_encoded, L, th) for s in data_encoded])
+
     return weights.to(dtype)
 
 

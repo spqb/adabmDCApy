@@ -1,15 +1,14 @@
 import argparse
-from pathlib import Path
 
 def add_args_dca(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     dca_args = parser.add_argument_group("General DCA arguments")
-    dca_args.add_argument("-d", "--data",         type=Path,  required=True,        help="Filename of the dataset to be used for training the model.")
-    dca_args.add_argument("-o", "--output",       type=Path,  default='DCA_model',  help="(Defaults to DCA_model). Path to the folder where to save the model.")
+    dca_args.add_argument("-d", "--data",         type=str,  required=True,        help="Filename of the dataset to be used for training the model.")
+    dca_args.add_argument("-o", "--output",       type=str,  default='DCA_model',  help="(Defaults to DCA_model). Path to the folder where to save the model.")
     dca_args.add_argument("-m", "--model",        type=str,   default="bmDCA",      help="(Defaults to bmDCA). Type of model to be trained.", choices=["bmDCA", "eaDCA", "edDCA"])
     # Optional arguments
-    dca_args.add_argument("-t", "--test",         type=Path,  default=None,         help="(Defaults to None). Filename of the dataset to be used for testing the model.")
-    dca_args.add_argument("-p", "--path_params",  type=Path,  default=None,         help="(Defaults to None) Path to the file containing the model's parameters. Required for restoring the training.")
-    dca_args.add_argument("-c", "--path_chains",  type=Path,  default=None,         help="(Defaults to None) Path to the fasta file containing the model's chains. Required for restoring the training.")
+    dca_args.add_argument("-t", "--test",         type=str,  default=None,         help="(Defaults to None). Filename of the dataset to be used for testing the model.")
+    dca_args.add_argument("-p", "--path_params",  type=str,  default=None,         help="(Defaults to None) Path to the file containing the model's parameters. Required for restoring the training.")
+    dca_args.add_argument("-c", "--path_chains",  type=str,  default=None,         help="(Defaults to None) Path to the fasta file containing the model's chains. Required for restoring the training.")
     dca_args.add_argument("-l", "--label",        type=str,   default=None,         help="(Defaults to None). If provoded, adds a label to the output files inside the output folder.")
     dca_args.add_argument("--alphabet",           type=str,   default="protein",    help="(Defaults to protein). Type of encoding for the sequences. Choose among ['protein', 'rna', 'dna'] or a user-defined string of tokens.")
     dca_args.add_argument("--lr",                 type=float, default=0.01,         help="(Defaults to 0.01). Learning rate.")
@@ -29,7 +28,7 @@ def add_args_dca(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
 
 def add_args_reweighting(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     weight_args = parser.add_argument_group("Sequence reweighting arguments")
-    weight_args.add_argument("-w", "--weights",      type=Path,  default=None,         help="(Defaults to None). Path to the file containing the weights of the sequences. If None, the weights are computed automatically.")
+    weight_args.add_argument("-w", "--weights",      type=str,  default=None,         help="(Defaults to None). Path to the file containing the weights of the sequences. If None, the weights are computed automatically.")
     weight_args.add_argument("--clustering_seqid",   type=float, default=0.8,          help="(Defaults to 0.8). Sequence Identity threshold for clustering. Used only if 'weights' is not provided.")
     weight_args.add_argument("--no_reweighting",     action="store_true",              help="If provided, the reweighting of the sequences is not performed.")
 
@@ -71,9 +70,9 @@ def add_args_train(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
 
 
 def add_args_energies(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
-    parser.add_argument("-d", "--data",         type=Path,   required=True,      help="Path to the fasta file containing the sequences.")
-    parser.add_argument("-p", "--path_params",  type=Path,   required=True,      help="Path to the file containing the parameters of DCA model.")
-    parser.add_argument("-o", "--output",       type=Path,   required=True,      help="Path to the folder where to save the output.")
+    parser.add_argument("-d", "--data",         type=str,   required=True,      help="Path to the fasta file containing the sequences.")
+    parser.add_argument("-p", "--path_params",  type=str,   required=True,      help="Path to the file containing the parameters of DCA model.")
+    parser.add_argument("-o", "--output",       type=str,   required=True,      help="Path to the folder where to save the output.")
     parser.add_argument("--alphabet",           type=str,    default="protein",  help="(Defaults to protein). Type of encoding for the sequences. Choose among ['protein', 'rna', 'dna'] or a user-defined string of tokens.")
     parser.add_argument("--device",             type=str,    default="cuda",     help="(Defaults to cuda). Device to be used.")
     parser.add_argument("--dtype",              type=str,    default="float32",  help="(Defaults to float32). Data type to be used.")
@@ -82,9 +81,10 @@ def add_args_energies(parser: argparse.ArgumentParser) -> argparse.ArgumentParse
 
 
 def add_args_contacts(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
-    parser.add_argument("-p", "--path_params",  type=Path,   required=True,          help="Path to the file containing the parameters of DCA model to sample from.")
-    parser.add_argument("-o", "--output",       type=Path,   required=True,          help="Path to the folder where to save the output.")
-    parser.add_argument("-l", "--label",        type=str,    default=None,           help="(Defaults to None). If provoded, adds a label to the output files inside the output folder.")
+    parser.add_argument("-o", "--output",       type=str,    required=True,          help="Path to the folder where to save the output.")
+    parser.add_argument("-p", "--path_params",  type=str,    default=None,           help="(Defaults to None). Path to the file containing the parameters of DCA model to use for contact prediction. If None, the mean-field approximation is used.")
+    parser.add_argument("-d", "--data",         type=str,    default=None,           help="(Defaults to None). Path to the file containing the data. Used for the mean-field approximation only.")
+    parser.add_argument("-l", "--label",        type=str,    default=None,           help="(Defaults to None). If provided, adds a label to the output files inside the output folder.")
     parser.add_argument("--alphabet",           type=str,    default="protein",      help="(Defaults to protein). Type of encoding for the sequences. Choose among ['protein', 'rna', 'dna'] or a user-defined string of tokens.")
     parser.add_argument("--device",             type=str,    default="cuda",         help="(Defaults to cuda). Device to be used.")
     parser.add_argument("--dtype",              type=str,    default="float32",      help="(Defaults to float32). Data type to be used.")
@@ -93,10 +93,10 @@ def add_args_contacts(parser: argparse.ArgumentParser) -> argparse.ArgumentParse
 
 
 def add_args_dms(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
-    parser.add_argument("-d", "--data",         type=Path,   required=True,      
+    parser.add_argument("-d", "--data",         type=str,   required=True,      
                         help="Path to the fasta file containing wild type sequence. If more than one sequence is present, the first one is used.")
-    parser.add_argument("-p", "--path_params",  type=Path,   required=True,      help="Path to the file containing the parameters of DCA model to sample from.")
-    parser.add_argument("-o", "--output",       type=Path,   required=True,      help="Path to the folder where to save the output.")
+    parser.add_argument("-p", "--path_params",  type=str,   required=True,      help="Path to the file containing the parameters of DCA model to sample from.")
+    parser.add_argument("-o", "--output",       type=str,   required=True,      help="Path to the folder where to save the output.")
     parser.add_argument("--alphabet",           type=str,    default="protein",  help="(Defaults to protein). Type of encoding for the sequences. Choose among ['protein', 'rna', 'dna'] or a user-defined string of tokens.")
     parser.add_argument("--device",             type=str,    default="cuda",     help="(Defaults to cuda). Device to be used.")
     parser.add_argument("--dtype",              type=str,    default="float32",  help="(Defaults to float32). Data type to be used.")
@@ -105,12 +105,12 @@ def add_args_dms(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
 
 
 def add_args_sample(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
-    parser.add_argument("-p", "--path_params",  type=Path,   required=True,      help="Path to the file containing the parameters of DCA model to sample from.")
-    parser.add_argument("-d", "--data",         type=Path,   required=True,      help="Path to the file containing the data to sample from.")
-    parser.add_argument("-o", "--output",       type=Path,   required=True,      help="Path to the folder where to save the output.")
+    parser.add_argument("-p", "--path_params",  type=str,   required=True,      help="Path to the file containing the parameters of DCA model to sample from.")
+    parser.add_argument("-o", "--output",       type=str,   required=True,      help="Path to the folder where to save the output.")
     parser.add_argument("--ngen",               type=int,    required=True,      help="Number of sequences to be generated.") 
     
     # Optional arguments
+    parser.add_argument("-d", "--data",         type=str,    default=None,       help="Path to the file containing the natural data. If provided, the mixing time of the model is computed. Defaults to None.")
     parser.add_argument("-l", "--label",        type=str,    default="sampling", help="(Defaults to 'sampling'). Label to be used for the output files.")
     parser.add_argument("--nmeasure",           type=int,    default=10000,      help="(Defaults to min(10000, len(data)). Number of data sequences to use for computing the mixing time.")
     parser.add_argument("--nmix",               type=int,    default=2,          help="(Defaults to 2). Number of mixing times used to generate 'ngen' sequences starting from random.")
@@ -127,13 +127,13 @@ def add_args_sample(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     return parser
 
 def add_args_tdint(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
-    parser.add_argument("-p", "--path_params",      type=Path,   required=True,           help="Path to the file containing the parameters of DCA model to sample from.")
-    parser.add_argument("-d", "--data",             type=Path,   required=True,           help="Path to the file containing the data to sample from.")
-    parser.add_argument("-t", "--path_targetseq",   type=Path,   required=True,           help="Path to the file containing the target sequence.")
-    parser.add_argument("-o", "--output",           type=Path,   default='DCA_model',     help="Path to the folder where to save the output.")
-   
+    parser.add_argument("-p", "--path_params",      type=str,   required=True,           help="Path to the file containing the parameters of DCA model to sample from.")
+    parser.add_argument("-d", "--data",             type=str,   required=True,           help="Path to the file containing the data to sample from.")
+    parser.add_argument("-t", "--path_targetseq",   type=str,   required=True,           help="Path to the file containing the target sequence.")
+    parser.add_argument("-o", "--output",           type=str,   default='DCA_model',     help="Path to the folder where to save the output.")
+
     # Optional arguments
-    parser.add_argument("-c", "--path_chains",  type=Path,   default=None,            help="(Defaults to None). Path to the fasta file containing the model's chains.")
+    parser.add_argument("-c", "--path_chains",  type=str,   default=None,            help="(Defaults to None). Path to the fasta file containing the model's chains.")
     parser.add_argument("-l", "--label",        type=str,    default="entropy",       help="(Defaults to 'entropy'). Label to be used for the output files.")
     parser.add_argument("--nchains",            type=int,    default=10000,           help="(Defaults to 10000). Number of chains to be used.") 
     parser.add_argument("--theta_max",          type=float,  default=5,               help="(Defaults to 5). Maximum integration strength") 
@@ -151,8 +151,8 @@ def add_args_tdint(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     return parser
 
 def add_args_reintegration(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
-    parser.add_argument("--reint",  type=Path,   required=True,  help="Path to the fasta file containing the reintegrated sequences.")
-    parser.add_argument("--adj",    type=Path,   required=True,  help="Path to the file containing the adjustment vector.")
+    parser.add_argument("--reint",  type=str,   required=True,  help="Path to the fasta file containing the reintegrated sequences.")
+    parser.add_argument("--adj",    type=str,   required=True,  help="Path to the file containing the adjustment vector.")
     parser.add_argument("--lambda_", type=float,    required=True,  help="Lambda parameter for the reintegration.")
 
     return parser

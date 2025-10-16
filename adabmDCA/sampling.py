@@ -14,8 +14,8 @@ def gibbs_mutate(
     """Attempts to perform num_mut mutations using the Gibbs sampler.
 
     Args:
-        chains (torch.Tensor): One-hot encoded sequences.
-        num_mut (int): Number of proposed mutations.
+        chains (torch.Tensor): One-hot encoded sequences of shape (batch_size, L, q).
+        num_mut (int): Number of proposed mutations at random sites.
         params (Dict[str, torch.Tensor]): Parameters of the model.
         beta (float): Inverse temperature.
 
@@ -43,7 +43,7 @@ def gibbs_sampling(
     """Gibbs sampling.
     
     Args:
-        chains (torch.Tensor): Initial chains.
+        chains (torch.Tensor): Initial one-hot encoded chains of size (batch_size, L, q).
         params (Dict[str, torch.Tensor]): Parameters of the model.
         nsweeps (int): Number of sweeps, where one sweep corresponds to attempting L mutations.
         beta (float, optional): Inverse temperature. Defaults to 1.0.
@@ -98,8 +98,8 @@ def metropolis_mutate(
     """Attempts to perform num_mut mutations using the Metropolis sampler.
 
     Args:
-        chains (torch.Tensor): One-hot encoded sequences.
-        num_mut (int): Number of proposed mutations.
+        chains (torch.Tensor): One-hot encoded sequences of shape (batch_size, L, q).
+        num_mut (int): Number of proposed mutations at random sites.
         params (Dict[str, torch.Tensor]): Parameters of the model.
         beta (float): Inverse temperature.
 
@@ -127,7 +127,7 @@ def metropolis(
     """Metropolis sampling.
 
     Args:
-        chains (torch.Tensor): One-hot encoded sequences.
+        chains (torch.Tensor): One-hot encoded sequences of shape (batch_size, L, q).
         params (Dict[str, torch.Tensor]): Parameters of the model.
         nsweeps (int): Number of sweeps to be performed, where one sweep corresponds to attempting L mutations.
         beta (float, optional): Inverse temperature. Defaults to 1.0.

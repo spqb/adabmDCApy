@@ -1,4 +1,4 @@
-__version__ = '0.5.0'
+__version__ = '0.5.1'
 
 from .fasta import (
     import_from_fasta,
@@ -26,6 +26,7 @@ from .functional import one_hot
 from .statmech import compute_energy
 from .dca import (
     get_seqid,
+    get_seqid_stats,
     get_contact_map,
     get_mf_contact_map,
 )
@@ -48,6 +49,7 @@ __all__ = [
     "one_hot",
     "compute_energy",
     "get_seqid",
+    "get_seqid_stats",
     "get_contact_map",
     "get_mf_contact_map",
 ]
