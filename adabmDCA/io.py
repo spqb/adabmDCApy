@@ -1,4 +1,4 @@
-from typing import Dict, Tuple
+from typing import Dict, List
 import pandas as pd
 import numpy as np
 
@@ -21,7 +21,7 @@ def load_chains(
     load_weights: bool = False,
     device: torch.device = torch.device("cpu"),
     dtype: torch.dtype = torch.float32,
-) -> torch.Tensor | Tuple[torch.Tensor, torch.Tensor]:
+) -> List[torch.Tensor]:
     """Loads the sequences from a fasta file and returns the one-hot encoded version.
     If the sequences are weighted, the log-weights are also returned. If the sequences are not weighted, the log-weights are set to 0.
     
@@ -33,7 +33,7 @@ def load_chains(
         dtype (torch.dtype, optional): Data type of the sequences. Defaults to torch.float32
     
     Return:
-        torch.Tensor | Tuple[torch.Tensor, torch.Tensor]: One-hot encoded sequences and log-weights if load_weights is True.
+        List[torch.Tensor]: One-hot encoded sequences and log-weights if load_weights is True.
     """
     def parse_header(header: str):
         h = header.split("|")
@@ -52,9 +52,9 @@ def load_chains(
     if load_weights:
         log_weights = np.vectorize(parse_header)(headers)
         log_weights = torch.tensor(log_weights, device=device, dtype=dtype)
-        return sequences_oh, log_weights
+        return [sequences_oh, log_weights]
     else:
-        return sequences_oh
+        return [sequences_oh,]
 
 
 def save_chains(
@@ -183,8 +183,8 @@ def save_params(
     L, q = params["bias"].shape
     if mask is None:
         mask = get_mask_save(L, q, device=torch.device("cpu"))
-    mask = mask.cpu().numpy()
-    params = {k : v.cpu().numpy() for k, v in params.items()}
+    mask_np = mask.cpu().numpy()
+    params_np = {k : v.cpu().numpy() for k, v in params.items()}
     
     idx0 = np.arange(L * q).reshape(L * q) // q
     idx1 = np.arange(L * q).reshape(L * q) % q
@@ -194,13 +194,13 @@ def save_params(
             "param" : np.full(L * q, "h"),
             "idx0" : idx0,
             "idx1" : idx1_aa,
-            "idx2" : params["bias"].flatten(),
+            "idx2" : params_np["bias"].flatten(),
         }
     )
-    
-    
-    maskt = mask.transpose(0, 2, 1, 3) # Transpose mask and coupling matrix from (L, q, L, q) to (L, L, q, q)
-    Jt = params["coupling_matrix"].transpose(0, 2, 1, 3)
+
+
+    maskt = mask_np.transpose(0, 2, 1, 3) # Transpose mask and coupling matrix from (L, q, L, q) to (L, L, q, q)
+    Jt = params_np["coupling_matrix"].transpose(0, 2, 1, 3)
     idx0, idx1, idx2, idx3 = maskt.nonzero()
     idx2_aa = np.vectorize(lambda n, tokens : tokens[n], excluded=["tokens"])(idx2, tokens).astype(str)
     idx3_aa = np.vectorize(lambda n, tokens : tokens[n], excluded=["tokens"])(idx3, tokens).astype(str)
@@ -277,18 +277,19 @@ def save_params_oldformat(
         mask (torch.Tensor): Mask of the coupling matrix that determines which are the non-zero entries.
             If None, the lower-triangular part of the coupling matrix is masked. Defaults to None.
     """
+    L, q = params["bias"].shape
     if mask is None:
-        mask = get_mask_save(L, q, device="cpu")
-    mask = mask.cpu().numpy()
-    params = {k : v.cpu().numpy() for k, v in params.items()}
+        mask = get_mask_save(L, q, device=torch.device("cpu"))
+    mask_np = mask.cpu().numpy()
+    params_np = {k : v.cpu().numpy() for k, v in params.items()}
     
     L, q, *_ = mask.shape
     idx0 = np.arange(L * q).reshape(L * q) // q
     idx1 = np.arange(L * q).reshape(L * q) % q
-    df_h = pd.DataFrame.from_dict({"param" : np.full(L * q, "h"), "idx0" : idx0, "idx1" : idx1, "idx2" : params["bias"].flatten()}, orient="columns")
-    
-    maskt = np.transpose(mask, (0, 2, 1, 3)) # Transpose mask and coupling matrix from (L, q, L, q) to (L, L, q, q)
-    Jt = np.transpose(params["coupling_matrix"], (0, 2, 1, 3))
+    df_h = pd.DataFrame.from_dict({"param" : np.full(L * q, "h"), "idx0" : idx0, "idx1" : idx1, "idx2" : params_np["bias"].flatten()}, orient="columns")
+
+    maskt = np.transpose(mask_np, (0, 2, 1, 3)) # Transpose mask and coupling matrix from (L, q, L, q) to (L, L, q, q)
+    Jt = np.transpose(params_np["coupling_matrix"], (0, 2, 1, 3))
     idx0, idx1, idx2, idx3 = maskt.nonzero()
     J_val = Jt[idx0, idx1, idx2, idx3]
     df_J = pd.DataFrame.from_dict({"param" : np.full(len(J_val), "J"), "idx0" : idx0, "idx1" : idx1, "idx2" : idx2, "idx3" : idx3, "val" : J_val}, orient="columns")

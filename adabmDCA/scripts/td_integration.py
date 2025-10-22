@@ -79,7 +79,7 @@ def main():
     if args.path_chains is None:
         chains = init_chains(args.nchains, L, q, device=device, dtype=dtype)
     else:   
-        chains = load_chains(args.path_chains, tokens=tokens, device=device, dtype=dtype)
+        chains = load_chains(args.path_chains, tokens=tokens, device=device, dtype=dtype)[0]
         if chains.shape[0] != args.nchains:
             chains = resample_sequences(chains, weights=torch.ones(chains.shape[0])/chains.shape[0], nextract=args.nchains)
     print(f"Number of chains set to {args.nchains}.")

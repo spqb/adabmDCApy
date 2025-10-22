@@ -205,6 +205,14 @@ def write_fasta(
             f.write('>' + name_seq + '\n')
             f.write(seq)
             f.write('\n')
+            
+
+@torch.jit.script
+def _get_sequence_weight(s: torch.Tensor, data: torch.Tensor, L: int, th: float):
+    seq_id = torch.sum(s == data, dim=1) / L
+    n_clust = torch.sum(seq_id > th)
+    
+    return 1.0 / n_clust
 
 
 def compute_weights(
@@ -233,15 +241,7 @@ def compute_weights(
     else:
         data_encoded = data
     _, L = data_encoded.shape
-
-    @torch.jit.script
-    def get_sequence_weight(s: torch.Tensor, data: torch.Tensor, L: int, th: float):
-        seq_id = torch.sum(s == data, dim=1) / L
-        n_clust = torch.sum(seq_id > th)
-        
-        return 1.0 / n_clust
-
-    weights = torch.vstack([get_sequence_weight(s, data_encoded, L, th) for s in data_encoded])
+    weights = torch.vstack([_get_sequence_weight(s, data_encoded, L, th) for s in data_encoded])
 
     return weights.to(dtype)
 

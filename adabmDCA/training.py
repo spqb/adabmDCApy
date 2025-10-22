@@ -223,7 +223,7 @@ def train_graph(
             )
             
             # Save the model if a checkpoint is reached
-            if checkpoint.check(epochs, params, chains):
+            if checkpoint.check(epochs):
                 checkpoint.save(
                     params=params,
                     mask=mask_save,

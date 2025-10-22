@@ -11,7 +11,7 @@ from adabmDCA.stats import get_freq_single_point, get_freq_two_points
 from adabmDCA.utils import init_chains, init_parameters, get_device, get_dtype
 from adabmDCA.parser import add_args_train
 from adabmDCA.sampling import get_sampler
-from adabmDCA.checkpoint import get_checkpoint
+from adabmDCA.checkpoint import Checkpoint
 
 
 # import command-line input arguments
@@ -166,14 +166,12 @@ def main():
     sampler = torch.jit.script(get_sampler(args.sampler))
     print("\n")
     
-    checkpoint = get_checkpoint(args.checkpoints)(
+    checkpoint = Checkpoint(
         file_paths=file_paths,
         tokens=tokens,
-        args=args,
+        args=vars(args),
         params=params,
         chains=chains,
-        max_epochs=args.nepochs,
-        target_acc_rate=args.target_acc_rate,
         use_wandb=args.wandb,
     )
 
