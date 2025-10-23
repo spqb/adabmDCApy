@@ -71,12 +71,6 @@ def save_chains(
         tokens (str): "protein", "dna", "rna" or another string with the alphabet to be used.
         log_weights (torch.Tensor | None, optional): Log-weights of the chains. Defaults to None.
     """
-    
-    # Check if chains is a 3D tensor
-    if len(chains.shape) != 2:
-        raise ValueError("chains must be a 2D tensor or array")
-    if isinstance(chains, torch.Tensor):
-        chains = chains.cpu().numpy()
     if log_weights is not None:
         if isinstance(log_weights, torch.Tensor):
             log_weights = log_weights.cpu().numpy()
@@ -87,7 +81,6 @@ def save_chains(
         fname=fname,
         headers=headers,
         sequences=chains,
-        numeric_input=True,
         remove_gaps=False,
         tokens=tokens,
     )

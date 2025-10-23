@@ -66,7 +66,6 @@ def main():
         fname=path_msa,
         headers=msa_names,
         sequences=msa,
-        numeric_input=True,
         remove_gaps=False,
         tokens=tokens,
     )

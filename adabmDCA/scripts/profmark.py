@@ -71,15 +71,13 @@ def main(args):
     write_fasta(
         os.path.join(args.output_prefix + ".train.fasta"),
         headers_train,
-        train.cpu().numpy(),
-        numeric_input=True,
+        train,
         tokens=tokens,
     )
     write_fasta(
         os.path.join(args.output_prefix + ".test.fasta"),
         headers_test,
-        test.cpu().numpy(),
-        numeric_input=True,
+        test,
         tokens=tokens,
     )
     logging.info(f"Training and test sets written in {os.path.dirname(args.output_prefix)}")

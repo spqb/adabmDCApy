@@ -162,8 +162,7 @@ def main():
     write_fasta(
         fname=os.path.join(folder, f"{args.label}_samples.fasta"),
         headers=headers,
-        sequences=samples.argmax(-1).cpu().numpy(),
-        numeric_input=True,
+        sequences=samples,
         remove_gaps=False,
         tokens=tokens,
     )
