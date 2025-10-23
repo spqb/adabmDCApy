@@ -162,7 +162,6 @@ def write_fasta(
     fname: str,
     headers: list | np.ndarray | torch.Tensor,
     sequences: list | np.ndarray | torch.Tensor,
-    numeric_input: bool = False,
     remove_gaps: bool = False,
     tokens: str = "protein",
 ):
@@ -172,7 +171,6 @@ def write_fasta(
         fname (str): Name of the output fasta file.
         headers (list | np.ndarray | torch.Tensor): Iterable with sequences' headers.
         sequences (list | np.ndarray | torch.Tensor): Iterable with sequences in string, categorical or one-hot encoded format.
-        numeric_input (bool, optional): Whether the sequences are in categorical format or not. Defaults to False.
         remove_gaps (bool, optional): If True, removes the gap from the alignment. Defaults to False.
         tokens (str): Alphabet to be used for the encoding. Defaults to protein.
     """
@@ -192,11 +190,14 @@ def write_fasta(
         sequences = np.argmax(sequences, axis=2)
         seqs_decoded = decode_sequence(sequences, tokens)
     else:
-        if numeric_input:
-            # Decode the sequences
+        # Handle the case when the sequences are in categorical or string format
+        if np.issubdtype(sequences.dtype, np.integer) or np.issubdtype(sequences.dtype, np.floating):
             seqs_decoded = decode_sequence(sequences, tokens)
-        else:
+        elif np.issubdtype(sequences.dtype, np.str_):
             seqs_decoded = sequences.copy()
+        else:
+            raise ValueError("Input sequences must be either in string or numeric format.")
+        
     if remove_gaps:
         seqs_decoded = np.vectorize(lambda s: s.replace("-", ""))(seqs_decoded)
         

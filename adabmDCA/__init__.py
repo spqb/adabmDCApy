@@ -21,6 +21,8 @@ from .sampling import (
     get_sampler,
     gibbs_sampling,
     metropolis,
+    gibbs_mutate,
+    metropolis_mutate,
 )
 from .functional import one_hot
 from .statmech import compute_energy
@@ -46,6 +48,8 @@ __all__ = [
     "get_sampler",
     "gibbs_sampling",
     "metropolis",
+    "gibbs_mutate",
+    "metropolis_mutate",
     "one_hot",
     "compute_energy",
     "get_seqid",

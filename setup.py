@@ -30,7 +30,6 @@ setup(
         'pandas>=2.2.2',
         'torch>=2.1.0',
         'tqdm>=4.66.6',
-        'h5py>=3.12.1',
         'wandb>=0.12.0',
         'biopython>=1.85',
     ],

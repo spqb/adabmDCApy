@@ -109,6 +109,7 @@ class Checkpoint:
         with open(self.file_paths["log"], "a") as f:
             f.write(out_string + "\n")
     
+    
     def check(
         self,
         updates: int,
