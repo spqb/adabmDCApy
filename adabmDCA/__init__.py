@@ -20,9 +20,11 @@ from .io import (
 from .sampling import (
     get_sampler,
     gibbs_sampling,
-    metropolis,
-    gibbs_mutate,
-    metropolis_mutate,
+    metropolis_sampling,
+    gibbs_step_independent_sites,
+    gibbs_step_uniform_sites,
+    metropolis_step_uniform_sites,
+    metropolis_step_independent_sites,
 )
 from .functional import one_hot
 from .statmech import compute_energy
@@ -47,9 +49,11 @@ __all__ = [
     "save_params",
     "get_sampler",
     "gibbs_sampling",
-    "metropolis",
-    "gibbs_mutate",
-    "metropolis_mutate",
+    "metropolis_sampling",
+    "gibbs_step_independent_sites",
+    "metropolis_step_independent_sites",
+    "gibbs_step_uniform_sites",
+    "metropolis_step_uniform_sites",
     "one_hot",
     "compute_energy",
     "get_seqid",
