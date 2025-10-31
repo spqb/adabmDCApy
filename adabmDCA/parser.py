@@ -103,7 +103,7 @@ def add_args_sample(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     parser.add_argument("-l", "--label",        type=str,    default="sampling", help="(Defaults to 'sampling'). Label to be used for the output files.")
     parser.add_argument("--nmeasure",           type=int,    default=10000,      help="(Defaults to min(10000, len(data)). Number of data sequences to use for computing the mixing time.")
     parser.add_argument("--nmix",               type=int,    default=2,          help="(Defaults to 2). Number of mixing times used to generate 'ngen' sequences starting from random.")
-    parser.add_argument("--max_nsweeps",        type=int,    default=1000,       help="(Defaults to 1000). Maximum number of chain updates.")
+    parser.add_argument("--max_nsweeps",        type=int,    default=5000,       help="(Defaults to 5000). Maximum number of chain updates.")
     parser.add_argument("--alphabet",           type=str,    default="protein",  help="(Defaults to 'protein'). Type of encoding for the sequences. Choose among ['protein', 'rna', 'dna'] or a user-defined string of tokens.")
     parser.add_argument("--sampler",            type=str,    default="gibbs",    help="(Defaults to 'gibbs'). Sampling method to be used. Choose between 'metropolis' and 'gibbs'.")
     parser.add_argument("--beta",               type=float,  default=1.0,        help="(Defaults to 1.0). Inverse temperature for the sampling.")
