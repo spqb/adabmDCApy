@@ -3,6 +3,7 @@ from pathlib import Path
 
 from torch.utils.data import Dataset
 import torch
+from torch.nn.functional import one_hot
 
 from adabmDCA.fasta import (
     get_tokens,
@@ -49,8 +50,9 @@ class DatasetDCA(Dataset):
         with open(path_data, "r") as f:
             first_line = f.readline()
         if first_line.startswith(">"):
-            self.names, self.data = import_from_fasta(path_data, tokens=self.tokens, filter_sequences=True)
-            self.data = torch.tensor(self.data, device=device, dtype=torch.int32)
+            self.names, data_enc = import_from_fasta(path_data, tokens=self.tokens, filter_sequences=True, remove_duplicates=True)
+            data_enc = torch.tensor(data_enc, dtype=torch.int64)
+            self.data = one_hot(data_enc, num_classes=len(self.tokens)).to(device=device, dtype=dtype)
             # Check if data is empty
             if len(self.data) == 0:
                 raise ValueError(f"The input dataset is empty. Check that the alphabet is correct. Current alphabet: {alphabet}")
@@ -98,7 +100,7 @@ class DatasetDCA(Dataset):
         Returns:
             int: Number of states.
         """
-        return int(torch.max(self.data).item() + 1)
+        return self.data.shape[2]
     
     
     def get_effective_size(self) -> int:

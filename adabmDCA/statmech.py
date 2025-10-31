@@ -35,7 +35,7 @@ def compute_energy(
     """
     
     if X.dim() != 3:
-        raise ValueError("Input tensor X must be 3-dimensional of size (_, L, q)")
+        raise ValueError("Input tensor X must be 3-dimensional of size (batch_size, L, q)")
     
     return torch.vmap(_compute_energy_sequence, in_dims=(0, None))(X, params)
 
@@ -216,9 +216,9 @@ def _tap_residue(
     mf_term = bias_residue + mag.view(N, L * q) @ coupling_residue.view(q, L * q).T
     reaction_term_temp = (
         0.5 * coupling_residue.view(1, q, L, q) + # (1, q, L, q)
-        (torch.tensordot(mag_i, coupling_residue, dims=[[1], [0]]) * mag).sum(dim=2).view(N, 1, L, 1) - # nd,djc,njc->nj
-        0.5 * torch.einsum("njc,ajc->naj", mag, coupling_residue).view(N, q, L, 1) -                    # njc,ajc->naj
-        torch.tensordot(mag_i, coupling_residue, dims=[[1], [0]]).view(N, 1, L, q)                      # nd,djb->njb
+        (torch.einsum("nd,djc,njc->nj", mag_i, coupling_residue, mag)).view(N, 1, L, 1) - # nd,djc,njc->nj
+        0.5 * torch.einsum("njc,ajc->naj", mag, coupling_residue).view(N, q, L, 1) -      # njc,ajc->naj
+        torch.einsum("nd,djb->njb", mag_i, coupling_residue).view(N, 1, L, q)             # nd,djb->njb
     )
     reaction_term = (
         (reaction_term_temp * coupling_residue.view(1, q, L, q)) * mag.view(N, 1, L, q)

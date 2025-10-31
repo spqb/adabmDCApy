@@ -155,7 +155,5 @@ def get_dtype(dtype: str) -> torch.dtype:
         return torch.float32
     elif dtype == "float64":
         return torch.float64
-    #elif dtype == "float16":
-    #    return torch.float16
     else:
         raise ValueError(f"Data type {dtype} not supported.")

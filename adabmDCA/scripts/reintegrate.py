@@ -1,7 +1,7 @@
 import argparse
+import os
 import numpy as np
 import subprocess
-from pathlib import Path
 import torch
 from adabmDCA.fasta import get_tokens, write_fasta
 from adabmDCA.parser import add_args_train, add_args_reintegration
@@ -26,8 +26,8 @@ def main():
     tokens = get_tokens(args.alphabet)
     
     # Create the folder where to save the model
-    folder = Path(args.output)
-    folder.mkdir(parents=True, exist_ok=True)
+    folder = args.output
+    os.makedirs(folder, exist_ok=True)
     
     dataset_nat = DatasetDCA(
         path_data=args.data,
@@ -61,16 +61,15 @@ def main():
     
     # Save the new dataset
     args.label = f"{args.label}-lambda_{args.lambda_}" if args.label is not None else f"lambda_{args.lambda_}"
-    path_msa = folder / Path(f"{args.label}_msa.fasta")
+    path_msa = os.path.join(folder, f"{args.label}_msa.fasta")
     write_fasta(
         fname=path_msa,
         headers=msa_names,
-        sequences=msa.cpu().numpy(),
-        numeric_input=True,
+        sequences=msa,
         remove_gaps=False,
         tokens=tokens,
     )
-    path_weights = folder / Path(f"{args.label}_weights.dat")
+    path_weights = os.path.join(folder, f"{args.label}_weights.dat")
     np.savetxt(path_weights, weights.cpu().numpy())
     
     # launch the training

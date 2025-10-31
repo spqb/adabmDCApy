@@ -4,6 +4,7 @@
 import argparse
 from pathlib import Path
 import numpy as np
+import torch
 
 from adabmDCA.fasta import get_tokens
 from adabmDCA.io import load_params_oldformat, save_params
@@ -24,7 +25,7 @@ def main():
     args = parser.parse_args()
     
     # Import parameters in the old format
-    params = load_params_oldformat(args.path_params, device="cpu") # This function will be modified
+    params = load_params_oldformat(args.path_params, device=torch.device("cpu")) # This function will be modified
     tokens = get_tokens(args.alphabet)
     
     # Save parameters in the new format
@@ -35,7 +36,7 @@ def main():
     mask2 = np.ones(shape=(L, q, L, q))
     idx1_rm, idx2_rm = np.tril_indices(L, k=0)
     mask2[idx1_rm, :, idx2_rm, :] = np.zeros(shape=(q, q))
-    save_params(fname_out, params, np.logical_and(mask1, mask2), tokens=tokens)
+    save_params(fname_out, params, tokens, torch.from_numpy(np.logical_and(mask1, mask2)))
     print(f"Completed. Output saved in {fname_out}")
     
     

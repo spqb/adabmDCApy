@@ -1,8 +1,9 @@
-from typing import Dict, Tuple
+from typing import Dict, List
 import pandas as pd
 import numpy as np
 
 import torch
+from torch.nn.functional import one_hot
 
 from adabmDCA.fasta import (
     write_fasta,
@@ -17,18 +18,22 @@ from adabmDCA.utils import get_mask_save
 def load_chains(
     fname: str,
     tokens: str,
-    load_weights: bool = False
-) -> np.ndarray | Tuple[np.ndarray, np.ndarray]:
-    """Loads the sequences from a fasta file and returns the numeric-encoded version.
+    load_weights: bool = False,
+    device: torch.device = torch.device("cpu"),
+    dtype: torch.dtype = torch.float32,
+) -> List[torch.Tensor]:
+    """Loads the sequences from a fasta file and returns the one-hot encoded version.
     If the sequences are weighted, the log-weights are also returned. If the sequences are not weighted, the log-weights are set to 0.
     
     Args:
         fname (str): Path to the file containing the sequences.
         tokens (str): "protein", "dna", "rna" or another string with the alphabet to be used.
         load_weights (bool, optional): If True, the log-weights are loaded and returned. Defaults to False.
+        device (torch.device, optional): Device where to store the sequences. Defaults to "cpu".
+        dtype (torch.dtype, optional): Data type of the sequences. Defaults to torch.float32
     
     Return:
-        np.ndarray | Tuple[np.ndarray, np.ndarray]: Numeric-encoded sequences and log-weights if load_weights is True.
+        List[torch.Tensor]: One-hot encoded sequences and log-weights if load_weights is True.
     """
     def parse_header(header: str):
         h = header.split("|")
@@ -41,13 +46,16 @@ def load_chains(
     headers, sequences = import_from_fasta(fasta_name=fname)
     validate_alphabet(sequences, tokens=tokens)
     encoded_sequences = encode_sequence(sequences, tokens=tokens)
+    encoded_sequences = torch.tensor(encoded_sequences, dtype=torch.int64)
+    sequences_oh = one_hot(encoded_sequences, num_classes=len(tokens)).to(device=device, dtype=dtype)
     
     if load_weights:
         log_weights = np.vectorize(parse_header)(headers)
-        return encoded_sequences, log_weights
+        log_weights = torch.tensor(log_weights, device=device, dtype=dtype)
+        return [sequences_oh, log_weights]
     else:
-        return encoded_sequences
-    
+        return [sequences_oh,]
+
 
 def save_chains(
     fname: str,
@@ -63,12 +71,6 @@ def save_chains(
         tokens (str): "protein", "dna", "rna" or another string with the alphabet to be used.
         log_weights (torch.Tensor | None, optional): Log-weights of the chains. Defaults to None.
     """
-    
-    # Check if chains is a 3D tensor
-    if len(chains.shape) != 2:
-        raise ValueError("chains must be a 2D tensor or array")
-    if isinstance(chains, torch.Tensor):
-        chains = chains.cpu().numpy()
     if log_weights is not None:
         if isinstance(log_weights, torch.Tensor):
             log_weights = log_weights.cpu().numpy()
@@ -79,7 +81,6 @@ def save_chains(
         fname=fname,
         headers=headers,
         sequences=chains,
-        numeric_input=True,
         remove_gaps=False,
         tokens=tokens,
     )
@@ -175,8 +176,8 @@ def save_params(
     L, q = params["bias"].shape
     if mask is None:
         mask = get_mask_save(L, q, device=torch.device("cpu"))
-    mask = mask.cpu().numpy()
-    params = {k : v.cpu().numpy() for k, v in params.items()}
+    mask_np = mask.cpu().numpy()
+    params_np = {k : v.cpu().numpy() for k, v in params.items()}
     
     idx0 = np.arange(L * q).reshape(L * q) // q
     idx1 = np.arange(L * q).reshape(L * q) % q
@@ -186,13 +187,13 @@ def save_params(
             "param" : np.full(L * q, "h"),
             "idx0" : idx0,
             "idx1" : idx1_aa,
-            "idx2" : params["bias"].flatten(),
+            "idx2" : params_np["bias"].flatten(),
         }
     )
-    
-    
-    maskt = mask.transpose(0, 2, 1, 3) # Transpose mask and coupling matrix from (L, q, L, q) to (L, L, q, q)
-    Jt = params["coupling_matrix"].transpose(0, 2, 1, 3)
+
+
+    maskt = mask_np.transpose(0, 2, 1, 3) # Transpose mask and coupling matrix from (L, q, L, q) to (L, L, q, q)
+    Jt = params_np["coupling_matrix"].transpose(0, 2, 1, 3)
     idx0, idx1, idx2, idx3 = maskt.nonzero()
     idx2_aa = np.vectorize(lambda n, tokens : tokens[n], excluded=["tokens"])(idx2, tokens).astype(str)
     idx3_aa = np.vectorize(lambda n, tokens : tokens[n], excluded=["tokens"])(idx3, tokens).astype(str)
@@ -269,18 +270,19 @@ def save_params_oldformat(
         mask (torch.Tensor): Mask of the coupling matrix that determines which are the non-zero entries.
             If None, the lower-triangular part of the coupling matrix is masked. Defaults to None.
     """
+    L, q = params["bias"].shape
     if mask is None:
-        mask = get_mask_save(L, q, device="cpu")
-    mask = mask.cpu().numpy()
-    params = {k : v.cpu().numpy() for k, v in params.items()}
+        mask = get_mask_save(L, q, device=torch.device("cpu"))
+    mask_np = mask.cpu().numpy()
+    params_np = {k : v.cpu().numpy() for k, v in params.items()}
     
     L, q, *_ = mask.shape
     idx0 = np.arange(L * q).reshape(L * q) // q
     idx1 = np.arange(L * q).reshape(L * q) % q
-    df_h = pd.DataFrame.from_dict({"param" : np.full(L * q, "h"), "idx0" : idx0, "idx1" : idx1, "idx2" : params["bias"].flatten()}, orient="columns")
-    
-    maskt = np.transpose(mask, (0, 2, 1, 3)) # Transpose mask and coupling matrix from (L, q, L, q) to (L, L, q, q)
-    Jt = np.transpose(params["coupling_matrix"], (0, 2, 1, 3))
+    df_h = pd.DataFrame.from_dict({"param" : np.full(L * q, "h"), "idx0" : idx0, "idx1" : idx1, "idx2" : params_np["bias"].flatten()}, orient="columns")
+
+    maskt = np.transpose(mask_np, (0, 2, 1, 3)) # Transpose mask and coupling matrix from (L, q, L, q) to (L, L, q, q)
+    Jt = np.transpose(params_np["coupling_matrix"], (0, 2, 1, 3))
     idx0, idx1, idx2, idx3 = maskt.nonzero()
     J_val = Jt[idx0, idx1, idx2, idx3]
     df_J = pd.DataFrame.from_dict({"param" : np.full(len(J_val), "J"), "idx0" : idx0, "idx1" : idx1, "idx2" : idx2, "idx3" : idx3, "val" : J_val}, orient="columns")

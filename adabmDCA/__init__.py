@@ -1,26 +1,39 @@
-from adabmDCA.fasta import (
+__version__ = '0.6.0'
+
+from .fasta import (
     import_from_fasta,
     get_tokens,
     write_fasta,
     encode_sequence,
     decode_sequence,
 )
-from adabmDCA.stats import (
+from .stats import (
     get_freq_single_point,
     get_freq_two_points,
     get_freq_three_points,
     get_correlation_two_points,
 )
-from adabmDCA.io import (
+from .io import (
     load_params,
     save_params,
 )
-from adabmDCA.sampling import (
+from .sampling import (
     get_sampler,
     gibbs_sampling,
-    metropolis,
+    metropolis_sampling,
+    gibbs_step_independent_sites,
+    gibbs_step_uniform_sites,
+    metropolis_step_uniform_sites,
+    metropolis_step_independent_sites,
 )
-from adabmDCA.functional import one_hot
+from .functional import one_hot
+from .statmech import compute_energy
+from .dca import (
+    get_seqid,
+    get_seqid_stats,
+    get_contact_map,
+    get_mf_contact_map,
+)
 
 __all__ = [
     "import_from_fasta",
@@ -36,6 +49,15 @@ __all__ = [
     "save_params",
     "get_sampler",
     "gibbs_sampling",
-    "metropolis",
+    "metropolis_sampling",
+    "gibbs_step_independent_sites",
+    "metropolis_step_independent_sites",
+    "gibbs_step_uniform_sites",
+    "metropolis_step_uniform_sites",
     "one_hot",
+    "compute_energy",
+    "get_seqid",
+    "get_seqid_stats",
+    "get_contact_map",
+    "get_mf_contact_map",
 ]

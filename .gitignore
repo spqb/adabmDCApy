@@ -167,3 +167,4 @@ notebooks/
 Pipfile
 Pipfile.lock
 wandb/
+models/

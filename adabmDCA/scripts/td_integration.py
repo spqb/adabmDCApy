@@ -1,5 +1,5 @@
 import argparse
-from pathlib import Path
+import os
 
 import torch
 import numpy as np
@@ -33,36 +33,38 @@ def main():
     print("\n" + "".join(["*"] * 10) + f" Computing model's entropy " + "".join(["*"] * 10) + "\n")
     
     # Create output folder
-    folder = Path(args.output)
-    folder.mkdir(parents=True, exist_ok=True)
+    folder = args.output
+    os.makedirs(folder, exist_ok=True)
 
     # Set the device
     device = get_device(args.device)
     dtype = get_dtype(args.dtype)
 
     # Check if the data file exists
-    if not Path(args.data).exists():
+    if not os.path.exists(args.data):
         raise FileNotFoundError(f"Data file {args.data} not found.")
     
     # Check if the parameters file exists
-    if not Path(args.path_params).exists():
+    if not os.path.exists(args.path_params):
         raise FileNotFoundError(f"Parameters file {args.path_params} not found.")
 
     # Check if the target-sequence file exists
-    if not Path(args.path_targetseq).exists():
+    if not os.path.exists(args.path_targetseq):
         raise FileNotFoundError(f"Target Sequence file {args.path_targetseq} not found.")
     
     if args.label is not None:
-        file_log = folder / Path(f"{args.label}.log")      
+        file_log = os.path.join(folder, f"{args.label}.log")
     else:
-        file_log = folder / Path(f"td_integration.log")
+        file_log = os.path.join(folder, "td_integration.log")
 
     # select sampler
-    sampler = get_sampler(args.sampler)
+    sampler = torch.jit.script(get_sampler(args.sampler))
 
     # read and encode natural data
     tokens = get_tokens(args.alphabet)
     _, nat_data = import_from_fasta(args.data, tokens=tokens, filter_sequences=True)
+    if len(nat_data) == 0:
+        raise ValueError(f"No valid sequences found in the input MSA after filtering. Consider changing the alphabet, currently set to {args.alphabet}.")
     M, L, q = len(nat_data), len(nat_data[0]), len(tokens)
     nat_data = one_hot(torch.tensor(nat_data, device=device, dtype=torch.int32), num_classes=q).to(dtype)
     print(f"Number of sequences in the MSA: M={M}")
@@ -77,14 +79,13 @@ def main():
     if args.path_chains is None:
         chains = init_chains(args.nchains, L, q, device=device, dtype=dtype)
     else:   
-        chains = load_chains(args.path_chains, tokens=tokens)
-        chains = one_hot(torch.tensor(chains, device=device, dtype=torch.int32), num_classes=q).to(dtype)
+        chains = load_chains(args.path_chains, tokens=tokens, device=device, dtype=dtype)[0]
         if chains.shape[0] != args.nchains:
             chains = resample_sequences(chains, weights=torch.ones(chains.shape[0])/chains.shape[0], nextract=args.nchains)
     print(f"Number of chains set to {args.nchains}.")
         
     # target sequence
-    _, targetseq = import_from_fasta(args.path_targetseq, tokens=tokens, filter_sequences=True)
+    _, targetseq = import_from_fasta(args.path_targetseq, tokens=tokens, filter_sequences=True, remove_duplicates=True)
     targetseq = one_hot(torch.tensor(targetseq, device=device, dtype=torch.int32), num_classes=q).to(dtype)
     if len(targetseq) != 1:
         print(f"Target sequence file contains more than one sequence. Using the first sequence as target sequence.")
@@ -154,6 +155,7 @@ def main():
     print("Starting Thermodynamic Integration...")
     int_step = args.nsteps
     nsweeps = args.nsweeps
+    seqID = get_seqid(chains_theta, targetseq)
     F_max = np.log(p_wt) + torch.mean(compute_energy(chains_theta[seqID == L], params_theta))
     thetas = torch.linspace(0, theta_max, int_step) 
     factor = theta_max / (2 * int_step)
@@ -162,7 +164,7 @@ def main():
 
     # initialize progress bar
     pbar = tqdm(
-        initial=max(0, thetas[0]),
+        initial=max(0, thetas[0].item()),
         total=round(theta_max, 3),
         colour="red",
         dynamic_ncols=True,
