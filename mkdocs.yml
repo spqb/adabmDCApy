@@ -10,7 +10,7 @@ nav:
   - Quicklist: quicklist.md
   - Script arguments: script_arguments.md
   - Python APIs:
-      - Overview: api/index.md
+      - Overview: api/README.md
       - Fasta utils: api/fasta.md
       - Compute statistics: api/stats.md
       - DCA utils: api/dca.md
