@@ -1,6 +1,6 @@
 <!-- markdownlint-disable -->
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/io.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/io.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 # <kbd>module</kbd> `io`
 The io module provides the Python interfaces to stream handling. The builtin open function is defined in this module. 
@@ -30,7 +30,7 @@ DEFAULT_BUFFER_SIZE
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/io.py#L17"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/io.py#L18"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `load_chains`
 
@@ -38,11 +38,13 @@ DEFAULT_BUFFER_SIZE
 load_chains(
     fname: str,
     tokens: str,
-    load_weights: bool = False
-) → Union[ndarray, Tuple[ndarray, ndarray]]
+    load_weights: bool = False,
+    device: device = device(type='cpu'),
+    dtype: dtype = torch.float32
+) → List[Tensor]
 ```
 
-Loads the sequences from a fasta file and returns the numeric-encoded version. If the sequences are weighted, the log-weights are also returned. If the sequences are not weighted, the log-weights are set to 0. 
+Loads the sequences from a fasta file and returns the one-hot encoded version. If the sequences are weighted, the log-weights are also returned. If the sequences are not weighted, the log-weights are set to 0. 
 
 
 
@@ -51,14 +53,16 @@ Loads the sequences from a fasta file and returns the numeric-encoded version. I
  - <b>`fname`</b> (str):  Path to the file containing the sequences. 
  - <b>`tokens`</b> (str):  "protein", "dna", "rna" or another string with the alphabet to be used. 
  - <b>`load_weights`</b> (bool, optional):  If True, the log-weights are loaded and returned. Defaults to False. 
+ - <b>`device`</b> (torch.device, optional):  Device where to store the sequences. Defaults to "cpu". 
+ - <b>`dtype`</b> (torch.dtype, optional):  Data type of the sequences. Defaults to torch.float32 
 
 Return: 
- - <b>`np.ndarray | Tuple[np.ndarray, np.ndarray]`</b>:  Numeric-encoded sequences and log-weights if load_weights is True. 
+ - <b>`List[torch.Tensor]`</b>:  One-hot encoded sequences and log-weights if load_weights is True. 
 
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/io.py#L52"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/io.py#L60"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `save_chains`
 
@@ -85,7 +89,7 @@ Saves the chains in a fasta file.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/io.py#L88"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/io.py#L89"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `load_params`
 
@@ -118,7 +122,7 @@ Import the parameters of the model from a file.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/io.py#L159"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/io.py#L160"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `save_params`
 
@@ -145,7 +149,7 @@ Saves the parameters of the model in a file.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/io.py#L214"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/io.py#L215"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `load_params_oldformat`
 
@@ -176,7 +180,7 @@ Import the parameters of the model from a file. Assumes the old DCA format.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/io.py#L259"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/io.py#L260"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `save_params_oldformat`
 
@@ -201,7 +205,7 @@ Saves the parameters of the model in a file. Assumes the old DCA format.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/io.py"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/io.py"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `BufferedIOBase`
 Base class for buffered IO objects. 
@@ -218,7 +222,7 @@ A typical implementation should not inherit from a RawIOBase implementation, but
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/io.py"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/io.py"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `IOBase`
 The abstract base class for all I/O classes. 
@@ -243,7 +247,7 @@ with open('spam.txt', 'r') as fp:  fp.write('Spam and eggs!')
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/io.py"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/io.py"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `RawIOBase`
 Base class for raw binary I/O. 
@@ -254,7 +258,7 @@ Base class for raw binary I/O.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/io.py"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/io.py"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `TextIOBase`
 Base class for text I/O. 
@@ -267,7 +271,7 @@ This class provides a character and line based interface to stream I/O. There is
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/io.py"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/io.py"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `UnsupportedOperation`
 

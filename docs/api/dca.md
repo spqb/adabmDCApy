@@ -1,6 +1,6 @@
 <!-- markdownlint-disable -->
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/dca.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/dca.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 # <kbd>module</kbd> `dca`
 
@@ -10,43 +10,65 @@
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/dca.py#L7"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/dca.py#L7"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `get_seqid`
 
 ```python
-get_seqid(
-    s1: Tensor,
-    s2: Tensor | None = None,
-    average: bool = False
-) → Union[Tensor, Tuple[Tensor, Tensor]]
+get_seqid(s1: Tensor, s2: Tensor | None = None) → Tensor
 ```
 
-When average is True: 
-- If s2 is provided, computes the mean and the standard deviation of the mean sequence identity between two sets of one-hot encoded sequences. 
-- If s2 is a single sequence (L, q), it computes the mean and the standard deviation of the mean sequence identity between the dataset s1 and s2. 
-- If s2 is none, computes the mean and the standard deviation of the mean of the sequence identity between s1 and a permutation of s1. 
-
-When average is False it returns the array of sequence identities. 
+Returns a tensor containing the sequence identities between two sets of one-hot encoded sequences. 
+- If s2 is provided, computes the sequence identity between the corresponding sequences in s1 and s2. 
+- If s2 is a single sequence (L, q), it computes the sequence identities between the dataset s1 and s2. 
+- If s2 is none, computes the sequence identity between s1 and a permutation of s1. 
 
 
 
 **Args:**
  
- - <b>`s1`</b> (torch.Tensor):  Sequence dataset 1. 
- - <b>`s2`</b> (torch.Tensor | None):  Sequence dataset 2. Defaults to None. 
- - <b>`average`</b> (bool):  Whether to return the average and standard deviation of the sequence identity or the array of sequence identities. 
+ - <b>`s1`</b> (torch.Tensor):  One-hot encoded sequence dataset 1 of shape (batch_size, L, q). 
+ - <b>`s2`</b> (torch.Tensor | None):  One-hot encoded sequence dataset 2 of shape (batch_size, L, q) or (L, q). Defaults to None. 
 
 
 
 **Returns:**
  
- - <b>`torch.Tensor | Tuple[torch.Tensor, torch.Tensor]`</b>:  List of sequence identities or mean sequence identity and standard deviation of the mean. 
+ - <b>`torch.Tensor`</b>:  Tensor of sequence identities. 
 
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/dca.py#L51"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/dca.py#L38"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+
+## <kbd>function</kbd> `get_seqid_stats`
+
+```python
+get_seqid_stats(s1: Tensor, s2: Tensor | None = None) → Tuple[Tensor, Tensor]
+```
+
+
+- If s2 is provided, computes the mean and the standard deviation of the mean sequence identity between two sets of one-hot encoded sequences. 
+- If s2 is a single sequence (L, q), it computes the mean and the standard deviation of the mean sequence identity between the dataset s1 and s2. 
+- If s2 is none, computes the mean and the standard deviation of the mean of the sequence identity between s1 and a permutation of s1. 
+
+
+
+**Args:**
+ 
+ - <b>`s1`</b> (torch.Tensor):  One-hot encoded sequence dataset 1 of shape (batch_size, L, q). 
+ - <b>`s2`</b> (torch.Tensor | None):  One-hot encoded sequence dataset 2 of shape (batch_size, L, q) or (L, q). Defaults to None. 
+
+
+
+**Returns:**
+ 
+ - <b>`Tuple[torch.Tensor, torch.Tensor]`</b>:  Mean sequence identity and standard deviation of the mean. 
+
+
+---
+
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/dca.py#L64"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `set_zerosum_gauge`
 
@@ -71,7 +93,7 @@ Sets the zero-sum gauge on the coupling matrix.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/dca.py#L70"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/dca.py#L83"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `get_contact_map`
 
@@ -97,7 +119,7 @@ Computes the contact map from the model coupling matrix.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/dca.py#L109"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/dca.py#L122"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `get_mf_contact_map`
 

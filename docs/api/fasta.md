@@ -1,6 +1,6 @@
 <!-- markdownlint-disable -->
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/fasta.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/fasta.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 # <kbd>module</kbd> `fasta`
 
@@ -15,7 +15,7 @@
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/fasta.py#L13"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/fasta.py#L14"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `get_tokens`
 
@@ -40,7 +40,7 @@ Converts the alphabet into the corresponding tokens.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/fasta.py#L33"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/fasta.py#L34"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `encode_sequence`
 
@@ -66,7 +66,7 @@ Encodes a sequence or a list of sequences into a numeric format.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/fasta.py#L59"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/fasta.py#L60"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `decode_sequence`
 
@@ -80,7 +80,7 @@ Takes a numeric sequence or list of seqences in input an returns the correspondi
 
 **Args:**
  
- - <b>`sequence`</b> (np.ndarray):  Input sequences. Can be either a 1D or a 2D iterable. 
+ - <b>`sequence`</b> (np.ndarray):  Input sequences. Can be either a 1D, 2D or a 3D (one-hot encoded) iterable. 
  - <b>`tokens`</b> (str):  Alphabet to be used for the encoding. 
 
 
@@ -92,7 +92,7 @@ Takes a numeric sequence or list of seqences in input an returns the correspondi
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/fasta.py#L88"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/fasta.py#L94"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `import_from_fasta`
 
@@ -101,7 +101,7 @@ import_from_fasta(
     fasta_name: str | Path,
     tokens: str | None = None,
     filter_sequences: bool = False,
-    remove_duplicates: bool = True
+    remove_duplicates: bool = False
 ) → Tuple[ndarray, ndarray]
 ```
 
@@ -117,7 +117,7 @@ Import sequences from a fasta file. The following operations are performed:
  - <b>`fasta_name`</b> (str | Path):  Path to the fasta file. 
  - <b>`tokens`</b> (str | None, optional):  Alphabet to be used for the encoding. If provided, encodes the sequences in numeric format. 
  - <b>`filter_sequences`</b> (bool, optional):  If True, removes the sequences whose tokens are not present in the alphabet. Defaults to False. 
- - <b>`remove_duplicates`</b> (bool, optional):  If True, removes the duplicated sequences. Defaults to True. 
+ - <b>`remove_duplicates`</b> (bool, optional):  If True, removes the duplicated sequences. Defaults to False. 
 
 
 
@@ -134,16 +134,15 @@ Import sequences from a fasta file. The following operations are performed:
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/fasta.py#L172"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/fasta.py#L161"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `write_fasta`
 
 ```python
 write_fasta(
     fname: str,
-    headers: ndarray | list,
-    sequences: ndarray,
-    numeric_input: bool = False,
+    headers: list | ndarray | Tensor,
+    sequences: list | ndarray | Tensor,
     remove_gaps: bool = False,
     tokens: str = 'protein'
 )
@@ -156,16 +155,15 @@ Generate a fasta file with the input sequences.
 **Args:**
  
  - <b>`fname`</b> (str):  Name of the output fasta file. 
- - <b>`headers`</b> (np.ndarray | list):  Array or list of sequences' headers. 
- - <b>`sequences`</b> (np.ndarray):  Array of sequences. 
- - <b>`numeric_input`</b> (bool, optional):  Whether the sequences are in numeric (encoded) format or not. Defaults to False. 
+ - <b>`headers`</b> (list | np.ndarray | torch.Tensor):  Iterable with sequences' headers. 
+ - <b>`sequences`</b> (list | np.ndarray | torch.Tensor):  Iterable with sequences in string, categorical or one-hot encoded format. 
  - <b>`remove_gaps`</b> (bool, optional):  If True, removes the gap from the alignment. Defaults to False. 
  - <b>`tokens`</b> (str):  Alphabet to be used for the encoding. Defaults to protein. 
 
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/fasta.py#L207"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/fasta.py#L219"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `compute_weights`
 
@@ -184,9 +182,9 @@ Computes the weight to be assigned to each sequence 's' in 'data' as 1 / n_clust
 
 **Args:**
  
- - <b>`data`</b> (np.ndarray | torch.Tensor):  Encoded input dataset. 
+ - <b>`data`</b> (np.ndarray | torch.Tensor):  Input dataset. Must be either a 2D or a 3D (one-hot encoded) array. 
  - <b>`th`</b> (float, optional):  Sequence identity threshold for the clustering. Defaults to 0.8. 
- - <b>`device`</b> (toch.device, optional):  Device. Defaults to "cpu". 
+ - <b>`device`</b> (torch.device, optional):  Device. Defaults to "cpu". 
  - <b>`dtype`</b> (torch.dtype, optional):  Data type. Defaults to torch.float32. 
 
 
@@ -198,7 +196,7 @@ Computes the weight to be assigned to each sequence 's' in 'data' as 1 / n_clust
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/tree/main/adabmDCA/fasta.py#L245"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/fasta.py#L250"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `validate_alphabet`
 
