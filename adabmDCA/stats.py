@@ -1,7 +1,6 @@
 import itertools
-from typing import Tuple, Dict
+from typing import Tuple
 import torch
-import numpy as np
 
 
 @torch.jit.script
@@ -57,16 +56,15 @@ def _get_freq_two_points(
     data_oh = data.reshape(M, q * L)
     
     fij = (data_oh * weights).T @ data_oh
+    # Set to zero the negative frequencies. Used for the reintegration.
+    torch.clamp_(fij, min=0.0)
     # Apply the pseudo count
     fij = (1. - pseudo_count) * fij + (pseudo_count / q**2)
     # Diagonal terms must represent the single point frequencies
-    fi = get_freq_single_point(data, weights, pseudo_count).ravel()
-    # Apply the pseudo count on the single point frequencies
-    fij_diag = (1. - pseudo_count) * fi + (pseudo_count / q)
+    fij_diag = get_freq_single_point(data, weights, pseudo_count).ravel()
     # Set the diagonal terms of fij to the single point frequencies
     fij = torch.diagonal_scatter(fij, fij_diag, dim1=0, dim2=1)
-    # Set to zero the negative frequencies. Used for the reintegration.
-    torch.clamp_(fij, min=0.0)
+    
     
     return fij.reshape(L, q, L, q)
 

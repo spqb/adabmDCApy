@@ -90,15 +90,15 @@ def main():
         "--nchains", str(args.nchains),
         "--target", str(args.target),
         "--nepochs", str(args.nepochs),
-        "--pseudocount", str(0),
         "--seed", str(args.seed),
-        "--checkpoints", str(args.checkpoints),
-        "--target_acc_rate", str(args.target_acc_rate),
         "--gsteps", str(args.gsteps),
         "--factivate", str(args.factivate),
         "--density", str(args.density),
         "--drate", str(args.drate),
     ]
+    if args.pseudocount is not None:
+        train_command.append("--pseudocount")
+        train_command.append(str(args.pseudocount))
     if args.no_reweighting:
         train_command.append("--no_reweighting")
     if args.wandb:

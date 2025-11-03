@@ -175,7 +175,7 @@ def fit(
         
         print(template.format(f"Step: {count}", f"Density: {density:.3f}", f"LL: {log_likelihood:.3f}", f"Pearson: {pearson:.3f}", f"Slope: {slope:.3f}"))
                 
-        if checkpoint.check(count, params, chains):
+        if checkpoint.check(count):
             entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
             ess = _compute_ess(log_weights)
             checkpoint.log(

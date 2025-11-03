@@ -14,7 +14,7 @@ def gibbs_step_uniform_sites(
     Args:
         chains (torch.Tensor): One-hot encoded sequences of shape (batch_size, L, q).
         params (Dict[str, torch.Tensor]): Parameters of the model.
-        beta (float): Inverse temperature.
+        beta (float, optional): Inverse temperature. Defaults to 1.0.
 
     Returns:
         torch.Tensor: Updated chains.
@@ -37,12 +37,12 @@ def gibbs_step_independent_sites(
     beta: float = 1.0,
 ) -> torch.Tensor:
     """Performs a single mutation using the Gibbs sampler. This version selects different random sites for each chain. It is
-    less efficient than the 'gibbs_step_uniform_sites' function, but it is more suitable for mutating staring from the same wild-type sequence since mutations are independent across chains.
+    less efficient than the 'gibbs_step_uniform_sites' function, but it is more suitable for mutating starting from the same wild-type sequence since mutations are independent across chains.
 
     Args:
         chains (torch.Tensor): One-hot encoded sequences of shape (batch_size, L, q).
         params (Dict[str, torch.Tensor]): Parameters of the model.
-        beta (float): Inverse temperature.
+        beta (float, optional): Inverse temperature. Defaults to 1.0.
 
     Returns:
         torch.Tensor: Updated chains.
@@ -134,7 +134,7 @@ def metropolis_step_independent_sites(
     beta: float = 1.0,
 ) -> torch.Tensor:
     """Performs a single mutation using the Metropolis sampler. This version selects different random sites for each chain. It is
-    less efficient than the 'metropolis_step_uniform_sites' function, but it is more suitable for mutating staring from the same wild-type sequence since mutations are independent across chains.
+    less efficient than the 'metropolis_step_uniform_sites' function, but it is more suitable for mutating starting from the same wild-type sequence since mutations are independent across chains.
 
     Args:
         chains (torch.Tensor): One-hot encoded sequences of shape (batch_size, L, q).
