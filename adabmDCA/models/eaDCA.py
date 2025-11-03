@@ -169,7 +169,7 @@ def fit(
             else:
                 checkpoint.log({"LL_test": float("nan")})
                 
-            if checkpoint.check(graph_upd, params, chains):
+            if checkpoint.check(graph_upd):
                 checkpoint.save(
                     params=params,
                     mask=torch.logical_and(mask, mask_save),

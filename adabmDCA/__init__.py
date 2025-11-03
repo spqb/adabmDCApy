@@ -1,4 +1,4 @@
-__version__ = '0.6.0'
+__version__ = '0.6.1'
 
 from .fasta import (
     import_from_fasta,
@@ -34,6 +34,7 @@ from .dca import (
     get_contact_map,
     get_mf_contact_map,
 )
+from .utils import init_chains
 
 __all__ = [
     "import_from_fasta",
@@ -60,4 +61,5 @@ __all__ = [
     "get_seqid_stats",
     "get_contact_map",
     "get_mf_contact_map",
+    "init_chains",
 ]
