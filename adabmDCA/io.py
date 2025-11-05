@@ -59,7 +59,7 @@ def load_chains(
 
 def save_chains(
     fname: str,
-    chains: torch.Tensor | np.ndarray,
+    chains: list | np.ndarray | torch.Tensor,
     tokens: str,
     log_weights: torch.Tensor | np.ndarray | None = None
 ) -> None:
@@ -67,7 +67,7 @@ def save_chains(
 
     Args:
         fname (str): Path to the file where to save the chains.
-        chains (torch.Tensor | np.ndarray): Chains.
+        chains (list | np.ndarray | torch.Tensor): Iterable with sequences in string, categorical or one-hot encoded format.
         tokens (str): "protein", "dna", "rna" or another string with the alphabet to be used.
         log_weights (torch.Tensor | None, optional): Log-weights of the chains. Defaults to None.
     """
