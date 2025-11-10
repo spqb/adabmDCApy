@@ -35,6 +35,8 @@ def main():
         alphabet=args.alphabet,
         clustering_th=args.clustering_seqid,
         no_reweighting=args.no_reweighting,
+        filter_sequences=True,
+        remove_duplicates=True,
         device=device,
         dtype=dtype,
         message=False,
@@ -44,19 +46,30 @@ def main():
         path_data=args.reint,
         alphabet=args.alphabet,
         no_reweighting=True,
+        filter_sequences=False,
+        remove_duplicates=False,
         device=device,
         dtype=dtype,
         message=False,
     )
-    
-    # concatenate the two datasets
+
+    # Concatenate the two datasets
     msa = torch.cat((dataset_nat.data, dataset_reint.data), dim=0)
     msa_names = np.append(dataset_nat.names, dataset_reint.names)
-    k = (args.lambda_ * dataset_nat.get_effective_size()) / len(dataset_reint)
+    
     # Import the adjustment vector
     with open(args.adj, "r") as f:
         adjust = torch.tensor([float(x) for x in f.read().split()], device=device, dtype=dtype)
-    # Conncatenate the weights
+    if args.lambda_ is None:
+        span_adjust = torch.abs(adjust).max()
+        lambda_ = 1 / span_adjust
+        print(f"No lambda value provided. Using lambda = {lambda_:.4f} (1 / max(|adjustment vector|))")
+    else:
+        lambda_ = args.lambda_
+    # Compute the scaling factor k
+    k = (lambda_ * dataset_nat.get_effective_size()) / len(dataset_reint)
+    
+    # Concatenate the weights
     weights = torch.cat((dataset_nat.weights.view(-1), k * adjust), dim=0).unsqueeze(1)
     
     # Save the new dataset
@@ -96,7 +109,11 @@ def main():
         "--density", str(args.density),
         "--drate", str(args.drate),
     ]
-    if args.pseudocount is not None:
+    if args.pseudocount is None:
+        pseudocount_default = 1e-6
+        train_command.append("--pseudocount")
+        train_command.append(str(pseudocount_default))
+    else:
         train_command.append("--pseudocount")
         train_command.append(str(args.pseudocount))
     if args.no_reweighting:

@@ -1,5 +1,6 @@
 from typing import Any
 from pathlib import Path
+import numpy as np
 
 from torch.utils.data import Dataset
 import torch
@@ -23,6 +24,8 @@ class DatasetDCA(Dataset):
         no_reweighting: bool = False,
         device: torch.device = torch.device("cpu"),
         dtype: torch.dtype = torch.float32,
+        remove_duplicates: bool = False,
+        filter_sequences: bool = False,
         message: bool = True,
     ):
         """Initialize the dataset.
@@ -35,10 +38,12 @@ class DatasetDCA(Dataset):
             no_reweighting (bool, optional): If True, the weights are not computed. Defaults to False.
             device (torch.device, optional): Device to be used. Defaults to "cpu".
             dtype (torch.dtype, optional): Data type of the dataset. Defaults to torch.float32.
+            remove_duplicates (bool, optional): If True, removes duplicate sequences from the dataset. Defaults to False.
+            filter_sequences (bool, optional): If True, removes sequences containing tokens not in the alphabet. Defaults to False.
             message (bool, optional): Print the import message. Defaults to True.
         """
         path_data = Path(path_data)
-        self.names = []
+        self.names = np.ndarray([], dtype=str)
         self.data = torch.tensor([], device=device, dtype=dtype)
         self.device = device
         self.dtype = dtype
@@ -50,7 +55,13 @@ class DatasetDCA(Dataset):
         with open(path_data, "r") as f:
             first_line = f.readline()
         if first_line.startswith(">"):
-            self.names, data_enc = import_from_fasta(path_data, tokens=self.tokens, filter_sequences=True, remove_duplicates=True)
+            self.names, data_enc, mask = import_from_fasta(
+                path_data,
+                tokens=self.tokens,
+                filter_sequences=filter_sequences,
+                remove_duplicates=remove_duplicates,
+                return_mask=True,
+            )
             data_enc = torch.tensor(data_enc, dtype=torch.int64)
             self.data = one_hot(data_enc, num_classes=len(self.tokens)).to(device=device, dtype=dtype)
             # Check if data is empty
@@ -69,8 +80,10 @@ class DatasetDCA(Dataset):
         else:
             with open(path_weights, "r") as f:
                 weights = [float(line.strip()) for line in f]
-            self.weights = torch.tensor(weights, device=device, dtype=dtype)
-            assert len(self.weights) == len(self.data), "The number of weights does not match the number of valid and unique sequences in the dataset."
+            weights = torch.tensor(weights, device=device, dtype=dtype)
+            assert len(weights) == len(mask), f"The number of weights ({len(weights)}) does not match the number of sequences in the dataset ({len(mask)})."
+            self.weights = weights[mask]
+            
         
         if message:
             print(f"Multi-sequence alignment imported: M = {self.data.shape[0]}, L = {self.data.shape[1]}, q = {self.get_num_states()}, M_eff = {int(self.weights.sum())}.")
