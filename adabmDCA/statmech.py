@@ -21,23 +21,29 @@ def _compute_energy_sequence(
 
 
 def compute_energy(
-    X: torch.Tensor,
+    x: torch.Tensor,
     params: Dict[str, torch.Tensor],
 ) -> torch.Tensor:
-    """Compute the DCA energy of the sequences in X.
+    """
+    Compute energy for a batch of sequences.
     
     Args:
-        X (torch.Tensor): Sequences in one-hot encoding format.
+        x (torch.Tensor): Tensor of shape (batch_size, L, q) - batch of one-hot encoded sequences
         params (Dict[str, torch.Tensor]): Parameters of the model.
     
     Returns:
-        torch.Tensor: DCA Energy of the sequences.
+        Tensor of shape (batch_size,) - energy for each sequence
     """
+    L, q = params["bias"].shape
+    batch_size = x.shape[0]
+    x_flat = x.view(batch_size, -1)
+    bias_flat = params["bias"].view(-1)
+    couplings_flat = params["coupling_matrix"].view(L * q, L * q)
+    bias_term = x_flat @ bias_flat
+    coupling_term = torch.sum(x_flat * (x_flat @ couplings_flat), dim=1)
+    energy = -bias_term - 0.5 * coupling_term
     
-    if X.dim() != 3:
-        raise ValueError("Input tensor X must be 3-dimensional of size (batch_size, L, q)")
-    
-    return torch.vmap(_compute_energy_sequence, in_dims=(0, None))(X, params)
+    return energy
 
 
 def _update_weights_AIS(

@@ -78,6 +78,8 @@ def main():
             alphabet=tokens,
             clustering_th=args.clustering_seqid,
             no_reweighting=args.no_reweighting,
+            filter_sequences=True,
+            remove_duplicates=True,
             device=device,
             dtype=dtype,
         )

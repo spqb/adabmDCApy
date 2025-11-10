@@ -34,7 +34,8 @@ from .dca import (
     get_contact_map,
     get_mf_contact_map,
 )
-from .utils import init_chains
+from .utils import init_chains, init_parameters
+from .dataset import DatasetDCA
 
 __all__ = [
     "import_from_fasta",
@@ -62,4 +63,6 @@ __all__ = [
     "get_contact_map",
     "get_mf_contact_map",
     "init_chains",
+    "init_parameters",
+    "DatasetDCA",
 ]
