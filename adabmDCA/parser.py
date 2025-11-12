@@ -147,8 +147,8 @@ def add_args_reintegration(parser: argparse.ArgumentParser) -> argparse.Argument
     return parser
 
 def add_args_profmark(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
-    parser.add_argument("output_prefix", type=str,   required=True,     help="Prefix for the output files.")
-    parser.add_argument("input_msa",     type=str,   required=True,     help="Fasta file containing the multiple sequence alignment.")
+    parser.add_argument("output_prefix", type=str,                      help="Prefix for the output files.")
+    parser.add_argument("input_msa",     type=str,                      help="Fasta file containing the multiple sequence alignment.")
     parser.add_argument("-t1",           type=float, default=0.5,       help="(Defaults to 0.5) No sequence in S (the candidate training set) has more than this fraction of its residues identical to any sequence in T (the candidate test set).")
     parser.add_argument("-t2",           type=float, default=0.5,       help="(Defaults to 0.5) No pair of test sequences has more than this value fractional identity.")
     parser.add_argument("-t3",           type=float, default=1.0,       help="(Defaults to 1.0) No pair of training sequences has more than this value fractional identity.")
