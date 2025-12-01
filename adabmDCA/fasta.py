@@ -3,7 +3,6 @@ import numpy as np
 from typing import Tuple
 from Bio import SeqIO
 import gzip
-from io import TextIOWrapper
 
 import torch
 
@@ -121,7 +120,7 @@ def import_from_fasta(
     """
     # Open the file, handling both .fasta and .fas.gz formats
     if str(fasta_name).endswith(".gz"):
-        with gzip.open(fasta_name, "rt") as fasta_file:  # No need for TextIOWrapper
+        with gzip.open(fasta_name, "rt") as fasta_file: 
             records = list(SeqIO.parse(fasta_file, "fasta"))
     else:
         with open(fasta_name, "r") as fasta_file:
