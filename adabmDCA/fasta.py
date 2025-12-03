@@ -1,6 +1,6 @@
 from pathlib import Path
 import numpy as np
-from typing import Tuple
+from typing import Iterable
 from Bio import SeqIO
 
 import torch
@@ -12,7 +12,7 @@ TOKENS_DNA = "-ACGT"
 
 
 def get_tokens(alphabet: str) -> str:
-    """Converts the alphabet into the corresponding tokens.
+    """Converts a known alphabet into the corresponding tokens, otherwise returns the custom alphabet.
 
     Args:
         alphabet (str): Alphabet to be used for the encoding. It can be either "protein", "rna", "dna" or a custom string of tokens.
@@ -31,15 +31,15 @@ def get_tokens(alphabet: str) -> str:
         return alphabet
     
     
-def encode_sequence(sequence: str | np.ndarray | list, tokens: str) -> np.ndarray:
+def encode_sequence(sequence: str | Iterable[str], tokens: str) -> np.ndarray:
     """Encodes a sequence or a list of sequences into a numeric format.
 
     Args:
-        sequence (str | np.ndarray | list): Input sequence.
+        sequence (str | Iterable[str]): Input sequence or iterable of sequences of size (batch_size,).
         tokens (str): Alphabet to be used for the encoding.
 
     Returns:
-        np.ndarray: Encoded sequence or sequences.
+        np.ndarray: Array of shape (L,) or (batch_size, L) with the encoded sequence or sequences.
     """
     letter_map = {l : n for n, l in enumerate(tokens)}
     
@@ -51,17 +51,24 @@ def encode_sequence(sequence: str | np.ndarray | list, tokens: str) -> np.ndarra
     elif isinstance(sequence, np.ndarray):
         sequence = list(sequence)
         return np.array(list(map(_encode, sequence)))
+    elif isinstance(sequence, torch.Tensor):
+        sequence = sequence.cpu().numpy()
+        sequence = list(sequence)
+        return np.array(list(map(_encode, sequence)))
     elif isinstance(sequence, list):
         return np.array(list(map(_encode, sequence)))
     else:        
         raise ValueError("Input sequence must be either a string or a numpy array.")
 
 
-def decode_sequence(sequence: list | np.ndarray | torch.Tensor, tokens: str) -> str | np.ndarray:
+def decode_sequence(sequence: Iterable[int], tokens: str) -> str | np.ndarray:
     """Takes a numeric sequence or list of seqences in input an returns the corresponding string encoding.
 
     Args:
-        sequence (np.ndarray): Input sequences. Can be either a 1D, 2D or a 3D (one-hot encoded) iterable.
+        sequence (Iterable[int]): Input sequences. Can be of shape
+            - (L,): single sequence in encoded format
+            - (batch_size, L): multiple sequences in encoded format
+            - (batch_size, L, q) multiple one-hot encoded sequences
         tokens (str): Alphabet to be used for the encoding.
 
     Returns:
@@ -102,20 +109,22 @@ def import_from_fasta(
     - If 'tokens' is provided, encodes the sequences in numeric format.
     - If 'filter_sequences' is True, removes the sequences whose tokens are not present in the alphabet.
     - If 'remove_duplicates' is True, removes the duplicated sequences.
-    - If 'return_ids' is True, returns also the indices of the original sequences.
+    - If 'return_mask' is True, returns also the mask selecting the retained sequences from the original ones.
 
     Args:
         fasta_name (str | Path): Path to the fasta file.
         tokens (str | None, optional): Alphabet to be used for the encoding. If provided, encodes the sequences in numeric format.
         filter_sequences (bool, optional): If True, removes the sequences whose tokens are not present in the alphabet. Defaults to False.
         remove_duplicates (bool, optional): If True, removes the duplicated sequences. Defaults to False.
-        return_ids (bool, optional): If True, returns also the indices of the original sequences. Defaults to False.
+        return_mask (bool, optional): If True, returns also the mask selecting the retained sequences from the original ones. Defaults to False.
 
     Raises:
         RuntimeError: The file is not in fasta format.
 
     Returns:
-        Tuple[np.ndarray, np.ndarray] | Tuple[np.ndarray, np.ndarray, np.ndarray]: Tuple of (headers, sequences) or (headers, sequences, original_ids) if 'return_ids' is True.
+        Tuple[np.ndarray, np.ndarray] | Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        - If 'return_mask' is False: Tuple of (headers, sequences)
+        - If 'return_mask' is True: Tuple of (headers, sequences, mask)
     """
     # Import headers and sequences
     sequences = []
@@ -178,8 +187,8 @@ def import_from_fasta(
 
 def write_fasta(
     fname: str,
-    headers: list | np.ndarray | torch.Tensor,
-    sequences: list | np.ndarray | torch.Tensor,
+    headers: Iterable[str],
+    sequences: Iterable[str | np.ndarray | torch.Tensor],
     remove_gaps: bool = False,
     tokens: str = "protein",
 ):
@@ -187,10 +196,10 @@ def write_fasta(
 
     Args:
         fname (str): Name of the output fasta file.
-        headers (list | np.ndarray | torch.Tensor): Iterable with sequences' headers.
-        sequences (list | np.ndarray | torch.Tensor): Iterable with sequences in string, categorical or one-hot encoded format.
+        headers (Iterable[str]): Iterable with sequences' headers.
+        sequences (Iterable[str | np.ndarray | torch.Tensor]): Iterable with sequences in string, categorical or one-hot encoded format.
         remove_gaps (bool, optional): If True, removes the gap from the alignment. Defaults to False.
-        tokens (str): Alphabet to be used for the encoding. Defaults to protein.
+        tokens (str): Alphabet to be used for the encoding. Defaults to 'protein'.
     """
     if isinstance(headers, torch.Tensor):
         headers = headers.cpu().numpy()
@@ -244,7 +253,7 @@ def compute_weights(
     that have a sequence identity with 's' >= th.
 
     Args:
-        data (np.ndarray | torch.Tensor): Input dataset. Must be either a 2D or a 3D (one-hot encoded) array.
+        data (np.ndarray | torch.Tensor): Input dataset. Must be either a (batch_size, L) or a (batch_size, L, q) (one-hot encoded) array.
         th (float, optional): Sequence identity threshold for the clustering. Defaults to 0.8.
         device (torch.device, optional): Device. Defaults to "cpu".
         dtype (torch.dtype, optional): Data type. Defaults to torch.float32.
@@ -252,7 +261,7 @@ def compute_weights(
     Returns:
         torch.Tensor: Array with the weights of the sequences.
     """
-    assert len(data.shape) == 2 or len(data.shape) == 3, "'data' must be either a 2D or a 3D array"
+    assert len(data.shape) == 2 or len(data.shape) == 3, "'data' must be either a (batch_size, L) or a (batch_size, L, q) (one-hot encoded) array."
     if isinstance(data, np.ndarray):
         data = torch.tensor(data, device=device)
     if len(data.shape) == 3:

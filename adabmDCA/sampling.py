@@ -14,6 +14,8 @@ def gibbs_step_uniform_sites(
     Args:
         chains (torch.Tensor): One-hot encoded sequences of shape (batch_size, L, q).
         params (Dict[str, torch.Tensor]): Parameters of the model.
+            - "bias": Tensor of shape (L, q) - local biases.
+            - "coupling_matrix": Tensor of shape (L, q, L, q) - coupling matrix.
         beta (float, optional): Inverse temperature. Defaults to 1.0.
 
     Returns:
@@ -42,6 +44,8 @@ def gibbs_step_independent_sites(
     Args:
         chains (torch.Tensor): One-hot encoded sequences of shape (batch_size, L, q).
         params (Dict[str, torch.Tensor]): Parameters of the model.
+            - "bias": Tensor of shape (L, q) - local biases.
+            - "coupling_matrix": Tensor of shape (L, q, L, q) - coupling matrix.
         beta (float, optional): Inverse temperature. Defaults to 1.0.
 
     Returns:
@@ -72,11 +76,13 @@ def gibbs_sampling(
     nsweeps: int,
     beta: float = 1.0,
 ) -> torch.Tensor:
-    """Gibbs sampling.
+    """Gibbs sampling. Attempts L * nsweeps mutations to each sequence in 'chains'.
     
     Args:
-        chains (torch.Tensor): Initial one-hot encoded chains of size (batch_size, L, q).
+        chains (torch.Tensor): Initial one-hot encoded samples of size (batch_size, L, q).
         params (Dict[str, torch.Tensor]): Parameters of the model.
+            - "bias": Tensor of shape (L, q) - local biases.
+            - "coupling_matrix": Tensor of shape (L, q, L, q) - coupling matrix.
         nsweeps (int): Number of sweeps, where one sweep corresponds to attempting L mutations.
         beta (float, optional): Inverse temperature. Defaults to 1.0.
     
@@ -102,6 +108,8 @@ def metropolis_step_uniform_sites(
     Args:
         chains (torch.Tensor): One-hot encoded sequences of shape (batch_size, L, q).
         params (Dict[str, torch.Tensor]): Parameters of the model.
+            - "bias": Tensor of shape (L, q) - local biases.
+            - "coupling_matrix": Tensor of shape (L, q, L, q) - coupling matrix.
         beta (float, optional): Inverse temperature. Defaults to 1.0.
 
     Returns:
@@ -139,6 +147,8 @@ def metropolis_step_independent_sites(
     Args:
         chains (torch.Tensor): One-hot encoded sequences of shape (batch_size, L, q).
         params (Dict[str, torch.Tensor]): Parameters of the model.
+            - "bias": Tensor of shape (L, q) - local biases.
+            - "coupling_matrix": Tensor of shape (L, q, L, q) - coupling matrix.
         beta (float, optional): Inverse temperature. Defaults to 1.0.
 
     Returns:
@@ -174,11 +184,13 @@ def metropolis_sampling(
     nsweeps: int,
     beta: float = 1.0,
 ) -> torch.Tensor:
-    """Metropolis sampling.
+    """Metropolis sampling. Attempts L * nsweeps mutations to each sequence in 'chains'.
 
     Args:
         chains (torch.Tensor): One-hot encoded sequences of shape (batch_size, L, q).
         params (Dict[str, torch.Tensor]): Parameters of the model.
+            - "bias": Tensor of shape (L, q) - local biases.
+            - "coupling_matrix": Tensor of shape (L, q, L, q) - coupling matrix.
         nsweeps (int): Number of sweeps to be performed, where one sweep corresponds to attempting L mutations.
         beta (float, optional): Inverse temperature. Defaults to 1.0.
 

@@ -1,5 +1,4 @@
 from typing import Any
-from pathlib import Path
 import numpy as np
 
 from torch.utils.data import Dataset
@@ -17,8 +16,8 @@ class DatasetDCA(Dataset):
     """Dataset class for handling multi-sequence alignments data."""
     def __init__(
         self,
-        path_data: str | Path,
-        path_weights: str | Path | None = None,
+        path_data: str,
+        path_weights: str | None = None,
         alphabet: str = "protein",
         clustering_th: float = 0.8,
         no_reweighting: bool = False,
@@ -31,8 +30,8 @@ class DatasetDCA(Dataset):
         """Initialize the dataset.
 
         Args:
-            path_data (str | Path): Path to multi sequence alignment in fasta format.
-            path_weights (str | Path | None, optional): Path to the file containing the importance weights of the sequences. If None, the weights are computed automatically.
+            path_data (str): Path to multi sequence alignment in fasta format.
+            path_weights (str | None, optional): Path to the file containing the importance weights of the sequences. If None, the weights are computed automatically.
             alphabet (str, optional): Selects the type of encoding of the sequences. Default choices are ("protein", "rna", "dna"). Defaults to "protein".
             clustering_th (float, optional): Sequence identity threshold for clustering. Defaults to 0.8.
             no_reweighting (bool, optional): If True, the weights are not computed. Defaults to False.
@@ -42,8 +41,7 @@ class DatasetDCA(Dataset):
             filter_sequences (bool, optional): If True, removes sequences containing tokens not in the alphabet. Defaults to False.
             message (bool, optional): Print the import message. Defaults to True.
         """
-        path_data = Path(path_data)
-        self.names = np.ndarray([], dtype=str)
+        self.names = np.array([], dtype=str)
         self.data = torch.tensor([], device=device, dtype=dtype)
         self.device = device
         self.dtype = dtype

@@ -234,17 +234,17 @@ def extract_Cij_from_freq(
     pi: torch.Tensor,
     mask: torch.Tensor | None = None,
 ) -> Tuple[torch.Tensor, torch.Tensor]:
-    """Extracts the lower triangular part of the covariance matrices of the data and chains starting from the frequencies.
+    """Extracts the lower triangular part of the covariance matrices of the natural data and generated data starting from the frequencies.
 
     Args:
-        fij (torch.Tensor): Two-point frequencies of the data.
-        pij (torch.Tensor): Two-point frequencies of the chains.
-        fi (torch.Tensor): Single-point frequencies of the data.
-        pi (torch.Tensor): Single-point frequencies of the chains.
+        fij (torch.Tensor): Two-point frequencies of the natural data.
+        pij (torch.Tensor): Two-point frequencies of the generated data.
+        fi (torch.Tensor): Single-point frequencies of the natural data.
+        pi (torch.Tensor): Single-point frequencies of the generated data.
         mask (torch.Tensor | None, optional): Mask for comparing just a subset of the couplings. Defaults to None.
 
     Returns:
-        Tuple[torch.Tensor, torch.Tensor]: Extracted two-point frequencies of the data and chains.
+        Tuple[torch.Tensor, torch.Tensor]: Extracted two-point frequencies of the natural data and generated data.
     """
     L = fi.shape[0]
     
@@ -272,17 +272,17 @@ def extract_Cij_from_seqs(
     pseudo_count: float = 0.0,
     mask: torch.Tensor | None = None,
 ) -> Tuple[torch.Tensor, torch.Tensor]:
-    """Extracts the lower triangular part of the covariance matrices of the data and chains starting from the sequences.
+    """Extracts the lower triangular part of the covariance matrices of the natural data and generated data starting from the sequences.
 
     Args:
-        data (torch.Tensor): Data sequences.
-        chains (torch.Tensor): Chain sequences.
+        data (torch.Tensor): Natural data sequences.
+        chains (torch.Tensor): Generated data sequences.
         weights (torch.Tensor | None, optional): Weights of the sequences. Defaults to None.
         pseudo_count (float, optional): Pseudo count for the single and two points statistics. Acts as a regularization. Defaults to 0.0.
         mask (torch.Tensor | None, optional): Mask for comparing just a subset of the couplings. Defaults to None.
 
     Returns:
-        Tuple[torch.Tensor, torch.Tensor]: Two-point frequencies of the data and chains.
+        Tuple[torch.Tensor, torch.Tensor]: Two-point frequencies of the natural data and generated data.
     """
     fi = get_freq_single_point(data, weights=weights, pseudo_count=pseudo_count)
     pi = get_freq_single_point(chains, weights=None)
@@ -302,10 +302,10 @@ def get_correlation_two_points(
     """Computes the Pearson coefficient and the slope between the two-point frequencies of data and chains.
 
     Args:
-        fij (torch.Tensor): Two-point frequencies of the data.
-        pij (torch.Tensor): Two-point frequencies of the chains.
-        fi (torch.Tensor): Single-point frequencies of the data.
-        pi (torch.Tensor): Single-point frequencies of the chains.
+        fij (torch.Tensor): Two-point frequencies of the natural data.
+        pij (torch.Tensor): Two-point frequencies of the generated data.
+        fi (torch.Tensor): Single-point frequencies of the natural data.
+        pi (torch.Tensor): Single-point frequencies of the generated data.
         mask (torch.Tensor | None, optional): Mask to select the couplings to use for the correlation coefficient. Defaults to None. 
 
     Returns:

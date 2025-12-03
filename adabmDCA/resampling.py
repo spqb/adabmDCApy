@@ -18,11 +18,18 @@ def compute_mixing_time(
         sampler (Callable): Sampling function.
         data (torch.Tensor): Initial data.
         params (Dict[str, torch.Tensor]): Parameters for the sampling.
+            - "bias": Tensor of shape (L, q) - local biases.
+            - "coupling_matrix": Tensor of shape (L, q, L, q) - coupling matrix.
         n_max_sweeps (int): Maximum number of sweeps.
         beta (float): Inverse temperature for the sampling.
 
     Returns:
         Dict[str, list]: Results of the mixing time analysis.
+            - "seqid_t": List of average sequence identities at time t.
+            - "std_seqid_t": List of standard deviations of sequence identities at time t.
+            - "seqid_t_t_half": List of average sequence identities between t and t/2.
+            - "std_seqid_t_t_half": List of standard deviations of sequence identities between t and t/2.
+            - "t_half": List of t/2 values.
     """
 
     torch.manual_seed(0)

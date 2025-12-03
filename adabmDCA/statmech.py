@@ -1,23 +1,7 @@
 from typing import Dict
 import itertools
-
 import torch
-
 from adabmDCA.functional import one_hot
-
-
-@torch.jit.script
-def _compute_energy_sequence(
-    x: torch.Tensor,
-    params: Dict[str, torch.Tensor],
-) -> torch.Tensor:
-    L, q = params["bias"].shape
-    x_oh = x.ravel()
-    bias_oh = params["bias"].ravel()
-    couplings_oh = params["coupling_matrix"].view(L * q, L * q)
-    energy = - x_oh @ bias_oh - 0.5 * x_oh @ (couplings_oh @ x_oh)
-    
-    return energy
 
 
 def compute_energy(
@@ -25,14 +9,17 @@ def compute_energy(
     params: Dict[str, torch.Tensor],
 ) -> torch.Tensor:
     """
-    Compute energy for a batch of sequences.
+    Compute the DCA energy for a batch of sequences.
     
     Args:
-        x (torch.Tensor): Tensor of shape (batch_size, L, q) - batch of one-hot encoded sequences
+        x (torch.Tensor): Tensor of shape (batch_size, L, q) - batch of one-hot encoded sequences.
         params (Dict[str, torch.Tensor]): Parameters of the model.
+            - "bias": Tensor of shape (L, q) - local biases.
+            - "coupling_matrix": Tensor of shape (L, q, L, q) - coupling matrix.
+        
     
     Returns:
-        Tensor of shape (batch_size,) - energy for each sequence
+        torch.Tensor: Tensor of shape (batch_size,) - DCA energy for each sequence in the batch.
     """
     L, q = params["bias"].shape
     batch_size = x.shape[0]
@@ -41,7 +28,7 @@ def compute_energy(
     couplings_flat = params["coupling_matrix"].view(L * q, L * q)
     bias_term = x_flat @ bias_flat
     coupling_term = torch.sum(x_flat * (x_flat @ couplings_flat), dim=1)
-    energy = -bias_term - 0.5 * coupling_term
+    energy = - bias_term - 0.5 * coupling_term
     
     return energy
 

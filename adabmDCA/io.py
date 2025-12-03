@@ -96,12 +96,14 @@ def load_params(
 
     Args:
         fname (str): Path of the file that stores the parameters.
-        tokens (str): "protein", "dna", "rna" or another string with the alphabet to be used.
+        tokens (str): "protein", "dna", "rna" or another string with a compatible alphabet to be used.
         device (torch.device): Device where to store the parameters.
         dtype (torch.dtype): Data type of the parameters. Defaults to torch.float32.
 
     Returns:
         Dict[str, torch.Tensor]: Parameters of the model.
+            - "bias": Tensor of shape (L, q) - local biases.
+            - "coupling_matrix": Tensor of shape (L, q, L, q) - coupling matrix.
     """
     
     param_labels = pd.read_csv(fname, sep=" ", usecols=[0,]).to_numpy()
@@ -168,8 +170,10 @@ def save_params(
     Args:
         fname (str): Path to the file where to save the parameters.
         params (Dict[str, torch.Tensor]): Parameters of the model.
-        tokens (str): "protein", "dna", "rna" or another string with the alphabet to be used.
-        mask (torch.Tensor | None): Mask of the coupling matrix that determines which are the non-zero entries.
+            - "bias": Tensor of shape (L, q) - local biases.
+            - "coupling_matrix": Tensor of shape (L, q, L, q) - coupling matrix.
+        tokens (str): "protein", "dna", "rna" or another string with a compatible alphabet to be used.
+        mask (torch.Tensor | None): Tensor of shape (L, q, L, q) - Mask of the coupling matrix that determines which are the non-zero entries.
             If None, the lower-triangular part of the coupling matrix is masked. Defaults to None.
     """
     tokens = get_tokens(tokens)
@@ -226,6 +230,8 @@ def load_params_oldformat(
 
     Returns:
         Dict[str, torch.Tensor]: Parameters of the model.
+            - "bias": Tensor of shape (L, q) - local biases.
+            - "coupling_matrix": Tensor of shape (L, q, L, q) - coupling matrix.
     """
     df = pd.read_csv(fname, sep=" ", names=["param", "idx0", "idx1", "idx2", "idx3", "val"])
     df_J = df.loc[df["param"] == "J", ["idx0", "idx1", "idx2", "idx3", "val"]].astype({"idx0" : int, "idx1" : int, "idx2" : int, "idx3" : int, "val" : float})
@@ -267,7 +273,9 @@ def save_params_oldformat(
     Args:
         fname (str): Path to the file where to save the parameters.
         params (Dict[str, torch.Tensor]): Parameters of the model.
-        mask (torch.Tensor): Mask of the coupling matrix that determines which are the non-zero entries.
+            - "bias": Tensor of shape (L, q) - local biases.
+            - "coupling_matrix": Tensor of shape (L, q, L, q) - coupling matrix.
+        mask (torch.Tensor): Tensor of shape (L, q, L, q) - Mask of the coupling matrix that determines which are the non-zero entries.
             If None, the lower-triangular part of the coupling matrix is masked. Defaults to None.
     """
     L, q = params["bias"].shape

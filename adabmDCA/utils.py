@@ -5,13 +5,17 @@ from adabmDCA.functional import one_hot
 
 
 def init_parameters(fi: torch.Tensor) -> Dict[str, torch.Tensor]:
-    """Initialize the parameters of the DCA model.
+    """Initialize the parameters of the DCA model. The bias terms are initialized
+    from the single-point frequencies 'fi', while the coupling matrix is initialized
+    to zero.
 
     Args:
         fi (torch.Tensor): Single-point frequencies of the data.
 
     Returns:
-        Dict[str, torch.Tensor]: Parameters of the model.
+        Dict[str, torch.Tensor]: 
+            "bias" (torch.Tensor): Bias terms.
+            "coupling_matrix" (torch.Tensor): Coupling matrix.
     """
     L, q = fi.shape
     params = {}
@@ -29,7 +33,7 @@ def init_chains(
     dtype: torch.dtype = torch.float32,
     fi: torch.Tensor | None = None,
 ) -> torch.Tensor:
-    """Initialize the chains of the DCA model. If 'fi' is provided, the chains are sampled from the
+    """Initialize the Markov chains of the DCA model. If 'fi' is provided, the chains are sampled from the
     profile model, otherwise they are sampled uniformly at random.
 
     Args:
@@ -41,7 +45,7 @@ def init_chains(
         fi (torch.Tensor | None, optional): Single-point frequencies. Defaults to None.
 
     Returns:
-        torch.Tensor: Initialized parallel chains in one-hot encoding format.
+        torch.Tensor: Initialized Markov chains in one-hot encoding format, shape (num_chains, L, q).
     """
     if fi is None:
         chains = torch.randint(low=0, high=q, size=(num_chains, L), device=device)
@@ -122,7 +126,7 @@ def get_device(device: str, message: bool = True) -> torch.device:
     """Returns the device where to store the tensors.
     
     Args:
-        device (str): Device to be used.
+        device (str): Device to be used. Possible values are 'cpu', 'cuda', 'mps'.
         message (bool, optional): Print the device. Defaults to True.
         
     Returns:
@@ -146,7 +150,7 @@ def get_dtype(dtype: str) -> torch.dtype:
     """Returns the data type of the tensors.
     
     Args:
-        dtype (str): Data type.
+        dtype (str): Data type. Possible values are 'float32' and 'float64'.
         
     Returns:
         torch.dtype: Data type.

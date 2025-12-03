@@ -49,7 +49,9 @@ def get_seqid_stats(
         s2 (torch.Tensor | None): One-hot encoded sequence dataset 2 of shape (batch_size, L, q) or (L, q). Defaults to None.
 
     Returns:
-        Tuple[torch.Tensor, torch.Tensor]: Mean sequence identity and standard deviation of the mean.
+        Tuple[torch.Tensor, torch.Tensor]:
+            (torch.Tensor) Mean sequence identity
+            (torch.Tensor) Standard deviation of the mean.
     """
     seqids = get_seqid(s1, s2)
     if len(seqids) == 1:
@@ -68,7 +70,9 @@ def set_zerosum_gauge(params: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor
         params (Dict[str, torch.Tensor]): Parameters of the model.
         
     Returns:
-        Dict[str, torch.Tensor]: Parameters with fixed gauge.
+        Dict[str, torch.Tensor]:
+            "bias": torch.Tensor of shape (L, q)
+            "coupling_matrix": torch.Tensor of shape (L, q, L, q)
     """
     coupling_matrix = params["coupling_matrix"]
     coupling_matrix -= coupling_matrix.mean(dim=1, keepdim=True) + \
