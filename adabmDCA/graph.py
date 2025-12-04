@@ -86,7 +86,7 @@ def compute_sym_Dkl(
     distribution once removing one coupling J_ij(a, b).
 
     Args:
-        params (Dict[ste, torch.Tensor]): Parameters of the model.
+        params (Dict[str, torch.Tensor]): Parameters of the model.
         pij (torch.Tensor): Two-point marginal probability distribution.
 
     Returns:

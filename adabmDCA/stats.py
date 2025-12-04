@@ -244,7 +244,7 @@ def extract_Cij_from_freq(
         mask (torch.Tensor | None, optional): Mask for comparing just a subset of the couplings. Defaults to None.
 
     Returns:
-        Tuple[torch.Tensor, torch.Tensor]: Extracted two-point frequencies of the natural data and generated data.
+        Tuple[torch.Tensor, torch.Tensor]: Extracted covariance matrix entries of the natural data and generated data.
     """
     L = fi.shape[0]
     

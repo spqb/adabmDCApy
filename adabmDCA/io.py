@@ -21,7 +21,7 @@ def load_chains(
     load_weights: bool = False,
     device: torch.device = torch.device("cpu"),
     dtype: torch.dtype = torch.float32,
-) -> List[torch.Tensor]:
+) -> tuple[torch.Tensor, ...]:
     """Loads the sequences from a fasta file and returns the one-hot encoded version.
     If the sequences are weighted, the log-weights are also returned. If the sequences are not weighted, the log-weights are set to 0.
     
@@ -33,7 +33,7 @@ def load_chains(
         dtype (torch.dtype, optional): Data type of the sequences. Defaults to torch.float32
     
     Return:
-        List[torch.Tensor]: One-hot encoded sequences and log-weights if load_weights is True.
+        tuple[torch.Tensor, ...]: One-hot encoded sequences and log-weights if load_weights is True.
     """
     def parse_header(header: str):
         h = header.split("|")
@@ -52,9 +52,9 @@ def load_chains(
     if load_weights:
         log_weights = np.vectorize(parse_header)(headers)
         log_weights = torch.tensor(log_weights, device=device, dtype=dtype)
-        return [sequences_oh, log_weights]
+        return (sequences_oh, log_weights)
     else:
-        return [sequences_oh,]
+        return (sequences_oh,)
 
 
 def save_chains(

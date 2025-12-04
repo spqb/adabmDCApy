@@ -72,6 +72,14 @@ def fit(
     graph_upd = 0
     density = compute_density(mask) * 100
     L, q = fi_target.shape
+    
+    print("\n" + "-" * 80)
+    print("[ACTIVATION PHASE]")
+    print("-" * 80)
+    print(f"  Target Pearson: {target_pearson:.2f}")
+    print(f"  Activation rate: {factivate:.2%}")
+    print(f"  Gradient steps per graph update: {gsteps}")
+    print(f"  Initial density: {density:.3f}%")
         
     # Mask for saving only the upper-diagonal matrix
     mask_save = get_mask_save(L, q, device=device)
@@ -91,10 +99,14 @@ def fit(
     time_start = time.time()
     log_likelihood = compute_log_likelihood(fi=fi_target, fij=fij_target, params=params, logZ=logZ)
     entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
+    
+    print(f"  Initial Pearson: {pearson:.4f}")
+    print(f"  Initial log-likelihood: {log_likelihood:.3f}")
+    print("-" * 80 + "\n")
         
     pbar = tqdm(initial=max(0, float(pearson)), total=target_pearson, colour="red", dynamic_ncols=True, ascii="-#",
-                bar_format="{desc}: {percentage:.2f}%[{bar}] Pearson: {n:.3f}/{total_fmt} [{elapsed}]")
-    pbar.set_description(f"Graph updates: {graph_upd} - Density: {density:.3f}% - New active couplings: {0} - LL: {log_likelihood:.3f}")
+                bar_format="{desc}: {percentage:.2f}% [{bar}] Pearson: {n:.3f}/{total_fmt} [{elapsed}]")
+    pbar.set_description(f"Update: {graph_upd:3d} | Density: {density:6.3f}% | New: {0:4d} | LL: {log_likelihood:8.3f}")
     
     while pearson < target_pearson:
         
@@ -145,7 +157,7 @@ def fit(
         density = compute_density(mask) * 100
         logZ = (torch.logsumexp(log_weights, dim=0) - torch.log(torch.tensor(len(chains), device=device, dtype=dtype))).item()
         log_likelihood = compute_log_likelihood(fi=fi_target, fij=fij_target, params=params, logZ=logZ)
-        pbar.set_description(f"Graph updates: {graph_upd} - Density: {density:.3f}% - New active couplings: {int(nactive - nactive_old)} - LL: {log_likelihood:.3f}")
+        pbar.set_description(f"Update: {graph_upd:3d} | Density: {density:6.3f}% | New: {int(nactive - nactive_old):4d} | LL: {log_likelihood:8.3f}")
 
         # Save the model if a checkpoint is reached
         if checkpoint is not None:
@@ -205,5 +217,18 @@ def fit(
             chains=chains,
             log_weights=log_weights,
             )
-        print(f"Completed, model parameters saved in {checkpoint.file_paths['params']}")
     pbar.close()
+    
+    print("\n" + "-" * 80)
+    print("  ACTIVATION COMPLETED")
+    print("-" * 80)
+    print(f"  Final density: {density:.3f}%")
+    print(f"  Final Pearson: {pearson:.4f}")
+    print(f"  Final log-likelihood: {log_likelihood:.3f}")
+    print(f"  Total graph updates: {graph_upd}")
+    if checkpoint is not None:
+        print(f"\n  Model saved:")
+        print(f"    • Parameters: {checkpoint.file_paths['params']}")
+        print(f"    • Chains:     {checkpoint.file_paths['chains']}")
+        print(f"    • Log file:   {checkpoint.file_paths['log']}")
+    print("-" * 80)

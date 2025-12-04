@@ -1,6 +1,6 @@
 from pathlib import Path
 import numpy as np
-from typing import Iterable
+from typing import Iterable, Tuple, Union, overload, Literal
 from Bio import SeqIO
 
 import torch
@@ -61,11 +61,11 @@ def encode_sequence(sequence: str | Iterable[str], tokens: str) -> np.ndarray:
         raise ValueError("Input sequence must be either a string or a numpy array.")
 
 
-def decode_sequence(sequence: Iterable[int], tokens: str) -> str | np.ndarray:
+def decode_sequence(sequence: np.ndarray | torch.Tensor | list, tokens: str) -> str | np.ndarray:
     """Takes a numeric sequence or list of seqences in input an returns the corresponding string encoding.
 
     Args:
-        sequence (Iterable[int]): Input sequences. Can be of shape
+        sequence (np.ndarray | torch.Tensor | list): Input sequences. Can be of shape
             - (L,): single sequence in encoded format
             - (batch_size, L): multiple sequences in encoded format
             - (batch_size, L, q) multiple one-hot encoded sequences
@@ -98,13 +98,31 @@ def decode_sequence(sequence: Iterable[int], tokens: str) -> str | np.ndarray:
         raise ValueError("Input sequence must be either a 1D, 2D or a 3D (one-hot encoded) iterable.")
 
 
+@overload
+def import_from_fasta(
+    fasta_name: str | Path,
+    tokens: str | None = None,
+    filter_sequences: bool = False,
+    remove_duplicates: bool = False,
+    return_mask: Literal[False] = False,
+) -> Tuple[np.ndarray, np.ndarray]: ...
+
+@overload
+def import_from_fasta(
+    fasta_name: str | Path,
+    tokens: str | None = None,
+    filter_sequences: bool = False,
+    remove_duplicates: bool = False,
+    return_mask: Literal[True] = True,
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray]: ...
+
 def import_from_fasta(
     fasta_name: str | Path,
     tokens: str | None = None,
     filter_sequences: bool = False,
     remove_duplicates: bool = False,
     return_mask: bool = False,
-):
+) -> Union[Tuple[np.ndarray, np.ndarray], Tuple[np.ndarray, np.ndarray, np.ndarray]]:
     """Import sequences from a fasta file. The following operations are performed:
     - If 'tokens' is provided, encodes the sequences in numeric format.
     - If 'filter_sequences' is True, removes the sequences whose tokens are not present in the alphabet.
@@ -187,17 +205,17 @@ def import_from_fasta(
 
 def write_fasta(
     fname: str,
-    headers: Iterable[str],
-    sequences: Iterable[str | np.ndarray | torch.Tensor],
+    headers: Iterable[str] | np.ndarray | torch.Tensor,
+    sequences: Iterable[str] | np.ndarray | torch.Tensor,
     remove_gaps: bool = False,
     tokens: str = "protein",
-):
+) -> None:
     """Generate a fasta file with the input sequences.
 
     Args:
         fname (str): Name of the output fasta file.
-        headers (Iterable[str]): Iterable with sequences' headers.
-        sequences (Iterable[str | np.ndarray | torch.Tensor]): Iterable with sequences in string, categorical or one-hot encoded format.
+        headers (Iterable[str] | np.ndarray | torch.Tensor): Iterable with sequences' headers.
+        sequences (Iterable[str] | np.ndarray | torch.Tensor): Iterable with sequences in string, categorical or one-hot encoded format.
         remove_gaps (bool, optional): If True, removes the gap from the alignment. Defaults to False.
         tokens (str): Alphabet to be used for the encoding. Defaults to 'protein'.
     """
@@ -209,19 +227,26 @@ def write_fasta(
         headers = np.array(headers)
     if isinstance(sequences, list):
         sequences = np.array(sequences)
+    if not isinstance(sequences, np.ndarray):
+        sequences = np.array(list(sequences))
+    if not isinstance(headers, np.ndarray):
+        headers = np.array(list(headers))
+    sequences_arr: np.ndarray = sequences
+    headers_arr: np.ndarray = headers
+    
     tokens = get_tokens(tokens)
     
     # Handle the case when the sequenes are one-hot encoded
-    if len(sequences.shape) == 3:
-        assert sequences.shape[2] == len(tokens), "The last dimension of the input one-hot encoded sequence must be equal to the length of the alphabet."
-        sequences = np.argmax(sequences, axis=2)
-        seqs_decoded = decode_sequence(sequences, tokens)
+    if len(sequences_arr.shape) == 3:
+        assert sequences_arr.shape[2] == len(tokens), "The last dimension of the input one-hot encoded sequence must be equal to the length of the alphabet."
+        sequences_arr = np.argmax(sequences_arr, axis=2)
+        seqs_decoded = decode_sequence(sequences_arr, tokens)
     else:
         # Handle the case when the sequences are in categorical or string format
-        if np.issubdtype(sequences.dtype, np.integer) or np.issubdtype(sequences.dtype, np.floating):
-            seqs_decoded = decode_sequence(sequences, tokens)
-        elif np.issubdtype(sequences.dtype, np.str_):
-            seqs_decoded = sequences.copy()
+        if np.issubdtype(sequences_arr.dtype, np.integer) or np.issubdtype(sequences_arr.dtype, np.floating):
+            seqs_decoded = decode_sequence(sequences_arr, tokens)
+        elif np.issubdtype(sequences_arr.dtype, np.str_):
+            seqs_decoded = sequences_arr.copy()
         else:
             raise ValueError("Input sequences must be either in string or numeric format.")
         
@@ -229,7 +254,7 @@ def write_fasta(
         seqs_decoded = np.vectorize(lambda s: s.replace("-", ""))(seqs_decoded)
         
     with open(fname, 'w') as f:
-        for name_seq, seq in zip(headers, seqs_decoded):
+        for name_seq, seq in zip(headers_arr, seqs_decoded):
             f.write('>' + name_seq + '\n')
             f.write(seq)
             f.write('\n')

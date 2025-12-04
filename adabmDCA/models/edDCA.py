@@ -1,4 +1,4 @@
-from pathlib import Path
+import os
 from typing import Callable, Dict
 import time
 
@@ -68,9 +68,10 @@ def fit(
     # Get the single-point and two-points frequencies of the simulated data
     pi = get_freq_single_point(data=chains)
     pij = get_freq_two_points(data=chains)
-    _, pearson = get_correlation_two_points(fi=fi_target, pi=pi, fij=fij_target, pij=pij)
+    pearson, _ = get_correlation_two_points(fi=fi_target, pi=pi, fij=fij_target, pij=pij)
     if pearson < target_pearson:
-        print("Bringing the model to the convergence threshold...")
+        print("  Initial Pearson correlation: {:.4f} (target: {:.2f})".format(pearson, target_pearson))
+        print("  Bringing model to convergence threshold...")
         chains, params, log_weights, _ = train_graph(
             sampler=sampler,
             chains=chains,
@@ -88,20 +89,39 @@ def fit(
             check_slope=False,
             checkpoint=checkpoint,
         )
+        pi = get_freq_single_point(data=chains)
+        pij = get_freq_two_points(data=chains)
+        pearson, _ = get_correlation_two_points(fi=fi_target, pi=pi, fij=fij_target, pij=pij)
+        # Save the equilibrated parameters
+        checkpoint.save(
+            params=params,
+            mask=mask,
+            chains=chains,
+            log_weights=log_weights,
+        )
+        print("  ✓ Equilibrated model saved")
+    print("  Current Pearson correlation: {:.4f}".format(pearson))
     
     # Mask for saving only the upper-diagonal matrix
     mask_save = get_mask_save(L, q, device=device)
     
     # Filenames for the decimated parameters and chains
-    parent, name = checkpoint.file_paths["params"].parent, checkpoint.file_paths["params"].name
+    parent, name = os.path.dirname(checkpoint.file_paths["params"]), os.path.basename(checkpoint.file_paths["params"])
     new_name = name.replace(".dat", "_dec.dat")
-    checkpoint.file_paths["params_dec"] = Path(parent).joinpath(new_name)
+    checkpoint.file_paths["params_dec"] = os.path.join(parent, new_name)
     
-    name = checkpoint.file_paths["chains"].name
+    name = os.path.basename(checkpoint.file_paths["chains"])
     new_name = name.replace(".fasta", "_dec.fasta")
-    checkpoint.file_paths["chains_dec"] = Path(parent).joinpath(new_name)
+    checkpoint.file_paths["chains_dec"] = os.path.join(parent, new_name)
     
-    print(f"\nStarting the decimation (target density = {target_density}):")
+    print("\n" + "-" * 80)
+    print("[DECIMATION PHASE]")
+    print("-" * 80)
+    print(f"  Target density: {target_density:.3f}")
+    print(f"  Decimation rate: {drate:.2f}")
+    initial_density = compute_density(mask)
+    print(f"  Initial density: {initial_density:.3f}")
+    print("-" * 80)
     with open(checkpoint.file_paths["log"], "a") as f:
         f.write("\nDecimation\n")
         template = "{0:<20} {1:<50}\n"
@@ -111,8 +131,9 @@ def fit(
         header_string = " ".join([f"{key:<10}" for key in checkpoint.logs.keys()])
         f.write("{0:<10} {1}\n".format("Epoch", header_string))
         
-    # Template for wrinting the results
-    template = "{0:<15} | {1:<15} | {2:<15} | {3:<15} | {4:<15}"
+    # Template for writing the results
+    print("\n  {0:<8} {1:>12} {2:>12} {3:>12} {4:>12}".format("Step", "Density", "Log-Like", "Pearson", "Slope"))
+    print("  " + "-" * 60)
     density = compute_density(mask)
     count = 0
     checkpoint.checkpt_interval = 10
@@ -173,7 +194,7 @@ def fit(
         logZ = (torch.logsumexp(log_weights, dim=0) - torch.log(torch.tensor(len(chains), device=device, dtype=dtype))).item()
         log_likelihood = compute_log_likelihood(fi=fi_target, fij=fij_target, params=params, logZ=logZ)
         
-        print(template.format(f"Step: {count}", f"Density: {density:.3f}", f"LL: {log_likelihood:.3f}", f"Pearson: {pearson:.3f}", f"Slope: {slope:.3f}"))
+        print("  {0:<8} {1:>12.4f} {2:>12.3f} {3:>12.4f} {4:>12.4f}".format(count, density, log_likelihood, pearson, slope))
                 
         if checkpoint.check(count):
             entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
@@ -229,4 +250,15 @@ def fit(
         chains=chains,
         log_weights=log_weights,
     )
-    print(f"Completed, decimated model parameters saved in {checkpoint.file_paths['params_dec']}")
+    
+    print("\n" + "-" * 80)
+    print("  DECIMATION COMPLETED")
+    print("-" * 80)
+    print(f"  Final density: {density:.4f}")
+    print(f"  Final Pearson: {pearson:.4f}")
+    print(f"  Final log-likelihood: {log_likelihood:.3f}")
+    print(f"  Total decimation steps: {count}")
+    print(f"\n  Decimated model saved:")
+    print(f"    • Parameters: {checkpoint.file_paths['params_dec']}")
+    print(f"    • Chains:     {checkpoint.file_paths['chains_dec']}")
+    print("-" * 80)
