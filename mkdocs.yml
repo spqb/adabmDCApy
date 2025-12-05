@@ -11,17 +11,18 @@ nav:
   - Script arguments: script_arguments.md
   - Python APIs:
       - Overview: api/README.md
-      - Fasta utils: api/fasta.md
-      - Compute statistics: api/stats.md
-      - DCA utils: api/dca.md
-      - Import and export: api/io.md
-      - Sampling functions: api/sampling.md
-      - Utilities: api/utils.md
-      - Dataset class: api/dataset.md
-      - Statistical mechanics functions: api/statmech.md
-      - Train/test split: api/cobalt.md
-      - Special functions: api/functional.md
-      - Helper functions for plotting: api/plot.md
+      - Fasta utils: api/adabmDCA.fasta.md
+      - Compute statistics: api/adabmDCA.stats.md
+      - DCA utils: api/adabmDCA.dca.md
+      - Import and export: api/adabmDCA.io.md
+      - Sampling functions: api/adabmDCA.sampling.md
+      - Utilities: api/adabmDCA.utils.md
+      - Dataset class: api/adabmDCA.dataset.md
+      - Statistical mechanics functions: api/adabmDCA.statmech.md
+      - Train/test split: api/adabmDCA.cobalt.md
+      - Training functions: api/adabmDCA.training.md
+      - Special functions: api/adabmDCA.functional.md
+      - Helper functions for plotting: api/adabmDCA.plot.md
 
 theme: 
   name: material
