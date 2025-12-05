@@ -2,7 +2,7 @@
 
 <a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/checkpoint.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
-# <kbd>module</kbd> `checkpoint`
+# <kbd>module</kbd> `adabmDCA.checkpoint`
 
 
 
@@ -26,7 +26,7 @@ __init__(
     tokens: str,
     args: dict,
     params: Optional[Dict[str, Tensor]] = None,
-    chains: Tensor | None = None,
+    chains: Optional[Tensor] = None,
     use_wandb: bool = False
 )
 ```
@@ -40,8 +40,8 @@ Initializes the Checkpoint class.
  - <b>`file_paths`</b> (dict):  Dictionary containing the paths of the files to be saved. 
  - <b>`tokens`</b> (str):  Alphabet to be used for encoding the sequences. 
  - <b>`args`</b> (dict):  Dictionary containing the arguments of the training. 
- - <b>`params`</b> (Dict[str, torch.Tensor] | None, optional):  Parameters of the model. Defaults to None. 
- - <b>`chains`</b> (torch.Tensor | None, optional):  Chains. Defaults to None. 
+ - <b>`params`</b> (Optional[Dict[str, torch.Tensor]], optional):  Parameters of the model. Defaults to None. 
+ - <b>`chains`</b> (Optional[torch.Tensor], optional):  Chains. Defaults to None. 
  - <b>`use_wandb`</b> (bool, optional):  Whether to use Weights & Biases for logging. Defaults to False. 
 
 

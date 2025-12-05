@@ -1,111 +1,183 @@
-<!-- markdownlint-disable -->
+# <span id="bmdca">Training DCA models 🚀</span>
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+All versions of **adabmDCA** — Python, Julia, and C++ — expose the same command-line interface through the `adabmDCA` command.
 
-# <kbd>module</kbd> `training`
+To see the complete list of training options:
 
-
-
-
-
----
-
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training.py#L38"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
-
-## <kbd>function</kbd> `update_params`
-
-```python
-update_params(
-    fi: Tensor,
-    fij: Tensor,
-    pi: Tensor,
-    pij: Tensor,
-    params: Dict[str, Tensor],
-    mask: Tensor,
-    lr: float
-) → Dict[str, Tensor]
+```bash
+$ adabmDCA train -h
 ```
 
-Updates the parameters of the model. 
+The standard command to start training a DCA model is:
 
-
-
-**Args:**
- 
- - <b>`fi`</b> (torch.Tensor):  Single-point frequencies of the data. 
- - <b>`fij`</b> (torch.Tensor):  Two-points frequencies of the data. 
- - <b>`pi`</b> (torch.Tensor):  Single-point marginals of the model. 
- - <b>`pij`</b> (torch.Tensor):  Two-points marginals of the model. 
- - <b>`params`</b> (Dict[str, torch.Tensor]):  Parameters of the model. 
- - <b>`mask`</b> (torch.Tensor):  Mask of the interaction graph. 
- - <b>`lr`</b> (float):  Learning rate. 
-
-
-
-**Returns:**
- 
- - <b>`Dict[str, torch.Tensor]`</b>:  Updated parameters. 
-
-
----
-
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training.py#L74"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
-
-## <kbd>function</kbd> `train_graph`
-
-```python
-train_graph(
-    sampler: Callable,
-    chains: Tensor,
-    mask: Tensor,
-    fi: Tensor,
-    fij: Tensor,
-    params: Dict[str, Tensor],
-    nsweeps: int,
-    lr: float,
-    max_epochs: int,
-    target_pearson: float,
-    fi_test: Tensor | None = None,
-    fij_test: Tensor | None = None,
-    checkpoint: Checkpoint | None = None,
-    check_slope: bool = False,
-    log_weights: Tensor | None = None,
-    progress_bar: bool = True
-) → Tuple[Tensor, Dict[str, Tensor], Tensor, Dict[str, List[float]]]
+```bash
+$ adabmDCA train -m <model> -d <fasta_file> -o <output_folder> -l <label>
 ```
 
-Trains the model on a given graph until the target Pearson correlation is reached or the maximum number of epochs is exceeded. 
+## Arguments 🧩
 
-
-
-**Args:**
- 
- - <b>`sampler`</b> (Callable):  Sampling function. 
- - <b>`chains`</b> (torch.Tensor):  Markov chains simulated with the model. 
- - <b>`mask`</b> (torch.Tensor):  Mask encoding the sparse graph. 
- - <b>`fi`</b> (torch.Tensor):  Single-point frequencies of the data. 
- - <b>`fij`</b> (torch.Tensor):  Two-point frequencies of the data. 
- - <b>`params`</b> (Dict[str, torch.Tensor]):  Parameters of the model. 
- - <b>`nsweeps`</b> (int):  Number of Gibbs steps for each gradient estimation. 
- - <b>`lr`</b> (float):  Learning rate. 
- - <b>`max_epochs`</b> (int):  Maximum number of gradient updates to be done. 
- - <b>`target_pearson`</b> (float):  Target Pearson coefficient. 
- - <b>`fi_test`</b> (torch.Tensor | None, optional):  Single-point frequencies of the test data. Defaults to None. 
- - <b>`fij_test`</b> (torch.Tensor | None, optional):  Two-point frequencies of the test data. Defaults to None. 
- - <b>`checkpoint`</b> (Checkpoint | None, optional):  Checkpoint class to be used for saving the model. Defaults to None. 
- - <b>`check_slope`</b> (bool, optional):  Whether to take into account the slope for the convergence criterion or not. Defaults to False. 
- - <b>`log_weights`</b> (torch.Tensor, optional):  Log-weights used for the online computation of the log-likelihood. Defaults to None. 
- - <b>`progress_bar`</b> (bool, optional):  Whether to display a progress bar or not. Defaults to True. 
-
-
-
-**Returns:**
- 
- - <b>`Tuple[torch.Tensor, Dict[str, torch.Tensor], torch.Tensor, Dict[str, List[float]]]`</b>:  Updated chains and parameters, log-weights for the log-likelihood computation. 
-
-
-
+- **`<model>`** ∈ `{bmDCA, eaDCA, edDCA}`  
+  Selects the training routine.  
+  By default, the fully connected `bmDCA` algorithm is used. `edDCA` can follow two different routines: either it decimates a pre-trained `bmDCA` model, or it first trains a `bmDCA` model and then decimates it.
+- **`<fasta_file>`** – Path to the FASTA file containing the training MSA.
+- **`<output_folder>`** – Folder where results will be stored (created if missing).
+- **`<label>`** – Optional tag for output files.
 
 ---
 
-_This file was automatically generated via [lazydocs](https://github.com/ml-tooling/lazydocs)._
+## Training Behavior ⚙️
+
+Training stops when the **Pearson correlation** between model and empirical connected correlations reaches the target value (default: `0.95`).
+
+- Early training is fast (e.g., Pearson ≈ 0.9 after ~100 iterations).  
+- Approaching higher values takes significantly longer (power‑law decay).
+
+For a quick coarse model, set:
+
+```
+--target 0.9
+```
+
+---
+
+## Output Files 📁
+
+During training, adabmDCA maintains three output files:
+
+- **`<label>_params.dat`** – Non‑zero model parameters  
+  - Lines starting with `J` → couplings  
+  - Lines with `h` → biases
+
+- **`<label>_chains.fasta`** – State of the Markov chains
+
+- **`<label>_adabmDCA.log`** – Log file updated throughout training
+
+**Update intervals:**
+- `bmDCA`: every 50 updates  
+- `eaDCA`, `edDCA`: every 10 updates  
+
+---
+
+## Restoring Interrupted Training 🔄
+
+Resume training using:
+
+```bash
+$ adabmDCA train [...] -p <file_params> -c <file_chains>
+```
+
+---
+
+## Importance Weights 🏋️‍♂️
+
+Provide custom weights with:
+
+```bash
+--weights <path>
+```
+
+Otherwise, weights are computed automatically and stored as:
+
+```
+<label>_weights.dat
+```
+
+Options:
+
+- `--clustering_seqid <value>` – default: 0.8  
+- `--no_reweighting` – use uniform weights  
+
+---
+
+## Choosing the Alphabet 🔠
+
+Default alphabet: **protein**.
+
+Specify alternatives:
+
+- RNA → `--alphabet rna`
+- DNA → `--alphabet dna`
+- Custom →  
+  ```
+  --alphabet ABCD-
+  ```
+
+---
+# <span id="eadca">eaDCA 🌱</span>
+
+Enable with:
+
+```
+--model eaDCA
+```
+
+Key hyperparameters:
+
+- `--factivate` – fraction of inactive couplings activated (default: 0.001)  
+- `--gsteps` – parameter updates per graph update (default: 10)
+
+Recommended: reduce sweeps to **5**.
+
+---
+
+# <span id="eddca">edDCA ✂️ (Decimated DCA)</span>
+
+Run decimation:
+
+```bash
+$ adabmDCA train -m edDCA -d <fasta_file> -p <params> -c <chains>
+```
+
+Two workflows:
+
+1. Use pre‑trained bmDCA (`params` + `chains`)
+2. Train bmDCA automatically, then decimate
+
+Key hyperparameters:
+
+- `--gsteps` – default: 10  
+- `--drate` – pruning fraction (default: 0.01)  
+- `--density` – target graph density (default: 0.02)  
+- `--target` – Pearson threshold (default: 0.95)
+
+---
+
+# Choosing Hyperparameters 🎚️
+
+Defaults work well for clean and moderately diverse MSAs. For more difficult datasets, consider tuning:
+
+---
+
+### Learning Rate
+
+- Default: **0.01**  
+- If chains mix poorly, try:  
+  ```
+  --lr 0.005
+  ```
+
+### Number of Markov Chains
+
+- Default: **10,000**  
+- Using fewer chains reduces the memory required to train the model, but it may also lead to a longer algorithm convergence time.  
+- Change with:  
+  ```
+  --nchains <value>
+  ```
+
+### Number of Monte Carlo Steps
+
+- Controlled by `--nsweeps`  
+- Default: **10**  
+- Recommended range: **10–50**. Higher values drastically increase the training time and, empirically, do not help much the model convergence.
+
+### Regularization (Pseudocount)
+
+Controlled by `--pseudocount`.
+
+Default:
+```
+α = 1 / M_eff
+```
+
+Increasing α (e.g. α = 0.001 or 0.01) may help when the training struggle converging or the mixing time of the model is very high, but it also makes the model less expressive.

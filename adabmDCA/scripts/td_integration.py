@@ -30,7 +30,9 @@ def main():
     parser = create_parser()
     args = parser.parse_args()
     
-    print("\n" + "".join(["*"] * 10) + f" Computing model's entropy " + "".join(["*"] * 10) + "\n")
+    print("\n" + "="*80)
+    print("  THERMODYNAMIC INTEGRATION - ENTROPY COMPUTATION")
+    print("="*80 + "\n")
     
     # Create output folder
     folder = args.output
@@ -39,6 +41,26 @@ def main():
     # Set the device
     device = get_device(args.device)
     dtype = get_dtype(args.dtype)
+    
+    # Configuration section
+    print("[CONFIGURATION]")
+    print("-" * 80)
+    template = "  {0:<28} {1:<50}"
+    print(template.format("Input MSA:", args.data))
+    print(template.format("Parameters file:", args.path_params))
+    print(template.format("Target sequence:", args.path_targetseq))
+    print(template.format("Output folder:", str(folder)))
+    if args.label is not None:
+        print(template.format("Label:", args.label))
+    print(template.format("Alphabet:", args.alphabet))
+    print(template.format("Number of chains:", args.nchains))
+    print(template.format("Sweeps per step:", args.nsweeps))
+    print(template.format("Integration steps:", args.nsteps))
+    print(template.format("Initial theta_max:", args.theta_max))
+    print(template.format("Sampler:", args.sampler))
+    print(template.format("Device:", str(device)))
+    print(template.format("Data type:", args.dtype))
+    print("-" * 80 + "\n")
 
     # Check if the data file exists
     if not os.path.exists(args.data):
@@ -61,35 +83,48 @@ def main():
     sampler = torch.jit.script(get_sampler(args.sampler))
 
     # read and encode natural data
+    print("[DATA LOADING]")
+    print("-" * 80)
+    print(f"  Loading MSA from: {args.data}")
     tokens = get_tokens(args.alphabet)
     _, nat_data = import_from_fasta(args.data, tokens=tokens, filter_sequences=True)
     if len(nat_data) == 0:
         raise ValueError(f"No valid sequences found in the input MSA after filtering. Consider changing the alphabet, currently set to {args.alphabet}.")
     M, L, q = len(nat_data), len(nat_data[0]), len(tokens)
     nat_data = one_hot(torch.tensor(nat_data, device=device, dtype=torch.int32), num_classes=q).to(dtype)
-    print(f"Number of sequences in the MSA: M={M}")
-    print(f"Length of the MSA: L={L}")
-    print(f"Number of Potts states: q={q}\n")
+    print(f"  ✓ MSA loaded")
+    print(f"    • Sequences (M): {M}")
+    print(f"    • Length (L): {L}")
+    print(f"    • States (q): {q}")
 
     # read parameters
-    print(f"Loading parameters from {args.path_params}...")
+    print(f"  Loading parameters from: {args.path_params}")
     params = load_params(args.path_params, tokens=tokens, device=device, dtype=dtype)
+    print(f"  ✓ Parameters loaded")
 
     # read chains
     if args.path_chains is None:
+        print(f"  Initializing {args.nchains} random chains...")
         chains = init_chains(args.nchains, L, q, device=device, dtype=dtype)
-    else:   
+        print(f"  ✓ Chains initialized")
+    else:
+        print(f"  Loading chains from: {args.path_chains}")
         chains = load_chains(args.path_chains, tokens=tokens, device=device, dtype=dtype)[0]
         if chains.shape[0] != args.nchains:
             chains = resample_sequences(chains, weights=torch.ones(chains.shape[0])/chains.shape[0], nextract=args.nchains)
-    print(f"Number of chains set to {args.nchains}.")
+        print(f"  ✓ Chains loaded ({args.nchains} chains)")
         
     # target sequence
+    print(f"  Loading target sequence from: {args.path_targetseq}")
     _, targetseq = import_from_fasta(args.path_targetseq, tokens=tokens, filter_sequences=True, remove_duplicates=True)
     targetseq = one_hot(torch.tensor(targetseq, device=device, dtype=torch.int32), num_classes=q).to(dtype)
     if len(targetseq) != 1:
-        print(f"Target sequence file contains more than one sequence. Using the first sequence as target sequence.")
+        print(f"  ⚠ Multiple sequences found, using first as target")
         targetseq = targetseq[0]
+    else:
+        targetseq = targetseq[0]
+    print(f"  ✓ Target sequence loaded")
+    print("-" * 80 + "\n")
 
     # initialize checkpoint
     template = "{0:<20} {1:<50}\n"  
@@ -125,34 +160,46 @@ def main():
         f.write(header_string + "\n")
     
     # Sampling to thermalize at theta = 0
-    print("Thermalizing at theta = 0...")
+    print("[THERMALIZATION]")
+    print("-" * 80)
+    print(f"  Thermalizing at θ = 0 ({args.nsweeps_zero} sweeps)...")
     chains_0 = sampler(chains, params, args.nsweeps_zero) 
     ave_energy_0 = torch.mean(compute_energy(chains_0, params))
+    print(f"  ✓ Average energy at θ=0: {ave_energy_0:.3f}")
 
     # Sampling to thermalize at theta = theta_max
-    print("Thermalizing at theta = theta_max...")
+    print(f"  Thermalizing at θ = θ_max ({args.nsweeps_theta} sweeps)...")
     theta_max = args.theta_max
     params_theta = {k : v.clone() for k, v in params.items()}
     params_theta["bias"] += theta_max * targetseq
     chains_theta = init_chains(args.nchains, L, q, device=device, dtype=dtype)
     chains_theta = sampler(chains_theta, params_theta, args.nsweeps_theta)
     seqID_max = get_seqid(chains_theta, targetseq)
+    print(f"  ✓ Thermalized at θ_max")
             
     # Find theta_max to generate 10% target sequences in the sample
-    print("Finding theta_max to generate 10% target sequences in the sample...")
+    print(f"\n  Optimizing θ_max for 10% target sequence coverage...")
     p_wt =  (seqID_max == L).sum().item() / args.nchains # percentage of targetseq in the sample
     nsweep_find_theta = 100
+    iteration = 0
     while p_wt <= 0.1:
+        iteration += 1
         theta_max += 0.01 * theta_max
-        print(f"{(p_wt * 100):.2f}% sequences collapse to WT")
-        print(f"Number of sequences collapsed to WT is less than 10%. Increasing theta max to: {theta_max:.2f}...")
+        print(f"    Iteration {iteration}: {(p_wt * 100):.2f}% WT coverage | θ_max = {theta_max:.4f}")
         params_theta["bias"] = params["bias"] + theta_max * targetseq
         chains_theta = sampler(chains_theta, params_theta, nsweep_find_theta)
         seqID = get_seqid(chains_theta, targetseq)
         p_wt = (seqID == L).sum().item() / args.nchains
+    print(f"  ✓ Optimal θ_max: {theta_max:.4f} ({(p_wt * 100):.2f}% WT coverage)")
+    print("-" * 80 + "\n")
     
     # initiaize Thermodynamic Integration
-    print("Starting Thermodynamic Integration...")
+    print("[THERMODYNAMIC INTEGRATION]")
+    print("-" * 80)
+    print(f"  Integration range: [0, {theta_max:.4f}]")
+    print(f"  Number of steps: {args.nsteps}")
+    print(f"  Sweeps per step: {args.nsweeps}")
+    print("-" * 80)
     int_step = args.nsteps
     nsweeps = args.nsweeps
     seqID = get_seqid(chains_theta, targetseq)
@@ -170,9 +217,9 @@ def main():
         dynamic_ncols=True,
         leave=False,
         ascii="-#",
-        bar_format="{desc} {percentage:.2f}%[{bar}] Theta: {n:.3f}/{total_fmt} [{elapsed}]"
+        bar_format="  {desc} [{bar}] θ: {n:.3f}/{total_fmt} [{elapsed}]"
     )
-    pbar.set_description(f"Step: {0} - SeqID: Nan - Entropy: Nan")
+    pbar.set_description(f"Step {0:4d} | SeqID: ---- | S: ----    ")
 
     time_start = time.time()
 
@@ -195,7 +242,7 @@ def main():
    
         # progress bar
         pbar.n = min(max(0, float(theta)), theta_max)
-        pbar.set_description(f"Step: {i} - SeqID: {mean_seqID:.3f} - Entropy: {S:.2f}")
+        pbar.set_description(f"Step {i:4d} | SeqID: {mean_seqID:.3f} | S: {S:8.2f}")
 
         # checkpoint
         logs["Epoch"] = i
@@ -207,7 +254,19 @@ def main():
             f.write(" ".join([f"{value:<15.3f}" if isinstance(value, float) else f"{value:<15}" for value in logs.values()]) + "\n")
         
     pbar.close()
-    print(f"Process completed. Results saved in {file_log}.")
+    
+    print("\n" + "-" * 80)
+    print("  INTEGRATION COMPLETED")
+    print("-" * 80)
+    print(f"  Final entropy: {S:.4f}")
+    print(f"  Final free energy: {F:.4f}")
+    print(f"  Total integration steps: {int_step}")
+    print(f"\n  Results saved: {file_log}")
+    print("-" * 80 + "\n")
+    
+    print("=" * 80)
+    print("  THERMODYNAMIC INTEGRATION COMPLETED SUCCESSFULLY")
+    print("=" * 80 + "\n")
 
 
 if __name__ == "__main__":

@@ -1,4 +1,4 @@
-__version__ = '0.6.1'
+__version__ = '0.7'
 
 from .fasta import (
     import_from_fasta,
@@ -21,6 +21,7 @@ from .sampling import (
     get_sampler,
     gibbs_sampling,
     metropolis_sampling,
+    sampling_profile,
     gibbs_step_independent_sites,
     gibbs_step_uniform_sites,
     metropolis_step_uniform_sites,
@@ -52,6 +53,7 @@ __all__ = [
     "get_sampler",
     "gibbs_sampling",
     "metropolis_sampling",
+    "sampling_profile",
     "gibbs_step_independent_sites",
     "metropolis_step_independent_sites",
     "gibbs_step_uniform_sites",
