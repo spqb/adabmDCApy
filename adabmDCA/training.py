@@ -267,7 +267,7 @@ def train_eaDCA(
     fij_test: Optional[torch.Tensor] = None,
     checkpoint: Optional[Checkpoint] = None,
     *args, **kwargs,
-) -> None:
+) -> Tuple[torch.Tensor, Dict[str, torch.Tensor], torch.Tensor, Dict[str, List[float]]]:
     """
     Fits an eaDCA model on the training data and saves the results in a file.
 
@@ -289,6 +289,9 @@ def train_eaDCA(
         fi_test (Optional[torch.Tensor], optional): Single-point frequencies of the test data. Defaults to None.
         fij_test (Optional[torch.Tensor], optional): Two-point frequencies of the test data. Defaults to None.
         checkpoint (Optional[Checkpoint], optional): Checkpoint class to be used to save the model. Defaults to None.
+    
+    Returns:
+        Tuple[torch.Tensor, Dict[str, torch.Tensor], torch.Tensor, Dict[str, List[float]]]: Updated chains and parameters, log-weights for the log-likelihood computation, and training history.
     """
     
     # Check the input sizes
@@ -339,6 +342,12 @@ def train_eaDCA(
     print(f"  Initial Pearson: {pearson:.4f}")
     print(f"  Initial log-likelihood: {log_likelihood:.3f}")
     print("-" * 80 + "\n")
+    
+    history = {
+        "epochs": [],
+        "pearson": [],
+        "slope": [],
+    }
         
     pbar = tqdm(initial=max(0, float(pearson)), total=target_pearson, colour="red", dynamic_ncols=True, ascii="-#",
                 bar_format="{desc}: {percentage:.2f}% [{bar}] Pearson: {n:.3f}/{total_fmt} [{elapsed}]")
@@ -394,6 +403,10 @@ def train_eaDCA(
         logZ = (torch.logsumexp(log_weights, dim=0) - torch.log(torch.tensor(len(chains), device=device, dtype=dtype))).item()
         log_likelihood = compute_log_likelihood(fi=fi_target, fij=fij_target, params=params, logZ=logZ)
         pbar.set_description(f"Update: {graph_upd:3d} | Density: {density:6.3f}% | New: {int(nactive - nactive_old):4d} | LL: {log_likelihood:8.3f}")
+        
+        history["epochs"].append(graph_upd)
+        history["pearson"].append(float(pearson))
+        history["slope"].append(float(slope))
 
         # Save the model if a checkpoint is reached
         if checkpoint is not None:
@@ -469,6 +482,8 @@ def train_eaDCA(
         print(f"    • Log file:   {checkpoint.file_paths['log']}")
     print("-" * 80)
     
+    return chains, params, log_weights, history
+    
     
 def train_edDCA(
     sampler: Callable,
@@ -487,7 +502,7 @@ def train_edDCA(
     fi_test: Optional[torch.Tensor] = None,
     fij_test: Optional[torch.Tensor] = None,
     *args, **kwargs,
-) -> None:
+) -> Tuple[torch.Tensor, Dict[str, torch.Tensor], torch.Tensor, Dict[str, List[float]]]:
     """Fits an edDCA model on the training data and saves the results in a file.
     
     Args:
@@ -506,6 +521,9 @@ def train_edDCA(
         checkpoint (Checkpoint): Checkpoint class to be used to save the model.
         fi_test (Optional[torch.Tensor], optional): Single-point frequencies of the test data. Defaults to None.
         fij_test (Optional[torch.Tensor], optional): Two-point frequencies of the test data. Defaults to None.
+    
+    Returns:
+        Tuple[torch.Tensor, Dict[str, torch.Tensor], torch.Tensor, Dict[str, List[float]]]: Updated chains and parameters, log-weights for the log-likelihood computation, and training history.
     """
     MAX_EPOCHS = 10000
     time_start = time.time()
@@ -595,6 +613,12 @@ def train_edDCA(
     count = 0
     checkpoint.checkpt_interval = 10
     
+    history = {
+        "epochs": [],
+        "pearson": [],
+        "slope": [],
+    }
+    
     # Compute the single-point and two-points frequencies of the simulated data
     pi = get_freq_single_point(data=chains)
     pij = get_freq_two_points(data=chains)
@@ -660,6 +684,10 @@ def train_edDCA(
         log_likelihood = compute_log_likelihood(fi=fi_target, fij=fij_target, params=params, logZ=logZ)
         
         print("  {0:<8} {1:>12.4f} {2:>12.3f} {3:>12.4f} {4:>12.4f}".format(count, density, log_likelihood, pearson, slope))
+        
+        history["epochs"].append(count)
+        history["pearson"].append(float(pearson))
+        history["slope"].append(float(slope))
                 
         if checkpoint.check(count):
             entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
@@ -727,3 +755,5 @@ def train_edDCA(
     print(f"    • Parameters: {checkpoint.file_paths['params_dec']}")
     print(f"    • Chains:     {checkpoint.file_paths['chains_dec']}")
     print("-" * 80)
+    
+    return chains, params, log_weights, history
