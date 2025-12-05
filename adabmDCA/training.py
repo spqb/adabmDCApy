@@ -90,6 +90,7 @@ def train_graph(
     check_slope: bool = False,
     log_weights: Optional[torch.Tensor] = None,
     progress_bar: bool = True,
+    *args, **kwargs,
 ) -> Tuple[torch.Tensor, Dict[str, torch.Tensor], torch.Tensor, Dict[str, List[float]]]:
     """Trains the model on a given graph until the target Pearson correlation is reached or the maximum number of epochs is exceeded.
 
@@ -123,7 +124,7 @@ def train_graph(
     if log_weights is None:
         log_weights = torch.zeros(len(chains), device=device, dtype=dtype)
     logZ = (torch.logsumexp(log_weights, dim=0) - torch.log(torch.tensor(len(chains), device=device, dtype=dtype))).item()
-    log_likelihood = compute_log_likelihood(fi=fi, fij=fij, params=params, logZ=logZ)
+    log_likelihood = compute_log_likelihood(fi=fi_target, fij=fij_target, params=params, logZ=logZ)
     
     # Compute the single-point and two-points frequencies of the simulated data
     pi = get_freq_single_point(data=chains)
@@ -593,6 +594,14 @@ def train_edDCA(
     density = compute_density(mask)
     count = 0
     checkpoint.checkpt_interval = 10
+    
+    # Compute the single-point and two-points frequencies of the simulated data
+    pi = get_freq_single_point(data=chains)
+    pij = get_freq_two_points(data=chains)
+    pearson, slope = get_correlation_two_points(fi=fi_target, pi=pi, fij=fij_target, pij=pij)
+    density = compute_density(mask)
+    logZ = (torch.logsumexp(log_weights, dim=0) - torch.log(torch.tensor(len(chains), device=device, dtype=dtype))).item()
+    log_likelihood = compute_log_likelihood(fi=fi_target, fij=fij_target, params=params, logZ=logZ)
     
     while density > target_density:
         count += 1

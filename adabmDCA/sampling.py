@@ -51,7 +51,7 @@ def gibbs_step_uniform_sites(
     device = chains.device
     dtype = chains.dtype
     idx = torch.randint(0, L, (1,), device=device)[0]
-    couplings_residue = params["coupling_matrix"][idx].view(q, L * q)
+    couplings_residue = params["coupling_matrix"][idx].reshape(q, L * q)
     logit_residue = beta * (params["bias"][idx].unsqueeze(0) + chains.reshape(N, L * q) @ couplings_residue.T) # (N, q)
     new_residues = one_hot(torch.multinomial(torch.softmax(logit_residue, dim=-1), num_samples=1).squeeze(-1), num_classes=q).to(dtype)
     chains[:, idx] = new_residues
@@ -150,7 +150,7 @@ def metropolis_step_uniform_sites(
     res_new = one_hot(torch.randint(0, q, (N,), device=chains.device), num_classes=q).to(dtype)
     # Compute local fields
     biases = params["bias"][idx].unsqueeze(0) # shape (1, q)
-    couplings_residue = params["coupling_matrix"][idx].view(q, L * q)
+    couplings_residue = params["coupling_matrix"][idx].reshape(q, L * q)
     chains_flat = chains.reshape(N, L * q)
     coupling_term = chains_flat @ couplings_residue.T # shape (N, q), background
     local_field = biases + coupling_term

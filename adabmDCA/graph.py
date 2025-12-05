@@ -45,7 +45,7 @@ def update_mask_activation(
     # Get the threshold value for the top nactivate*2 elements (since Dkl is symmetric)
     Dkl_th = Dkl_flat_sorted[2 * nactivate]
     # Update the mask where Dkl is greater than the threshold
-    mask = mask | (Dkl > Dkl_th)
+    mask = torch.where(Dkl > Dkl_th, torch.ones_like(mask), mask)
     
     return mask
 
@@ -142,9 +142,9 @@ def update_mask_decimation(
     
     n_remove = int((mask.sum().item() // 2) * drate) * 2
     # Only consider the active couplings
-    Dkl_active = torch.where(mask, Dkl, float("inf")).view(-1)
+    Dkl_active = torch.where(mask, Dkl, float("inf")).reshape(-1)
     _, idx_remove = torch.topk(-Dkl_active, n_remove)
-    mask = mask.view(-1).scatter_(0, idx_remove, 0).view(mask.shape)
+    mask = mask.reshape(-1).scatter_(0, idx_remove, 0.0).reshape(mask.shape)
     
     return mask
 

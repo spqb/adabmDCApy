@@ -237,7 +237,6 @@ def main():
         mask=mask,
         chains=chains,
         log_weights=log_weights,
-        tokens=tokens,
         target_pearson=args.target,
         pseudo_count=args.pseudocount,
         nsweeps=args.nsweeps,

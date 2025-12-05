@@ -25,7 +25,7 @@ def compute_energy(
     batch_size = x.shape[0]
     x_flat = x.view(batch_size, -1)
     bias_flat = params["bias"].view(-1)
-    couplings_flat = params["coupling_matrix"].view(L * q, L * q)
+    couplings_flat = params["coupling_matrix"].reshape(L * q, L * q)
     bias_term = x_flat @ bias_flat
     coupling_term = torch.sum(x_flat * (x_flat @ couplings_flat), dim=1)
     energy = - bias_term - 0.5 * coupling_term
@@ -209,7 +209,7 @@ def _tap_residue(
     bias_residue = params["bias"][idx] # (q,)
     mag_i = mag[:, idx] # (n, q)
     
-    mf_term = bias_residue + mag.view(N, L * q) @ coupling_residue.view(q, L * q).T
+    mf_term = bias_residue + mag.view(N, L * q) @ coupling_residue.reshape(q, L * q).T
     reaction_term_temp = (
         0.5 * coupling_residue.view(1, q, L, q) + # (1, q, L, q)
         (torch.einsum("nd,djc,njc->nj", mag_i, coupling_residue, mag)).view(N, 1, L, 1) - # nd,djc,njc->nj

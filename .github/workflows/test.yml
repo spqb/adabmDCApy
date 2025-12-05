@@ -37,6 +37,7 @@ jobs:
           --model bmDCA \
           --alphabet rna \
           --target 0.1 \
+          --nsweeps 1 \
           --nchains 100 \
           --label bmDCA_test \
           --seed 42
@@ -110,6 +111,7 @@ jobs:
           --model eaDCA \
           --alphabet rna \
           --target 0.1 \
+          --nsweeps 1 \
           --nchains 100 \
           --label eaDCA_test \
           --seed 42
@@ -123,6 +125,8 @@ jobs:
           --model edDCA \
           --alphabet rna \
           --target 0.1 \
+          --nsweeps 1 \
+          --density 0.95 \
           --path_params test_outputs/bmDCA_test_params.dat \
           --path_chains test_outputs/bmDCA_test_chains.fasta \
           --label edDCA_test \
