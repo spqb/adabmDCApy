@@ -1,16 +1,16 @@
-from typing import Dict, Callable
+from typing import Dict, Callable, List, Union
 from tqdm.autonotebook import tqdm
 import torch
 from adabmDCA.dca import get_seqid_stats
 
 
 def compute_mixing_time(
-    sampler: Callable,
+    sampler: Callable[..., torch.Tensor],
     data: torch.Tensor,
     params: Dict[str, torch.Tensor],
     n_max_sweeps: int,
     beta: float,
-) -> Dict[str, list]:
+) -> Dict[str, List[Union[float, int]]]:
     """Computes the mixing time using the t and t/2 method. The sampling will halt when the mixing time is reached or
     the limit of `n_max_sweeps` sweeps is reached.
 
@@ -18,11 +18,18 @@ def compute_mixing_time(
         sampler (Callable): Sampling function.
         data (torch.Tensor): Initial data.
         params (Dict[str, torch.Tensor]): Parameters for the sampling.
+            - "bias": Tensor of shape (L, q) - local biases.
+            - "coupling_matrix": Tensor of shape (L, q, L, q) - coupling matrix.
         n_max_sweeps (int): Maximum number of sweeps.
         beta (float): Inverse temperature for the sampling.
 
     Returns:
-        Dict[str, list]: Results of the mixing time analysis.
+        Dict[str, List[Union[float, int]]]: Results of the mixing time analysis.
+            - "seqid_t": List of average sequence identities at time t.
+            - "std_seqid_t": List of standard deviations of sequence identities at time t.
+            - "seqid_t_t_half": List of average sequence identities between t and t/2.
+            - "std_seqid_t_t_half": List of standard deviations of sequence identities between t and t/2.
+            - "t_half": List of t/2 values (integers).
     """
 
     torch.manual_seed(0)
@@ -66,7 +73,7 @@ def compute_mixing_time(
             sample_t_half = sampler(chains=sample_t_half, params=params, nsweeps=1, beta=beta)
 
             # Calculate the average distance between sample_t and itself shuffled
-            perm = torch.randperm(len(sample_t))
+            perm = torch.randperm(len(sample_t), device=sample_t.device)
             seqid_t, std_seqid_t = get_seqid_stats(sample_t, sample_t[perm])
             seqid_t, std_seqid_t = seqid_t / L, std_seqid_t / L
 

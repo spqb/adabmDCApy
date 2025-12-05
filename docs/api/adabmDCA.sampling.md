@@ -2,7 +2,7 @@
 
 <a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
-# <kbd>module</kbd> `sampling`
+# <kbd>module</kbd> `adabmDCA.sampling`
 
 
 
@@ -11,6 +11,34 @@
 ---
 
 <a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling.py#L7"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+
+## <kbd>function</kbd> `sampling_profile`
+
+```python
+sampling_profile(params: Dict[str, Tensor], nsamples: int, beta: float) → Tensor
+```
+
+Samples from the profile model defined by the local biases only. 
+
+
+
+**Args:**
+ 
+ - <b>`params`</b> (Dict[str, torch.Tensor]):  Parameters of the model. 
+        - "bias": Tensor of shape (L, q) - local biases. 
+ - <b>`nsamples`</b> (int):  Number of samples to generate. 
+ - <b>`beta`</b> (float):  Inverse temperature. 
+
+
+
+**Returns:**
+ 
+ - <b>`torch.Tensor`</b>:  Sampled one-hot encoded sequences of shape (nsamples, L, q). 
+
+
+---
+
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling.py#L33"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `gibbs_step_uniform_sites`
 
@@ -30,7 +58,9 @@ Performs a single mutation using the Gibbs sampler. In this version, the mutatio
  
  - <b>`chains`</b> (torch.Tensor):  One-hot encoded sequences of shape (batch_size, L, q). 
  - <b>`params`</b> (Dict[str, torch.Tensor]):  Parameters of the model. 
- - <b>`beta`</b> (float):  Inverse temperature. 
+        - "bias": Tensor of shape (L, q) - local biases. 
+        - "coupling_matrix": Tensor of shape (L, q, L, q) - coupling matrix. 
+ - <b>`beta`</b> (float, optional):  Inverse temperature. Defaults to 1.0. 
 
 
 
@@ -41,7 +71,7 @@ Performs a single mutation using the Gibbs sampler. In this version, the mutatio
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling.py#L34"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling.py#L62"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `gibbs_step_independent_sites`
 
@@ -53,7 +83,7 @@ gibbs_step_independent_sites(
 ) → Tensor
 ```
 
-Performs a single mutation using the Gibbs sampler. This version selects different random sites for each chain. It is less efficient than the 'gibbs_step_uniform_sites' function, but it is more suitable for mutating staring from the same wild-type sequence since mutations are independent across chains. 
+Performs a single mutation using the Gibbs sampler. This version selects different random sites for each chain. It is less efficient than the 'gibbs_step_uniform_sites' function, but it is more suitable for mutating starting from the same wild-type sequence since mutations are independent across chains. 
 
 
 
@@ -61,7 +91,9 @@ Performs a single mutation using the Gibbs sampler. This version selects differe
  
  - <b>`chains`</b> (torch.Tensor):  One-hot encoded sequences of shape (batch_size, L, q). 
  - <b>`params`</b> (Dict[str, torch.Tensor]):  Parameters of the model. 
- - <b>`beta`</b> (float):  Inverse temperature. 
+        - "bias": Tensor of shape (L, q) - local biases. 
+        - "coupling_matrix": Tensor of shape (L, q, L, q) - coupling matrix. 
+ - <b>`beta`</b> (float, optional):  Inverse temperature. Defaults to 1.0. 
 
 
 
@@ -72,7 +104,7 @@ Performs a single mutation using the Gibbs sampler. This version selects differe
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling.py#L69"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling.py#L99"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `gibbs_sampling`
 
@@ -85,14 +117,16 @@ gibbs_sampling(
 ) → Tensor
 ```
 
-Gibbs sampling. 
+Gibbs sampling. Attempts L * nsweeps mutations to each sequence in 'chains'. 
 
 
 
 **Args:**
  
- - <b>`chains`</b> (torch.Tensor):  Initial one-hot encoded chains of size (batch_size, L, q). 
+ - <b>`chains`</b> (torch.Tensor):  Initial one-hot encoded samples of size (batch_size, L, q). 
  - <b>`params`</b> (Dict[str, torch.Tensor]):  Parameters of the model. 
+        - "bias": Tensor of shape (L, q) - local biases. 
+        - "coupling_matrix": Tensor of shape (L, q, L, q) - coupling matrix. 
  - <b>`nsweeps`</b> (int):  Number of sweeps, where one sweep corresponds to attempting L mutations. 
  - <b>`beta`</b> (float, optional):  Inverse temperature. Defaults to 1.0. 
 
@@ -105,7 +139,7 @@ Gibbs sampling.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling.py#L95"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling.py#L127"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `metropolis_step_uniform_sites`
 
@@ -125,6 +159,8 @@ Performs a single mutation using the Metropolis sampler. In this version, the mu
  
  - <b>`chains`</b> (torch.Tensor):  One-hot encoded sequences of shape (batch_size, L, q). 
  - <b>`params`</b> (Dict[str, torch.Tensor]):  Parameters of the model. 
+        - "bias": Tensor of shape (L, q) - local biases. 
+        - "coupling_matrix": Tensor of shape (L, q, L, q) - coupling matrix. 
  - <b>`beta`</b> (float, optional):  Inverse temperature. Defaults to 1.0. 
 
 
@@ -136,7 +172,7 @@ Performs a single mutation using the Metropolis sampler. In this version, the mu
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling.py#L131"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling.py#L165"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `metropolis_step_independent_sites`
 
@@ -148,7 +184,7 @@ metropolis_step_independent_sites(
 ) → Tensor
 ```
 
-Performs a single mutation using the Metropolis sampler. This version selects different random sites for each chain. It is less efficient than the 'metropolis_step_uniform_sites' function, but it is more suitable for mutating staring from the same wild-type sequence since mutations are independent across chains. 
+Performs a single mutation using the Metropolis sampler. This version selects different random sites for each chain. It is less efficient than the 'metropolis_step_uniform_sites' function, but it is more suitable for mutating starting from the same wild-type sequence since mutations are independent across chains. 
 
 
 
@@ -156,6 +192,8 @@ Performs a single mutation using the Metropolis sampler. This version selects di
  
  - <b>`chains`</b> (torch.Tensor):  One-hot encoded sequences of shape (batch_size, L, q). 
  - <b>`params`</b> (Dict[str, torch.Tensor]):  Parameters of the model. 
+        - "bias": Tensor of shape (L, q) - local biases. 
+        - "coupling_matrix": Tensor of shape (L, q, L, q) - coupling matrix. 
  - <b>`beta`</b> (float, optional):  Inverse temperature. Defaults to 1.0. 
 
 
@@ -167,7 +205,7 @@ Performs a single mutation using the Metropolis sampler. This version selects di
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling.py#L171"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling.py#L207"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `metropolis_sampling`
 
@@ -180,7 +218,7 @@ metropolis_sampling(
 ) → Tensor
 ```
 
-Metropolis sampling. 
+Metropolis sampling. Attempts L * nsweeps mutations to each sequence in 'chains'. 
 
 
 
@@ -188,6 +226,8 @@ Metropolis sampling.
  
  - <b>`chains`</b> (torch.Tensor):  One-hot encoded sequences of shape (batch_size, L, q). 
  - <b>`params`</b> (Dict[str, torch.Tensor]):  Parameters of the model. 
+        - "bias": Tensor of shape (L, q) - local biases. 
+        - "coupling_matrix": Tensor of shape (L, q, L, q) - coupling matrix. 
  - <b>`nsweeps`</b> (int):  Number of sweeps to be performed, where one sweep corresponds to attempting L mutations. 
  - <b>`beta`</b> (float, optional):  Inverse temperature. Defaults to 1.0. 
 
@@ -200,7 +240,7 @@ Metropolis sampling.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling.py#L197"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling.py#L235"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `get_sampler`
 

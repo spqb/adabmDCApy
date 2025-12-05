@@ -11,10 +11,10 @@ def add_args_dca(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     dca_args.add_argument("-l", "--label",        type=str,   default=None,         help="(Defaults to None). If provided, adds a label to the output files inside the output folder.")
     dca_args.add_argument("--alphabet",           type=str,   default="protein",    help="(Defaults to 'protein'). Type of encoding for the sequences. Choose among ['protein', 'rna', 'dna'] or a user-defined string of tokens.")
     dca_args.add_argument("--lr",                 type=float, default=0.01,         help="(Defaults to 0.01). Learning rate.")
-    dca_args.add_argument("--nsweeps",            type=int,   default=10,           help="(Defaults to 10). Number of sweeps for each gradient estimation.")
+    dca_args.add_argument("--nsweeps",            type=int,   default=10,           help="(Defaults to 10). Number of sweeps per Markov chain for gradient estimation.")
     dca_args.add_argument("--sampler",            type=str,   default="gibbs",      help="(Defaults to 'gibbs'). Sampling method to be used.", choices=["metropolis", "gibbs"])
     dca_args.add_argument("--nchains",            type=int,   default=10000,        help="(Defaults to 10000). Number of Markov chains to run in parallel.")
-    dca_args.add_argument("--target",             type=float, default=0.95,         help="(Defaults to 0.95). Pearson correlation coefficient on the two-sites statistics to be reached.")
+    dca_args.add_argument("--target",             type=float, default=0.95,         help="(Defaults to 0.95). Target Pearson correlation coefficient on the two-sites statistics to be reached.")
     dca_args.add_argument("--nepochs",            type=int,   default=50000,        help="(Defaults to 50000). Maximum number of epochs allowed.")
     dca_args.add_argument("--pseudocount",        type=float, default=None,         help="(Defaults to None). Pseudo count for the single and two-sites statistics. Acts as a regularization. If None, it is set to 1/Meff.")
     dca_args.add_argument("--seed",               type=int,   default=0,            help="(Defaults to 0). Seed for the random number generator.")
@@ -101,13 +101,13 @@ def add_args_sample(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     # Optional arguments
     parser.add_argument("-d", "--data",         type=str,    default=None,       help="Path to the file containing the natural data. If provided, the mixing time of the model is computed. Defaults to None.")
     parser.add_argument("-l", "--label",        type=str,    default="sampling", help="(Defaults to 'sampling'). Label to be used for the output files.")
-    parser.add_argument("--nmeasure",           type=int,    default=10000,      help="(Defaults to min(10000, len(data)). Number of data sequences to use for computing the mixing time.")
+    parser.add_argument("--nmeasure",           type=int,    default=10000,      help="(Defaults to min(10000, len(data))). Number of data sequences to use for computing the mixing time.")
     parser.add_argument("--nmix",               type=int,    default=2,          help="(Defaults to 2). Number of mixing times used to generate 'ngen' sequences starting from random.")
     parser.add_argument("--max_nsweeps",        type=int,    default=5000,       help="(Defaults to 5000). Maximum number of chain updates.")
     parser.add_argument("--alphabet",           type=str,    default="protein",  help="(Defaults to 'protein'). Type of encoding for the sequences. Choose among ['protein', 'rna', 'dna'] or a user-defined string of tokens.")
     parser.add_argument("--sampler",            type=str,    default="gibbs",    help="(Defaults to 'gibbs'). Sampling method to be used. Choose between 'metropolis' and 'gibbs'.")
     parser.add_argument("--beta",               type=float,  default=1.0,        help="(Defaults to 1.0). Inverse temperature for the sampling.")
-    parser.add_argument("--pseudocount",        type=float,  default=None,       help="(Defaults to None). Pseudocount for the single and two points statistics used during the training. If None, 1/Meff is used.")
+    parser.add_argument("--pseudocount",        type=float,  default=None,       help="(Defaults to None). Pseudocount for the single and two-sites statistics used during the training. If None, 1/Meff is used.")
     parser.add_argument("--device",             type=str,    default="cuda",     help="(Defaults to 'cuda'). Device to perform computations on.")
     parser.add_argument("--dtype",              type=str,    default="float32",  help="(Defaults to 'float32'). Data type to be used.")
 
@@ -129,8 +129,8 @@ def add_args_tdint(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     parser.add_argument("--nsteps",             type=int,    default=100,             help="(Defaults to 100). Number of integration steps.")
     parser.add_argument("--nsweeps",            type=int,    default=100,             help="(Defaults to 100). Number of chain updates for each integration step.")
     parser.add_argument("--nsweeps_theta",      type=int,    default=100,             help="(Defaults to 100). Number of chain updates to equilibrate chains at theta_max.")
-    parser.add_argument("--nsweeps_zero",       type=int,    default=100,             help="(Defaults to 100). Number of chain updates to equilibrate chains at theta=0.")
-    parser.add_argument("--alphabet",           type=str,    default="protein",       help="(Defaults to protein). Type of encoding for the sequences. Choose among ['protein', 'rna', 'dna'] or a user-defined string of tokens.")
+    parser.add_argument("--nsweeps_zero",       type=int,    default=100,             help="(Defaults to 100). Number of chain updates to equilibrate chains at theta = 0.")
+    parser.add_argument("--alphabet",           type=str,    default="protein",       help="(Defaults to 'protein'). Type of encoding for the sequences. Choose among ['protein', 'rna', 'dna'] or a user-defined string of tokens.")
     parser.add_argument("--nepochs",            type=int,    default=50000,           help="(Defaults to 50000). Maximum number of epochs allowed.")
     parser.add_argument("--sampler",            type=str,    default="gibbs",         help="(Defaults to 'gibbs'). Sampling method to be used. Choose between 'metropolis' and 'gibbs'.")
     parser.add_argument("--seed",               type=int,    default=0,               help="(Defaults to 0). Seed for the random number generator.")
@@ -142,7 +142,7 @@ def add_args_tdint(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
 def add_args_reintegration(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     parser.add_argument("--reint",  type=str,       required=True,  help="Path to the fasta file containing the reintegrated sequences.")
     parser.add_argument("--adj",    type=str,       required=True,  help="Path to the file containing the adjustment vector.")
-    parser.add_argument("--lambda_", type=float,    required=True,  help="Lambda parameter for the reintegration.")
+    parser.add_argument("--lambda_", type=float,    required=True,  help="Reintegration strength parameter.")
 
     return parser
 

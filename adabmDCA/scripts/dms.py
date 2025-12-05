@@ -25,11 +25,25 @@ def main():
     parser = create_parser()
     args = parser.parse_args()
     
-    print("\n" + "".join(["*"] * 10) + f" Generating DMS " + "".join(["*"] * 10) + "\n")
+    print("\n" + "="*80)
+    print("  DEEP MUTATIONAL SCANNING (DMS)")
+    print("="*80 + "\n")
     
     # Set the device
     device = get_device(args.device)
     dtype = get_dtype(args.dtype)
+    
+    # Configuration section
+    print("[CONFIGURATION]")
+    print("-" * 80)
+    template = "  {0:<28} {1:<50}"
+    print(template.format("Wild-type sequence:", args.data))
+    print(template.format("Parameters file:", args.path_params))
+    print(template.format("Output folder:", args.output))
+    print(template.format("Alphabet:", args.alphabet))
+    print(template.format("Device:", str(device)))
+    print(template.format("Data type:", args.dtype))
+    print("-" * 80 + "\n")
     
     # Check if the data file exists
     if not os.path.exists(args.data):
@@ -40,24 +54,34 @@ def main():
         raise FileNotFoundError(f"Parameters file {args.path_params} not found.")
     
     # import data and parameters
+    print("[DATA LOADING]")
+    print("-" * 80)
+    print(f"  Loading wild-type sequence from: {args.data}")
     tokens = get_tokens(args.alphabet)
     names, sequences = import_from_fasta(args.data)
     wt_name = names[0]
     # remove non-alphanumeric characters from wt name
     wt_name = "".join(e for e in wt_name if e.isalnum())
     wt_seq = torch.tensor(encode_sequence(sequences[0], tokens))
+    L_wt = len(wt_seq)
+    print(f"  ✓ Wild-type loaded: {wt_name}")
+    print(f"    • Length: {L_wt}")
     
-    print(f"Loading parameters from {args.path_params}...")
+    print(f"  Loading parameters from: {args.path_params}")
     params = load_params(args.path_params, tokens=tokens, device=device, dtype=dtype)
     L, q = params["bias"].shape
+    print(f"  ✓ Parameters loaded (L={L}, q={q})")
+    print("-" * 80 + "\n")
     
     # generate DMS
+    print("[MUTANT LIBRARY GENERATION]")
+    print("-" * 80)
     dms = []
     site_list = []
     old_residues = []
     new_residues = []
     
-    print("Generating the single mutant library...")
+    print(f"  Generating single-point mutant library...")
     for i in range(L):
         for a in range(q):
             if wt_seq[i] != a:
@@ -68,27 +92,49 @@ def main():
                 old_residues.append(tokens[wt_seq[i]])
                 new_residues.append(tokens[a])
     
-    print("Computing the DCA scores...")
+    n_mutants = len(dms)
+    print(f"  ✓ Mutant library generated: {n_mutants} single mutants")
+    print("-" * 80 + "\n")
+    
+    print("[ENERGY COMPUTATION]")
+    print("-" * 80)
+    print(f"  Computing DCA scores for {n_mutants} mutants...")
     dms = torch.vstack(dms).to(device=device)
     dms = one_hot(dms, num_classes=q).to(dtype)
     energies = compute_energy(dms, params)
     energy_wt = compute_energy(one_hot(wt_seq.view(1, -1).to(device), num_classes=q).to(dtype), params)
     deltaE = energies - energy_wt
+    print(f"  ✓ DCA scores computed")
+    print(f"    • Wild-type energy: {energy_wt.item():.3f}")
+    print(f"    • ΔE range: [{deltaE.min().item():.3f}, {deltaE.max().item():.3f}]")
+    print(f"    • Mean ΔE: {deltaE.mean().item():.3f}")
     
     dms = torch.argmax(dms, -1).cpu().numpy()
     dms_decoded = decode_sequence(dms, tokens)
+    print("-" * 80 + "\n")
     
-    print("Saving the results...")
+    print("[OUTPUT]")
+    print("-" * 80)
     folder = args.output
     os.makedirs(folder, exist_ok=True)
     fname_out = os.path.join(folder, f"{wt_name}_DMS.fasta")
-
+    
+    print("  Saving DMS results...")
     with open(fname_out, "w") as f:
         for i, res_old, res_new, e, seq in zip(site_list, old_residues, new_residues, deltaE, dms_decoded):
             f.write(f">{res_old}{i}{res_new} | DCAscore: {e:.3f}\n")
             f.write(seq + "\n")
+    print(f"  ✓ Results saved: {fname_out}")
+    print("-" * 80 + "\n")
     
-    print(f"Process completed. Results saved in {fname_out}")
+    print("=" * 80)
+    print("  DEEP MUTATIONAL SCANNING COMPLETED SUCCESSFULLY")
+    print("=" * 80)
+    print(f"\n  Results saved in: {fname_out}")
+    print(f"    • Wild-type: {wt_name}")
+    print(f"    • Total mutants: {n_mutants}")
+    print(f"    • Sites scanned: {L}")
+    print("\n" + "=" * 80 + "\n")
     
 
 if __name__ == "__main__":

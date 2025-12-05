@@ -18,16 +18,37 @@ def main():
     parser = create_parser()
     args = parser.parse_args()
     
-    print("\n" + "".join(["*"] * 10) + f" Training a reintegrated DCA model " + "".join(["*"] * 10) + "\n")
-    print("Generating the reintegrated dataset...")
+    print("\n" + "="*80)
+    print("  REINTEGRATED DCA MODEL TRAINING")
+    print("="*80 + "\n")
     
     device = get_device(args.device, message=False)
     dtype = get_dtype(args.dtype)
     tokens = get_tokens(args.alphabet)
     
+    # Configuration section
+    print("[CONFIGURATION]")
+    print("-" * 80)
+    template = "  {0:<28} {1:<50}"
+    print(template.format("Natural data:", args.data))
+    print(template.format("Reintegration data:", args.reint))
+    print(template.format("Adjustment vector:", args.adj))
+    if args.lambda_ is not None:
+        print(template.format("Lambda value:", args.lambda_))
+    print(template.format("Output folder:", args.output))
+    print(template.format("Model type:", args.model))
+    print(template.format("Alphabet:", args.alphabet))
+    print(template.format("Device:", str(device)))
+    print(template.format("Data type:", args.dtype))
+    print("-" * 80 + "\n")
+    
     # Create the folder where to save the model
     folder = args.output
     os.makedirs(folder, exist_ok=True)
+    
+    print("[DATA LOADING]")
+    print("-" * 80)
+    print("  Loading natural dataset...")
     
     dataset_nat = DatasetDCA(
         path_data=args.data,
@@ -41,7 +62,11 @@ def main():
         dtype=dtype,
         message=False,
     )
+    M_nat = len(dataset_nat)
+    M_eff_nat = dataset_nat.get_effective_size()
+    print(f"  ✓ Natural dataset loaded ({M_nat} sequences, M_eff={M_eff_nat:.1f})")
     
+    print("  Loading reintegration dataset...")
     dataset_reint = DatasetDCA(
         path_data=args.reint,
         alphabet=args.alphabet,
@@ -52,28 +77,44 @@ def main():
         dtype=dtype,
         message=False,
     )
+    M_reint = len(dataset_reint)
+    print(f"  ✓ Reintegration dataset loaded ({M_reint} sequences)")
+    print("-" * 80 + "\n")
 
     # Concatenate the two datasets
+    print("[DATASET GENERATION]")
+    print("-" * 80)
+    print("  Merging natural and reintegration datasets...")
     msa = torch.cat((dataset_nat.data, dataset_reint.data), dim=0)
     msa_names = np.append(dataset_nat.names, dataset_reint.names)
+    print(f"  ✓ Combined dataset: {len(msa)} sequences")
     
     # Import the adjustment vector
+    print(f"  Loading adjustment vector from: {args.adj}")
     with open(args.adj, "r") as f:
         adjust = torch.tensor([float(x) for x in f.read().split()], device=device, dtype=dtype)
+    print(f"  ✓ Adjustment vector loaded ({len(adjust)} values)")
+    
     if args.lambda_ is None:
         span_adjust = torch.abs(adjust).max()
         lambda_ = 1 / span_adjust
-        print(f"No lambda value provided. Using lambda = {lambda_:.4f} (1 / max(|adjustment vector|))")
+        print(f"  Lambda (auto): {lambda_:.6f} (1 / max|adjust|)")
     else:
         lambda_ = args.lambda_
+        print(f"  Lambda: {lambda_:.6f}")
+    
     # Compute the scaling factor k
     k = (lambda_ * dataset_nat.get_effective_size()) / len(dataset_reint)
+    print(f"  Scaling factor k: {k:.6f}")
     
     # Concatenate the weights
     weights = torch.cat((dataset_nat.weights.view(-1), k * adjust), dim=0).unsqueeze(1)
+    print(f"  ✓ Weights computed")
     
     # Save the new dataset
-    args.label = f"{args.label}-lambda_{args.lambda_}" if args.label is not None else f"lambda_{args.lambda_}"
+    args.label = f"{args.label}-lambda_{lambda_}" if args.label is not None else f"lambda_{lambda_}"
+    
+    print("  Saving reintegrated dataset...")
     path_msa = os.path.join(folder, f"{args.label}_msa.fasta")
     write_fasta(
         fname=path_msa,
@@ -82,10 +123,18 @@ def main():
         remove_gaps=False,
         tokens=tokens,
     )
+    print(f"  ✓ MSA saved: {path_msa}")
+    
     path_weights = os.path.join(folder, f"{args.label}_weights.dat")
     np.savetxt(path_weights, weights.cpu().numpy())
+    print(f"  ✓ Weights saved: {path_weights}")
+    print("-" * 80 + "\n")
     
     # launch the training
+    print("[LAUNCHING TRAINING]")
+    print("-" * 80)
+    print("  Starting DCA training with reintegrated dataset...")
+    print("-" * 80 + "\n")
     train_command = [
         "adabmDCA",
         "train",
