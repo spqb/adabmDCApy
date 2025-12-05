@@ -133,7 +133,7 @@ train_eaDCA(
     checkpoint: Optional[Checkpoint] = None,
     *args,
     **kwargs
-) → None
+) → Tuple[Tensor, Dict[str, Tensor], Tensor, Dict[str, List[float]]]
 ```
 
 Fits an eaDCA model on the training data and saves the results in a file. 
@@ -161,9 +161,15 @@ Fits an eaDCA model on the training data and saves the results in a file.
  - <b>`checkpoint`</b> (Optional[Checkpoint], optional):  Checkpoint class to be used to save the model. Defaults to None. 
 
 
+
+**Returns:**
+ 
+ - <b>`Tuple[torch.Tensor, Dict[str, torch.Tensor], torch.Tensor, Dict[str, List[float]]]`</b>:  Updated chains and parameters, log-weights for the log-likelihood computation, and training history. 
+
+
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training.py#L473"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training.py#L488"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `train_edDCA`
 
@@ -186,7 +192,7 @@ train_edDCA(
     fij_test: Optional[Tensor] = None,
     *args,
     **kwargs
-) → None
+) → Tuple[Tensor, Dict[str, Tensor], Tensor, Dict[str, List[float]]]
 ```
 
 Fits an edDCA model on the training data and saves the results in a file. 
@@ -210,6 +216,12 @@ Fits an edDCA model on the training data and saves the results in a file.
  - <b>`checkpoint`</b> (Checkpoint):  Checkpoint class to be used to save the model. 
  - <b>`fi_test`</b> (Optional[torch.Tensor], optional):  Single-point frequencies of the test data. Defaults to None. 
  - <b>`fij_test`</b> (Optional[torch.Tensor], optional):  Two-point frequencies of the test data. Defaults to None. 
+
+
+
+**Returns:**
+ 
+ - <b>`Tuple[torch.Tensor, Dict[str, torch.Tensor], torch.Tensor, Dict[str, List[float]]]`</b>:  Updated chains and parameters, log-weights for the log-likelihood computation, and training history. 
 
 
 
