@@ -2,7 +2,7 @@
 
 <a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/cli.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
-# <kbd>module</kbd> `cli`
+# <kbd>module</kbd> `adabmDCA.cli`
 
 
 

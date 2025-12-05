@@ -1,6 +1,5 @@
-from pathlib import Path
 import numpy as np
-from typing import Iterable, Tuple, Union, overload, Literal
+from typing import Iterable, Tuple, Union, overload, Literal, Optional
 from Bio import SeqIO
 
 import torch
@@ -20,7 +19,8 @@ def get_tokens(alphabet: str) -> str:
     Returns:
         str: Tokens of the alphabet.
     """
-    assert isinstance(alphabet, str), "Argument 'alphabet' must be of type str"
+    if not isinstance(alphabet, str):
+        raise TypeError("Argument 'alphabet' must be of type str")
     if alphabet == "protein":
         return TOKENS_PROTEIN
     elif alphabet == "rna":
@@ -31,11 +31,11 @@ def get_tokens(alphabet: str) -> str:
         return alphabet
     
     
-def encode_sequence(sequence: str | Iterable[str], tokens: str) -> np.ndarray:
+def encode_sequence(sequence: Union[str, Iterable[str]], tokens: str) -> np.ndarray:
     """Encodes a sequence or a list of sequences into a numeric format.
 
     Args:
-        sequence (str | Iterable[str]): Input sequence or iterable of sequences of size (batch_size,).
+        sequence (Union[str, Iterable[str]]): Input sequence or iterable of sequences of size (batch_size,).
         tokens (str): Alphabet to be used for the encoding.
 
     Returns:
@@ -43,8 +43,8 @@ def encode_sequence(sequence: str | Iterable[str], tokens: str) -> np.ndarray:
     """
     letter_map = {l : n for n, l in enumerate(tokens)}
     
-    def _encode(sequece):
-        return [letter_map[l] for l in sequece]
+    def _encode(sequence):
+        return [letter_map[l] for l in sequence]
     
     if isinstance(sequence, str):
         return np.array(_encode(sequence))
@@ -61,24 +61,25 @@ def encode_sequence(sequence: str | Iterable[str], tokens: str) -> np.ndarray:
         raise ValueError("Input sequence must be either a string or a numpy array.")
 
 
-def decode_sequence(sequence: np.ndarray | torch.Tensor | list, tokens: str) -> str | np.ndarray:
+def decode_sequence(sequence: Union[np.ndarray, torch.Tensor, list], tokens: str) -> Union[str, np.ndarray]:
     """Takes a numeric sequence or list of seqences in input an returns the corresponding string encoding.
 
     Args:
-        sequence (np.ndarray | torch.Tensor | list): Input sequences. Can be of shape
+        sequence (Union[np.ndarray, torch.Tensor, list]): Input sequences. Can be of shape
             - (L,): single sequence in encoded format
             - (batch_size, L): multiple sequences in encoded format
             - (batch_size, L, q) multiple one-hot encoded sequences
         tokens (str): Alphabet to be used for the encoding.
 
     Returns:
-        str | np.ndarray: string or array of strings with the decoded input.
+        Union[str, np.ndarray]: string or array of strings with the decoded input.
     """
     if isinstance(sequence, list):
         sequence = np.array(sequence)
     elif isinstance(sequence, torch.Tensor):
         sequence = sequence.cpu().numpy()
-    assert isinstance(sequence, np.ndarray), "Input sequence must be either a numpy array, a list or a torch tensor."
+    if not isinstance(sequence, np.ndarray):
+        raise TypeError("Input sequence must be either a numpy array, a list or a torch tensor.")
     sequence = sequence.astype(int)
     
     def _decode(sequence):
@@ -90,7 +91,8 @@ def decode_sequence(sequence: np.ndarray | torch.Tensor | list, tokens: str) -> 
         sequence = list(sequence)
         return np.array(list(map(_decode, sequence)))
     elif sequence.ndim == 3:
-        assert sequence.shape[2] == len(tokens), "The last dimension of the input one-hot encoded sequence must be equal to the length of the alphabet."
+        if sequence.shape[2] != len(tokens):
+            raise ValueError("The last dimension of the input one-hot encoded sequence must be equal to the length of the alphabet.")
         sequence = np.argmax(sequence, axis=2)
         sequence = list(sequence)
         return np.array(list(map(_decode, sequence)))
@@ -100,8 +102,8 @@ def decode_sequence(sequence: np.ndarray | torch.Tensor | list, tokens: str) -> 
 
 @overload
 def import_from_fasta(
-    fasta_name: str | Path,
-    tokens: str | None = None,
+    fasta_name: str,
+    tokens: Optional[str] = None,
     filter_sequences: bool = False,
     remove_duplicates: bool = False,
     return_mask: Literal[False] = False,
@@ -109,16 +111,16 @@ def import_from_fasta(
 
 @overload
 def import_from_fasta(
-    fasta_name: str | Path,
-    tokens: str | None = None,
+    fasta_name: str,
+    tokens: Optional[str] = None,
     filter_sequences: bool = False,
     remove_duplicates: bool = False,
     return_mask: Literal[True] = True,
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]: ...
 
 def import_from_fasta(
-    fasta_name: str | Path,
-    tokens: str | None = None,
+    fasta_name: str,
+    tokens: Optional[str] = None,
     filter_sequences: bool = False,
     remove_duplicates: bool = False,
     return_mask: bool = False,
@@ -130,8 +132,8 @@ def import_from_fasta(
     - If 'return_mask' is True, returns also the mask selecting the retained sequences from the original ones.
 
     Args:
-        fasta_name (str | Path): Path to the fasta file.
-        tokens (str | None, optional): Alphabet to be used for the encoding. If provided, encodes the sequences in numeric format.
+        fasta_name (Union[str, Path]): Path to the fasta file.
+        tokens (Optional[str]): Alphabet to be used for the encoding. If provided, encodes the sequences in numeric format.
         filter_sequences (bool, optional): If True, removes the sequences whose tokens are not present in the alphabet. Defaults to False.
         remove_duplicates (bool, optional): If True, removes the duplicated sequences. Defaults to False.
         return_mask (bool, optional): If True, returns also the mask selecting the retained sequences from the original ones. Defaults to False.
@@ -140,7 +142,7 @@ def import_from_fasta(
         RuntimeError: The file is not in fasta format.
 
     Returns:
-        Tuple[np.ndarray, np.ndarray] | Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        Union[Tuple[np.ndarray, np.ndarray], Tuple[np.ndarray, np.ndarray, np.ndarray]]:
         - If 'return_mask' is False: Tuple of (headers, sequences)
         - If 'return_mask' is True: Tuple of (headers, sequences, mask)
     """
@@ -205,8 +207,8 @@ def import_from_fasta(
 
 def write_fasta(
     fname: str,
-    headers: Iterable[str] | np.ndarray | torch.Tensor,
-    sequences: Iterable[str] | np.ndarray | torch.Tensor,
+    headers: Union[Iterable[str], np.ndarray, torch.Tensor],
+    sequences: Union[Iterable[str], np.ndarray, torch.Tensor],
     remove_gaps: bool = False,
     tokens: str = "protein",
 ) -> None:
@@ -214,8 +216,8 @@ def write_fasta(
 
     Args:
         fname (str): Name of the output fasta file.
-        headers (Iterable[str] | np.ndarray | torch.Tensor): Iterable with sequences' headers.
-        sequences (Iterable[str] | np.ndarray | torch.Tensor): Iterable with sequences in string, categorical or one-hot encoded format.
+        headers (Union[Iterable[str], np.ndarray, torch.Tensor]): Iterable with sequences' headers.
+        sequences (Union[Iterable[str], np.ndarray, torch.Tensor]): Iterable with sequences in string, categorical or one-hot encoded format.
         remove_gaps (bool, optional): If True, removes the gap from the alignment. Defaults to False.
         tokens (str): Alphabet to be used for the encoding. Defaults to 'protein'.
     """
@@ -238,7 +240,8 @@ def write_fasta(
     
     # Handle the case when the sequenes are one-hot encoded
     if len(sequences_arr.shape) == 3:
-        assert sequences_arr.shape[2] == len(tokens), "The last dimension of the input one-hot encoded sequence must be equal to the length of the alphabet."
+        if sequences_arr.shape[2] != len(tokens):
+            raise ValueError("The last dimension of the input one-hot encoded sequence must be equal to the length of the alphabet.")
         sequences_arr = np.argmax(sequences_arr, axis=2)
         seqs_decoded = decode_sequence(sequences_arr, tokens)
     else:
@@ -269,7 +272,7 @@ def _get_sequence_weight(s: torch.Tensor, data: torch.Tensor, L: int, th: float)
 
 
 def compute_weights(
-    data: np.ndarray | torch.Tensor,
+    data: Union[np.ndarray, torch.Tensor],
     th: float = 0.8,
     device: torch.device = torch.device("cpu"),
     dtype: torch.dtype = torch.float32,
@@ -278,7 +281,7 @@ def compute_weights(
     that have a sequence identity with 's' >= th.
 
     Args:
-        data (np.ndarray | torch.Tensor): Input dataset. Must be either a (batch_size, L) or a (batch_size, L, q) (one-hot encoded) array.
+        data (Union[np.ndarray, torch.Tensor]): Input dataset. Must be either a (batch_size, L) or a (batch_size, L, q) (one-hot encoded) array.
         th (float, optional): Sequence identity threshold for the clustering. Defaults to 0.8.
         device (torch.device, optional): Device. Defaults to "cpu".
         dtype (torch.dtype, optional): Data type. Defaults to torch.float32.
@@ -286,7 +289,8 @@ def compute_weights(
     Returns:
         torch.Tensor: Array with the weights of the sequences.
     """
-    assert len(data.shape) == 2 or len(data.shape) == 3, "'data' must be either a (batch_size, L) or a (batch_size, L, q) (one-hot encoded) array."
+    if len(data.shape) not in (2, 3):
+        raise ValueError("'data' must be either a (batch_size, L) or a (batch_size, L, q) (one-hot encoded) array.")
     if isinstance(data, np.ndarray):
         data = torch.tensor(data, device=device)
     if len(data.shape) == 3:
@@ -307,10 +311,10 @@ def validate_alphabet(sequences: np.ndarray, tokens: str):
         tokens (str): Alphabet to be used for the encoding.
 
     Raises:
-        KeyError: The chosen alphabet is incompatible with the Multi-Sequence Alignment.
+        ValueError: The chosen alphabet is incompatible with the Multi-Sequence Alignment.
     """
     all_char = "".join(sequences)
     tokens_data = "".join(sorted(set(all_char)))
     sorted_tokens = "".join(sorted(tokens))
     if not sorted_tokens == tokens_data:
-        raise KeyError(f"The chosen alphabet is incompatible with the Multi-Sequence Alignment. The missing tokens are: {[c for c in tokens_data if c not in sorted_tokens]}. Current alphabet: {tokens}")
+        raise ValueError(f"The chosen alphabet is incompatible with the Multi-Sequence Alignment. The missing tokens are: {[c for c in tokens_data if c not in sorted_tokens]}. Current alphabet: {tokens}")

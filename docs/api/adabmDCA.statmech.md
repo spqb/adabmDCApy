@@ -2,7 +2,7 @@
 
 <a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/statmech.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
-# <kbd>module</kbd> `statmech`
+# <kbd>module</kbd> `adabmDCA.statmech`
 
 
 
@@ -10,33 +10,37 @@
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/statmech.py#L23"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/statmech.py#L7"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `compute_energy`
 
 ```python
-compute_energy(X: Tensor, params: Dict[str, Tensor]) → Tensor
+compute_energy(x: Tensor, params: Dict[str, Tensor]) → Tensor
 ```
 
-Compute the DCA energy of the sequences in X. 
+Compute the DCA energy for a batch of sequences. 
 
 
 
 **Args:**
  
- - <b>`X`</b> (torch.Tensor):  Sequences in one-hot encoding format. 
+ - <b>`x`</b> (torch.Tensor):  Tensor of shape (batch_size, L, q) - batch of one-hot encoded sequences. 
  - <b>`params`</b> (Dict[str, torch.Tensor]):  Parameters of the model. 
+        - "bias": Tensor of shape (L, q) - local biases. 
+        - "coupling_matrix": Tensor of shape (L, q, L, q) - coupling matrix. 
+
+
 
 
 
 **Returns:**
  
- - <b>`torch.Tensor`</b>:  DCA Energy of the sequences. 
+ - <b>`torch.Tensor`</b>:  Tensor of shape (batch_size,) - DCA energy for each sequence in the batch. 
 
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/statmech.py#L93"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/statmech.py#L89"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `compute_log_likelihood`
 
@@ -69,7 +73,7 @@ Compute the log-likelihood of the model.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/statmech.py#L113"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/statmech.py#L109"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `enumerate_states`
 
@@ -96,7 +100,7 @@ Enumerate all possible states of a system of L sites and q states.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/statmech.py#L135"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/statmech.py#L131"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `compute_logZ_exact`
 
@@ -122,7 +126,7 @@ Compute the log-partition function of the model.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/statmech.py#L154"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/statmech.py#L150"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `compute_entropy`
 
@@ -149,7 +153,7 @@ Compute the entropy of the DCA model.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/statmech.py#L252"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/statmech.py#L248"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `iterate_tap`
 
@@ -159,7 +163,7 @@ iterate_tap(
     params: Dict[str, Tensor],
     max_iter: int = 500,
     epsilon: float = 0.0001
-)
+) → Tensor
 ```
 
 Iterates the TAP equations until convergence. 
@@ -170,8 +174,8 @@ Iterates the TAP equations until convergence.
  
  - <b>`mag`</b> (torch.Tensor):  Initial magnetizations. 
  - <b>`params`</b> (Dict[str, torch.Tensor]):  Parameters of the model. 
- - <b>`max_iter`</b> (int, optional):  Maximum number of iterations. Defaults to 2000. 
- - <b>`epsilon`</b> (float, optional):  Convergence threshold. Defaults to 1e-6. 
+ - <b>`max_iter`</b> (int, optional):  Maximum number of iterations. Defaults to 500. 
+ - <b>`epsilon`</b> (float, optional):  Convergence threshold. Defaults to 1e-4. 
 
 
 

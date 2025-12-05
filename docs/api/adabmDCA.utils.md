@@ -2,7 +2,7 @@
 
 <a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/utils.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
-# <kbd>module</kbd> `utils`
+# <kbd>module</kbd> `adabmDCA.utils`
 
 
 
@@ -18,7 +18,7 @@
 init_parameters(fi: Tensor) → Dict[str, Tensor]
 ```
 
-Initialize the parameters of the DCA model. 
+Initialize the parameters of the DCA model. The bias terms are initialized from the single-point frequencies 'fi', while the coupling matrix is initialized to zero. 
 
 
 
@@ -29,13 +29,14 @@ Initialize the parameters of the DCA model.
 
 
 **Returns:**
- 
- - <b>`Dict[str, torch.Tensor]`</b>:  Parameters of the model. 
+ Dict[str, torch.Tensor]:  
+ - <b>`"bias" (torch.Tensor)`</b>:  Bias terms. 
+ - <b>`"coupling_matrix" (torch.Tensor)`</b>:  Coupling matrix. 
 
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/utils.py#L24"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/utils.py#L28"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `init_chains`
 
@@ -46,11 +47,11 @@ init_chains(
     q: int,
     device: device,
     dtype: dtype = torch.float32,
-    fi: Tensor | None = None
+    fi: Optional[Tensor] = None
 ) → Tensor
 ```
 
-Initialize the chains of the DCA model. If 'fi' is provided, the chains are sampled from the profile model, otherwise they are sampled uniformly at random. 
+Initialize the Markov chains of the DCA model. If 'fi' is provided, the chains are sampled from the profile model, otherwise they are sampled uniformly at random. 
 
 
 
@@ -61,18 +62,18 @@ Initialize the chains of the DCA model. If 'fi' is provided, the chains are samp
  - <b>`q`</b> (int):  Number of values that each residue can assume. 
  - <b>`device`</b> (torch.device):  Device where to store the chains. 
  - <b>`dtype`</b> (torch.dtype, optional):  Data type of the chains. Defaults to torch.float32. 
- - <b>`fi`</b> (torch.Tensor | None, optional):  Single-point frequencies. Defaults to None. 
+ - <b>`fi`</b> (Optional[torch.Tensor], optional):  Single-point frequencies. Defaults to None. 
 
 
 
 **Returns:**
  
- - <b>`torch.Tensor`</b>:  Initialized parallel chains in one-hot encoding format. 
+ - <b>`torch.Tensor`</b>:  Initialized Markov chains in one-hot encoding format, shape (num_chains, L, q). 
 
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/utils.py#L54"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/utils.py#L58"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `get_mask_save`
 
@@ -99,7 +100,7 @@ Returns the mask to save the upper-triangular part of the coupling matrix.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/utils.py#L100"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/utils.py#L104"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `resample_sequences`
 
@@ -126,7 +127,7 @@ Extracts nextract sequences from data with replacement according to the weights.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/utils.py#L121"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/utils.py#L125"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `get_device`
 
@@ -140,7 +141,7 @@ Returns the device where to store the tensors.
 
 **Args:**
  
- - <b>`device`</b> (str):  Device to be used. 
+ - <b>`device`</b> (str):  Device to be used. Possible values are 'cpu', 'cuda', 'mps'. 
  - <b>`message`</b> (bool, optional):  Print the device. Defaults to True. 
 
 
@@ -152,7 +153,7 @@ Returns the device where to store the tensors.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/utils.py#L145"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/utils.py#L149"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `get_dtype`
 
@@ -166,7 +167,7 @@ Returns the data type of the tensors.
 
 **Args:**
  
- - <b>`dtype`</b> (str):  Data type. 
+ - <b>`dtype`</b> (str):  Data type. Possible values are 'float32' and 'float64'. 
 
 
 

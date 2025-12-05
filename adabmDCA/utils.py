@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Optional
 import torch
 
 from adabmDCA.functional import one_hot
@@ -31,7 +31,7 @@ def init_chains(
     q: int,
     device: torch.device,
     dtype: torch.dtype = torch.float32,
-    fi: torch.Tensor | None = None,
+    fi: Optional[torch.Tensor] = None,
 ) -> torch.Tensor:
     """Initialize the Markov chains of the DCA model. If 'fi' is provided, the chains are sampled from the
     profile model, otherwise they are sampled uniformly at random.
@@ -42,7 +42,7 @@ def init_chains(
         q (int): Number of values that each residue can assume.
         device (torch.device): Device where to store the chains.
         dtype (torch.dtype, optional): Data type of the chains. Defaults to torch.float32.
-        fi (torch.Tensor | None, optional): Single-point frequencies. Defaults to None.
+        fi (Optional[torch.Tensor], optional): Single-point frequencies. Defaults to None.
 
     Returns:
         torch.Tensor: Initialized Markov chains in one-hot encoding format, shape (num_chains, L, q).

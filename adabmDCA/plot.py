@@ -1,5 +1,5 @@
 
-from typing import List, Tuple
+from typing import List, Tuple, Optional, Union, Literal
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 from matplotlib.axes import Axes
@@ -12,17 +12,17 @@ def _plot_scatter_labels(
     data1: np.ndarray,
     pc1: int = 0,
     pc2: int = 1,
-    data2: np.ndarray | None = None,
-    labels: List[str] | str | None = "Data",
-    colors: List[str] | str = "black",
+    data2: Optional[np.ndarray] = None,
+    labels: Union[List[str], str, None] = "Data",
+    colors: Union[List[str], str] = "black",
 ) -> Axes:
 
     if isinstance(labels, str):
-        labels = [labels,]
+        labels = [labels]
     if isinstance(colors, str):
-        colors = [colors,]
+        colors = [colors]
     if labels is None:
-        labels = [None, None]
+        labels = ["Data", "Generated"]
     ax.scatter(data1[:, pc1], data1[:, pc2], color=colors[0], s=50, label=labels[0], zorder=0, alpha=0.3)
     if data2 is not None:
         if len(labels) == 1:
@@ -37,24 +37,23 @@ def _plot_hist(
     ax: Axes,
     data1: np.ndarray,
     pc: int,
-    data2: np.ndarray | None = None,
-    colors: List[str] | str = "black",
-    labels: List[str] | str | None = "Data",
-    orientation='vertical',
+    data2: Optional[np.ndarray] = None,
+    colors: Union[List[str], str] = "black",
+    labels: Union[List[str], str, None] = "Data",
+    orientation: Literal['vertical', 'horizontal'] = 'vertical',
 ) -> Axes:
     if isinstance(labels, str):
-        labels = [labels,]
+        labels = [labels]
     if labels is None:
-        labels = [None, None]
+        labels = ["Data", "Generated"]
     if isinstance(colors, str):
-        colors = [colors,]
+        colors = [colors]
     ax.hist(data1[:, pc], bins=40, color=colors[0], histtype='step', label=labels[0], zorder=0, density=True, orientation=orientation, lw=1)
     if data2 is not None:
         if len(labels) == 1:
             labels.append("Generated")
         if len(colors) == 1:
             colors.append("red")
-    if data2 is not None:
         ax.hist(data2[:, pc], bins=40, color=colors[1], histtype='step', label=labels[1], zorder=1, density=True, orientation=orientation, lw=1.5)
     ax.axis('off')
     
@@ -66,22 +65,22 @@ def plot_PCA(
     data1: np.ndarray,
     pc1: int = 0,
     pc2: int = 1,
-    data2: np.ndarray | None = None,
-    labels: List[str] | str = "Data",
-    colors: List[str] | str = "black",
-    title: str | None = None,
+    data2: Optional[np.ndarray] = None,
+    labels: Union[List[str], str] = "Data",
+    colors: Union[List[str], str] = "black",
+    title: Optional[str] = None,
 ) -> Figure:
     """Makes the scatter plot of the components (pc1, pc2) of the input data and shows the histograms of the components.
 
     Args:
-        fig (plt.figure): Figure to plot the data.
+        fig (Figure): Figure to plot the data.
         data1 (np.ndarray): Data to plot.
         pc1 (int, optional): First principal direction. Defaults to 0.
         pc2 (int, optional): Second principal direction. Defaults to 1.
-        data2 (np.ndarray | None, optional): Data to be superimposed to data1. Defaults to None.
-        labels (List[str] | str, optional): Labels to put in the legend. Defaults to "Data".
-        colors (List[str] | str, optional): Colors to be used. Defaults to "black".
-        title (str | None, optional): Title of the plot. Defaults to None.
+        data2 (Optional[np.ndarray], optional): Data to be superimposed to data1. Defaults to None.
+        labels (Union[List[str], str], optional): Labels to put in the legend. Defaults to "Data".
+        colors (Union[List[str], str], optional): Colors to be used. Defaults to "black".
+        title (Optional[str], optional): Title of the plot. Defaults to None.
 
     Returns:
         Figure: Updated figure.
@@ -124,8 +123,7 @@ def plot_PCA(
     ax_scatter.set_ylabel(f"PC {pc2 + 1}")
     if title is not None:
         fig.suptitle(title)
-    fig.legend(fontsize=12, bbox_to_anchor=(1, 1));
-    h, l = ax_scatter.get_legend_handles_labels()
+    fig.legend(fontsize=12, bbox_to_anchor=(1, 1))
     
     return fig
     
@@ -134,15 +132,15 @@ def plot_pearson_sampling(
     ax: Axes,
     checkpoints: np.ndarray,
     pearsons: np.ndarray,
-    pearson_training: np.ndarray | None = None
-):
+    pearson_training: Optional[float] = None
+) -> Axes:
     """Plots the Pearson correlation coefficient over sampling time.
 
     Args:
         ax (Axes): Axes to plot the data.
         checkpoints (np.ndarray): Checkpoints of the sampling.
         pearsons (np.ndarray): Pearson correlation coefficients at different checkpoints.
-        pearson_training (np.ndarray | None, optional): Pearson correlation coefficient obtained during training. Defaults to None.
+        pearson_training (Optional[float], optional): Pearson correlation coefficient obtained during training. Defaults to None.
 
     Returns:
         Axes: Updated axes.
@@ -187,7 +185,7 @@ def plot_autocorrelation(
     ax.axhline(y=data_seqid, color="red", lw=1, ls="dashed", label="Data seqID", zorder=0)
     ax.set_xlabel(r"$\tau$ [sweeps]")
     ax.set_ylabel(r"$\langle \mathrm{SeqID}(t, t-\tau) \rangle$")
-    ax.legend();
+    ax.legend()
 
     if np.any(checkpoints[autocorr <= gen_seqid]):
         mixing_time = checkpoints[autocorr <= gen_seqid][0]
@@ -208,11 +206,11 @@ def plot_scatter_correlations(
     Cijk_gen: np.ndarray,
     pearson_Cij: float,
     pearson_Cijk: float,
-) -> Axes:
+) -> Tuple[Axes, Axes]:
     """Plots the scatter plot of the data and generated Cij and Cijk values.
     
     Args:
-        ax (Axes): Axes to plot the data. Must have 2 subplots.
+        ax (Tuple[Axes, Axes]): Tuple of 2 Axes to plot the data.
         Cij_data (np.ndarray): Data Cij values.
         Cij_gen (np.ndarray): Generated Cij values.
         Cijk_data (np.ndarray): Data Cijk values.
@@ -221,10 +219,10 @@ def plot_scatter_correlations(
         pearson_Cijk (float): Pearson correlation coefficient of Cijk.
         
     Returns:
-        plt.Axes: Updated axes.
+        Tuple[Axes, Axes]: Updated axes.
     """
-    if len(ax) != 2:
-        raise ValueError("The axes must have 2 subplots")
+    if not isinstance(ax, tuple) or len(ax) != 2:
+        raise ValueError("The 'ax' parameter must be a tuple of 2 Axes objects.")
     
     color_line = "#50424F"
     color_scatter = "#FF6275"
@@ -253,14 +251,14 @@ def plot_scatter_correlations(
 def plot_contact_map(
     ax: Axes,
     cm: np.ndarray,
-    title: str | None = None,
+    title: Optional[str] = None,
 ) -> Axes:
     """Plots the contact map.
 
     Args:
         ax (Axes): Axes to plot the contact map.
         cm (np.ndarray): Contact map to plot.
-        title (str | None, optional): Title of the plot. Defaults to None.
+        title (Optional[str], optional): Title of the plot. Defaults to None.
 
     Returns:
         Axes: Updated axes.

@@ -45,7 +45,7 @@ def update_mask_activation(
     # Get the threshold value for the top nactivate*2 elements (since Dkl is symmetric)
     Dkl_th = Dkl_flat_sorted[2 * nactivate]
     # Update the mask where Dkl is greater than the threshold
-    mask = torch.where(Dkl > Dkl_th, torch.tensor(1, device=Dkl.device, dtype=Dkl.dtype), mask)
+    mask = mask | (Dkl > Dkl_th)
     
     return mask
 
@@ -94,7 +94,10 @@ def compute_sym_Dkl(
     """
     
     exp_J = torch.exp(-params["coupling_matrix"])
-    Dkl = pij * params["coupling_matrix"] * (1. - exp_J / (pij * (exp_J - 1.) + 1.))
+    denominator = pij * (exp_J - 1.) + 1.
+    # Add small epsilon for numerical stability to avoid division by zero
+    denominator = torch.clamp(denominator, min=1e-10)
+    Dkl = pij * params["coupling_matrix"] * (1. - exp_J / denominator)
     
     return Dkl
 
@@ -108,7 +111,7 @@ def compute_Dkl_decimation(
     distribution once removing one coupling J_ij(a, b).
 
     Args:
-        params (Dict[ste, torch.Tensor]): Parameters of the model.
+        params (Dict[str, torch.Tensor]): Parameters of the model.
         pij (torch.Tensor): Two-point marginal probability distribution.
 
     Returns:

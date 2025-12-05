@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 import torch
 import wandb
 from adabmDCA.io import save_chains, save_params
@@ -13,8 +13,8 @@ class Checkpoint:
         file_paths: dict,
         tokens: str,
         args: dict,
-        params: Dict[str, torch.Tensor] | None = None,
-        chains: torch.Tensor | None = None,
+        params: Optional[Dict[str, torch.Tensor]] = None,
+        chains: Optional[torch.Tensor] = None,
         use_wandb: bool = False,
     ):
         """Initializes the Checkpoint class.
@@ -23,8 +23,8 @@ class Checkpoint:
             file_paths (dict): Dictionary containing the paths of the files to be saved.
             tokens (str): Alphabet to be used for encoding the sequences.
             args (dict): Dictionary containing the arguments of the training.
-            params (Dict[str, torch.Tensor] | None, optional): Parameters of the model. Defaults to None.
-            chains (torch.Tensor | None, optional): Chains. Defaults to None.
+            params (Optional[Dict[str, torch.Tensor]], optional): Parameters of the model. Defaults to None.
+            chains (Optional[torch.Tensor], optional): Chains. Defaults to None.
             use_wandb (bool, optional): Whether to use Weights & Biases for logging. Defaults to False.
         """
             

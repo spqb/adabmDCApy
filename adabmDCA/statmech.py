@@ -62,6 +62,9 @@ def _compute_ess(log_weights: torch.Tensor) -> float:
 
     Args:
         log_weights: log-weights of the chains.
+        
+    Returns:
+        float: Effective Sample Size (ESS).
     """
     lwc = log_weights - log_weights.min()
     numerator = torch.square(torch.mean(torch.exp(-lwc))).item()
@@ -171,7 +174,7 @@ def _get_acceptance_rate(
     prev_chains: torch.Tensor,
     curr_chains: torch.Tensor,
 ) -> float:
-    """Compute the acceptance rate of swapping the configurations between two models alonge the training.
+    """Compute the acceptance rate of swapping the configurations between two models along the training.
 
     Args:
         prev_params (Dict[str, torch.Tensor]): Parameters at time t-1.
@@ -180,7 +183,7 @@ def _get_acceptance_rate(
         curr_chains (torch.Tensor): Chains at time t.
 
     Returns:
-        float: Acceptance rate of swapping the configurations between two models alonge the training.
+        float: Acceptance rate of swapping the configurations between two models along the training.
     """
     nchains = len(prev_chains)
     delta_energy = (
@@ -247,14 +250,14 @@ def iterate_tap(
     params: Dict[str, torch.Tensor],
     max_iter: int = 500,
     epsilon: float = 1e-4,
-):
+) -> torch.Tensor:
     """Iterates the TAP equations until convergence.
 
     Args:
         mag (torch.Tensor): Initial magnetizations.
         params (Dict[str, torch.Tensor]): Parameters of the model.
-        max_iter (int, optional): Maximum number of iterations. Defaults to 2000.
-        epsilon (float, optional): Convergence threshold. Defaults to 1e-6.
+        max_iter (int, optional): Maximum number of iterations. Defaults to 500.
+        epsilon (float, optional): Convergence threshold. Defaults to 1e-4.
 
     Returns:
         torch.Tensor: Fixed point magnetizations of the TAP equations.
@@ -267,7 +270,7 @@ def iterate_tap(
     iterations = 0
     while True:
         mag_old = mag_.clone()
-        mag_ = _sweep_tap(torch.randperm(mag_.shape[1]), mag_, params)
+        mag_ = _sweep_tap(torch.randperm(mag_.shape[1], device=mag_.device), mag_, params)
         diff = torch.abs(mag_old - mag_).max()
         iterations += 1
         if diff < epsilon or iterations > max_iter:

@@ -2,7 +2,7 @@
 
 <a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/dca.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
-# <kbd>module</kbd> `dca`
+# <kbd>module</kbd> `adabmDCA.dca`
 
 
 
@@ -15,7 +15,7 @@
 ## <kbd>function</kbd> `get_seqid`
 
 ```python
-get_seqid(s1: Tensor, s2: Tensor | None = None) → Tensor
+get_seqid(s1: Tensor, s2: Optional[Tensor] = None) → Tensor
 ```
 
 Returns a tensor containing the sequence identities between two sets of one-hot encoded sequences. 
@@ -27,8 +27,8 @@ Returns a tensor containing the sequence identities between two sets of one-hot 
 
 **Args:**
  
- - <b>`s1`</b> (torch.Tensor):  One-hot encoded sequence dataset 1 of shape (batch_size, L, q). 
- - <b>`s2`</b> (torch.Tensor | None):  One-hot encoded sequence dataset 2 of shape (batch_size, L, q) or (L, q). Defaults to None. 
+ - <b>`s1`</b> (torch.Tensor):  One-hot encoded sequence dataset 1 of shape (batch_size, L, q) or (L, q). 
+ - <b>`s2`</b> (Optional[torch.Tensor]):  One-hot encoded sequence dataset 2 of shape (batch_size, L, q) or (L, q). Defaults to None. 
 
 
 
@@ -44,7 +44,7 @@ Returns a tensor containing the sequence identities between two sets of one-hot 
 ## <kbd>function</kbd> `get_seqid_stats`
 
 ```python
-get_seqid_stats(s1: Tensor, s2: Tensor | None = None) → Tuple[Tensor, Tensor]
+get_seqid_stats(s1: Tensor, s2: Optional[Tensor] = None) → Tuple[Tensor, Tensor]
 ```
 
 
@@ -56,19 +56,18 @@ get_seqid_stats(s1: Tensor, s2: Tensor | None = None) → Tuple[Tensor, Tensor]
 
 **Args:**
  
- - <b>`s1`</b> (torch.Tensor):  One-hot encoded sequence dataset 1 of shape (batch_size, L, q). 
- - <b>`s2`</b> (torch.Tensor | None):  One-hot encoded sequence dataset 2 of shape (batch_size, L, q) or (L, q). Defaults to None. 
+ - <b>`s1`</b> (torch.Tensor):  One-hot encoded sequence dataset 1 of shape (batch_size, L, q) or (L, q). 
+ - <b>`s2`</b> (Optional[torch.Tensor]):  One-hot encoded sequence dataset 2 of shape (batch_size, L, q) or (L, q). Defaults to None. 
 
 
 
 **Returns:**
- 
- - <b>`Tuple[torch.Tensor, torch.Tensor]`</b>:  Mean sequence identity and standard deviation of the mean. 
+ Tuple[torch.Tensor, torch.Tensor]:  (torch.Tensor) Mean sequence identity  (torch.Tensor) Standard deviation of the mean sequence identity. 
 
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/dca.py#L64"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/dca.py#L66"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `set_zerosum_gauge`
 
@@ -88,12 +87,14 @@ Sets the zero-sum gauge on the coupling matrix.
 
 **Returns:**
  
- - <b>`Dict[str, torch.Tensor]`</b>:  Parameters with fixed gauge. 
+ - <b>`Dict[str, torch.Tensor]`</b>:  New dictionary with modified coupling matrix. 
+ - <b>`"bias"`</b>:  torch.Tensor of shape (L, q) 
+ - <b>`"coupling_matrix"`</b>:  torch.Tensor of shape (L, q, L, q) 
 
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/dca.py#L83"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/dca.py#L88"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `get_contact_map`
 
@@ -107,8 +108,10 @@ Computes the contact map from the model coupling matrix.
 
 **Args:**
  
- - <b>`params`</b> (Dict[str, torch.Tensor]):  Model parameters. 
- - <b>`tokens`</b> (str):  Alphabet. 
+ - <b>`params`</b> (Dict[str, torch.Tensor]):  Model parameters. Should contain: 
+        - "coupling_matrix": torch.Tensor of shape (L, q, L, q) 
+        - "bias": torch.Tensor of shape (L, q) 
+ - <b>`tokens`</b> (str):  Alphabet to be used. 
 
 
 
@@ -119,7 +122,7 @@ Computes the contact map from the model coupling matrix.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/dca.py#L122"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/dca.py#L132"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `get_mf_contact_map`
 
@@ -127,19 +130,19 @@ Computes the contact map from the model coupling matrix.
 get_mf_contact_map(
     data: Tensor,
     tokens: str,
-    weights: Tensor | None = None
+    weights: Optional[Tensor] = None
 ) → ndarray
 ```
 
-Computes the contact map from the model coupling matrix. 
+Computes the contact map using mean-field approximation from the data. 
 
 
 
 **Args:**
  
  - <b>`data`</b> (torch.Tensor):  Input one-hot data tensor. 
- - <b>`tokens`</b> (str):  Alphabet. 
- - <b>`weights`</b> (torch.Tensor | None):  Weights for the data points. Defaults to None. 
+ - <b>`tokens`</b> (str):  Alphabet to be used. 
+ - <b>`weights`</b> (Optional[torch.Tensor]):  Weights for the data points. Defaults to None. 
 
 
 

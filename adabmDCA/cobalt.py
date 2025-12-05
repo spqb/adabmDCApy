@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple, Optional
 import torch
 from tqdm.autonotebook import trange
 import numpy as np
@@ -20,7 +20,7 @@ def split_train_test(
     headers: np.ndarray,
     X: torch.Tensor,
     seqid_th: float,
-    rnd_gen: torch.Generator | None = None,
+    rnd_gen: Optional[torch.Generator] = None,
 ) -> Tuple[np.ndarray, torch.Tensor, np.ndarray, torch.Tensor]:
     """Splits X into two sets, T and S, such that no sequence in S has more than
     'seqid_th' fraction of its residues identical to any sequence in T.
@@ -29,7 +29,7 @@ def split_train_test(
         headers (np.ndarray): Array of sequence headers.
         X (torch.Tensor): Encoded input MSA, shape (batch_size, L).
         seqid_th (float): Threshold sequence identity.
-        rnd_gen (torch.Generator, optional): Random number generator. Defaults to None.
+        rnd_gen (Optional[torch.Generator], optional): Random number generator. Defaults to None.
 
     Returns:
         Training and test sets as:
@@ -75,7 +75,7 @@ def prune_redundant_sequences(
     headers: np.ndarray,
     X: torch.Tensor,
     seqid_th: float,
-    rnd_gen: torch.Generator | None = None,
+    rnd_gen: Optional[torch.Generator] = None,
 ) -> Tuple[np.ndarray, torch.Tensor]:
     """Prunes sequences from X such that no sequence has more than 'seqid_th' fraction of its residues identical to any other sequence in the set.
 
@@ -83,7 +83,7 @@ def prune_redundant_sequences(
         headers (np.ndarray): Array of sequence headers.
         X (torch.Tensor): Encoded input MSA.
         seqid_th (float): Threshold sequence identity.
-        rnd_gen (torch.Generator, optional): Random generator. Defaults to None.
+        rnd_gen (Optional[torch.Generator], optional): Random generator. Defaults to None.
 
     Returns:
         Tuple[np.ndarray, torch.Tensor]:
@@ -109,9 +109,9 @@ def run_cobalt(
     t1: float,
     t2: float,
     t3: float,
-    max_train: int | None = None,
-    max_test: int | None = None,
-    rnd_gen: torch.Generator | None = None,
+    max_train: Optional[int] = None,
+    max_test: Optional[int] = None,
+    rnd_gen: Optional[torch.Generator] = None,
 ) -> Tuple[np.ndarray, torch.Tensor, np.ndarray, torch.Tensor]:
     """
     Runs the Cobalt algorithm to split the input MSA into training and test sets.
@@ -122,9 +122,9 @@ def run_cobalt(
         t1 (float): No sequence in S has more than this fraction of its residues identical to any sequence in T.
         t2 (float): No pair of test sequences has more than this value fractional identity.
         t3 (float): No pair of training sequences has more than this value fractional identity.
-        max_train (int | None, optional): Maximum number of sequences in the training set. Defaults to None.
-        max_test (int | None, optional): Maximum number of sequences in the test set. Defaults to None.
-        rnd_gen (torch.Generator, optional): Random number generator. Defaults to None.
+        max_train (Optional[int], optional): Maximum number of sequences in the training set. Defaults to None.
+        max_test (Optional[int], optional): Maximum number of sequences in the test set. Defaults to None.
+        rnd_gen (Optional[torch.Generator], optional): Random number generator. Defaults to None.
 
     Returns:
         Training and test sets as:

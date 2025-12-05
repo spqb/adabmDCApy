@@ -2,7 +2,7 @@
 
 <a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/plot.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
-# <kbd>module</kbd> `plot`
+# <kbd>module</kbd> `adabmDCA.plot`
 
 
 
@@ -10,7 +10,7 @@
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/plot.py#L64"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/plot.py#L63"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `plot_PCA`
 
@@ -20,10 +20,10 @@ plot_PCA(
     data1: ndarray,
     pc1: int = 0,
     pc2: int = 1,
-    data2: ndarray | None = None,
+    data2: Optional[ndarray] = None,
     labels: Union[List[str], str] = 'Data',
     colors: Union[List[str], str] = 'black',
-    title: str | None = None
+    title: Optional[str] = None
 ) → Figure
 ```
 
@@ -33,14 +33,14 @@ Makes the scatter plot of the components (pc1, pc2) of the input data and shows 
 
 **Args:**
  
- - <b>`fig`</b> (plt.figure):  Figure to plot the data. 
+ - <b>`fig`</b> (Figure):  Figure to plot the data. 
  - <b>`data1`</b> (np.ndarray):  Data to plot. 
  - <b>`pc1`</b> (int, optional):  First principal direction. Defaults to 0. 
  - <b>`pc2`</b> (int, optional):  Second principal direction. Defaults to 1. 
- - <b>`data2`</b> (np.ndarray | None, optional):  Data to be superimposed to data1. Defaults to None. 
- - <b>`labels`</b> (List[str] | str, optional):  Labels to put in the legend. Defaults to "Data". 
- - <b>`colors`</b> (List[str] | str, optional):  Colors to be used. Defaults to "black". 
- - <b>`title`</b> (str | None, optional):  Title of the plot. Defaults to None. 
+ - <b>`data2`</b> (Optional[np.ndarray], optional):  Data to be superimposed to data1. Defaults to None. 
+ - <b>`labels`</b> (Union[List[str], str], optional):  Labels to put in the legend. Defaults to "Data". 
+ - <b>`colors`</b> (Union[List[str], str], optional):  Colors to be used. Defaults to "black". 
+ - <b>`title`</b> (Optional[str], optional):  Title of the plot. Defaults to None. 
 
 
 
@@ -51,7 +51,7 @@ Makes the scatter plot of the components (pc1, pc2) of the input data and shows 
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/plot.py#L133"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/plot.py#L131"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `plot_pearson_sampling`
 
@@ -60,8 +60,8 @@ plot_pearson_sampling(
     ax: Axes,
     checkpoints: ndarray,
     pearsons: ndarray,
-    pearson_training: ndarray | None = None
-)
+    pearson_training: Optional[float] = None
+) → Axes
 ```
 
 Plots the Pearson correlation coefficient over sampling time. 
@@ -73,7 +73,7 @@ Plots the Pearson correlation coefficient over sampling time.
  - <b>`ax`</b> (Axes):  Axes to plot the data. 
  - <b>`checkpoints`</b> (np.ndarray):  Checkpoints of the sampling. 
  - <b>`pearsons`</b> (np.ndarray):  Pearson correlation coefficients at different checkpoints. 
- - <b>`pearson_training`</b> (np.ndarray | None, optional):  Pearson correlation coefficient obtained during training. Defaults to None. 
+ - <b>`pearson_training`</b> (Optional[float], optional):  Pearson correlation coefficient obtained during training. Defaults to None. 
 
 
 
@@ -84,7 +84,7 @@ Plots the Pearson correlation coefficient over sampling time.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/plot.py#L166"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/plot.py#L164"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `plot_autocorrelation`
 
@@ -119,7 +119,7 @@ Plots the time-autocorrelation curve of the sequence identity and the generated 
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/plot.py#L203"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/plot.py#L201"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `plot_scatter_correlations`
 
@@ -132,7 +132,7 @@ plot_scatter_correlations(
     Cijk_gen: ndarray,
     pearson_Cij: float,
     pearson_Cijk: float
-) → Axes
+) → Tuple[Axes, Axes]
 ```
 
 Plots the scatter plot of the data and generated Cij and Cijk values. 
@@ -141,7 +141,7 @@ Plots the scatter plot of the data and generated Cij and Cijk values.
 
 **Args:**
  
- - <b>`ax`</b> (Axes):  Axes to plot the data. Must have 2 subplots. 
+ - <b>`ax`</b> (Tuple[Axes, Axes]):  Tuple of 2 Axes to plot the data. 
  - <b>`Cij_data`</b> (np.ndarray):  Data Cij values. 
  - <b>`Cij_gen`</b> (np.ndarray):  Generated Cij values. 
  - <b>`Cijk_data`</b> (np.ndarray):  Data Cijk values. 
@@ -153,17 +153,17 @@ Plots the scatter plot of the data and generated Cij and Cijk values.
 
 **Returns:**
  
- - <b>`plt.Axes`</b>:  Updated axes. 
+ - <b>`Tuple[Axes, Axes]`</b>:  Updated axes. 
 
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/plot.py#L253"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/plot.py#L251"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `plot_contact_map`
 
 ```python
-plot_contact_map(ax: Axes, cm: ndarray, title: str | None = None) → Axes
+plot_contact_map(ax: Axes, cm: ndarray, title: Optional[str] = None) → Axes
 ```
 
 Plots the contact map. 
@@ -174,7 +174,7 @@ Plots the contact map.
  
  - <b>`ax`</b> (Axes):  Axes to plot the contact map. 
  - <b>`cm`</b> (np.ndarray):  Contact map to plot. 
- - <b>`title`</b> (str | None, optional):  Title of the plot. Defaults to None. 
+ - <b>`title`</b> (Optional[str], optional):  Title of the plot. Defaults to None. 
 
 
 

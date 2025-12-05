@@ -1,5 +1,5 @@
 import itertools
-from typing import Tuple
+from typing import Tuple, Optional, Union
 import torch
 
 
@@ -19,13 +19,13 @@ def _get_freq_single_point(
 
 def get_freq_single_point(
     data: torch.Tensor,
-    weights: torch.Tensor | None = None,
+    weights: Optional[torch.Tensor] = None,
     pseudo_count: float = 0.0,
 ) -> torch.Tensor:
     """Computes the single point frequencies of the input MSA.
     Args:
         data (torch.Tensor): One-hot encoded data array.
-        weights (torch.Tensor | None, optional): Weights of the sequences.
+        weights (Optional[torch.Tensor], optional): Weights of the sequences.
         pseudo_count (float, optional): Pseudo count to be added to the frequencies. Defaults to 0.0.
     
     Raises:
@@ -71,7 +71,7 @@ def _get_freq_two_points(
 
 def get_freq_two_points(
     data: torch.Tensor,
-    weights: torch.Tensor | None = None,
+    weights: Optional[torch.Tensor] = None,
     pseudo_count: float = 0.0,
 ) -> torch.Tensor:
     """
@@ -79,7 +79,7 @@ def get_freq_two_points(
 
     Args:
         data (torch.Tensor): One-hot encoded data array.
-        weights (torch.Tensor | None, optional): Array of weights to assign to the sequences of shape.
+        weights (Optional[torch.Tensor], optional): Array of weights to assign to the sequences of shape.
         pseudo_count (float, optional): Pseudo count for the single and two points statistics. Acts as a regularization. Defaults to 0.0.
     
     Raises:
@@ -118,7 +118,7 @@ def generate_unique_triplets(
     # Generate all possible unique triplets
     all_triplets = torch.tensor(list(itertools.combinations(range(L), 3)), device=device)
     # Shuffle the triplets to ensure randomness
-    shuffled_triplets = all_triplets[torch.randperm(all_triplets.size(0))]
+    shuffled_triplets = all_triplets[torch.randperm(all_triplets.size(0), device=device)]
     # Select the first ntriplets from the shuffled triplets
     selected_triplets = shuffled_triplets[:ntriplets]
     
@@ -157,7 +157,7 @@ def get_freq_three_points(
     nat: torch.Tensor,
     gen: torch.Tensor,
     ntriplets: int,
-    weights: torch.Tensor | None = None,
+    weights: Optional[torch.Tensor] = None,
     device: torch.device = torch.device("cpu"),
 ) -> Tuple[torch.Tensor, torch.Tensor]:
     """Computes the 3-body connected correlation statistics of the input MSAs.
@@ -166,7 +166,7 @@ def get_freq_three_points(
         nat (torch.Tensor): Input MSA representing natural data in one-hot encoding.
         gen (torch.Tensor): Input MSA representing generated data in one-hot encoding.
         ntriplets (int): Number of triplets to test.
-        weights (torch.Tensor | None, optional): Importance weights for the natural sequences. Defaults to None.
+        weights (Optional[torch.Tensor], optional): Importance weights for the natural sequences. Defaults to None.
         device (torch.device, optional): Device to perform computations on. Defaults to "cpu".
 
     Returns:
@@ -176,7 +176,8 @@ def get_freq_three_points(
         raise ValueError(f"Expected data to be a 3D tensor, but got {nat.dim()}D tensor instead")
     if gen.dim() != 3:
         raise ValueError(f"Expected data to be a 3D tensor, but got {gen.dim()}D tensor instead")
-    assert nat.shape[1] == gen.shape[1], f"The two MSAs must have the same length. Got {nat.shape[1]} and {gen.shape[1]}."
+    if nat.shape[1] != gen.shape[1]:
+        raise ValueError(f"The two MSAs must have the same length. Got {nat.shape[1]} and {gen.shape[1]}.")
     
     M_nat = len(nat)
     M_gen = len(gen)
@@ -199,7 +200,7 @@ def get_freq_three_points(
 
 def get_covariance_matrix(
     data: torch.Tensor,
-    weights: torch.Tensor | None = None,
+    weights: Optional[torch.Tensor] = None,
     pseudo_count: float = 0.0,
 ) -> torch.Tensor:
     """Computes the weighted covariance matrix of the input multi sequence alignment.
@@ -232,7 +233,7 @@ def extract_Cij_from_freq(
     pij: torch.Tensor,
     fi: torch.Tensor,
     pi: torch.Tensor,
-    mask: torch.Tensor | None = None,
+    mask: Optional[torch.Tensor] = None,
 ) -> Tuple[torch.Tensor, torch.Tensor]:
     """Extracts the lower triangular part of the covariance matrices of the natural data and generated data starting from the frequencies.
 
@@ -241,7 +242,7 @@ def extract_Cij_from_freq(
         pij (torch.Tensor): Two-point frequencies of the generated data.
         fi (torch.Tensor): Single-point frequencies of the natural data.
         pi (torch.Tensor): Single-point frequencies of the generated data.
-        mask (torch.Tensor | None, optional): Mask for comparing just a subset of the couplings. Defaults to None.
+        mask (Optional[torch.Tensor], optional): Mask for comparing just a subset of the couplings. Defaults to None.
 
     Returns:
         Tuple[torch.Tensor, torch.Tensor]: Extracted covariance matrix entries of the natural data and generated data.
@@ -268,9 +269,9 @@ def extract_Cij_from_freq(
 def extract_Cij_from_seqs(
     data: torch.Tensor,
     chains: torch.Tensor,
-    weights: torch.Tensor | None = None,
+    weights: Optional[torch.Tensor] = None,
     pseudo_count: float = 0.0,
-    mask: torch.Tensor | None = None,
+    mask: Optional[torch.Tensor] = None,
 ) -> Tuple[torch.Tensor, torch.Tensor]:
     """Extracts the lower triangular part of the covariance matrices of the natural data and generated data starting from the sequences.
 
@@ -297,7 +298,7 @@ def get_correlation_two_points(
     pij: torch.Tensor,
     fi: torch.Tensor,
     pi: torch.Tensor,
-    mask: torch.Tensor | None = None,
+    mask: Optional[torch.Tensor] = None,
 ) -> Tuple[float, float]:
     """Computes the Pearson coefficient and the slope between the two-point frequencies of data and chains.
 
@@ -306,7 +307,7 @@ def get_correlation_two_points(
         pij (torch.Tensor): Two-point frequencies of the generated data.
         fi (torch.Tensor): Single-point frequencies of the natural data.
         pi (torch.Tensor): Single-point frequencies of the generated data.
-        mask (torch.Tensor | None, optional): Mask to select the couplings to use for the correlation coefficient. Defaults to None. 
+        mask (Optional[torch.Tensor], optional): Mask to select the couplings to use for the correlation coefficient. Defaults to None. 
 
     Returns:
         Tuple[float, float]: Pearson correlation coefficient of the two-sites statistics and slope of the interpolating line.

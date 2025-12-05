@@ -1,12 +1,12 @@
 import numpy as np
 import torch
-from typing import Tuple, Dict
+from typing import Tuple, Dict, Optional
 from adabmDCA.stats import get_covariance_matrix
 
 
 def get_seqid(
     s1: torch.Tensor,
-    s2: torch.Tensor | None = None,
+    s2: Optional[torch.Tensor] = None,
 ) -> torch.Tensor:
     """
     Returns a tensor containing the sequence identities between two sets of one-hot encoded sequences.
@@ -15,8 +15,8 @@ def get_seqid(
     - If s2 is none, computes the sequence identity between s1 and a permutation of s1.
 
     Args:
-        s1 (torch.Tensor): One-hot encoded sequence dataset 1 of shape (batch_size, L, q).
-        s2 (torch.Tensor | None): One-hot encoded sequence dataset 2 of shape (batch_size, L, q) or (L, q). Defaults to None.
+        s1 (torch.Tensor): One-hot encoded sequence dataset 1 of shape (batch_size, L, q) or (L, q).
+        s2 (Optional[torch.Tensor]): One-hot encoded sequence dataset 2 of shape (batch_size, L, q) or (L, q). Defaults to None.
 
     Returns:
         torch.Tensor: Tensor of sequence identities.
@@ -24,7 +24,7 @@ def get_seqid(
     if len(s1.shape) == 2:
         s1 = s1.unsqueeze(0)
     if s2 is None:
-        s2 = s1[torch.randperm(s1.shape[0])]
+        s2 = s1[torch.randperm(s1.shape[0], device=s1.device)]
     if len(s2.shape) == 2:
         s2 = s2.unsqueeze(0)
         
@@ -37,7 +37,7 @@ def get_seqid(
 
 def get_seqid_stats(
     s1: torch.Tensor,
-    s2: torch.Tensor | None = None,
+    s2: Optional[torch.Tensor] = None,
 ) -> Tuple[torch.Tensor, torch.Tensor]:
     """
     - If s2 is provided, computes the mean and the standard deviation of the mean sequence identity between two sets of one-hot encoded sequences.
@@ -45,13 +45,13 @@ def get_seqid_stats(
     - If s2 is none, computes the mean and the standard deviation of the mean of the sequence identity between s1 and a permutation of s1.
 
     Args:
-        s1 (torch.Tensor): One-hot encoded sequence dataset 1 of shape (batch_size, L, q).
-        s2 (torch.Tensor | None): One-hot encoded sequence dataset 2 of shape (batch_size, L, q) or (L, q). Defaults to None.
+        s1 (torch.Tensor): One-hot encoded sequence dataset 1 of shape (batch_size, L, q) or (L, q).
+        s2 (Optional[torch.Tensor]): One-hot encoded sequence dataset 2 of shape (batch_size, L, q) or (L, q). Defaults to None.
 
     Returns:
         Tuple[torch.Tensor, torch.Tensor]:
             (torch.Tensor) Mean sequence identity
-            (torch.Tensor) Standard deviation of the mean.
+            (torch.Tensor) Standard deviation of the mean sequence identity.
     """
     seqids = get_seqid(s1, s2)
     if len(seqids) == 1:
@@ -70,10 +70,11 @@ def set_zerosum_gauge(params: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor
         params (Dict[str, torch.Tensor]): Parameters of the model.
         
     Returns:
-        Dict[str, torch.Tensor]:
+        Dict[str, torch.Tensor]: New dictionary with modified coupling matrix.
             "bias": torch.Tensor of shape (L, q)
             "coupling_matrix": torch.Tensor of shape (L, q, L, q)
     """
+    params = {key: value.clone() for key, value in params.items()}
     coupling_matrix = params["coupling_matrix"]
     coupling_matrix -= coupling_matrix.mean(dim=1, keepdim=True) + \
                        coupling_matrix.mean(dim=3, keepdim=True) - \
@@ -92,23 +93,28 @@ def get_contact_map(
     Computes the contact map from the model coupling matrix.
 
     Args:
-        params (Dict[str, torch.Tensor]): Model parameters.
-        tokens (str): Alphabet.
+        params (Dict[str, torch.Tensor]): Model parameters. Should contain:
+            - "coupling_matrix": torch.Tensor of shape (L, q, L, q)
+            - "bias": torch.Tensor of shape (L, q)
+        tokens (str): Alphabet to be used.
 
     Returns:
         np.ndarray: Contact map.
     """
     q = params["coupling_matrix"].shape[1]
+    device = params["coupling_matrix"].device
 
     # Zero-sum gauge  
     params = set_zerosum_gauge(params)
     
     # Get index of the gap symbol
+    if "-" not in tokens:
+        raise ValueError(f"Gap symbol '-' not found in alphabet: {tokens}")
     gap_idx = tokens.index("-")
     
     Jij = params["coupling_matrix"]
     # Take all the entries of the coupling matrix except where the gap is involved
-    mask = torch.arange(q) != gap_idx
+    mask = torch.arange(q, device=device) != gap_idx
     Jij_reduced = Jij[:, mask, :, :][:, :, :, mask]
 
     # Compute the Frobenius norm
@@ -126,15 +132,15 @@ def get_contact_map(
 def get_mf_contact_map(
     data: torch.Tensor,
     tokens: str,
-    weights: torch.Tensor | None = None
+    weights: Optional[torch.Tensor] = None
 ) -> np.ndarray:
     """
-    Computes the contact map from the model coupling matrix.
+    Computes the contact map using mean-field approximation from the data.
 
     Args:
         data (torch.Tensor): Input one-hot data tensor.
-        tokens (str): Alphabet.
-        weights (torch.Tensor | None): Weights for the data points. Defaults to None.
+        tokens (str): Alphabet to be used.
+        weights (Optional[torch.Tensor]): Weights for the data points. Defaults to None.
 
     Returns:
         np.ndarray: Contact map.
@@ -143,6 +149,8 @@ def get_mf_contact_map(
     dtype = data.dtype
     L, q = data.shape[1], data.shape[2]
     # Get index of the gap symbol
+    if "-" not in tokens:
+        raise ValueError(f"Gap symbol '-' not found in alphabet: {tokens}")
     gap_idx = tokens.index("-")
     
     # Compute the covariance matrix
@@ -159,7 +167,7 @@ def get_mf_contact_map(
     pcc = pcc.reshape(L, q, L, q)
     
     # Take all the entries of the coupling matrix except where the gap is involved
-    mask = torch.arange(q) != gap_idx
+    mask = torch.arange(q, device=device) != gap_idx
     pcc = pcc[:, mask, :, :][:, :, :, mask]
     
     # Compute the Frobenius norm

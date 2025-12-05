@@ -1,4 +1,3 @@
-import importlib
 import os
 import argparse
 import numpy as np
@@ -13,6 +12,13 @@ from adabmDCA.parser import add_args_train
 from adabmDCA.sampling import get_sampler
 from adabmDCA.checkpoint import Checkpoint
 from adabmDCA.graph import compute_density
+from adabmDCA.training import train_graph, train_eaDCA, train_edDCA
+
+ROUTINES = {
+    "bmDCA": train_graph,
+    "eaDCA": train_eaDCA,
+    "edDCA": train_edDCA,
+}
 
 
 # import command-line input arguments
@@ -129,7 +135,7 @@ def main():
         fi_test = None
         fij_test = None
     
-    DCA_model = importlib.import_module(f"adabmDCA.models.{args.model}")
+    training_routine = ROUTINES[args.model]
     tokens = get_tokens(args.alphabet)
     
     # Save the weights if not already provided
@@ -221,7 +227,7 @@ def main():
         use_wandb=args.wandb,
     )
 
-    DCA_model.fit(
+    training_routine(
         sampler=sampler,
         fij_target=fij_target,
         fi_target=fi_target,
@@ -235,7 +241,7 @@ def main():
         target_pearson=args.target,
         pseudo_count=args.pseudocount,
         nsweeps=args.nsweeps,
-        nepochs=args.nepochs,
+        max_epochs=args.nepochs,
         lr=args.lr,
         factivate=args.factivate,
         gsteps=args.gsteps,
@@ -244,14 +250,15 @@ def main():
         checkpoint=checkpoint,
     )
     
-    print("\n" + "=" * 80)
-    print("  TRAINING COMPLETED SUCCESSFULLY")
-    print("=" * 80)
-    print(f"\n  Results saved in: {folder}")
-    print(f"    \u2713 Parameters: {file_paths['params']}")
-    print(f"    \u2713 Chains:     {file_paths['chains']}")
-    print(f"    \u2713 Log file:   {file_paths['log']}")
-    print("\n" + "=" * 80 + "\n")
+    if args.model == "bmDCA":
+        print("\n" + "=" * 80)
+        print("  TRAINING COMPLETED SUCCESSFULLY")
+        print("=" * 80)
+        print(f"\n  Results saved in: {folder}")
+        print(f"    \u2713 Parameters: {file_paths['params']}")
+        print(f"    \u2713 Chains:     {file_paths['chains']}")
+        print(f"    \u2713 Log file:   {file_paths['log']}")
+        print("\n" + "=" * 80 + "\n")
     
     
 if __name__ == "__main__":

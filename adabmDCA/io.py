@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, Union, Optional, Tuple
 import pandas as pd
 import numpy as np
 
@@ -21,7 +21,7 @@ def load_chains(
     load_weights: bool = False,
     device: torch.device = torch.device("cpu"),
     dtype: torch.dtype = torch.float32,
-) -> tuple[torch.Tensor, ...]:
+) -> Tuple[torch.Tensor, ...]:
     """Loads the sequences from a fasta file and returns the one-hot encoded version.
     If the sequences are weighted, the log-weights are also returned. If the sequences are not weighted, the log-weights are set to 0.
     
@@ -33,13 +33,13 @@ def load_chains(
         dtype (torch.dtype, optional): Data type of the sequences. Defaults to torch.float32
     
     Return:
-        tuple[torch.Tensor, ...]: One-hot encoded sequences and log-weights if load_weights is True.
+        Tuple[torch.Tensor, ...]: One-hot encoded sequences and log-weights if load_weights is True.
     """
     def parse_header(header: str):
         h = header.split("|")
         if len(h) == 2:
-            log_weigth = float(h[1].split("=")[1])
-            return log_weigth
+            log_weight = float(h[1].split("=")[1])
+            return log_weight
         else:
             return 0.0
     
@@ -59,17 +59,17 @@ def load_chains(
 
 def save_chains(
     fname: str,
-    chains: list | np.ndarray | torch.Tensor,
+    chains: Union[list, np.ndarray, torch.Tensor],
     tokens: str,
-    log_weights: torch.Tensor | np.ndarray | None = None
+    log_weights: Union[torch.Tensor, np.ndarray, None] = None
 ) -> None:
     """Saves the chains in a fasta file.
 
     Args:
         fname (str): Path to the file where to save the chains.
-        chains (list | np.ndarray | torch.Tensor): Iterable with sequences in string, categorical or one-hot encoded format.
+        chains (Union[list, np.ndarray, torch.Tensor]): Iterable with sequences in string, categorical or one-hot encoded format.
         tokens (str): "protein", "dna", "rna" or another string with the alphabet to be used.
-        log_weights (torch.Tensor | None, optional): Log-weights of the chains. Defaults to None.
+        log_weights (Union[torch.Tensor, np.ndarray, None], optional): Log-weights of the chains. Defaults to None.
     """
     if log_weights is not None:
         if isinstance(log_weights, torch.Tensor):
@@ -84,9 +84,100 @@ def save_chains(
         remove_gaps=False,
         tokens=tokens,
     )
-    
-    
+
+
 def load_params(
+    fname: str,
+    tokens: str,
+    device: torch.device,
+    dtype: torch.dtype = torch.float32,
+) -> Dict[str, torch.Tensor]:
+    """Import the parameters of the model from a text file.
+
+    Args:
+        fname (str): Path of the file that stores the parameters.
+        tokens (str): "protein", "dna", "rna" or another string with a compatible alphabet to be used.
+        device (torch.device): Device where to store the parameters.
+        dtype (torch.dtype): Data type of the parameters. Defaults to torch.float32.
+
+    Returns:
+        Dict[str, torch.Tensor]: Parameters of the model.
+            - "bias": Tensor of shape (L, q) - local biases.
+            - "coupling_matrix": Tensor of shape (L, q, L, q) - coupling matrix.
+    """
+    with open(fname, 'r') as f:
+        lines = f.readlines()
+    
+    J_entries = []
+    h_entries = []
+    
+    for line in lines:
+        parts = line.strip().split()
+        if not parts:
+            continue
+        
+        if parts[0] == 'J':
+            # J idx0 idx1 aa0 aa1 value
+            J_entries.append({
+                'idx0': int(parts[1]),
+                'idx1': int(parts[2]),
+                'aa0': parts[3],
+                'aa1': parts[4],
+                'val': float(parts[5])
+            })
+        elif parts[0] == 'h':
+            # h idx aa value
+            h_entries.append({
+                'idx0': int(parts[1]),
+                'aa': parts[2],
+                'val': float(parts[3])
+            })
+    
+    df_J = pd.DataFrame(J_entries)
+    df_h = pd.DataFrame(h_entries)
+    
+    # Convert tokens to numeric encoding
+    tokens = get_tokens(tokens)
+    validate_alphabet(df_h["aa"].to_numpy(), tokens=tokens)
+    token_to_idx = {token: idx for idx, token in enumerate(tokens)}
+
+    df_J["idx2"] = df_J["aa0"].map(token_to_idx).astype(int)
+    df_J["idx3"] = df_J["aa1"].map(token_to_idx).astype(int)
+    df_h["idx1"] = df_h["aa"].map(token_to_idx).astype(int)
+    
+    h_idx0 = df_h["idx0"].to_numpy(dtype=np.int64)
+    h_idx1 = df_h["idx1"].to_numpy(dtype=np.int64)
+    h_val = df_h["val"].to_numpy(dtype=np.float64)
+    
+    J_idx0 = df_J["idx0"].to_numpy(dtype=np.int64)
+    J_idx1 = df_J["idx1"].to_numpy(dtype=np.int64)
+    J_idx2 = df_J["idx2"].to_numpy(dtype=np.int64)
+    J_idx3 = df_J["idx3"].to_numpy(dtype=np.int64)
+    J_val = df_J["val"].to_numpy(dtype=np.float64)
+    
+    L = max(h_idx0.max(), J_idx0.max(), J_idx1.max()) + 1
+    q = len(tokens)
+    
+    h = np.zeros((L, q), dtype=np.float64)
+    h[h_idx0, h_idx1] = h_val
+    
+    J = np.zeros((L, L, q, q), dtype=np.float64)
+    J[J_idx0, J_idx1, J_idx2, J_idx3] = J_val
+    
+    # Symmetrize (since only upper triangular is saved)
+    J = J + J.transpose(1, 0, 3, 2)
+    
+    # Reshape to (L, q, L, q) format
+    J = J.transpose(0, 2, 1, 3)
+    
+    # Convert to torch tensors
+    return {
+        "bias": torch.tensor(h, dtype=dtype, device=device),
+        "coupling_matrix": torch.tensor(J, dtype=dtype, device=device),
+    }
+    
+    
+def load_params_old(
     fname: str,
     tokens: str,
     device: torch.device,
@@ -105,6 +196,13 @@ def load_params(
             - "bias": Tensor of shape (L, q) - local biases.
             - "coupling_matrix": Tensor of shape (L, q, L, q) - coupling matrix.
     """
+    # deprecation warning
+    import warnings
+    warnings.warn(
+        "load_params_old is deprecated and will be removed in a future version. "
+        "Please use load_params instead.",
+        DeprecationWarning
+    )
     
     param_labels = pd.read_csv(fname, sep=" ", usecols=[0,]).to_numpy()
     skiprows = (param_labels == "J").sum() + 1
@@ -163,7 +261,7 @@ def save_params(
     fname: str,
     params: Dict[str, torch.Tensor],
     tokens: str,
-    mask: torch.Tensor | None = None,
+    mask: Optional[torch.Tensor] = None,
 ) -> None:
     """Saves the parameters of the model in a file.
 
@@ -173,7 +271,7 @@ def save_params(
             - "bias": Tensor of shape (L, q) - local biases.
             - "coupling_matrix": Tensor of shape (L, q, L, q) - coupling matrix.
         tokens (str): "protein", "dna", "rna" or another string with a compatible alphabet to be used.
-        mask (torch.Tensor | None): Tensor of shape (L, q, L, q) - Mask of the coupling matrix that determines which are the non-zero entries.
+        mask (Optional[torch.Tensor]): Tensor of shape (L, q, L, q) - Mask of the coupling matrix that determines which are the non-zero entries.
             If None, the lower-triangular part of the coupling matrix is masked. Defaults to None.
     """
     tokens = get_tokens(tokens)
@@ -266,7 +364,7 @@ def load_params_oldformat(
 def save_params_oldformat(
     fname: str,
     params: Dict[str, torch.Tensor],
-    mask: torch.Tensor | None = None,
+    mask: Optional[torch.Tensor] = None,
 ) -> None:
     """Saves the parameters of the model in a file. Assumes the old DCA format.
 
@@ -275,7 +373,7 @@ def save_params_oldformat(
         params (Dict[str, torch.Tensor]): Parameters of the model.
             - "bias": Tensor of shape (L, q) - local biases.
             - "coupling_matrix": Tensor of shape (L, q, L, q) - coupling matrix.
-        mask (torch.Tensor): Tensor of shape (L, q, L, q) - Mask of the coupling matrix that determines which are the non-zero entries.
+        mask (Optional[torch.Tensor]): Tensor of shape (L, q, L, q) - Mask of the coupling matrix that determines which are the non-zero entries.
             If None, the lower-triangular part of the coupling matrix is masked. Defaults to None.
     """
     L, q = params["bias"].shape

@@ -4,6 +4,32 @@ import torch
 from torch.nn.functional import one_hot
 
 
+def sampling_profile(
+    params: Dict[str, torch.Tensor],
+    nsamples: int,
+    beta: float,
+) -> torch.Tensor:
+    """Samples from the profile model defined by the local biases only.
+    
+    Args:
+        params (Dict[str, torch.Tensor]): Parameters of the model.
+            - "bias": Tensor of shape (L, q) - local biases.
+        nsamples (int): Number of samples to generate.
+        beta (float): Inverse temperature.
+        
+    Returns:
+        torch.Tensor: Sampled one-hot encoded sequences of shape (nsamples, L, q).
+    """
+    L, q = params["bias"].shape
+    device = params["bias"].device
+    dtype = params["bias"].dtype
+    logits = beta * params["bias"].unsqueeze(0).expand(nsamples, -1, -1)  # Shape: (nsamples, L, q)
+    sampled_indices = torch.multinomial(torch.softmax(logits.view(-1, q), dim=-1), num_samples=1).squeeze(-1)
+    sampled_sequences = one_hot(sampled_indices, num_classes=q).view(nsamples, L, q).to(dtype).to(device)
+    
+    return sampled_sequences
+
+
 def gibbs_step_uniform_sites(
     chains: torch.Tensor,
     params: Dict[str, torch.Tensor],
@@ -200,7 +226,7 @@ def metropolis_sampling(
     L = params["bias"].shape[0]
     chains_mutate = chains.clone() # avoids to modify the chains inplace
     num_steps = nsweeps * L
-    for _ in range(num_steps):
+    for _ in torch.arange(num_steps):
         chains_mutate = metropolis_step_uniform_sites(chains_mutate, params, beta)
 
     return chains_mutate
