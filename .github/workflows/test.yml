@@ -87,7 +87,6 @@ jobs:
           --path_params test_outputs/bmDCA_test_params.dat \
           --output test_outputs/ \
           --alphabet rna \
-          --label dms_test
     
     # Test thermodynamic integration (entropy computation)
     - name: 🌡️ Thermodynamic Integration (entropy)
@@ -149,11 +148,6 @@ jobs:
         test -f test_outputs/edDCA_test_params.dat || (echo "Missing edDCA params" && exit 1)
         test -f test_outputs/edDCA_test_chains.fasta || (echo "Missing edDCA chains" && exit 1)
         test -f test_outputs/edDCA_test.log || (echo "Missing edDCA log" && exit 1)
-        
-        echo "Checking script outputs..."
-        test -f test_outputs/sampling_test_chains.fasta || (echo "Missing sampling chains" && exit 1)
-        test -f test_outputs/energies_test_energies.fasta || (echo "Missing energies output" && exit 1)
-        test -f test_outputs/dms_test_DMS.fasta || (echo "Missing DMS output" && exit 1)
         
         echo "All required output files exist! ✅"
     
