@@ -70,7 +70,9 @@ train_graph(
     checkpoint: Optional[Checkpoint] = None,
     check_slope: bool = False,
     log_weights: Optional[Tensor] = None,
-    progress_bar: bool = True
+    progress_bar: bool = True,
+    *args,
+    **kwargs
 ) → Tuple[Tensor, Dict[str, Tensor], Tensor, Dict[str, List[float]]]
 ```
 
@@ -106,7 +108,7 @@ Trains the model on a given graph until the target Pearson correlation is reache
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training.py#L250"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training.py#L251"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `train_eaDCA`
 
@@ -161,7 +163,7 @@ Fits an eaDCA model on the training data and saves the results in a file.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training.py#L472"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training.py#L473"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `train_edDCA`
 
