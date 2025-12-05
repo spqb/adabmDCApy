@@ -1,0 +1,1112 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../script_arguments/">
+      
+      
+        <link rel="next" href="adabmDCA.fasta/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.0">
+    
+    
+      
+        <title>Overview - adabmDCApy</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.618322db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#api-overview" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="adabmDCApy" class="md-header__button md-logo" aria-label="adabmDCApy" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            adabmDCApy
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Overview
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="adabmDCApy" class="md-nav__button md-logo" aria-label="adabmDCApy" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    adabmDCApy
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../preprocessing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Input data and preprocessing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../training/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Training
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../applications/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Applications
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../quicklist/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quicklist
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../script_arguments/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Script arguments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python APIs
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Python APIs
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#modules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Modules
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#classes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Classes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Functions
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="adabmDCA.fasta/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Fasta utils
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="adabmDCA.stats/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Compute statistics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="adabmDCA.dca/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DCA utils
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="adabmDCA.io/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Import and export
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="adabmDCA.sampling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sampling functions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="adabmDCA.utils/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Utilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="adabmDCA.dataset/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dataset class
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="adabmDCA.statmech/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Statistical mechanics functions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="adabmDCA.cobalt/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Train/test split
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="adabmDCA.training/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Training functions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="adabmDCA.functional/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Special functions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="adabmDCA.plot/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Helper functions for plotting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#modules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Modules
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#classes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Classes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Functions
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<!-- markdownlint-disable -->
+
+<h1 id="api-overview">API Overview</h1>
+<h2 id="modules">Modules</h2>
+<ul>
+<li><a href="adabmDCA.checkpoint/#module-adabmdcacheckpoint"><code>adabmDCA.checkpoint</code></a></li>
+<li><a href="adabmDCA.cobalt/#module-adabmdcacobalt"><code>adabmDCA.cobalt</code></a></li>
+<li><a href="adabmDCA.dataset/#module-adabmdcadataset"><code>adabmDCA.dataset</code></a></li>
+<li><a href="adabmDCA.dca/#module-adabmdcadca"><code>adabmDCA.dca</code></a></li>
+<li><a href="adabmDCA.fasta/#module-adabmdcafasta"><code>adabmDCA.fasta</code></a></li>
+<li><a href="adabmDCA.functional/#module-adabmdcafunctional"><code>adabmDCA.functional</code></a></li>
+<li><a href="adabmDCA.graph/#module-adabmdcagraph"><code>adabmDCA.graph</code></a></li>
+<li><a href="adabmDCA.io/#module-adabmdcaio"><code>adabmDCA.io</code></a></li>
+<li><a href="adabmDCA.plot/#module-adabmdcaplot"><code>adabmDCA.plot</code></a></li>
+<li><a href="adabmDCA.resampling/#module-adabmdcaresampling"><code>adabmDCA.resampling</code></a></li>
+<li><a href="adabmDCA.sampling/#module-adabmdcasampling"><code>adabmDCA.sampling</code></a></li>
+<li><a href="adabmDCA.statmech/#module-adabmdcastatmech"><code>adabmDCA.statmech</code></a></li>
+<li><a href="adabmDCA.stats/#module-adabmdcastats"><code>adabmDCA.stats</code></a></li>
+<li><a href="adabmDCA.training/#module-adabmdcatraining"><code>adabmDCA.training</code></a></li>
+<li><a href="adabmDCA.utils/#module-adabmdcautils"><code>adabmDCA.utils</code></a></li>
+</ul>
+<h2 id="classes">Classes</h2>
+<ul>
+<li><a href="adabmDCA.checkpoint/#class-checkpoint"><code>checkpoint.Checkpoint</code></a>: Helper class to save the model's parameters and chains at regular intervals during training and to log the</li>
+<li><a href="adabmDCA.dataset/#class-datasetdca"><code>dataset.DatasetDCA</code></a>: Dataset class for handling multi-sequence alignments data.</li>
+</ul>
+<h2 id="functions">Functions</h2>
+<ul>
+<li><a href="adabmDCA.cobalt/#function-prune_redundant_sequences"><code>cobalt.prune_redundant_sequences</code></a>: Prunes sequences from X such that no sequence has more than 'seqid_th' fraction of its residues identical to any other sequence in the set.</li>
+<li><a href="adabmDCA.cobalt/#function-run_cobalt"><code>cobalt.run_cobalt</code></a>: Runs the Cobalt algorithm to split the input MSA into training and test sets.</li>
+<li><a href="adabmDCA.cobalt/#function-split_train_test"><code>cobalt.split_train_test</code></a>: Splits X into two sets, T and S, such that no sequence in S has more than</li>
+<li><a href="adabmDCA.dca/#function-get_contact_map"><code>dca.get_contact_map</code></a>: Computes the contact map from the model coupling matrix.</li>
+<li><a href="adabmDCA.dca/#function-get_mf_contact_map"><code>dca.get_mf_contact_map</code></a>: Computes the contact map using mean-field approximation from the data.</li>
+<li><a href="adabmDCA.dca/#function-get_seqid"><code>dca.get_seqid</code></a>: Returns a tensor containing the sequence identities between two sets of one-hot encoded sequences.</li>
+<li><a href="adabmDCA.dca/#function-get_seqid_stats"><code>dca.get_seqid_stats</code></a>: - If s2 is provided, computes the mean and the standard deviation of the mean sequence identity between two sets of one-hot encoded sequences.</li>
+<li><a href="adabmDCA.dca/#function-set_zerosum_gauge"><code>dca.set_zerosum_gauge</code></a>: Sets the zero-sum gauge on the coupling matrix.</li>
+<li><a href="adabmDCA.fasta/#function-compute_weights"><code>fasta.compute_weights</code></a>: Computes the weight to be assigned to each sequence 's' in 'data' as 1 / n_clust, where 'n_clust' is the number of sequences</li>
+<li><a href="adabmDCA.fasta/#function-decode_sequence"><code>fasta.decode_sequence</code></a>: Takes a numeric sequence or list of seqences in input an returns the corresponding string encoding.</li>
+<li><a href="adabmDCA.fasta/#function-encode_sequence"><code>fasta.encode_sequence</code></a>: Encodes a sequence or a list of sequences into a numeric format.</li>
+<li><a href="adabmDCA.fasta/#function-get_tokens"><code>fasta.get_tokens</code></a>: Converts a known alphabet into the corresponding tokens, otherwise returns the custom alphabet.</li>
+<li><a href="adabmDCA.fasta/#function-import_from_fasta"><code>fasta.import_from_fasta</code></a>: Import sequences from a fasta or compressed fasta (.fas.gz) file. The following operations are performed:</li>
+<li><a href="adabmDCA.fasta/#function-validate_alphabet"><code>fasta.validate_alphabet</code></a>: Check if the chosen alphabet is compatible with the input sequences.</li>
+<li><a href="adabmDCA.fasta/#function-write_fasta"><code>fasta.write_fasta</code></a>: Generate a fasta file with the input sequences.</li>
+<li><a href="adabmDCA.functional/#function-one_hot"><code>functional.one_hot</code></a>: A fast one-hot encoding function faster than the PyTorch one working with torch.int32 and returning a float Tensor.</li>
+<li><a href="adabmDCA.graph/#function-decimate_graph"><code>graph.decimate_graph</code></a>: Performs one decimation step and updates the parameters and mask.</li>
+<li><a href="adabmDCA.graph/#function-update_mask_activation"><code>graph.update_mask_activation</code></a>: Updates the mask by removing the nactivate couplings with the smallest Dkl.</li>
+<li><a href="adabmDCA.graph/#function-update_mask_decimation"><code>graph.update_mask_decimation</code></a>: Updates the mask by removing the n_remove couplings with the smallest Dkl.</li>
+<li><a href="adabmDCA.io/#function-load_chains"><code>io.load_chains</code></a>: Loads the sequences from a fasta file and returns the one-hot encoded version.</li>
+<li><a href="adabmDCA.io/#function-load_params"><code>io.load_params</code></a>: Import the parameters of the model from a text file.</li>
+<li><a href="adabmDCA.io/#function-load_params_old"><code>io.load_params_old</code></a>: Import the parameters of the model from a file.</li>
+<li><a href="adabmDCA.io/#function-load_params_oldformat"><code>io.load_params_oldformat</code></a>: Import the parameters of the model from a file. Assumes the old DCA format.</li>
+<li><a href="adabmDCA.io/#function-save_chains"><code>io.save_chains</code></a>: Saves the chains in a fasta file.</li>
+<li><a href="adabmDCA.io/#function-save_params"><code>io.save_params</code></a>: Saves the parameters of the model in a file.</li>
+<li><a href="adabmDCA.io/#function-save_params_oldformat"><code>io.save_params_oldformat</code></a>: Saves the parameters of the model in a file. Assumes the old DCA format.</li>
+<li><a href="adabmDCA.plot/#function-plot_pca"><code>plot.plot_PCA</code></a>: Makes the scatter plot of the components (pc1, pc2) of the input data and shows the histograms of the components.</li>
+<li><a href="adabmDCA.plot/#function-plot_autocorrelation"><code>plot.plot_autocorrelation</code></a>: Plots the time-autocorrelation curve of the sequence identity and the generated and data sequence identities.</li>
+<li><a href="adabmDCA.plot/#function-plot_contact_map"><code>plot.plot_contact_map</code></a>: Plots the contact map.</li>
+<li><a href="adabmDCA.plot/#function-plot_pearson_sampling"><code>plot.plot_pearson_sampling</code></a>: Plots the Pearson correlation coefficient over sampling time.</li>
+<li><a href="adabmDCA.plot/#function-plot_scatter_correlations"><code>plot.plot_scatter_correlations</code></a>: Plots the scatter plot of the data and generated Cij and Cijk values.</li>
+<li><a href="adabmDCA.resampling/#function-compute_mixing_time"><code>resampling.compute_mixing_time</code></a>: Computes the mixing time using the t and t/2 method. The sampling will halt when the mixing time is reached or</li>
+<li><a href="adabmDCA.sampling/#function-get_sampler"><code>sampling.get_sampler</code></a>: Returns the sampling function corresponding to the chosen method.</li>
+<li><a href="adabmDCA.sampling/#function-gibbs_sampling"><code>sampling.gibbs_sampling</code></a>: Gibbs sampling. Attempts L * nsweeps mutations to each sequence in 'chains'.</li>
+<li><a href="adabmDCA.sampling/#function-gibbs_step_independent_sites"><code>sampling.gibbs_step_independent_sites</code></a>: Performs a single mutation using the Gibbs sampler. This version selects different random sites for each chain. It is</li>
+<li><a href="adabmDCA.sampling/#function-gibbs_step_uniform_sites"><code>sampling.gibbs_step_uniform_sites</code></a>: Performs a single mutation using the Gibbs sampler. In this version, the mutation is attempted at the same sites for all chains.</li>
+<li><a href="adabmDCA.sampling/#function-metropolis_sampling"><code>sampling.metropolis_sampling</code></a>: Metropolis sampling. Attempts L * nsweeps mutations to each sequence in 'chains'.</li>
+<li><a href="adabmDCA.sampling/#function-metropolis_step_independent_sites"><code>sampling.metropolis_step_independent_sites</code></a>: Performs a single mutation using the Metropolis sampler. This version selects different random sites for each chain. It is</li>
+<li><a href="adabmDCA.sampling/#function-metropolis_step_uniform_sites"><code>sampling.metropolis_step_uniform_sites</code></a>: Performs a single mutation using the Metropolis sampler. In this version, the mutation is attempted at the same sites for all chains.</li>
+<li><a href="adabmDCA.sampling/#function-sampling_profile"><code>sampling.sampling_profile</code></a>: Samples from the profile model defined by the local biases only.</li>
+<li><a href="adabmDCA.statmech/#function-compute_energy"><code>statmech.compute_energy</code></a>: Compute the DCA energy for a batch of sequences.</li>
+<li><a href="adabmDCA.statmech/#function-compute_entropy"><code>statmech.compute_entropy</code></a>: Compute the entropy of the DCA model.</li>
+<li><a href="adabmDCA.statmech/#function-compute_logz_exact"><code>statmech.compute_logZ_exact</code></a>: Compute the log-partition function of the model.</li>
+<li><a href="adabmDCA.statmech/#function-compute_log_likelihood"><code>statmech.compute_log_likelihood</code></a>: Compute the log-likelihood of the model.</li>
+<li><a href="adabmDCA.statmech/#function-enumerate_states"><code>statmech.enumerate_states</code></a>: Enumerate all possible states of a system of L sites and q states.</li>
+<li><a href="adabmDCA.statmech/#function-iterate_tap"><code>statmech.iterate_tap</code></a>: Iterates the TAP equations until convergence.</li>
+<li><a href="adabmDCA.stats/#function-extract_cij_from_freq"><code>stats.extract_Cij_from_freq</code></a>: Extracts the lower triangular part of the covariance matrices of the natural data and generated data starting from the frequencies.</li>
+<li><a href="adabmDCA.stats/#function-extract_cij_from_seqs"><code>stats.extract_Cij_from_seqs</code></a>: Extracts the lower triangular part of the covariance matrices of the natural data and generated data starting from the sequences.</li>
+<li><a href="adabmDCA.stats/#function-generate_unique_triplets"><code>stats.generate_unique_triplets</code></a>: Generates a set of unique triplets of positions. Used to compute the 3-points statistics.</li>
+<li><a href="adabmDCA.stats/#function-get_correlation_two_points"><code>stats.get_correlation_two_points</code></a>: Computes the Pearson coefficient and the slope between the two-point frequencies of data and chains.</li>
+<li><a href="adabmDCA.stats/#function-get_covariance_matrix"><code>stats.get_covariance_matrix</code></a>: Computes the weighted covariance matrix of the input multi sequence alignment.</li>
+<li><a href="adabmDCA.stats/#function-get_freq_single_point"><code>stats.get_freq_single_point</code></a>: Computes the single point frequencies of the input MSA.</li>
+<li><a href="adabmDCA.stats/#function-get_freq_three_points"><code>stats.get_freq_three_points</code></a>: Computes the 3-body connected correlation statistics of the input MSAs.</li>
+<li><a href="adabmDCA.stats/#function-get_freq_two_points"><code>stats.get_freq_two_points</code></a>: Computes the 2-points statistics of the input MSA.</li>
+<li><a href="adabmDCA.training/#function-train_eadca"><code>training.train_eaDCA</code></a>: Fits an eaDCA model on the training data and saves the results in a file.</li>
+<li><a href="adabmDCA.training/#function-train_eddca"><code>training.train_edDCA</code></a>: Fits an edDCA model on the training data and saves the results in a file.</li>
+<li><a href="adabmDCA.training/#function-train_graph"><code>training.train_graph</code></a>: Trains the model on a given graph until the target Pearson correlation is reached or the maximum number of epochs is exceeded.</li>
+<li><a href="adabmDCA.training/#function-update_params"><code>training.update_params</code></a>: Updates the parameters of the model.</li>
+<li><a href="adabmDCA.utils/#function-get_device"><code>utils.get_device</code></a>: Returns the device where to store the tensors.</li>
+<li><a href="adabmDCA.utils/#function-get_dtype"><code>utils.get_dtype</code></a>: Returns the data type of the tensors.</li>
+<li><a href="adabmDCA.utils/#function-get_mask_save"><code>utils.get_mask_save</code></a>: Returns the mask to save the upper-triangular part of the coupling matrix.</li>
+<li><a href="adabmDCA.utils/#function-init_chains"><code>utils.init_chains</code></a>: Initialize the Markov chains of the DCA model. If 'fi' is provided, the chains are sampled from the</li>
+<li><a href="adabmDCA.utils/#function-init_parameters"><code>utils.init_parameters</code></a>: Initialize the parameters of the DCA model. The bias terms are initialized</li>
+<li><a href="adabmDCA.utils/#function-resample_sequences"><code>utils.resample_sequences</code></a>: Extracts nextract sequences from data with replacement according to the weights.</li>
+</ul>
+<hr />
+<p><em>This file was automatically generated via <a href="https://github.com/ml-tooling/lazydocs">lazydocs</a>.</em></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["content.code.annotate", "content.tabs.link"], "search": "../assets/javascripts/workers/search.7a47a382.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.e71a0d61.min.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>
