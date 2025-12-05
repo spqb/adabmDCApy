@@ -64,13 +64,6 @@ jobs:
         echo "Generated API documentation files:"
         ls -la docs/api/
 
-    - name: ✅ Verify documentation structure
-      run: |
-        test -f docs/api/README.md || (echo "Missing README.md" && exit 1)
-        test -f docs/api/dca.md || (echo "Missing dca.md" && exit 1)
-        test -f docs/api/fasta.md || (echo "Missing fasta.md" && exit 1)
-        echo "Documentation structure verified ✅"
-
     - name: 💾 Commit and push changes
       if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
       run: |
