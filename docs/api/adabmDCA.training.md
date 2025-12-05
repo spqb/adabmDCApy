@@ -58,8 +58,8 @@ train_graph(
     sampler: Callable,
     chains: Tensor,
     mask: Tensor,
-    fi: Tensor,
-    fij: Tensor,
+    fi_target: Tensor,
+    fij_target: Tensor,
     params: Dict[str, Tensor],
     nsweeps: int,
     lr: float,
@@ -83,8 +83,8 @@ Trains the model on a given graph until the target Pearson correlation is reache
  - <b>`sampler`</b> (Callable):  Sampling function. 
  - <b>`chains`</b> (torch.Tensor):  Markov chains simulated with the model. 
  - <b>`mask`</b> (torch.Tensor):  Mask encoding the sparse graph. 
- - <b>`fi`</b> (torch.Tensor):  Single-point frequencies of the data. 
- - <b>`fij`</b> (torch.Tensor):  Two-point frequencies of the data. 
+ - <b>`fi_target`</b> (torch.Tensor):  Single-point frequencies of the data. 
+ - <b>`fij_target`</b> (torch.Tensor):  Two-point frequencies of the data. 
  - <b>`params`</b> (Dict[str, torch.Tensor]):  Parameters of the model. 
  - <b>`nsweeps`</b> (int):  Number of Gibbs steps for each gradient estimation. 
  - <b>`lr`</b> (float):  Learning rate. 
