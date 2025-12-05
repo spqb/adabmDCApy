@@ -498,7 +498,7 @@ def train_edDCA(
     target_pearson: float,
     target_density: float,
     drate: float,
-    checkpoint: Checkpoint,
+    checkpoint: Optional[Checkpoint] = None,
     fi_test: Optional[torch.Tensor] = None,
     fij_test: Optional[torch.Tensor] = None,
     *args, **kwargs,
@@ -518,7 +518,7 @@ def train_edDCA(
         target_pearson (float): Pearson correlation coefficient on the two-points statistics to be reached.
         target_density (float): Target density of the coupling matrix.
         drate (float): Percentage of active couplings to be pruned at each decimation step.
-        checkpoint (Checkpoint): Checkpoint class to be used to save the model.
+        checkpoint (Optional[Checkpoint], optional): Checkpoint class to be used to save the model. Defaults to None.
         fi_test (Optional[torch.Tensor], optional): Single-point frequencies of the test data. Defaults to None.
         fij_test (Optional[torch.Tensor], optional): Two-point frequencies of the test data. Defaults to None.
     
@@ -568,26 +568,28 @@ def train_edDCA(
         pij = get_freq_two_points(data=chains)
         pearson, _ = get_correlation_two_points(fi=fi_target, pi=pi, fij=fij_target, pij=pij)
         # Save the equilibrated parameters
-        checkpoint.save(
-            params=params,
-            mask=mask,
-            chains=chains,
-            log_weights=log_weights,
-        )
-        print("  ✓ Equilibrated model saved")
+        if checkpoint is not None:
+            checkpoint.save(
+                params=params,
+                mask=mask,
+                chains=chains,
+                log_weights=log_weights,
+            )
+            print("  ✓ Equilibrated model saved")
     print("  Current Pearson correlation: {:.4f}".format(pearson))
     
     # Mask for saving only the upper-diagonal matrix
     mask_save = get_mask_save(L, q, device=device)
     
+    if checkpoint is not None:
     # Filenames for the decimated parameters and chains
-    parent, name = os.path.dirname(checkpoint.file_paths["params"]), os.path.basename(checkpoint.file_paths["params"])
-    new_name = name.replace(".dat", "_dec.dat")
-    checkpoint.file_paths["params_dec"] = os.path.join(parent, new_name)
+        parent, name = os.path.dirname(checkpoint.file_paths["params"]), os.path.basename(checkpoint.file_paths["params"])
+        new_name = name.replace(".dat", "_dec.dat")
+        checkpoint.file_paths["params_dec"] = os.path.join(parent, new_name)
     
-    name = os.path.basename(checkpoint.file_paths["chains"])
-    new_name = name.replace(".fasta", "_dec.fasta")
-    checkpoint.file_paths["chains_dec"] = os.path.join(parent, new_name)
+        name = os.path.basename(checkpoint.file_paths["chains"])
+        new_name = name.replace(".fasta", "_dec.fasta")
+        checkpoint.file_paths["chains_dec"] = os.path.join(parent, new_name)
     
     print("\n" + "-" * 80)
     print("[DECIMATION PHASE]")
@@ -597,21 +599,23 @@ def train_edDCA(
     initial_density = compute_density(mask)
     print(f"  Initial density: {initial_density:.3f}")
     print("-" * 80)
-    with open(checkpoint.file_paths["log"], "a") as f:
-        f.write("\nDecimation\n")
-        template = "{0:<20} {1:<50}\n"
-        f.write(template.format("Target density:", target_density))
-        f.write(template.format("Decimation rate:", drate))
-        f.write("\n")
-        header_string = " ".join([f"{key:<10}" for key in checkpoint.logs.keys()])
-        f.write("{0:<10} {1}\n".format("Epoch", header_string))
+    if checkpoint is not None:
+        with open(checkpoint.file_paths["log"], "a") as f:
+            f.write("\nDecimation\n")
+            template = "{0:<20} {1:<50}\n"
+            f.write(template.format("Target density:", target_density))
+            f.write(template.format("Decimation rate:", drate))
+            f.write("\n")
+            header_string = " ".join([f"{key:<10}" for key in checkpoint.logs.keys()])
+            f.write("{0:<10} {1}\n".format("Epoch", header_string))
         
     # Template for writing the results
     print("\n  {0:<8} {1:>12} {2:>12} {3:>12} {4:>12}".format("Step", "Density", "Log-Like", "Pearson", "Slope"))
     print("  " + "-" * 60)
     density = compute_density(mask)
     count = 0
-    checkpoint.checkpt_interval = 10
+    if checkpoint is not None:
+        checkpoint.checkpt_interval = 10
     
     history = {
         "epochs": [],
@@ -689,7 +693,7 @@ def train_edDCA(
         history["pearson"].append(float(pearson))
         history["slope"].append(float(slope))
                 
-        if checkpoint.check(count):
+        if checkpoint is not None and checkpoint.check(count):
             entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
             ess = _compute_ess(log_weights)
             checkpoint.log(
@@ -719,11 +723,12 @@ def train_edDCA(
     
     entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
     ess = _compute_ess(log_weights)
-    checkpoint.log(
-        {
-            "Epochs": count,
-            "Pearson": pearson,
-            "Slope": slope,
+    if checkpoint is not None:
+        checkpoint.log(
+            {
+                "Epochs": count,
+                "Pearson": pearson,
+                "Slope": slope,
             "LL_train": log_likelihood,
             "ESS": ess,
             "Entropy": entropy,
@@ -731,18 +736,19 @@ def train_edDCA(
             "Time": time.time() - time_start,
         }
     )
-    if fi_test is not None and fij_test is not None:
-        log_likelihood_test = compute_log_likelihood(fi=fi_test, fij=fij_test, params=params, logZ=logZ)
-        checkpoint.log({"LL_test": log_likelihood_test})
-    else:
-        checkpoint.log({"LL_test": float("nan")})
-                
-    checkpoint.save(
-        params=params,
-        mask=torch.logical_and(mask, mask_save),
-        chains=chains,
-        log_weights=log_weights,
-    )
+    if checkpoint is not None:
+        if fi_test is not None and fij_test is not None:
+            log_likelihood_test = compute_log_likelihood(fi=fi_test, fij=fij_test, params=params, logZ=logZ)
+            checkpoint.log({"LL_test": log_likelihood_test})
+        else:
+            checkpoint.log({"LL_test": float("nan")})
+                    
+        checkpoint.save(
+            params=params,
+            mask=torch.logical_and(mask, mask_save),
+            chains=chains,
+            log_weights=log_weights,
+        )
     
     print("\n" + "-" * 80)
     print("  DECIMATION COMPLETED")
@@ -751,9 +757,10 @@ def train_edDCA(
     print(f"  Final Pearson: {pearson:.4f}")
     print(f"  Final log-likelihood: {log_likelihood:.3f}")
     print(f"  Total decimation steps: {count}")
-    print(f"\n  Decimated model saved:")
-    print(f"    • Parameters: {checkpoint.file_paths['params_dec']}")
-    print(f"    • Chains:     {checkpoint.file_paths['chains_dec']}")
-    print("-" * 80)
+    if checkpoint is not None:
+        print(f"\n  Decimated model saved:")
+        print(f"    • Parameters: {checkpoint.file_paths['params_dec']}")
+        print(f"    • Chains:     {checkpoint.file_paths['chains_dec']}")
+        print("-" * 80)
     
     return chains, params, log_weights, history

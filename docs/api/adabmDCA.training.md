@@ -187,7 +187,7 @@ train_edDCA(
     target_pearson: float,
     target_density: float,
     drate: float,
-    checkpoint: Checkpoint,
+    checkpoint: Optional[Checkpoint] = None,
     fi_test: Optional[Tensor] = None,
     fij_test: Optional[Tensor] = None,
     *args,
@@ -213,7 +213,7 @@ Fits an edDCA model on the training data and saves the results in a file.
  - <b>`target_pearson`</b> (float):  Pearson correlation coefficient on the two-points statistics to be reached. 
  - <b>`target_density`</b> (float):  Target density of the coupling matrix. 
  - <b>`drate`</b> (float):  Percentage of active couplings to be pruned at each decimation step. 
- - <b>`checkpoint`</b> (Checkpoint):  Checkpoint class to be used to save the model. 
+ - <b>`checkpoint`</b> (Optional[Checkpoint], optional):  Checkpoint class to be used to save the model. Defaults to None. 
  - <b>`fi_test`</b> (Optional[torch.Tensor], optional):  Single-point frequencies of the test data. Defaults to None. 
  - <b>`fij_test`</b> (Optional[torch.Tensor], optional):  Two-point frequencies of the test data. Defaults to None. 
 
