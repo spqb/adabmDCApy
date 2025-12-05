@@ -77,8 +77,8 @@ def train_graph(
     sampler: Callable,
     chains: torch.Tensor,
     mask: torch.Tensor,
-    fi: torch.Tensor,
-    fij: torch.Tensor,
+    fi_target: torch.Tensor,
+    fij_target: torch.Tensor,
     params: Dict[str, torch.Tensor],
     nsweeps: int,
     lr: float,
@@ -97,8 +97,8 @@ def train_graph(
         sampler (Callable): Sampling function.
         chains (torch.Tensor): Markov chains simulated with the model.
         mask (torch.Tensor): Mask encoding the sparse graph.
-        fi (torch.Tensor): Single-point frequencies of the data.
-        fij (torch.Tensor): Two-point frequencies of the data.
+        fi_target (torch.Tensor): Single-point frequencies of the data.
+        fij_target (torch.Tensor): Two-point frequencies of the data.
         params (Dict[str, torch.Tensor]): Parameters of the model.
         nsweeps (int): Number of Gibbs steps for each gradient estimation.
         lr (float): Learning rate.
@@ -114,9 +114,9 @@ def train_graph(
     Returns:
         Tuple[torch.Tensor, Dict[str, torch.Tensor], torch.Tensor, Dict[str, List[float]]]: Updated chains and parameters, log-weights for the log-likelihood computation.
     """
-    device = fi.device
-    dtype = fi.dtype
-    L, q = fi.shape
+    device = fi_target.device
+    dtype = fi_target.dtype
+    L, q = fi_target.shape
     time_start = time.time()
     
     # log_weights used for the online computing of the log-likelihood
@@ -146,7 +146,7 @@ def train_graph(
     # Mask for saving only the upper-diagonal coupling matrix
     mask_save = get_mask_save(L, q, device=device)
 
-    pearson, slope = get_correlation_two_points(fij=fij, pij=pij, fi=fi, pi=pi)
+    pearson, slope = get_correlation_two_points(fij=fij_target, pij=pij, fi=fi_target, pi=pi)
     epochs = 0
     if progress_bar: 
         pbar = tqdm(
@@ -167,8 +167,8 @@ def train_graph(
         
         # Update the parameters
         params = update_params(
-            fi=fi,
-            fij=fij,
+            fi=fi_target,
+            fij=fij_target,
             pi=pi,
             pij=pij,
             params=params,
@@ -191,9 +191,9 @@ def train_graph(
         # Compute the single-point and two-points frequencies of the simulated data
         pi = get_freq_single_point(data=chains)
         pij = get_freq_two_points(data=chains)
-        pearson, slope = get_correlation_two_points(fij=fij, pij=pij, fi=fi, pi=pi)
+        pearson, slope = get_correlation_two_points(fij=fij_target, pij=pij, fi=fi_target, pi=pi)
         logZ = (torch.logsumexp(log_weights, dim=0) - torch.log(torch.tensor(len(chains), device=device, dtype=dtype))).item()
-        log_likelihood = compute_log_likelihood(fi=fi, fij=fij, params=params, logZ=logZ)
+        log_likelihood = compute_log_likelihood(fi=fi_target, fij=fij_target, params=params, logZ=logZ)
         
         if progress_bar:
             pbar.n = min(max(0, float(pearson)), target_pearson)
@@ -368,8 +368,8 @@ def train_eaDCA(
             sampler=sampler,
             chains=chains,
             mask=mask,
-            fi=fi_target,
-            fij=fij_target,
+            fi_target=fi_target,
+            fij_target=fij_target,
             params=params,
             nsweeps=nsweeps,
             lr=lr,
@@ -533,8 +533,8 @@ def train_edDCA(
             chains=chains,
             log_weights=log_weights,
             mask=mask,
-            fi=fi_target,
-            fij=fij_target,
+            fi_target=fi_target,
+            fij_target=fij_target,
             fi_test=fi_test,
             fij_test=fij_test,
             params=params,
@@ -629,8 +629,8 @@ def train_edDCA(
             chains=chains,
             log_weights=log_weights,
             mask=mask,
-            fi=fi_target,
-            fij=fij_target,
+            fi_target=fi_target,
+            fij_target=fij_target,
             params=params,
             nsweeps=nsweeps,
             lr=lr,

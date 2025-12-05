@@ -36,7 +36,7 @@ jobs:
           --output test_outputs/ \
           --model bmDCA \
           --alphabet rna \
-          --nepochs 2 \
+          --target 0.1 \
           --nchains 100 \
           --label bmDCA_test \
           --seed 42
@@ -110,7 +110,6 @@ jobs:
           --model eaDCA \
           --alphabet rna \
           --target 0.1 \
-          --nepochs 2 \
           --nchains 100 \
           --label eaDCA_test \
           --seed 42
