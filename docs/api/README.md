@@ -39,7 +39,7 @@
 - [`fasta.decode_sequence`](./adabmDCA.fasta.md#function-decode_sequence): Takes a numeric sequence or list of seqences in input an returns the corresponding string encoding.
 - [`fasta.encode_sequence`](./adabmDCA.fasta.md#function-encode_sequence): Encodes a sequence or a list of sequences into a numeric format.
 - [`fasta.get_tokens`](./adabmDCA.fasta.md#function-get_tokens): Converts a known alphabet into the corresponding tokens, otherwise returns the custom alphabet.
-- [`fasta.import_from_fasta`](./adabmDCA.fasta.md#function-import_from_fasta): Import sequences from a fasta file. The following operations are performed:
+- [`fasta.import_from_fasta`](./adabmDCA.fasta.md#function-import_from_fasta): Import sequences from a fasta or compressed fasta (.fas.gz) file. The following operations are performed:
 - [`fasta.validate_alphabet`](./adabmDCA.fasta.md#function-validate_alphabet): Check if the chosen alphabet is compatible with the input sequences.
 - [`fasta.write_fasta`](./adabmDCA.fasta.md#function-write_fasta): Generate a fasta file with the input sequences.
 - [`functional.one_hot`](./adabmDCA.functional.md#function-one_hot): A fast one-hot encoding function faster than the PyTorch one working with torch.int32 and returning a float Tensor.

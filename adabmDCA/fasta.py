@@ -1,6 +1,7 @@
 import numpy as np
 from typing import Iterable, Tuple, Union, overload, Literal, Optional
 from Bio import SeqIO
+import gzip
 
 import torch
 
@@ -124,16 +125,16 @@ def import_from_fasta(
     filter_sequences: bool = False,
     remove_duplicates: bool = False,
     return_mask: bool = False,
-) -> Union[Tuple[np.ndarray, np.ndarray], Tuple[np.ndarray, np.ndarray, np.ndarray]]:
-    """Import sequences from a fasta file. The following operations are performed:
+):
+    """Import sequences from a fasta or compressed fasta (.fas.gz) file. The following operations are performed:
     - If 'tokens' is provided, encodes the sequences in numeric format.
     - If 'filter_sequences' is True, removes the sequences whose tokens are not present in the alphabet.
     - If 'remove_duplicates' is True, removes the duplicated sequences.
     - If 'return_mask' is True, returns also the mask selecting the retained sequences from the original ones.
 
     Args:
-        fasta_name (Union[str, Path]): Path to the fasta file.
-        tokens (Optional[str]): Alphabet to be used for the encoding. If provided, encodes the sequences in numeric format.
+        fasta_name (str | Path): Path to the fasta or compressed fasta (.fas.gz) file.
+        tokens (str | None, optional): Alphabet to be used for the encoding. If provided, encodes the sequences in numeric format.
         filter_sequences (bool, optional): If True, removes the sequences whose tokens are not present in the alphabet. Defaults to False.
         remove_duplicates (bool, optional): If True, removes the duplicated sequences. Defaults to False.
         return_mask (bool, optional): If True, returns also the mask selecting the retained sequences from the original ones. Defaults to False.
@@ -146,10 +147,18 @@ def import_from_fasta(
         - If 'return_mask' is False: Tuple of (headers, sequences)
         - If 'return_mask' is True: Tuple of (headers, sequences, mask)
     """
+    # Open the file, handling both .fasta and .fas.gz formats
+    if str(fasta_name).endswith(".gz"):
+        with gzip.open(fasta_name, "rt") as fasta_file: 
+            records = list(SeqIO.parse(fasta_file, "fasta"))
+    else:
+        with open(fasta_name, "r") as fasta_file:
+            records = list(SeqIO.parse(fasta_file, "fasta"))
+
     # Import headers and sequences
     sequences = []
     names = []
-    for record in SeqIO.parse(fasta_name, "fasta"):
+    for record in records:
         names.append(str(record.id))
         sequences.append(str(record.seq))
     

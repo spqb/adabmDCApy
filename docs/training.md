@@ -1,4 +1,4 @@
-# Implementation 🚀
+# <span id="bmdca">Training DCA models 🚀</span>
 
 All versions of **adabmDCA** — Python, Julia, and C++ — expose the same command-line interface through the `adabmDCA` command.
 
@@ -103,8 +103,7 @@ Specify alternatives:
   ```
 
 ---
-
-# eaDCA 🌱
+# <span id="eadca">eaDCA 🌱</span>
 
 Enable with:
 
@@ -121,7 +120,7 @@ Recommended: reduce sweeps to **5**.
 
 ---
 
-# edDCA ✂️ (Decimated DCA)
+# <span id="eddca">edDCA ✂️ (Decimated DCA)</span>
 
 Run decimation:
 
