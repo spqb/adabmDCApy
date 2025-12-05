@@ -32,5 +32,6 @@ setup(
         'tqdm>=4.66.6',
         'wandb>=0.12.0',
         'biopython>=1.85',
+        'seaborn>=0.12.2',
     ],
 )
