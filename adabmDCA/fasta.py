@@ -312,18 +312,16 @@ def compute_weights(
     return weights.to(dtype)
 
 
-def validate_alphabet(sequences: np.ndarray, tokens: str):
-    """Check if the chosen alphabet is compatible with the input sequences.
-
+def validate_alphabet(sequences: Iterable[str], tokens: str):
+    """Validates that all characters in the sequences are present in the provided alphabet.
     Args:
-        sequences (np.ndarray): Input sequences.
-        tokens (str): Alphabet to be used for the encoding.
-
-    Raises:
-        ValueError: The chosen alphabet is incompatible with the Multi-Sequence Alignment.
+        sequences (Iterable[str]): Iterable of sequences to be validated.
+        tokens (str): Alphabet to be used for the validation.
     """
     all_char = "".join(sequences)
     tokens_data = "".join(sorted(set(all_char)))
-    sorted_tokens = "".join(sorted(tokens))
-    if not sorted_tokens == tokens_data:
-        raise ValueError(f"The chosen alphabet is incompatible with the Multi-Sequence Alignment. The missing tokens are: {[c for c in tokens_data if c not in sorted_tokens]}. Current alphabet: {tokens}")
+    for c in tokens_data:
+        if c not in tokens:
+            raise KeyError(
+                f"The chosen alphabet is incompatible with the Multi-Sequence Alignment. The unexpected token is: '{c}'"
+            )
