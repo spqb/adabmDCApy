@@ -90,6 +90,7 @@
 - [`utils.get_mask_save`](./adabmDCA.utils.md#function-get_mask_save): Returns the mask to save the upper-triangular part of the coupling matrix.
 - [`utils.init_chains`](./adabmDCA.utils.md#function-init_chains): Initialize the Markov chains of the DCA model. If 'fi' is provided, the chains are sampled from the
 - [`utils.init_parameters`](./adabmDCA.utils.md#function-init_parameters): Initialize the parameters of the DCA model. The bias terms are initialized
+- [`utils.parse_log_file`](./adabmDCA.utils.md#function-parse_log_file): Parse a DCA training log file.
 - [`utils.resample_sequences`](./adabmDCA.utils.md#function-resample_sequences): Extracts nextract sequences from data with replacement according to the weights.
 
 
