@@ -58,6 +58,8 @@ def main():
     print(template.format("Target Pearson Cij:", args.target))
     if args.pseudocount is not None:
         print(template.format("Pseudocount:", args.pseudocount))
+    if args.l2_reg > 0.0:
+        print(template.format("L2 regularization:", args.l2_reg))
     print(template.format("Random seed:", args.seed))
     print(template.format("Device:", str(device)))
     print(template.format("Data type:", args.dtype))
@@ -129,8 +131,7 @@ def main():
             remove_duplicates=True,
         )
         pseudocount_test = 1. / test_dataset.get_effective_size()
-        fi_test = get_freq_single_point(data=test_dataset.data, weights=test_dataset.weights, pseudo_count=pseudocount_test)
-        fij_test = get_freq_two_points(data=test_dataset.data, weights=test_dataset.weights, pseudo_count=pseudocount_test)
+        fi_test, fij_test = test_dataset.get_frequencies(pseudocount=pseudocount_test)
     else:
         fi_test = None
         fij_test = None
@@ -169,8 +170,7 @@ def main():
         args.pseudocount = 1. / dataset.get_effective_size()
         print(f"    • Pseudocount (auto): {args.pseudocount:.6f}")
     print("-" * 80 + "\n")
-    fi_target = get_freq_single_point(data=dataset.data, weights=dataset.weights, pseudo_count=args.pseudocount)
-    fij_target = get_freq_two_points(data=dataset.data, weights=dataset.weights, pseudo_count=args.pseudocount)
+    fi_target, fij_target = dataset.get_frequencies(pseudocount=args.pseudocount)
 
     # Initialize parameters and chains
     print("[INITIALIZATION]")
@@ -222,12 +222,10 @@ def main():
         file_paths=file_paths,
         tokens=tokens,
         args=vars(args),
-        params=params,
-        chains=chains,
         use_wandb=args.wandb,
     )
 
-    training_routine(
+    _, _, _, history = training_routine(
         sampler=sampler,
         fij_target=fij_target,
         fi_target=fi_target,
@@ -247,17 +245,22 @@ def main():
         drate=args.drate,
         target_density=args.density,
         checkpoint=checkpoint,
+        l2_reg=args.l2_reg,
     )
     
-    if args.model == "bmDCA":
-        print("\n" + "=" * 80)
-        print("  TRAINING COMPLETED SUCCESSFULLY")
-        print("=" * 80)
-        print(f"\n  Results saved in: {folder}")
-        print(f"    \u2713 Parameters: {file_paths['params']}")
-        print(f"    \u2713 Chains:     {file_paths['chains']}")
-        print(f"    \u2713 Log file:   {file_paths['log']}")
-        print("\n" + "=" * 80 + "\n")
+    print("\n" + "=" * 80)
+    print("  TRAINING COMPLETED SUCCESSFULLY")
+    print("=" * 80)
+    print("\n" + "-" * 80)
+    print(f"  Final graph density: {history['Density'][-1]:.4f}")
+    print(f"  Final Pearson: {history['Pearson'][-1]:.4f}")
+    print(f"  Final log-likelihood: {history['LL_train'][-1]:.3f}")
+    print(f"  Total steps: {history['Epochs'][-1]}")
+    print(f"\n  Results saved in: {folder}")
+    print(f"    \u2713 Parameters: {file_paths['params']}")
+    print(f"    \u2713 Chains:     {file_paths['chains']}")
+    print(f"    \u2713 Log file:   {file_paths['log']}")
+    print("\n" + "=" * 80 + "\n")
     
     
 if __name__ == "__main__":

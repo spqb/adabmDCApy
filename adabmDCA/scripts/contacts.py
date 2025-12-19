@@ -77,7 +77,7 @@ def main():
         )
         print(f"  ✓ Data loaded ({len(dataset)} sequences)")
         print("  Computing Frobenius norm matrix...")
-        Fapc = get_mf_contact_map(dataset.data, tokens=tokens, weights=dataset.weights)
+        Fapc = get_mf_contact_map(dataset.to_one_hot(), tokens=tokens, weights=dataset.weights)
     else:
         print(f"  Loading parameters from: {args.path_params}")
         params = load_params(args.path_params, tokens=tokens, device=device, dtype=dtype)

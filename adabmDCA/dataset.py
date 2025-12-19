@@ -13,7 +13,21 @@ from adabmDCA.fasta import (
 
 
 class DatasetDCA(Dataset):
-    """Dataset class for handling multi-sequence alignments data."""
+    """Dataset class for handling multi-sequence alignments data.
+    
+     Args:
+        path_data (str): Path to multi sequence alignment in fasta format.
+        path_weights (Optional[str], optional): Path to the file containing the importance weights of the sequences. If None, the weights are computed automatically.
+        alphabet (str, optional): Selects the type of encoding of the sequences. Default choices are ("protein", "rna", "dna"). Defaults to "protein".
+        clustering_th (float, optional): Sequence identity threshold for clustering. Defaults to 0.8.
+        no_reweighting (bool, optional): If True, the weights are not computed. Defaults to False.
+        remove_duplicates (bool, optional): If True, removes duplicate sequences from the dataset. Defaults to False.
+        filter_sequences (bool, optional): If True, removes sequences containing tokens not in the alphabet. Defaults to False.
+        message (bool, optional): Print the import message. Defaults to True.
+        device (torch.device, optional): Device to be used. Defaults to "cpu".
+        dtype (torch.dtype, optional): Data type of the dataset. Defaults to torch.float32.
+    """
+    
     def __init__(
         self,
         path_data: str,
@@ -27,20 +41,6 @@ class DatasetDCA(Dataset):
         device: torch.device = torch.device("cpu"),
         dtype: torch.dtype = torch.float32,
     ):
-        """Initialize the dataset.
-
-        Args:
-            path_data (str): Path to multi sequence alignment in fasta format.
-            path_weights (Optional[str], optional): Path to the file containing the importance weights of the sequences. If None, the weights are computed automatically.
-            alphabet (str, optional): Selects the type of encoding of the sequences. Default choices are ("protein", "rna", "dna"). Defaults to "protein".
-            clustering_th (float, optional): Sequence identity threshold for clustering. Defaults to 0.8.
-            no_reweighting (bool, optional): If True, the weights are not computed. Defaults to False.
-            remove_duplicates (bool, optional): If True, removes duplicate sequences from the dataset. Defaults to False.
-            filter_sequences (bool, optional): If True, removes sequences containing tokens not in the alphabet. Defaults to False.
-            message (bool, optional): Print the import message. Defaults to True.
-            device (torch.device, optional): Device to be used. Defaults to "cpu".
-            dtype (torch.dtype, optional): Data type of the dataset. Defaults to torch.float32.
-        """
         self.names = np.array([], dtype=str)
         self.data = torch.tensor([], device=device, dtype=dtype)
         self.device = device
@@ -62,9 +62,7 @@ class DatasetDCA(Dataset):
                 remove_duplicates=remove_duplicates,
                 return_mask=True,
             )
-            data_enc = torch.tensor(data_enc, dtype=torch.int64)
-            self.data = one_hot(data_enc, num_classes=len(self.tokens)).to(device=device, dtype=dtype)
-            # Check if data is empty
+            self.data = torch.tensor(data_enc, dtype=torch.int64, device=device)
             if len(self.data) == 0:
                 raise ValueError(f"The input dataset is empty. Check that the alphabet is correct. Current alphabet: {alphabet}")
         else:
@@ -87,7 +85,7 @@ class DatasetDCA(Dataset):
             
         
         if message:
-            print(f"Multi-sequence alignment imported: M = {self.data.shape[0]}, L = {self.data.shape[1]}, q = {self.get_num_states()}, M_eff = {int(self.weights.sum())}.")
+            print(f"Multi-sequence alignment imported: M = {self.data.shape[0]}, L = {self.data.shape[1]}, q = {len(self.tokens)}, M_eff = {int(self.weights.sum())}.")
 
 
     def __len__(self) -> int:
@@ -115,7 +113,7 @@ class DatasetDCA(Dataset):
         Returns:
             int: Number of states.
         """
-        return self.data.shape[2]
+        return len(self.tokens)
     
     
     def get_effective_size(self) -> int:
@@ -134,3 +132,51 @@ class DatasetDCA(Dataset):
         self.data = self.data[perm]
         self.names = self.names[perm.cpu().numpy()]
         self.weights = self.weights[perm]
+        
+        
+    def to_one_hot(self) -> torch.Tensor:
+        """Converts the dataset to one-hot encoding.
+
+        Returns:
+            torch.Tensor: One-hot encoded dataset of shape (M, L, q).
+        """
+        q = len(self.tokens)
+        return one_hot(self.data.long(), num_classes=q).to(dtype=self.dtype, device=self.device)
+    
+    
+    def get_frequencies(self, pseudocount: float = 0.0, batch_size: int = 10000) -> Tuple[torch.Tensor, torch.Tensor]:
+        """Computes the single-site and two-site frequencies of the dataset. When there are too many sequences, computing the frequencies directly from the one-hot encoding can be memory-intensive.
+        Therefore, we compute the frequencies using batched operations.
+        
+        Args:
+            pseudocount (float, optional): Pseudocount to be added to the frequencies. Defaults to 0.0.
+            batch_size (int, optional): Batch size to use when computing the frequencies. Defaults to 10000.
+
+        Returns:
+            Tuple[torch.Tensor, torch.Tensor]: Single-site frequencies fi of shape (L, q) and two-site frequencies fij of shape (L, q, L, q).
+        """
+        L, q = self.get_num_residues(), self.get_num_states()
+        # 
+        fi = torch.zeros((L, q), device=self.device, dtype=self.dtype)
+        fij = torch.zeros((L, q, L, q), device=self.device, dtype=self.dtype)
+        num_batches = (len(self.data) + batch_size - 1) // batch_size
+        for i in range(num_batches):
+            batch_data = self.data[i*batch_size : (i+1)*batch_size]
+            batch_weights = self.weights[i*batch_size : (i+1)*batch_size]
+            batch_one_hot = one_hot(batch_data.long(), num_classes=q).to(dtype=self.dtype, device=self.device)
+            fi += (batch_one_hot * batch_weights.reshape(-1, 1, 1)).sum(dim=0)
+            fij += torch.einsum("mia,mjb->iajb", batch_one_hot * batch_weights.reshape(-1, 1, 1), batch_one_hot)
+        fi /= self.weights.sum()
+        fij /= self.weights.sum()
+        torch.clamp_(fi, min=0.0)
+        torch.clamp_(fij, min=0.0)
+        # Add pseudocount
+        if pseudocount > 0.0:
+            fi = (1 - pseudocount) * fi + pseudocount / q
+            fij = (1 - pseudocount) * fij + pseudocount / (q * q)
+        # Set diagonal elements fij[i, a, i, b] = fi[i, a] * delta[a, b]
+        for i in range(L):
+            fij[i, :, i, :] = torch.diag(fi[i, :])
+            
+        return fi, fij
+                

@@ -114,7 +114,8 @@ def main():
             message=False,
         )
         nmeasure = min(args.nmeasure, len(dataset))
-        data_resampled = resample_sequences(dataset.data, dataset.weights, nmeasure)
+        data_oh = dataset.to_one_hot()
+        data_resampled = resample_sequences(data_oh, dataset.weights, nmeasure)
         print(f"  ✓ Data loaded ({len(dataset)} sequences)")
     
         if args.pseudocount is None:
@@ -152,8 +153,7 @@ def main():
         pbar.set_description("Sampling")
 
         # Compute single and two-site frequencies of the data
-        fi = get_freq_single_point(data=dataset.data, weights=dataset.weights, pseudo_count=args.pseudocount)
-        fij = get_freq_two_points(data=dataset.data, weights=dataset.weights, pseudo_count=args.pseudocount)
+        fi, fij = dataset.get_frequencies(pseudocount=args.pseudocount)
 
         # Dictionary to store Pearson coefficient and slope along the sampling
         results_sampling = {

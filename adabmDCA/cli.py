@@ -1,8 +1,10 @@
 import subprocess
 import sys
 import os
+import importlib
 
 def main():
+    print(f"🧬 adabmDCA version: {importlib.import_module('adabmDCA').__version__}")
     # Get the directory of the current script
     SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 

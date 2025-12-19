@@ -85,7 +85,7 @@ def main():
     print("[DATASET GENERATION]")
     print("-" * 80)
     print("  Merging natural and reintegration datasets...")
-    msa = torch.cat((dataset_nat.data, dataset_reint.data), dim=0)
+    msa = torch.cat((dataset_nat.to_one_hot(), dataset_reint.to_one_hot()), dim=0)
     msa_names = np.append(dataset_nat.names, dataset_reint.names)
     print(f"  ✓ Combined dataset: {len(msa)} sequences")
     

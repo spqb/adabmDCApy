@@ -1,4 +1,4 @@
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 import torch
 import wandb
 from adabmDCA.io import save_chains, save_params
@@ -13,8 +13,6 @@ class Checkpoint:
         file_paths: dict,
         tokens: str,
         args: dict,
-        params: Optional[Dict[str, torch.Tensor]] = None,
-        chains: Optional[torch.Tensor] = None,
         use_wandb: bool = False,
     ):
         """Initializes the Checkpoint class.
@@ -23,8 +21,6 @@ class Checkpoint:
             file_paths (dict): Dictionary containing the paths of the files to be saved.
             tokens (str): Alphabet to be used for encoding the sequences.
             args (dict): Dictionary containing the arguments of the training.
-            params (Optional[Dict[str, torch.Tensor]], optional): Parameters of the model. Defaults to None.
-            chains (Optional[torch.Tensor], optional): Chains. Defaults to None.
             use_wandb (bool, optional): Whether to use Weights & Biases for logging. Defaults to False.
         """
             
@@ -34,15 +30,7 @@ class Checkpoint:
         self.wandb = use_wandb
         if self.wandb:
             wandb.init(project="adabmDCA", config=args)
-            
-        if params is not None:
-            self.params = {key: value.clone() for key, value in params.items()}
-        else:
-            self.params = None
-        if chains is not None:
-            self.chains = chains.clone()
-        else:
-            self.chains = None
+    
         self.max_epochs = args["nepochs"]
         self.checkpt_interval = 50
         
@@ -52,6 +40,8 @@ class Checkpoint:
             "Slope": 0.0,
             "LL_train": 0.0,
             "LL_test": 0.0,
+            "Pearson_test": 0.0,
+            "Slope_test": 0.0,
             "ESS": 0.0,
             "Entropy": 0.0,
             "Density": 0.0,
@@ -81,7 +71,7 @@ class Checkpoint:
             f.write(template.format("random seed:", args["seed"]))
             f.write("\n")
             # write the header of the log file
-            header_string = " ".join([f"{key:<10}" for key in self.logs.keys()])
+            header_string = " ".join([f"{key:<15}" for key in self.logs.keys()])
             f.write(header_string + "\n")
         
         
@@ -105,7 +95,7 @@ class Checkpoint:
                 
         if self.wandb:
             wandb.log(self.logs)        
-        out_string = " ".join([f"{value:<10.3f}" if isinstance(value, float) else f"{value:<10}" for value in self.logs.values()])
+        out_string = " ".join([f"{value:<15.3f}" if isinstance(value, float) else f"{value:<15}" for value in self.logs.values()])
         with open(self.file_paths["log"], "a") as f:
             f.write(out_string + "\n")
     
@@ -136,7 +126,7 @@ class Checkpoint:
 
         Args:
             params (Dict[str, torch.Tensor]): Parameters of the model.
-            mask (torch.Tensor): Mask of the model's coupling matrix representing the interaction graph
+            mask (torch.Tensor): Mask of the model's coupling matrix representing the interaction graph.
             chains (torch.Tensor): Chains.
             log_weights (torch.Tensor): Log of the chain weights. Used for AIS.
         """            
