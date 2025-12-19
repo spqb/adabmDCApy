@@ -211,23 +211,15 @@ Computes the weight to be assigned to each sequence 's' in 'data' as 1 / n_clust
 ## <kbd>function</kbd> `validate_alphabet`
 
 ```python
-validate_alphabet(sequences: ndarray, tokens: str)
+validate_alphabet(sequences: Iterable[str], tokens: str)
 ```
 
-Check if the chosen alphabet is compatible with the input sequences. 
-
-
+Validates that all characters in the sequences are present in the provided alphabet. 
 
 **Args:**
  
- - <b>`sequences`</b> (np.ndarray):  Input sequences. 
- - <b>`tokens`</b> (str):  Alphabet to be used for the encoding. 
-
-
-
-**Raises:**
- 
- - <b>`ValueError`</b>:  The chosen alphabet is incompatible with the Multi-Sequence Alignment. 
+ - <b>`sequences`</b> (Iterable[str]):  Iterable of sequences to be validated. 
+ - <b>`tokens`</b> (str):  Alphabet to be used for the validation. 
 
 
 
