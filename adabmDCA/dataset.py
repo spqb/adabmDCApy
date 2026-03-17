@@ -79,10 +79,9 @@ class DatasetDCA(Dataset):
             with open(path_weights, "r") as f:
                 weights = [float(line.strip()) for line in f]
             weights = torch.tensor(weights, device=device, dtype=dtype)
-            if len(weights) != len(mask):
-                raise ValueError(f"The number of weights ({len(weights)}) does not match the number of sequences in the dataset ({len(mask)}).")
-            self.weights = weights[mask]
-            
+            if len(weights) != len(self.data):
+                raise ValueError(f"The number of weights ({len(weights)}) does not match the number of sequences in the dataset ({len(self.data)}).")
+            self.weights = weights
         
         if message:
             print(f"Multi-sequence alignment imported: M = {self.data.shape[0]}, L = {self.data.shape[1]}, q = {len(self.tokens)}, M_eff = {int(self.weights.sum())}.")

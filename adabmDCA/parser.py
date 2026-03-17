@@ -101,7 +101,7 @@ def add_args_sample(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     
     # Optional arguments
     parser.add_argument("-d", "--data",         type=str,    default=None,       help="Path to the file containing the natural data. If provided, the mixing time of the model is computed. Defaults to None.")
-    parser.add_argument("-l", "--label",        type=str,    default="sampling", help="(Defaults to 'sampling'). Label to be used for the output files.")
+    parser.add_argument("-l", "--label",        type=str,    default=None,       help="(Defaults to None). Label to be used for the output files.")
     parser.add_argument("--nmeasure",           type=int,    default=10000,      help="(Defaults to min(10000, len(data))). Number of data sequences to use for computing the mixing time.")
     parser.add_argument("--nmix",               type=int,    default=2,          help="(Defaults to 2). Number of mixing times used to generate 'ngen' sequences starting from random.")
     parser.add_argument("--max_nsweeps",        type=int,    default=5000,       help="(Defaults to 5000). Maximum number of chain updates.")
