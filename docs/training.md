@@ -1,4 +1,4 @@
-# <span id="bmdca">Training DCA models 🚀</span>
+# <span id="bmdca">Training DCA models</span>
 
 All versions of **adabmDCA** — Python, Julia, and C++ — expose the same command-line interface through the `adabmDCA` command.
 
@@ -14,7 +14,7 @@ The standard command to start training a DCA model is:
 $ adabmDCA train -m <model> -d <fasta_file> -o <output_folder> -l <label>
 ```
 
-## Arguments 🧩
+## Arguments
 
 - **`<model>`** ∈ `{bmDCA, eaDCA, edDCA}`  
   Selects the training routine.  
@@ -25,7 +25,7 @@ $ adabmDCA train -m <model> -d <fasta_file> -o <output_folder> -l <label>
 
 ---
 
-## Training Behavior ⚙️
+## Training Behavior
 
 Training stops when the **Pearson correlation** between model and empirical connected correlations reaches the target value (default: `0.95`).
 
@@ -40,7 +40,7 @@ For a quick coarse model, set:
 
 ---
 
-## Output Files 📁
+## Output Files
 
 During training, adabmDCA maintains three output files:
 
@@ -58,7 +58,7 @@ During training, adabmDCA maintains three output files:
 
 ---
 
-## Restoring Interrupted Training 🔄
+## Restoring Interrupted Training
 
 Resume training using:
 
@@ -68,7 +68,7 @@ $ adabmDCA train [...] -p <file_params> -c <file_chains>
 
 ---
 
-## Importance Weights 🏋️‍♂️
+## Importance Weights
 
 Provide custom weights with:
 
@@ -89,7 +89,7 @@ Options:
 
 ---
 
-## Choosing the Alphabet 🔠
+## Choosing the Alphabet
 
 Default alphabet: **protein**.
 
@@ -103,7 +103,7 @@ Specify alternatives:
   ```
 
 ---
-# <span id="eadca">eaDCA 🌱</span>
+# <span id="eadca">eaDCA</span>
 
 Enable with:
 
@@ -120,7 +120,7 @@ Recommended: reduce sweeps to **5**.
 
 ---
 
-# <span id="eddca">edDCA ✂️ (Decimated DCA)</span>
+# <span id="eddca">edDCA (Decimated DCA)</span>
 
 Run decimation:
 
@@ -142,7 +142,7 @@ Key hyperparameters:
 
 ---
 
-# Choosing Hyperparameters 🎚️
+# Choosing Hyperparameters
 
 Defaults work well for clean and moderately diverse MSAs. For more difficult datasets, consider tuning:
 
