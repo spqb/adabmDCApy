@@ -17,6 +17,7 @@ def add_args_dca(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     dca_args.add_argument("--target",             type=float, default=0.95,         help="(Defaults to 0.95). Target Pearson correlation coefficient on the two-sites statistics to be reached.")
     dca_args.add_argument("--nepochs",            type=int,   default=50000,        help="(Defaults to 50000). Maximum number of epochs allowed.")
     dca_args.add_argument("--pseudocount",        type=float, default=None,         help="(Defaults to None). Pseudo count for the single and two-sites statistics. Acts as a regularization. If None, it is set to 1/Meff.")
+    dca_args.add_argument("--l2_reg",             type=float, default=0.0,          help="(Defaults to 0.0). L2 regularization coefficient for the parameters.")
     dca_args.add_argument("--seed",               type=int,   default=0,            help="(Defaults to 0). Seed for the random number generator.")
     dca_args.add_argument("--wandb",              action="store_true",              help="If provided, logs the training on Weights and Biases.")
     dca_args.add_argument("--device",             type=str,   default="cuda",       help="(Defaults to 'cuda'). Device to be used.")
@@ -100,7 +101,7 @@ def add_args_sample(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     
     # Optional arguments
     parser.add_argument("-d", "--data",         type=str,    default=None,       help="Path to the file containing the natural data. If provided, the mixing time of the model is computed. Defaults to None.")
-    parser.add_argument("-l", "--label",        type=str,    default="sampling", help="(Defaults to 'sampling'). Label to be used for the output files.")
+    parser.add_argument("-l", "--label",        type=str,    default=None,       help="(Defaults to None). Label to be used for the output files.")
     parser.add_argument("--nmeasure",           type=int,    default=10000,      help="(Defaults to min(10000, len(data))). Number of data sequences to use for computing the mixing time.")
     parser.add_argument("--nmix",               type=int,    default=2,          help="(Defaults to 2). Number of mixing times used to generate 'ngen' sequences starting from random.")
     parser.add_argument("--max_nsweeps",        type=int,    default=5000,       help="(Defaults to 5000). Maximum number of chain updates.")
@@ -140,9 +141,9 @@ def add_args_tdint(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     return parser
 
 def add_args_reintegration(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
-    parser.add_argument("--reint",  type=str,       required=True,  help="Path to the fasta file containing the reintegrated sequences.")
-    parser.add_argument("--adj",    type=str,       required=True,  help="Path to the file containing the adjustment vector.")
-    parser.add_argument("--lambda_", type=float,    required=True,  help="Reintegration strength parameter.")
+    parser.add_argument("--reint",   type=str,       required=True,  help="Path to the fasta file containing the reintegrated sequences.")
+    parser.add_argument("--adj",     type=str,       required=True,  help="Path to the file containing the adjustment vector.")
+    parser.add_argument("--lambda_", type=float,     default=None,   help="(Defaults to None)Reintegration strength parameter. If None, it is set to 1 / max|adjust|")
 
     return parser
 

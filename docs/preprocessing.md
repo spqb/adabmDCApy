@@ -1,6 +1,6 @@
 ## Input Data & Preprocessing
 
-### 📥 Input Format
+### Input Format
 
 `adabmDCA 2.0` takes as input a **multiple sequence alignment (MSA)** in [FASTA format](https://en.wikipedia.org/wiki/Multiple_sequence_alignment), typically of aligned protein or RNA/DNA sequences (see [Fig. 1](#fig-fasta)).
 
@@ -12,14 +12,14 @@ The tool supports three built-in alphabets and also allows **custom alphabets**,
 | RNA      | `-, A, C, G, U` |
 | DNA      | `-, A, C, G, T` |
 
-💡 *Line breaks within sequences are supported.*
+*Note: line breaks within sequences are supported.*
 
 <span id="fig-fasta">___Figure 1__: Example of a fasta file containg the MSA._</span>
 ![Example FASTA](images/example_fasta_2.png)
 
 ---
 
-### 🔧 Preprocessing Steps
+### Preprocessing Steps
 
 The following steps are applied to every input MSA:
 
@@ -30,7 +30,7 @@ The following steps are applied to every input MSA:
 
 ---
 
-### <span id="computing-the-importance-weights">⚖️ Sequence Reweighting</span>
+### <span id="computing-the-importance-weights">Sequence Reweighting</span>
 
 To downweight overrepresented or phylogenetically related sequences, `adabmDCA` uses a clustering threshold (default: **80% identity**). The **weight** for sequence $\mathbf{a}^{(m)}$ is:
 
@@ -45,7 +45,7 @@ where $N^{(m)}$ is the number of sequences that have sequence identity with $\ma
 
 ---
 
-### 🧮 Pseudocount Regularization
+### Pseudocount Regularization
 
 A small **pseudocount** $\alpha$ is added to frequency estimates to prevent issues with rare or unobserved symbols:
 

@@ -55,7 +55,7 @@ def main():
     if args.data is not None:
         print(template.format("Reference data:", args.data))
     print(template.format("Output folder:", str(folder)))
-    print(template.format("Output label:", args.label))
+    print(template.format("Output label:", args.label if args.label is not None else "None"))
     print(template.format("Number of samples:", args.ngen))
     print(template.format("Sampler:", args.sampler))
     print(template.format("Beta (temperature):", args.beta))
@@ -114,7 +114,8 @@ def main():
             message=False,
         )
         nmeasure = min(args.nmeasure, len(dataset))
-        data_resampled = resample_sequences(dataset.data, dataset.weights, nmeasure)
+        data_oh = dataset.to_one_hot()
+        data_resampled = resample_sequences(data_oh, dataset.weights, nmeasure)
         print(f"  ✓ Data loaded ({len(dataset)} sequences)")
     
         if args.pseudocount is None:
@@ -152,8 +153,7 @@ def main():
         pbar.set_description("Sampling")
 
         # Compute single and two-site frequencies of the data
-        fi = get_freq_single_point(data=dataset.data, weights=dataset.weights, pseudo_count=args.pseudocount)
-        fij = get_freq_two_points(data=dataset.data, weights=dataset.weights, pseudo_count=args.pseudocount)
+        fi, fij = dataset.get_frequencies(pseudocount=args.pseudocount)
 
         # Dictionary to store Pearson coefficient and slope along the sampling
         results_sampling = {
@@ -213,7 +213,8 @@ def main():
     
     print("  Saving samples...")
     headers = [f"sequence {i+1} | DCAenergy: {energies[i]:.3f}" for i in range(args.ngen)]
-    fasta_file = os.path.join(folder, f"{args.label}_samples.fasta")
+    samples_filename = f"{args.label}_samples.fasta" if args.label is not None else "samples.fasta"
+    fasta_file = os.path.join(folder, samples_filename)
     write_fasta(
         fname=fasta_file,
         headers=headers,
@@ -225,11 +226,13 @@ def main():
     
     print("  Saving logs...")
     df_mix_log = pd.DataFrame.from_dict(results_mix)
-    mix_log_file = os.path.join(folder, f"{args.label}_mix.log")
+    mix_log_filename = f"{args.label}_mix.log" if args.label is not None else "mix.log"
+    mix_log_file = os.path.join(folder, mix_log_filename)
     df_mix_log.to_csv(mix_log_file, index=False)
     
     df_samp_log = pd.DataFrame.from_dict(results_sampling)
-    samp_log_file = os.path.join(folder, f"{args.label}_sampling.log")
+    samp_log_filename = f"{args.label}_sampling.log" if args.label is not None else "sampling.log"
+    samp_log_file = os.path.join(folder, samp_log_filename)
     df_samp_log.to_csv(samp_log_file, index=False)
     print(f"  ✓ Logs saved")
     print("-" * 80 + "\n")

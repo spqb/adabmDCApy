@@ -45,6 +45,7 @@ def update_params(
     params: Dict[str, torch.Tensor],
     mask: torch.Tensor,
     lr: float,
+    l2_reg: float = 0.0,
 ) -> Dict[str, torch.Tensor]:
     """Updates the parameters of the model.
     
@@ -56,6 +57,7 @@ def update_params(
         params (Dict[str, torch.Tensor]): Parameters of the model.
         mask (torch.Tensor): Mask of the interaction graph.
         lr (float): Learning rate.
+        l2_reg (float, optional): L2 regularization coefficient. Defaults to 0.0.
         
     Returns:
         Dict[str, torch.Tensor]: Updated parameters.
@@ -67,7 +69,11 @@ def update_params(
     # Update parameters
     with torch.no_grad():
         for key in params:
-            params[key] += lr * grad[key]
+            if key == "coupling_matrix":
+                params[key] += lr * (grad[key] - l2_reg * params[key])
+            else:
+                params[key] += lr * grad[key]
+            
         params["coupling_matrix"] *= mask # Remove autocorrelations
     
     return params
@@ -90,6 +96,7 @@ def train_graph(
     check_slope: bool = False,
     log_weights: Optional[torch.Tensor] = None,
     progress_bar: bool = True,
+    l2_reg: float = 0.0,
     *args, **kwargs,
 ) -> Tuple[torch.Tensor, Dict[str, torch.Tensor], torch.Tensor, Dict[str, List[float]]]:
     """Trains the model on a given graph until the target Pearson correlation is reached or the maximum number of epochs is exceeded.
@@ -111,6 +118,7 @@ def train_graph(
         check_slope (bool, optional): Whether to take into account the slope for the convergence criterion or not. Defaults to False.
         log_weights (Optional[torch.Tensor], optional): Log-weights used for the online computation of the log-likelihood. Defaults to None.
         progress_bar (bool, optional): Whether to display a progress bar or not. Defaults to True.
+        l2_reg (float, optional): L2 regularization coefficient. Defaults to 0.0.
 
     Returns:
         Tuple[torch.Tensor, Dict[str, torch.Tensor], torch.Tensor, Dict[str, List[float]]]: Updated chains and parameters, log-weights for the log-likelihood computation.
@@ -130,9 +138,17 @@ def train_graph(
     pi = get_freq_single_point(data=chains)
     pij = get_freq_two_points(data=chains)
     history = {
-        "epochs": [],
-        "pearson": [],
-        "slope": [],
+        "Epochs": [],
+        "Pearson": [],
+        "Slope": [],
+        "LL_train": [],
+        "LL_test": [],
+        "Pearson_test": [],
+        "Slope_test": [],
+        "ESS": [],
+        "Entropy": [],
+        "Density": [],
+        "Time": [],
     }
     
     def halt_condition(epochs, pearson, slope, check_slope):
@@ -175,6 +191,7 @@ def train_graph(
             params=params,
             mask=mask,
             lr=lr,
+            l2_reg=l2_reg,
         )
         
         # Compute the weights for the AIS
@@ -200,31 +217,34 @@ def train_graph(
             pbar.n = min(max(0, float(pearson)), target_pearson)
             pbar.set_description(f"Epochs: {epochs} - LL: {log_likelihood:.2f}")
         
-        history["epochs"].append(epochs)
-        history["pearson"].append(pearson)
-        history["slope"].append(slope)
+        entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
+        ess = _compute_ess(log_weights)
+        if fi_test is not None and fij_test is not None:
+            log_likelihood_test = compute_log_likelihood(fi=fi_test, fij=fij_test, params=params, logZ=logZ)
+            pearson_test, slope_test = get_correlation_two_points(fij=fij_test, pij=pij, fi=fi_test, pi=pi)
+        else:
+            log_likelihood_test = float("nan")
+            pearson_test = float("nan")
+            slope_test = float("nan")
+        
+        record = {
+            "Epochs": epochs,
+            "Pearson": pearson,
+            "Slope": slope,
+            "LL_train": log_likelihood,
+            "LL_test": log_likelihood_test,
+            "Pearson_test": pearson_test,
+            "Slope_test": slope_test,
+            "ESS": ess,
+            "Entropy": entropy,
+            "Density": compute_density(mask),
+            "Time": time.time() - time_start,
+        }
+        for key, value in record.items():
+            history[key].append(value)
             
         if checkpoint is not None:
-            entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
-            ess = _compute_ess(log_weights)
-            if fi_test is not None and fij_test is not None:
-                log_likelihood_test = compute_log_likelihood(fi=fi_test, fij=fij_test, params=params, logZ=logZ)
-            else:
-                log_likelihood_test = float("nan")
-            checkpoint.log(
-                {
-                    "Epochs": epochs,
-                    "Pearson": pearson,
-                    "Slope": slope,
-                    "LL_train": log_likelihood,
-                    "LL_test": log_likelihood_test,
-                    "ESS": ess,
-                    "Entropy": entropy,
-                    "Density": 1.0,
-                    "Time": time.time() - time_start,
-                }
-            )
-            
+            checkpoint.log(record)
             # Save the model if a checkpoint is reached
             if checkpoint.check(epochs):
                 checkpoint.save(
@@ -266,6 +286,7 @@ def train_eaDCA(
     fi_test: Optional[torch.Tensor] = None,
     fij_test: Optional[torch.Tensor] = None,
     checkpoint: Optional[Checkpoint] = None,
+    l2_reg: float = 0.0,
     *args, **kwargs,
 ) -> Tuple[torch.Tensor, Dict[str, torch.Tensor], torch.Tensor, Dict[str, List[float]]]:
     """
@@ -289,6 +310,7 @@ def train_eaDCA(
         fi_test (Optional[torch.Tensor], optional): Single-point frequencies of the test data. Defaults to None.
         fij_test (Optional[torch.Tensor], optional): Two-point frequencies of the test data. Defaults to None.
         checkpoint (Optional[Checkpoint], optional): Checkpoint class to be used to save the model. Defaults to None.
+        l2_reg (float, optional): L2 regularization coefficient. Defaults to 0.0.
     
     Returns:
         Tuple[torch.Tensor, Dict[str, torch.Tensor], torch.Tensor, Dict[str, List[float]]]: Updated chains and parameters, log-weights for the log-likelihood computation, and training history.
@@ -344,9 +366,17 @@ def train_eaDCA(
     print("-" * 80 + "\n")
     
     history = {
-        "epochs": [],
-        "pearson": [],
-        "slope": [],
+        "Epochs": [],
+        "Pearson": [],
+        "Slope": [],
+        "LL_train": [],
+        "LL_test": [],
+        "Pearson_test": [],
+        "Slope_test": [],
+        "ESS": [],
+        "Entropy": [],
+        "Density": [],
+        "Time": [],
     }
         
     pbar = tqdm(initial=max(0, float(pearson)), total=target_pearson, colour="red", dynamic_ncols=True, ascii="-#",
@@ -354,13 +384,10 @@ def train_eaDCA(
     pbar.set_description(f"Update: {graph_upd:3d} | Density: {density:6.3f}% | New: {0:4d} | LL: {log_likelihood:8.3f}")
     
     while pearson < target_pearson:
-        
         # Old number of active couplings
         nactive_old = nactive
-        
         # Compute the two-points frequencies of the simulated data with pseudo-count
         pij_Dkl = get_freq_two_points(data=chains, weights=None, pseudo_count=pseudo_count)
-        
         # Update the graph
         nactivate = int(((L**2 * q**2) - mask.sum().item()) * factivate)
         mask = activate_graph(
@@ -369,7 +396,6 @@ def train_eaDCA(
             pij=pij_Dkl,
             nactivate=nactivate,
         )
-        
         # New number of active couplings
         nactive = mask.sum()
         
@@ -389,6 +415,7 @@ def train_eaDCA(
             check_slope=False,
             checkpoint=None,
             progress_bar=False,
+            l2_reg=l2_reg,
         )
 
         graph_upd += 1
@@ -403,33 +430,34 @@ def train_eaDCA(
         logZ = (torch.logsumexp(log_weights, dim=0) - torch.log(torch.tensor(len(chains), device=device, dtype=dtype))).item()
         log_likelihood = compute_log_likelihood(fi=fi_target, fij=fij_target, params=params, logZ=logZ)
         pbar.set_description(f"Update: {graph_upd:3d} | Density: {density:6.3f}% | New: {int(nactive - nactive_old):4d} | LL: {log_likelihood:8.3f}")
-        
-        history["epochs"].append(graph_upd)
-        history["pearson"].append(float(pearson))
-        history["slope"].append(float(slope))
+        entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
+        ess = _compute_ess(log_weights)
+        if fi_test is not None and fij_test is not None:
+            log_likelihood_test = compute_log_likelihood(fi=fi_test, fij=fij_test, params=params, logZ=logZ)
+            pearson_test, slope_test = get_correlation_two_points(fij=fij_test, pij=pij, fi=fi_test, pi=pi)
+        else:
+            log_likelihood_test = float("nan")
+            pearson_test = float("nan")
+            slope_test = float("nan")
+        record = {
+            "Epochs": graph_upd,
+            "Pearson": pearson,
+            "Slope": slope,
+            "LL_train": log_likelihood,
+            "LL_test": log_likelihood_test,
+            "Pearson_test": pearson_test,
+            "Slope_test": slope_test,
+            "ESS": ess,
+            "Entropy": entropy,
+            "Density": density,
+            "Time": time.time() - time_start,
+        }
+        for key, value in record.items():
+            history[key].append(value)
 
-        # Save the model if a checkpoint is reached
         if checkpoint is not None:
-            entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
-            ess = _compute_ess(log_weights)
-            checkpoint.log(
-                {
-                    "Epochs": graph_upd,
-                    "Pearson": pearson,
-                    "Slope": slope,
-                    "LL_train": log_likelihood,
-                    "ESS": ess,
-                    "Entropy": entropy,
-                    "Density": density,
-                    "Time": time.time() - time_start,
-                }
-            )
-            if fi_test is not None and fij_test is not None:
-                log_likelihood_test = compute_log_likelihood(fi=fi_test, fij=fij_test, params=params, logZ=logZ)
-                checkpoint.log({"LL_test": log_likelihood_test})
-            else:
-                checkpoint.log({"LL_test": float("nan")})
-                
+            checkpoint.log(record)
+            # Save the model if a checkpoint is reached
             if checkpoint.check(graph_upd):
                 checkpoint.save(
                     params=params,
@@ -441,46 +469,35 @@ def train_eaDCA(
 
     entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
     ess = _compute_ess(log_weights)
+    if fi_test is not None and fij_test is not None:
+        log_likelihood_test = compute_log_likelihood(fi=fi_test, fij=fij_test, params=params, logZ=logZ)
+        pearson_test, slope_test = get_correlation_two_points(fij=fij_test, pij=pij, fi=fi_test, pi=pi)
+    else:
+        log_likelihood_test = float("nan")
+        pearson_test = float("nan")
+        slope_test = float("nan")
+    record = {
+        "Epochs": graph_upd,
+        "Pearson": pearson,
+        "Slope": slope,
+        "LL_train": log_likelihood,
+        "LL_test": log_likelihood_test,
+        "Pearson_test": pearson_test,
+        "Slope_test": slope_test,
+        "ESS": ess,
+        "Entropy": entropy,
+        "Density": density,
+        "Time": time.time() - time_start,
+    }
     if checkpoint is not None:
-        checkpoint.log(
-            {
-                "Epochs": graph_upd,
-                "Pearson": pearson,
-                "Slope": slope,
-                "LL_train": log_likelihood,
-                "ESS": ess,
-                "Entropy": entropy,
-                "Density": density,
-                "Time": time.time() - time_start,
-            }
-        )
-        if fi_test is not None and fij_test is not None:
-            log_likelihood_test = compute_log_likelihood(fi=fi_test, fij=fij_test, params=params, logZ=logZ)
-            checkpoint.log({"LL_test": log_likelihood_test})
-        else:
-            checkpoint.log({"LL_test": float("nan")})
-
+        checkpoint.log(record)
         checkpoint.save(
             params=params,
             mask=torch.logical_and(mask, mask_save),
             chains=chains,
             log_weights=log_weights,
-            )
+        )
     pbar.close()
-    
-    print("\n" + "-" * 80)
-    print("  ACTIVATION COMPLETED")
-    print("-" * 80)
-    print(f"  Final density: {density:.3f}%")
-    print(f"  Final Pearson: {pearson:.4f}")
-    print(f"  Final log-likelihood: {log_likelihood:.3f}")
-    print(f"  Total graph updates: {graph_upd}")
-    if checkpoint is not None:
-        print(f"\n  Model saved:")
-        print(f"    • Parameters: {checkpoint.file_paths['params']}")
-        print(f"    • Chains:     {checkpoint.file_paths['chains']}")
-        print(f"    • Log file:   {checkpoint.file_paths['log']}")
-    print("-" * 80)
     
     return chains, params, log_weights, history
     
@@ -501,6 +518,7 @@ def train_edDCA(
     checkpoint: Optional[Checkpoint] = None,
     fi_test: Optional[torch.Tensor] = None,
     fij_test: Optional[torch.Tensor] = None,
+    l2_reg: float = 0.0,
     *args, **kwargs,
 ) -> Tuple[torch.Tensor, Dict[str, torch.Tensor], torch.Tensor, Dict[str, List[float]]]:
     """Fits an edDCA model on the training data and saves the results in a file.
@@ -521,6 +539,7 @@ def train_edDCA(
         checkpoint (Optional[Checkpoint], optional): Checkpoint class to be used to save the model. Defaults to None.
         fi_test (Optional[torch.Tensor], optional): Single-point frequencies of the test data. Defaults to None.
         fij_test (Optional[torch.Tensor], optional): Two-point frequencies of the test data. Defaults to None.
+        l2_reg (float, optional): L2 regularization coefficient. Defaults to 0.0.
     
     Returns:
         Tuple[torch.Tensor, Dict[str, torch.Tensor], torch.Tensor, Dict[str, List[float]]]: Updated chains and parameters, log-weights for the log-likelihood computation, and training history.
@@ -563,6 +582,7 @@ def train_edDCA(
             target_pearson=target_pearson,
             check_slope=False,
             checkpoint=checkpoint,
+            l2_reg=l2_reg,
         )
         pi = get_freq_single_point(data=chains)
         pij = get_freq_two_points(data=chains)
@@ -618,9 +638,17 @@ def train_edDCA(
         checkpoint.checkpt_interval = 10
     
     history = {
-        "epochs": [],
-        "pearson": [],
-        "slope": [],
+        "Epochs": [],
+        "Pearson": [],
+        "Slope": [],
+        "LL_train": [],
+        "LL_test": [],
+        "Pearson_test": [],
+        "Slope_test": [],
+        "ESS": [],
+        "Entropy": [],
+        "Density": [],
+        "Time": [],
     }
     
     # Compute the single-point and two-points frequencies of the simulated data
@@ -676,6 +704,7 @@ def train_edDCA(
             check_slope=False,
             progress_bar=False,
             checkpoint=None,
+            l2_reg=l2_reg,
         )
         
         # Compute the single-point and two-points frequencies of the simulated data
@@ -688,79 +717,74 @@ def train_edDCA(
         log_likelihood = compute_log_likelihood(fi=fi_target, fij=fij_target, params=params, logZ=logZ)
         
         print("  {0:<8} {1:>12.4f} {2:>12.3f} {3:>12.4f} {4:>12.4f}".format(count, density, log_likelihood, pearson, slope))
-        
-        history["epochs"].append(count)
-        history["pearson"].append(float(pearson))
-        history["slope"].append(float(slope))
-                
-        if checkpoint is not None and checkpoint.check(count):
-            entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
-            ess = _compute_ess(log_weights)
-            checkpoint.log(
-                {
-                    "Epochs": count,
-                    "Pearson": pearson,
-                    "Slope": slope,
-                    "LL_train": log_likelihood,
-                    "ESS": ess,
-                    "Entropy": entropy,
-                    "Density": density,
-                    "Time": time.time() - time_start,
-                }
-            )
-            if fi_test is not None and fij_test is not None:
-                log_likelihood_test = compute_log_likelihood(fi=fi_test, fij=fij_test, params=params, logZ=logZ)
-                checkpoint.log({"LL_test": log_likelihood_test})
-            else:
-                checkpoint.log({"LL_test": float("nan")})
-            
-            checkpoint.save(
-                params=params,
-                mask=torch.logical_and(mask, mask_save),
-                chains=chains,
-                log_weights=log_weights,
-            )
-    
-    entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
-    ess = _compute_ess(log_weights)
-    if checkpoint is not None:
-        checkpoint.log(
-            {
-                "Epochs": count,
-                "Pearson": pearson,
-                "Slope": slope,
+        entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
+        ess = _compute_ess(log_weights)
+        if fi_test is not None and fij_test is not None:
+            log_likelihood_test = compute_log_likelihood(fi=fi_test, fij=fij_test, params=params, logZ=logZ)
+            pearson_test, slope_test = get_correlation_two_points(fij=fij_test, pij=pij, fi=fi_test, pi=pi)
+        else:
+            log_likelihood_test = float("nan")
+            pearson_test = float("nan")
+            slope_test = float("nan")
+        record = {
+            "Epochs": count,
+            "Pearson": pearson,
+            "Slope": slope,
             "LL_train": log_likelihood,
+            "LL_test": log_likelihood_test,
+            "Pearson_test": pearson_test,
+            "Slope_test": slope_test,
             "ESS": ess,
             "Entropy": entropy,
             "Density": density,
             "Time": time.time() - time_start,
         }
-    )
+        for key, value in record.items():
+            history[key].append(value)
+                        
+        if checkpoint is not None:
+            checkpoint.log(record)
+            if checkpoint.check(count):
+                checkpoint.save(
+                    params=params,
+                    mask=torch.logical_and(mask, mask_save),
+                    chains=chains,
+                    log_weights=log_weights,
+                )
+    
+    entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
+    ess = _compute_ess(log_weights)
+    if fi_test is not None and fij_test is not None:
+        log_likelihood_test = compute_log_likelihood(fi=fi_test, fij=fij_test, params=params, logZ=logZ)
+        pearson_test, slope_test = get_correlation_two_points(fij=fij_test, pij=pij, fi=fi_test, pi=pi)
+    else:
+        log_likelihood_test = float("nan")
+        pearson_test = float("nan")
+        slope_test = float("nan")
+    record = {
+        "Epochs": count,
+        "Pearson": pearson,
+        "Slope": slope,
+        "LL_train": log_likelihood,
+        "LL_test": log_likelihood_test,
+        "Pearson_test": pearson_test,
+        "Slope_test": slope_test,
+        "ESS": ess,
+        "Entropy": entropy,
+        "Density": density,
+        "Time": time.time() - time_start,
+    }
+    
+    for key, value in record.items():
+        history[key].append(value)
+        
     if checkpoint is not None:
-        if fi_test is not None and fij_test is not None:
-            log_likelihood_test = compute_log_likelihood(fi=fi_test, fij=fij_test, params=params, logZ=logZ)
-            checkpoint.log({"LL_test": log_likelihood_test})
-        else:
-            checkpoint.log({"LL_test": float("nan")})
-                    
+        checkpoint.log(record)
         checkpoint.save(
             params=params,
             mask=torch.logical_and(mask, mask_save),
             chains=chains,
             log_weights=log_weights,
         )
-    
-    print("\n" + "-" * 80)
-    print("  DECIMATION COMPLETED")
-    print("-" * 80)
-    print(f"  Final density: {density:.4f}")
-    print(f"  Final Pearson: {pearson:.4f}")
-    print(f"  Final log-likelihood: {log_likelihood:.3f}")
-    print(f"  Total decimation steps: {count}")
-    if checkpoint is not None:
-        print(f"\n  Decimated model saved:")
-        print(f"    • Parameters: {checkpoint.file_paths['params_dec']}")
-        print(f"    • Chains:     {checkpoint.file_paths['chains_dec']}")
-        print("-" * 80)
     
     return chains, params, log_weights, history

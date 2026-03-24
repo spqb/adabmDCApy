@@ -18,14 +18,14 @@ All versions share a unified terminal-based interface, allowing users to choose 
 
 ## Core Capabilities
 
-### 🧠 Model Training
+### Model Training
 Choose from three training strategies to fit your model complexity and goals:
 
 - [**`bmDCA`**](training.md#bmdca): Fully-connected Boltzmann Machine [[Figliuzzi et al., 2018](https://doi.org/10.1093/molbev/msv211)]
 - [**`eaDCA`**](training.md#eadca): Sparse model with progressively added couplings [[Calvanese et al., 2024](https://doi.org/10.1093/nar/gkae289)]
 - [**`edDCA`**](training.md#eddca): Prunes an existing `bmDCA` model down to a sparse network [[Barrat-Charlaix et al., 2021](https://doi.org/10.1103/PhysRevE.104.024407)]
 
-### ⚙️ Applications of Pretrained Models
+### Applications of Pretrained Models
 Once trained, models can be used to:
 
 - [Generate new sequences](applications.md#sampling)
@@ -33,7 +33,7 @@ Once trained, models can be used to:
 - [Score sequence datasets](applications.md#scoring) based on model energy
 - [Build mutational libraries](applications.md#DMS) with DCA-based scoring
 
-### 🚀 Advanced Features in Python (`adabmDCApy`)
+### Advanced Features in Python (`adabmDCApy`)
 The Python version includes exclusive features:
 
 - [Experimental feedback reintegration](applications.md#reintegration) for refined models [[Calvanese et al., 2025](https://doi.org/10.48550/arXiv.2504.01593)]

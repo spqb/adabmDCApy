@@ -7,7 +7,7 @@
     adabmDCA <routine_name> -h
     ```
 
-## <span id="sampling">🧬 Generate Sequences</span>
+## <span id="sampling">Generate Sequences</span>
 
 Once a model is trained, it can be used to generate new sequences with:
 
@@ -20,7 +20,7 @@ adabmDCA sample -p <path_params> -d <fasta_file> -o <output_folder> --ngen <num_
 
 The tool first estimates the **mixing time** `t_mix` by simulating chains from the MSA. It then initializes `num_gen` Markov chains and runs `nmix * t_mix` sweeps (default `nmix = 2`) to ensure thermalization. 
 
-📦 Output Files:
+Output Files:
 
 - A FASTA file of generated sequences
 - A log file for reproducing the mixing time surves ([Fig. 3](#fig-mixing-time)-left)
@@ -53,7 +53,7 @@ Convergence is assumed when $\mathrm{SeqID}(t) \cong \mathrm{SeqID}(t, t/2)$.
 
 ---
 
-## <span id="contact-prediction">🔗 Contact Prediction</span>
+## <span id="contact-prediction">Contact Prediction</span>
 
 One of the principal applications of the DCA models has been that of predicting a tertiary structure of a protein or RNA domain. In particular, with each pair of sites $i$ and $j$ in the MSA, `adabmDCA 2.0` computes a contact score that quantifies how likely the two associated positions in the chains are in contact in the three-dimensional structure.
 Formally, it corresponds to the average-product corrected (APC) Frobenius norms of the coupling matrices [Ekeberg et al., [2013](https://doi.org/10.1103/PhysRevE.87.012707)], i.e.
@@ -69,13 +69,13 @@ adabmDCA contacts -p <file_params> -o <output_folder>
 ```
 Zero-sum gauge and gap symbols are handled internally.
 
-📦 Output Files:
+Output Files:
 
 - `<label>_frobenius.txt` with scores for each pair.
 
 ---
 
-## <span id="scoring">📉 Sequence Scoring</span>
+## <span id="scoring">Sequence Scoring</span>
 
 To score sequences using the DCA energy with a trained model:
 
@@ -83,13 +83,13 @@ To score sequences using the DCA energy with a trained model:
 adabmDCA energies -d <fasta_file> -p <file_params> -o <output_folder>
 ```
 
-📦 Output Files:
+Output Files:
 
 - FASTA file where each sequence is annotated with its statistical energy. Lower energies correspond to more likely (or better fitting) sequences under the model.
 
 ---
 
-## <span id="DMS">🧪 Single Mutant Library</span>
+## <span id="DMS">Single Mutant Library</span>
 
 To simulate a mutational scan around a wild-type sequence:
 
@@ -97,7 +97,7 @@ To simulate a mutational scan around a wild-type sequence:
 adabmDCA DMS -d <WT> -p <file_params> -o <output_folder>
 ```
 
-📦 Output Files:
+Output Files:
 
 - FASTA file where each sequence represents a single-point mutant, named by mutation and $\Delta E$ (change in energy). Example:
 
@@ -109,7 +109,7 @@ Negative $\Delta E$ suggests improved fitness.
 
 ---
 
-## <span id="reintegration">🔁 Reintegrated DCA Model from Experiments</span>
+## <span id="reintegration">Reintegrated DCA Model from Experiments</span>
 
 As described in [Calvanese et al., [2025](https://doi.org/10.48550/arXiv.2504.01593)], it is possible to train a DCA model informed with experimental feedback in order to improve the model's ability of generating functional sequences:
 
@@ -127,11 +127,11 @@ adabmDCA reintegrate -d <nat_msa> -o <output_folder> --reint <reint_msa> --adj <
 - `lambda_`: reintegration strength (default: 1)
 - `alphabet`: `protein` or `rna`, sequence type
 
-💡 __Tip__: It is possible to use continuous values from -1 to 1 for the `adj_vector`, depending on the performance of the sequence in the experiment. Additionally, the `lambda_` parameter can be fine-tuned to adjust the reintegration strength. If unsure, a good starting point is to use `lambda_` = 1 and ±1 values for the `adj_vector`.
+__Tip__: It is possible to use continuous values from -1 to 1 for the `adj_vector`, depending on the performance of the sequence in the experiment. Additionally, the `lambda_` parameter can be fine-tuned to adjust the reintegration strength. If unsure, a good starting point is to use `lambda_` = 1 and ±1 values for the `adj_vector`.
 
 ---
 
-## <span id="profmark">🧠 Train/Test Split for Homologous Sequences</span>
+## <span id="profmark">Train/Test Split for Homologous Sequences</span>
 
 When dealing with a family of __homologous sequences__, splitting data into training and test sets has to be done carefully. There are two main reasons for this:
 

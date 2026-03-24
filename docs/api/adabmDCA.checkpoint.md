@@ -21,14 +21,7 @@ Helper class to save the model's parameters and chains at regular intervals duri
 ### <kbd>method</kbd> `__init__`
 
 ```python
-__init__(
-    file_paths: dict,
-    tokens: str,
-    args: dict,
-    params: Optional[Dict[str, Tensor]] = None,
-    chains: Optional[Tensor] = None,
-    use_wandb: bool = False
-)
+__init__(file_paths: dict, tokens: str, args: dict, use_wandb: bool = False)
 ```
 
 Initializes the Checkpoint class. 
@@ -40,8 +33,6 @@ Initializes the Checkpoint class.
  - <b>`file_paths`</b> (dict):  Dictionary containing the paths of the files to be saved. 
  - <b>`tokens`</b> (str):  Alphabet to be used for encoding the sequences. 
  - <b>`args`</b> (dict):  Dictionary containing the arguments of the training. 
- - <b>`params`</b> (Optional[Dict[str, torch.Tensor]], optional):  Parameters of the model. Defaults to None. 
- - <b>`chains`</b> (Optional[torch.Tensor], optional):  Chains. Defaults to None. 
  - <b>`use_wandb`</b> (bool, optional):  Whether to use Weights & Biases for logging. Defaults to False. 
 
 
@@ -49,7 +40,7 @@ Initializes the Checkpoint class.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/checkpoint.py#L113"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/checkpoint.py#L103"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `check`
 
@@ -73,7 +64,7 @@ Checks if a checkpoint has been reached.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/checkpoint.py#L88"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/checkpoint.py#L78"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `log`
 
@@ -91,7 +82,7 @@ Adds a key-value pair to the log dictionary
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/checkpoint.py#L128"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/checkpoint.py#L118"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `save`
 
@@ -111,7 +102,7 @@ Saves the chains and the parameters of the model.
 **Args:**
  
  - <b>`params`</b> (Dict[str, torch.Tensor]):  Parameters of the model. 
- - <b>`mask`</b> (torch.Tensor):  Mask of the model's coupling matrix representing the interaction graph 
+ - <b>`mask`</b> (torch.Tensor):  Mask of the model's coupling matrix representing the interaction graph. 
  - <b>`chains`</b> (torch.Tensor):  Chains. 
  - <b>`log_weights`</b> (torch.Tensor):  Log of the chain weights. Used for AIS. 
 

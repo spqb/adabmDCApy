@@ -10,7 +10,7 @@
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/utils.py#L7"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/utils.py#L8"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `init_parameters`
 
@@ -36,7 +36,7 @@ Initialize the parameters of the DCA model. The bias terms are initialized from 
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/utils.py#L28"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/utils.py#L29"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `init_chains`
 
@@ -73,7 +73,7 @@ Initialize the Markov chains of the DCA model. If 'fi' is provided, the chains a
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/utils.py#L58"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/utils.py#L59"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `get_mask_save`
 
@@ -100,7 +100,7 @@ Returns the mask to save the upper-triangular part of the coupling matrix.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/utils.py#L104"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/utils.py#L105"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `resample_sequences`
 
@@ -127,7 +127,7 @@ Extracts nextract sequences from data with replacement according to the weights.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/utils.py#L125"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/utils.py#L126"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `get_device`
 
@@ -153,7 +153,7 @@ Returns the device where to store the tensors.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/utils.py#L149"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/utils.py#L150"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `get_dtype`
 
@@ -174,6 +174,31 @@ Returns the data type of the tensors.
 **Returns:**
  
  - <b>`torch.dtype`</b>:  Data type. 
+
+
+---
+
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/utils.py#L167"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+
+## <kbd>function</kbd> `parse_log_file`
+
+```python
+parse_log_file(log_path: str) → Tuple[Dict[str, str], Dict[str, ndarray]]
+```
+
+Parse a DCA training log file. 
+
+
+
+**Args:**
+ 
+ - <b>`log_path`</b> (str):  Path to the log file. 
+
+
+
+**Returns:**
+ 
+ - <b>`Tuple[Dict[str, str], Dict[str, np.ndarray]]`</b>:  Dictionary containing metadata and training data. 
 
 
 

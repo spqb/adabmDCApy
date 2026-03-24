@@ -121,7 +121,8 @@ Generates a set of unique triplets of positions. Used to compute the 3-points st
 get_freq_three_points(
     nat: Tensor,
     gen: Tensor,
-    ntriplets: int,
+    ntriplets: int = 10000,
+    triplets: Optional[Tensor] = None,
     weights: Optional[Tensor] = None,
     device: device = device(type='cpu')
 ) → Tuple[Tensor, Tensor]
@@ -135,7 +136,8 @@ Computes the 3-body connected correlation statistics of the input MSAs.
  
  - <b>`nat`</b> (torch.Tensor):  Input MSA representing natural data in one-hot encoding. 
  - <b>`gen`</b> (torch.Tensor):  Input MSA representing generated data in one-hot encoding. 
- - <b>`ntriplets`</b> (int):  Number of triplets to test. 
+ - <b>`ntriplets`</b> (int):  Number of triplets to test. Defaults to 10000. 
+ - <b>`triplets`</b> (Optional[torch.Tensor], optional):  Predefined triplets to use for the computation. Defaults to None. 
  - <b>`weights`</b> (Optional[torch.Tensor], optional):  Importance weights for the natural sequences. Defaults to None. 
  - <b>`device`</b> (torch.device, optional):  Device to perform computations on. Defaults to "cpu". 
 
@@ -148,7 +150,7 @@ Computes the 3-body connected correlation statistics of the input MSAs.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/stats.py#L201"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/stats.py#L204"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `get_covariance_matrix`
 
@@ -179,7 +181,7 @@ Computes the weighted covariance matrix of the input multi sequence alignment.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/stats.py#L231"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/stats.py#L234"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `extract_Cij_from_freq`
 
@@ -214,7 +216,7 @@ Extracts the lower triangular part of the covariance matrices of the natural dat
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/stats.py#L269"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/stats.py#L272"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `extract_Cij_from_seqs`
 
@@ -249,7 +251,7 @@ Extracts the lower triangular part of the covariance matrices of the natural dat
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/stats.py#L296"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/stats.py#L299"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `get_correlation_two_points`
 

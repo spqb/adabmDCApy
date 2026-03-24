@@ -10,9 +10,9 @@ Follow the instructions below based on your preferred environment.
 
 ---
 
-## 🔷 Python (GPU-oriented)
+## Python (GPU-oriented)
 
-### 🔹 Option 1: Install from PyPI (Recommended)
+### Option 1: Install from PyPI (Recommended)
 
 ```{bash}
 pip install adabmDCA
@@ -20,7 +20,7 @@ pip install adabmDCA
 
 Fastest way to get started. This installs the latest stable release.
 
-### 🔹 Option 2: Install from GitHub
+### Option 2: Install from GitHub
 
 Clone the repository and install the package locally:
 
@@ -30,18 +30,18 @@ cd adabmDCApy
 pip install .
 ```
 
-📦 GitHub repo: [adabmDCApy](https://github.com/spqb/adabmDCApy.git)
+GitHub repo: [adabmDCApy](https://github.com/spqb/adabmDCApy.git)
 
 !!! info
     This version of the code assumes the user to be provided with a GPU. If this is not the case, we provide a [Colab notebook](https://colab.research.google.com/drive/1l5e1W8pk4cB92JAlBElLzpkEk6Hdjk7B?usp=sharing) that can be used with GPU hardware acceleration provided by Google.
 
 ---
 
-## 🟣 Julia (Multi-core CPU)
+## Julia (Multi-core CPU)
 
 Make sure you’ve installed [Julia](https://julialang.org/downloads/). Then choose one of the following:
 
-### 🔹 Option 1: Automatic Setup via Shell
+### Option 1: Automatic Setup via Shell
 
 ```{bash}
 # Download main scripts
@@ -53,7 +53,7 @@ chmod +x adabmDCA.sh
 julia --eval 'using Pkg; Pkg.add("ArgParse"); Pkg.add(PackageSpec(url="https://github.com/spqb/adabmDCA.jl"))'
 ```
 
-### 🔹 Option 2: Manual Setup via Julia REPL
+### Option 2: Manual Setup via Julia REPL
 
 1. Launch Julia and run:
 ```bash
@@ -70,15 +70,15 @@ chmod +x adabmDCA.sh
 ```
         
 
-📦 GitHub repo: [adabmDCA.jl](https://github.com/spqb/adabmDCA.jl.git)
+GitHub repo: [adabmDCA.jl](https://github.com/spqb/adabmDCA.jl.git)
 
 ---
 
-## 🟦 C++ (Single-core CPU)
+## C++ (Single-core CPU)
 
 A minimal setup with no external dependencies beyond `make`.
 
-### 🔹 Installation Steps
+### Installation Steps
 
 1. Clone the repository:
 ```{bash}
@@ -97,7 +97,7 @@ chmod +x adabmDCA.sh
 ./adabmDCA --help
 ```
 
-📦 GitHub repo: [adabmDCAc](https://github.com/spqb/adabmDCAc.git)
+GitHub repo: [adabmDCAc](https://github.com/spqb/adabmDCAc.git)
 
 ---
 

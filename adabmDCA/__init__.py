@@ -1,4 +1,4 @@
-__version__ = '0.7'
+__version__ = "0.7.5"
 
 from .fasta import (
     import_from_fasta,
@@ -6,6 +6,7 @@ from .fasta import (
     write_fasta,
     encode_sequence,
     decode_sequence,
+    compute_weights,
 )
 from .stats import (
     get_freq_single_point,
@@ -26,6 +27,7 @@ from .sampling import (
     gibbs_step_uniform_sites,
     metropolis_step_uniform_sites,
     metropolis_step_independent_sites,
+    sampling_profile,
 )
 from .functional import one_hot
 from .statmech import compute_energy
@@ -35,7 +37,12 @@ from .dca import (
     get_contact_map,
     get_mf_contact_map,
 )
-from .utils import init_chains, init_parameters
+from .utils import (
+    init_chains,
+    init_parameters,
+    parse_log_file,
+    resample_sequences,
+)
 from .dataset import DatasetDCA
 
 __all__ = [
@@ -44,6 +51,7 @@ __all__ = [
     "write_fasta",
     "encode_sequence",
     "decode_sequence",
+    "compute_weights",
     "get_freq_single_point",
     "get_freq_two_points",
     "get_freq_three_points",
@@ -58,6 +66,7 @@ __all__ = [
     "metropolis_step_independent_sites",
     "gibbs_step_uniform_sites",
     "metropolis_step_uniform_sites",
+    "sampling_profile",
     "one_hot",
     "compute_energy",
     "get_seqid",
@@ -67,4 +76,6 @@ __all__ = [
     "init_chains",
     "init_parameters",
     "DatasetDCA",
+    "resample_sequences",
+    "parse_log_file",
 ]

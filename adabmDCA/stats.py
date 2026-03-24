@@ -1,5 +1,5 @@
 import itertools
-from typing import Tuple, Optional, Union
+from typing import Tuple, Optional
 import torch
 
 
@@ -156,7 +156,8 @@ def _get_C_ijk(
 def get_freq_three_points(
     nat: torch.Tensor,
     gen: torch.Tensor,
-    ntriplets: int,
+    ntriplets: int = 10000,
+    triplets: Optional[torch.Tensor] = None,
     weights: Optional[torch.Tensor] = None,
     device: torch.device = torch.device("cpu"),
 ) -> Tuple[torch.Tensor, torch.Tensor]:
@@ -165,7 +166,8 @@ def get_freq_three_points(
     Args:
         nat (torch.Tensor): Input MSA representing natural data in one-hot encoding.
         gen (torch.Tensor): Input MSA representing generated data in one-hot encoding.
-        ntriplets (int): Number of triplets to test.
+        ntriplets (int): Number of triplets to test. Defaults to 10000.
+        triplets (Optional[torch.Tensor], optional): Predefined triplets to use for the computation. Defaults to None.
         weights (Optional[torch.Tensor], optional): Importance weights for the natural sequences. Defaults to None.
         device (torch.device, optional): Device to perform computations on. Defaults to "cpu".
 
@@ -187,7 +189,8 @@ def get_freq_three_points(
         norm_weights = torch.ones((M_nat, 1), device=nat.device, dtype=nat.dtype) / M_nat
     
     L = nat.shape[1]
-    triplets = generate_unique_triplets(L=L, ntriplets=ntriplets, device=device)
+    if triplets is None:
+        triplets = generate_unique_triplets(L=L, ntriplets=ntriplets, device=device)
     Cijk_nat = []
     Cijk_gen = []
     uniform_weights = torch.ones((M_gen, 1), device=nat.device, dtype=nat.dtype) / M_gen

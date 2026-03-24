@@ -1,5 +1,6 @@
-from typing import Dict, Optional
+from typing import Dict, Optional, Tuple
 import torch
+import numpy as np
 
 from adabmDCA.functional import one_hot
 
@@ -161,3 +162,80 @@ def get_dtype(dtype: str) -> torch.dtype:
         return torch.float64
     else:
         raise ValueError(f"Data type {dtype} not supported.")
+    
+    
+def parse_log_file(log_path: str) -> Tuple[Dict[str, str], Dict[str, np.ndarray]]:
+    """Parse a DCA training log file.
+    
+    Args:
+        log_path (str): Path to the log file.
+        
+    Returns:
+        Tuple[Dict[str, str], Dict[str, np.ndarray]]: Dictionary containing metadata and training data.
+    """
+    metadata = {}
+    data = {
+        'Epochs': [],
+        'Pearson': [],
+        'Slope': [],
+        'LL_train': [],
+        'LL_test': [],
+        'Pearson_test': [],
+        'Slope_test': [],
+        'ESS': [],
+        'Entropy': [],
+        'Density': [],
+        'Time': []
+    }
+    
+    with open(log_path, 'r') as f:
+        lines = f.readlines()
+    
+    # Parse metadata
+    i = 0
+    while i < len(lines) and lines[i].strip():
+        line = lines[i].strip()
+        if ':' in line:
+            key, value = line.split(':', 1)
+            metadata[key.strip()] = value.strip()
+            i += 1
+        else:
+            break
+    
+    # Find the header line
+    while i < len(lines):
+        if lines[i].strip().startswith('Epochs'):
+            header = lines[i].strip().split()
+            i += 1
+            break
+        i += 1
+    
+    # Parse data lines
+    while i < len(lines):
+        line = lines[i].strip()
+        if not line:
+            i += 1
+            continue
+        
+        # Check if this is a new section (e.g., "Decimation")
+        if not line[0].isdigit() and '.' not in line.split()[0]:
+            # Skip section headers
+            i += 1
+            continue
+            
+        try:
+            values = line.split()
+            if len(values) >= len(header):
+                for j, key in enumerate(header):
+                    if key in data:
+                        data[key].append(float(values[j]))
+        except (ValueError, IndexError):
+            pass
+        
+        i += 1
+    
+    # Convert lists to numpy arrays
+    for key in data:
+        data[key] = np.array(data[key])
+    
+    return metadata, data

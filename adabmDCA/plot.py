@@ -17,20 +17,34 @@ def _plot_scatter_labels(
     colors: Union[List[str], str] = "black",
 ) -> Axes:
 
-    if isinstance(labels, str):
-        labels = [labels]
-    if isinstance(colors, str):
-        colors = [colors]
-    if labels is None:
-        labels = ["Data", "Generated"]
-    ax.scatter(data1[:, pc1], data1[:, pc2], color=colors[0], s=50, label=labels[0], zorder=0, alpha=0.3)
-    if data2 is not None:
-        if len(labels) == 1:
-            labels.append("Generated")
-        if len(colors) == 1:
-            colors.append("red")
-        ax.scatter(data2[:, pc1], data2[:, pc2], color=colors[1], label=labels[1], s=20, zorder=2, edgecolor='black', marker='o', alpha=1, linewidth=0.4)
+    if isinstance(colors, list):
+        color1 = colors[0]
+    elif isinstance(colors, str):
+        color1 = colors
+    else:
+        color1 = "black"
+        
+    if isinstance(labels, list):
+        label1 = labels[0]
+    elif isinstance(labels, str):
+        label1 = labels
+    else:
+        label1 = None
+    ax.scatter(data1[:, pc1], data1[:, pc2], color=color1, s=50, label=label1, zorder=0, alpha=0.3)
     
+    if data2 is not None:
+        if isinstance(colors, list) and len(colors) > 1:
+            color2 = colors[1]
+        else:
+            color2 = "red"
+
+        if isinstance(labels, list) and len(labels) > 1:
+            label2 = labels[1]
+        else:
+            label2 = None
+
+        ax.scatter(data2[:, pc1], data2[:, pc2], color=color2, label=label2, s=20, zorder=2, edgecolor='black', marker='o', alpha=1, linewidth=0.4)
+
     return ax
     
 def _plot_hist(
@@ -42,19 +56,32 @@ def _plot_hist(
     labels: Union[List[str], str, None] = "Data",
     orientation: Literal['vertical', 'horizontal'] = 'vertical',
 ) -> Axes:
-    if isinstance(labels, str):
-        labels = [labels]
-    if labels is None:
-        labels = ["Data", "Generated"]
-    if isinstance(colors, str):
-        colors = [colors]
-    ax.hist(data1[:, pc], bins=40, color=colors[0], histtype='step', label=labels[0], zorder=0, density=True, orientation=orientation, lw=1)
+    if isinstance(labels, list):
+        label1 = labels[0]
+    elif isinstance(labels, str):
+        label1 = labels
+    else:
+        label1 = None
+    if isinstance(colors, list):
+        color1 = colors[0]
+    elif isinstance(colors, str):
+        color1 = colors
+    else:
+        color1 = "black"
+    ax.hist(data1[:, pc], bins=40, color=color1, histtype='step', label=label1, zorder=0, density=True, orientation=orientation, lw=1)
+    
     if data2 is not None:
-        if len(labels) == 1:
-            labels.append("Generated")
-        if len(colors) == 1:
-            colors.append("red")
-        ax.hist(data2[:, pc], bins=40, color=colors[1], histtype='step', label=labels[1], zorder=1, density=True, orientation=orientation, lw=1.5)
+        if isinstance(colors, list) and len(colors) > 1:
+            color2 = colors[1]
+        else:
+            color2 = "red"
+
+        if isinstance(labels, list) and len(labels) > 1:
+            label2 = labels[1]
+        else:
+            label2 = None
+
+        ax.hist(data2[:, pc], bins=40, color=color2, histtype='step', label=label2, zorder=1, density=True, orientation=orientation, lw=1.5)
     ax.axis('off')
     
     return ax

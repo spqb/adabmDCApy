@@ -22,7 +22,8 @@ update_params(
     pij: Tensor,
     params: Dict[str, Tensor],
     mask: Tensor,
-    lr: float
+    lr: float,
+    l2_reg: float = 0.0
 ) → Dict[str, Tensor]
 ```
 
@@ -39,6 +40,7 @@ Updates the parameters of the model.
  - <b>`params`</b> (Dict[str, torch.Tensor]):  Parameters of the model. 
  - <b>`mask`</b> (torch.Tensor):  Mask of the interaction graph. 
  - <b>`lr`</b> (float):  Learning rate. 
+ - <b>`l2_reg`</b> (float, optional):  L2 regularization coefficient. Defaults to 0.0. 
 
 
 
@@ -49,7 +51,7 @@ Updates the parameters of the model.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training.py#L76"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training.py#L82"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `train_graph`
 
@@ -71,6 +73,7 @@ train_graph(
     check_slope: bool = False,
     log_weights: Optional[Tensor] = None,
     progress_bar: bool = True,
+    l2_reg: float = 0.0,
     *args,
     **kwargs
 ) → Tuple[Tensor, Dict[str, Tensor], Tensor, Dict[str, List[float]]]
@@ -98,6 +101,7 @@ Trains the model on a given graph until the target Pearson correlation is reache
  - <b>`check_slope`</b> (bool, optional):  Whether to take into account the slope for the convergence criterion or not. Defaults to False. 
  - <b>`log_weights`</b> (Optional[torch.Tensor], optional):  Log-weights used for the online computation of the log-likelihood. Defaults to None. 
  - <b>`progress_bar`</b> (bool, optional):  Whether to display a progress bar or not. Defaults to True. 
+ - <b>`l2_reg`</b> (float, optional):  L2 regularization coefficient. Defaults to 0.0. 
 
 
 
@@ -108,7 +112,7 @@ Trains the model on a given graph until the target Pearson correlation is reache
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training.py#L251"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training.py#L271"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `train_eaDCA`
 
@@ -131,6 +135,7 @@ train_eaDCA(
     fi_test: Optional[Tensor] = None,
     fij_test: Optional[Tensor] = None,
     checkpoint: Optional[Checkpoint] = None,
+    l2_reg: float = 0.0,
     *args,
     **kwargs
 ) → Tuple[Tensor, Dict[str, Tensor], Tensor, Dict[str, List[float]]]
@@ -159,6 +164,7 @@ Fits an eaDCA model on the training data and saves the results in a file.
  - <b>`fi_test`</b> (Optional[torch.Tensor], optional):  Single-point frequencies of the test data. Defaults to None. 
  - <b>`fij_test`</b> (Optional[torch.Tensor], optional):  Two-point frequencies of the test data. Defaults to None. 
  - <b>`checkpoint`</b> (Optional[Checkpoint], optional):  Checkpoint class to be used to save the model. Defaults to None. 
+ - <b>`l2_reg`</b> (float, optional):  L2 regularization coefficient. Defaults to 0.0. 
 
 
 
@@ -169,7 +175,7 @@ Fits an eaDCA model on the training data and saves the results in a file.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training.py#L488"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training.py#L505"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `train_edDCA`
 
@@ -190,6 +196,7 @@ train_edDCA(
     checkpoint: Optional[Checkpoint] = None,
     fi_test: Optional[Tensor] = None,
     fij_test: Optional[Tensor] = None,
+    l2_reg: float = 0.0,
     *args,
     **kwargs
 ) → Tuple[Tensor, Dict[str, Tensor], Tensor, Dict[str, List[float]]]
@@ -216,6 +223,7 @@ Fits an edDCA model on the training data and saves the results in a file.
  - <b>`checkpoint`</b> (Optional[Checkpoint], optional):  Checkpoint class to be used to save the model. Defaults to None. 
  - <b>`fi_test`</b> (Optional[torch.Tensor], optional):  Single-point frequencies of the test data. Defaults to None. 
  - <b>`fij_test`</b> (Optional[torch.Tensor], optional):  Two-point frequencies of the test data. Defaults to None. 
+ - <b>`l2_reg`</b> (float, optional):  L2 regularization coefficient. Defaults to 0.0. 
 
 
 
