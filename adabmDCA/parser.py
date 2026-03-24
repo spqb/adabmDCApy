@@ -141,9 +141,9 @@ def add_args_tdint(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     return parser
 
 def add_args_reintegration(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
-    parser.add_argument("--reint",  type=str,       required=True,  help="Path to the fasta file containing the reintegrated sequences.")
-    parser.add_argument("--adj",    type=str,       required=True,  help="Path to the file containing the adjustment vector.")
-    parser.add_argument("--lambda_", type=float,    required=True,  help="Reintegration strength parameter.")
+    parser.add_argument("--reint",   type=str,       required=True,  help="Path to the fasta file containing the reintegrated sequences.")
+    parser.add_argument("--adj",     type=str,       required=True,  help="Path to the file containing the adjustment vector.")
+    parser.add_argument("--lambda_", type=float,     default=None,   help="(Defaults to None)Reintegration strength parameter. If None, it is set to 1 / max|adjust|")
 
     return parser
 

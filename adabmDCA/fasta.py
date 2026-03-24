@@ -307,7 +307,7 @@ def compute_weights(
     else:
         data_encoded = data
     _, L = data_encoded.shape
-    weights = torch.vstack([_get_sequence_weight(s, data_encoded, L, th) for s in data_encoded])
+    weights = torch.vstack([_get_sequence_weight(s, data_encoded, L, th) for s in data_encoded]).view(-1)
 
     return weights.to(dtype)
 

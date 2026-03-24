@@ -54,8 +54,8 @@ def main():
         path_data=args.data,
         path_weights=args.weights,
         alphabet=args.alphabet,
-        clustering_th=args.clustering_seqid,
         no_reweighting=args.no_reweighting,
+        clustering_th=args.clustering_seqid,
         filter_sequences=True,
         remove_duplicates=True,
         device=device,
@@ -63,16 +63,15 @@ def main():
         message=False,
     )
     M_nat = len(dataset_nat)
-    M_eff_nat = dataset_nat.get_effective_size()
-    print(f"  ✓ Natural dataset loaded ({M_nat} sequences, M_eff={M_eff_nat:.1f})")
+    print(f"  ✓ Natural dataset loaded ({M_nat} sequences)")
     
     print("  Loading reintegration dataset...")
     dataset_reint = DatasetDCA(
         path_data=args.reint,
+        path_weights=args.adj,
         alphabet=args.alphabet,
-        no_reweighting=True,
-        filter_sequences=False,
-        remove_duplicates=False,
+        filter_sequences=True,
+        remove_duplicates=True,
         device=device,
         dtype=dtype,
         message=False,
@@ -89,14 +88,8 @@ def main():
     msa_names = np.append(dataset_nat.names, dataset_reint.names)
     print(f"  ✓ Combined dataset: {len(msa)} sequences")
     
-    # Import the adjustment vector
-    print(f"  Loading adjustment vector from: {args.adj}")
-    with open(args.adj, "r") as f:
-        adjust = torch.tensor([float(x) for x in f.read().split()], device=device, dtype=dtype)
-    print(f"  ✓ Adjustment vector loaded ({len(adjust)} values)")
-    
     if args.lambda_ is None:
-        span_adjust = torch.abs(adjust).max()
+        span_adjust = torch.abs(dataset_reint.weights).max()
         lambda_ = 1 / span_adjust
         print(f"  Lambda (auto): {lambda_:.6f} (1 / max|adjust|)")
     else:
@@ -108,11 +101,11 @@ def main():
     print(f"  Scaling factor k: {k:.6f}")
     
     # Concatenate the weights
-    weights = torch.cat((dataset_nat.weights.view(-1), k * adjust), dim=0).unsqueeze(1)
-    print(f"  ✓ Weights computed")
+    weights = torch.cat((dataset_nat.weights, k * dataset_reint.weights), dim=0)
+    print(f"  ✓ Reintegration weights computed")
     
     # Save the new dataset
-    args.label = f"{args.label}-lambda_{lambda_}" if args.label is not None else f"lambda_{lambda_}"
+    args.label = f"{args.label}-lambda_{lambda_:.2f}" if args.label is not None else f"lambda_{lambda_}"
     
     print("  Saving reintegrated dataset...")
     path_msa = os.path.join(folder, f"{args.label}_msa.fasta")
