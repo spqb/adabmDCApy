@@ -6,18 +6,18 @@ import torch
 from adabmDCA.dataset import DatasetDCA
 from adabmDCA.fasta import get_tokens
 from adabmDCA.io import load_chains, load_params
-from adabmDCA.stats import get_freq_single_point, get_freq_two_points
 from adabmDCA.utils import init_chains, init_parameters, get_device, get_dtype
 from adabmDCA.parser import add_args_train
 from adabmDCA.sampling import get_sampler
 from adabmDCA.checkpoint import Checkpoint
 from adabmDCA.graph import compute_density
-from adabmDCA.training import train_graph, train_eaDCA, train_edDCA
+from adabmDCA.training import train_graph, train_eaDCA, train_edDCA, train_edgeDCA
 
 ROUTINES = {
     "bmDCA": train_graph,
     "eaDCA": train_eaDCA,
     "edDCA": train_edDCA,
+    "edgeDCA": train_edgeDCA,
 }
 
 
@@ -58,7 +58,7 @@ def main():
     print(template.format("Target Pearson Cij:", args.target))
     if args.pseudocount is not None:
         print(template.format("Pseudocount:", args.pseudocount))
-    if args.l2_reg > 0.0:
+    if args.l2_reg > 0.0 and args.model in ["bmDCA", "edDCA", "eaDCA"]:
         print(template.format("L2 regularization:", args.l2_reg))
     print(template.format("Random seed:", args.seed))
     print(template.format("Device:", str(device)))
@@ -131,7 +131,10 @@ def main():
             remove_duplicates=True,
         )
         pseudocount_test = 1. / test_dataset.get_effective_size()
-        fi_test, fij_test = test_dataset.get_frequencies(pseudocount=pseudocount_test)
+        if args.model == "edgeDCA":
+            fi_test, fij_test = test_dataset.get_frequencies(pseudocount=1e-6)
+        else:
+            fi_test, fij_test = test_dataset.get_frequencies(pseudocount=pseudocount_test)
     else:
         fi_test = None
         fij_test = None
@@ -170,7 +173,13 @@ def main():
         args.pseudocount = 1. / dataset.get_effective_size()
         print(f"    • Pseudocount (auto): {args.pseudocount:.6f}")
     print("-" * 80 + "\n")
-    fi_target, fij_target = dataset.get_frequencies(pseudocount=args.pseudocount)
+    
+    if args.model == "edgeDCA":
+        fi_target, fij_target = dataset.get_frequencies(pseudocount=1e-6)
+        fi_pseudocounted, fij_pseudocounted = dataset.get_frequencies(pseudocount=args.pseudocount)
+    else:
+        fi_target, fij_target = dataset.get_frequencies(pseudocount=args.pseudocount)
+        fi_pseudocounted, fij_pseudocounted = fi_target, fij_target
 
     # Initialize parameters and chains
     print("[INITIALIZATION]")
@@ -231,6 +240,8 @@ def main():
         fi_target=fi_target,
         fi_test=fi_test,
         fij_test=fij_test,
+        fi_pseudocounted=fi_pseudocounted,
+        fij_pseudocounted=fij_pseudocounted,
         params=params,
         mask=mask,
         chains=chains,
