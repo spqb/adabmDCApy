@@ -24,6 +24,7 @@
 
 - [`checkpoint.Checkpoint`](./adabmDCA.checkpoint.md#class-checkpoint): Helper class to save the model's parameters and chains at regular intervals during training and to log the
 - [`dataset.DatasetDCA`](./adabmDCA.dataset.md#class-datasetdca): Dataset class for handling multi-sequence alignments data.
+- [`utils.Timer`](./adabmDCA.utils.md#class-timer): Track recent ``(time, pearson)`` points and predict when a target Pearson is reached.
 
 ## Functions
 
@@ -44,8 +45,8 @@
 - [`fasta.write_fasta`](./adabmDCA.fasta.md#function-write_fasta): Generate a fasta file with the input sequences.
 - [`functional.one_hot`](./adabmDCA.functional.md#function-one_hot): A fast one-hot encoding function faster than the PyTorch one working with torch.int32 and returning a float Tensor.
 - [`graph.decimate_graph`](./adabmDCA.graph.md#function-decimate_graph): Performs one decimation step and updates the parameters and mask.
-- [`graph.update_mask_activation`](./adabmDCA.graph.md#function-update_mask_activation): Updates the mask by removing the nactivate couplings with the smallest Dkl.
 - [`graph.update_mask_decimation`](./adabmDCA.graph.md#function-update_mask_decimation): Updates the mask by removing the n_remove couplings with the smallest Dkl.
+- [`graph.update_mask_element_activation`](./adabmDCA.graph.md#function-update_mask_element_activation): Updates the mask by activating the nactivate couplings with the largest Dkl.
 - [`io.load_chains`](./adabmDCA.io.md#function-load_chains): Loads the sequences from a fasta file and returns the one-hot encoded version.
 - [`io.load_params`](./adabmDCA.io.md#function-load_params): Import the parameters of the model from a text file.
 - [`io.load_params_old`](./adabmDCA.io.md#function-load_params_old): Import the parameters of the model from a file.
@@ -83,8 +84,10 @@
 - [`stats.get_freq_two_points`](./adabmDCA.stats.md#function-get_freq_two_points): Computes the 2-points statistics of the input MSA.
 - [`training.train_eaDCA`](./adabmDCA.training.md#function-train_eadca): Fits an eaDCA model on the training data and saves the results in a file.
 - [`training.train_edDCA`](./adabmDCA.training.md#function-train_eddca): Fits an edDCA model on the training data and saves the results in a file.
+- [`training.train_edgeDCA`](./adabmDCA.training.md#function-train_edgedca): Fits an edge activation DCA model (edgeDCA)on the training data and saves the results in a file.
 - [`training.train_graph`](./adabmDCA.training.md#function-train_graph): Trains the model on a given graph until the target Pearson correlation is reached or the maximum number of epochs is exceeded.
 - [`training.update_params`](./adabmDCA.training.md#function-update_params): Updates the parameters of the model.
+- [`training.update_params_edge_activation`](./adabmDCA.training.md#function-update_params_edge_activation): Updates the mask and the coupling parameters using the edge-activation algorithm.
 - [`utils.get_device`](./adabmDCA.utils.md#function-get_device): Returns the device where to store the tensors.
 - [`utils.get_dtype`](./adabmDCA.utils.md#function-get_dtype): Returns the data type of the tensors.
 - [`utils.get_mask_save`](./adabmDCA.utils.md#function-get_mask_save): Returns the mask to save the upper-triangular part of the coupling matrix.
