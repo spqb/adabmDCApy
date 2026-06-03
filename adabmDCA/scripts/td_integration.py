@@ -1,19 +1,8 @@
 import argparse
 import os
-
-import torch
-import numpy as np
-from tqdm import tqdm
 import time
 
-from adabmDCA.fasta import get_tokens
-from adabmDCA.utils import init_chains, get_device, get_dtype, resample_sequences
-from adabmDCA.io import load_params, load_chains, import_from_fasta
-from adabmDCA.functional import one_hot
-from adabmDCA.sampling import get_sampler
-from adabmDCA.statmech import compute_energy
 from adabmDCA.parser import add_args_tdint
-from adabmDCA.dca import get_seqid
 
 
 # import command-line input arguments
@@ -29,6 +18,18 @@ def main():
     # Parse arguments
     parser = create_parser()
     args = parser.parse_args()
+
+    import numpy as np
+    import torch
+    from tqdm import tqdm
+
+    from adabmDCA.dca import get_seqid
+    from adabmDCA.fasta import get_tokens
+    from adabmDCA.functional import one_hot
+    from adabmDCA.io import load_params, load_chains, import_from_fasta
+    from adabmDCA.sampling import get_sampler
+    from adabmDCA.statmech import compute_energy
+    from adabmDCA.utils import init_chains, get_device, get_dtype, resample_sequences
     
     print("\n" + "="*80)
     print("  THERMODYNAMIC INTEGRATION - ENTROPY COMPUTATION")

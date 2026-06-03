@@ -52,7 +52,7 @@ adabmDCA energies -d <fasta_file> -p <file_params> -o <output_folder>
 - __Generate a single mutant library__ from a wild type:
 
 ```bash
-adabmDCA DMS -d <WT> -p <file_params> -o <output_folder>
+adabmDCA dms -d <WT> -p <file_params> -o <output_folder>
 ```
 
 - __Compute contact scores__ via Frobenius norm:
@@ -72,4 +72,3 @@ adabmDCA reintegrate -d <nat_msa> -o <output_folder> --reint <reint_msa> --adj <
 ```bash
 adabmDCA profmark -t1 <t1> -t2 <t2> --bestof <n_trials> <output_prefix> <input_msa>
 ```
-

@@ -1,15 +1,8 @@
 import argparse
 import os
 
-import torch
-from torch.nn.functional import one_hot
-
-from adabmDCA.fasta import get_tokens
-from adabmDCA.utils import get_device, get_dtype
-from adabmDCA.io import load_params, import_from_fasta
-from adabmDCA.fasta import decode_sequence
-from adabmDCA.statmech import compute_energy
 from adabmDCA.parser import add_args_energies
+from adabmDCA.scripts._utils import ensure_output_dir, require_file
 
 
 # import command-line input arguments
@@ -24,6 +17,14 @@ def main():
     # Parse arguments
     parser = create_parser()
     args = parser.parse_args()
+
+    import torch
+    from torch.nn.functional import one_hot
+
+    from adabmDCA.fasta import decode_sequence, get_tokens
+    from adabmDCA.io import import_from_fasta, load_params
+    from adabmDCA.statmech import compute_energy
+    from adabmDCA.utils import get_device, get_dtype
     
     print("\n" + "="*80)
     print("  DCA ENERGY COMPUTATION")
@@ -45,13 +46,8 @@ def main():
     print(template.format("Data type:", args.dtype))
     print("-" * 80 + "\n")
     
-    # Check if the data file exists
-    if not os.path.exists(args.data):
-        raise FileNotFoundError(f"Data file {args.data} not found.")
-    
-    # Check if the parameters file exists
-    if not os.path.exists(args.path_params):
-        raise FileNotFoundError(f"Parameters file {args.path_params} not found.")
+    require_file(args.data, "Data file")
+    require_file(args.path_params, "Parameters file")
     
     # import data
     print("[DATA LOADING]")
@@ -73,6 +69,10 @@ def main():
     L = params["bias"].shape[0]
     q = params["bias"].shape[1]
     print(f"  ✓ Parameters loaded (q={q}, L={L})")
+    if seq_length != L:
+        raise ValueError(
+            f"Sequence length ({seq_length}) does not match model length ({L})."
+        )
     print("-" * 80 + "\n")
     
     print("[ENERGY COMPUTATION]")
@@ -94,12 +94,11 @@ def main():
     # Save results in a file
     print("[OUTPUT]")
     print("-" * 80)
-    folder = args.output
-    os.makedirs(folder, exist_ok=True)
-    fname_out = os.path.join(folder, f"{os.path.splitext(os.path.basename(args.data))[0]}_energies.fasta")
+    folder = ensure_output_dir(args.output)
+    fname_out = folder / f"{os.path.splitext(os.path.basename(args.data))[0]}_energies.fasta"
     
     print("  Saving results...")
-    with open(fname_out, "w") as f:
+    with fname_out.open("w") as f:
         for n, s, e in zip(names, sequences, energies):
             f.write(f">{n} | DCAenergy: {e:.3f}\n")
             f.write(f"{s}\n")

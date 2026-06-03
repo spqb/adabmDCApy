@@ -1,24 +1,7 @@
 import os
 import argparse
-import numpy as np
-import torch
 
-from adabmDCA.dataset import DatasetDCA
-from adabmDCA.fasta import get_tokens
-from adabmDCA.io import load_chains, load_params
-from adabmDCA.utils import init_chains, init_parameters, get_device, get_dtype
 from adabmDCA.parser import add_args_train
-from adabmDCA.sampling import get_sampler
-from adabmDCA.checkpoint import Checkpoint
-from adabmDCA.graph import compute_density
-from adabmDCA.training import train_graph, train_eaDCA, train_edDCA, train_edgeDCA
-
-ROUTINES = {
-    "bmDCA": train_graph,
-    "eaDCA": train_eaDCA,
-    "edDCA": train_edDCA,
-    "edgeDCA": train_edgeDCA,
-}
 
 
 # import command-line input arguments
@@ -35,6 +18,25 @@ def main():
     # Load parser, training dataset and DCA model
     parser = create_parser()
     args = parser.parse_args()
+
+    import numpy as np
+    import torch
+
+    from adabmDCA.dataset import DatasetDCA
+    from adabmDCA.fasta import get_tokens
+    from adabmDCA.io import load_chains, load_params
+    from adabmDCA.utils import init_chains, init_parameters, get_device, get_dtype
+    from adabmDCA.sampling import get_sampler
+    from adabmDCA.checkpoint import Checkpoint
+    from adabmDCA.graph import compute_density
+    from adabmDCA.training import train_graph, train_eaDCA, train_edDCA, train_edgeDCA
+
+    routines = {
+        "bmDCA": train_graph,
+        "eaDCA": train_eaDCA,
+        "edDCA": train_edDCA,
+        "edgeDCA": train_edgeDCA,
+    }
     
     print("\n" + "="*80)
     print(f"  TRAINING {args.model.upper()} MODEL")
@@ -139,7 +141,7 @@ def main():
         fi_test = None
         fij_test = None
     
-    training_routine = ROUTINES[args.model]
+    training_routine = routines[args.model]
     tokens = get_tokens(args.alphabet)
     
     # Save the weights if not already provided
@@ -170,7 +172,7 @@ def main():
     print(f"    • Effective sequences (M_eff): {M_eff}")
     
     if args.pseudocount is None:
-        args.pseudocount = 1. / dataset.get_effective_size()
+        args.pseudocount = 0.1 if args.model == "edgeDCA" else 1. / dataset.get_effective_size()
         print(f"    • Pseudocount (auto): {args.pseudocount:.6f}")
     print("-" * 80 + "\n")
     

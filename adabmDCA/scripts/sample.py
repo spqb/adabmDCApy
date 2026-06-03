@@ -1,20 +1,6 @@
 import argparse
 import os
-import pandas as pd
-from tqdm import tqdm
-import torch
 
-from adabmDCA.fasta import (
-    get_tokens,
-    write_fasta,
-)
-from adabmDCA.resampling import compute_mixing_time
-from adabmDCA.io import load_params
-from adabmDCA.dataset import DatasetDCA
-from adabmDCA.utils import init_chains, resample_sequences, get_device, get_dtype
-from adabmDCA.sampling import get_sampler
-from adabmDCA.statmech import compute_energy
-from adabmDCA.stats import get_freq_single_point, get_freq_two_points, get_correlation_two_points
 from adabmDCA.parser import add_args_sample
 
 
@@ -32,6 +18,23 @@ def main():
     # Parse arguments
     parser = create_parser()
     args = parser.parse_args()
+
+    import pandas as pd
+    import torch
+    from tqdm import tqdm
+
+    from adabmDCA.dataset import DatasetDCA
+    from adabmDCA.fasta import get_tokens, write_fasta
+    from adabmDCA.io import load_params
+    from adabmDCA.resampling import compute_mixing_time
+    from adabmDCA.sampling import get_sampler
+    from adabmDCA.statmech import compute_energy
+    from adabmDCA.stats import (
+        get_correlation_two_points,
+        get_freq_single_point,
+        get_freq_two_points,
+    )
+    from adabmDCA.utils import init_chains, resample_sequences, get_device, get_dtype
     
     print("\n" + "="*80)
     print("  SAMPLING FROM DCA MODEL")

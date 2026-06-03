@@ -22,7 +22,7 @@ In this section we list all the possible command-line arguments for the main rou
 | `--nchains`             | 10000        | Number of Markov chains to run in parallel. |
 | `--target`              | 0.95         | Pearson correlation coefficient on the two-sites statistics to be reached. |
 | `--nepochs`             | 50000        | Maximum number of epochs allowed. |
-| `--pseudocount`        | None         | Pseudo count for the single and two-sites statistics. Acts as a regularization. If `None`, it is set to $1/M_{\mathrm{eff}}$. |
+| `--pseudocount`        | None         | Pseudo count for the single and two-sites statistics. Acts as a regularization. If `None`, it is set to `0.1` for `edgeDCA` and $1/M_{\mathrm{eff}}$ otherwise. |
 | `--seed`               | 0            | Random seed. |
 | `--nthreads`¹         | 1            | Number of threads used in the Julia multithreaded version. |
 | `--device`¹           | cuda         | Device to be used between cuda (GPU) and CPU. Used in the Python version. |
@@ -103,4 +103,3 @@ In this section we list all the possible command-line arguments for the main rou
 | `--dtype`¹             | float32      | Data type to be used between float32 and float64. Used in the Python version. |
 
 ¹ Used in specific versions of the software.
-

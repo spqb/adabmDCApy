@@ -1,15 +1,7 @@
 import argparse
-import os
 
-import torch
-
-from adabmDCA.fasta import get_tokens
-from adabmDCA.utils import get_device, get_dtype
-from adabmDCA.io import load_params, import_from_fasta
-from adabmDCA.fasta import encode_sequence, decode_sequence
-from adabmDCA.functional import one_hot
-from adabmDCA.statmech import compute_energy
 from adabmDCA.parser import add_args_dms
+from adabmDCA.scripts._utils import ensure_output_dir, require_file
 
 
 # import command-line input arguments
@@ -24,6 +16,14 @@ def main():
     # Parse arguments
     parser = create_parser()
     args = parser.parse_args()
+
+    import torch
+
+    from adabmDCA.fasta import decode_sequence, encode_sequence, get_tokens
+    from adabmDCA.functional import one_hot
+    from adabmDCA.io import import_from_fasta, load_params
+    from adabmDCA.statmech import compute_energy
+    from adabmDCA.utils import get_device, get_dtype
     
     print("\n" + "="*80)
     print("  DEEP MUTATIONAL SCANNING (DMS)")
@@ -45,13 +45,8 @@ def main():
     print(template.format("Data type:", args.dtype))
     print("-" * 80 + "\n")
     
-    # Check if the data file exists
-    if not os.path.exists(args.data):
-        raise FileNotFoundError(f"Data file {args.data} not found.")
-    
-    # Check if the parameters file exists
-    if not os.path.exists(args.path_params):
-        raise FileNotFoundError(f"Parameters file {args.path_params} not found.")
+    require_file(args.data, "Data file")
+    require_file(args.path_params, "Parameters file")
     
     # import data and parameters
     print("[DATA LOADING]")
@@ -71,6 +66,10 @@ def main():
     params = load_params(args.path_params, tokens=tokens, device=device, dtype=dtype)
     L, q = params["bias"].shape
     print(f"  ✓ Parameters loaded (L={L}, q={q})")
+    if L_wt != L:
+        raise ValueError(
+            f"Wild-type sequence length ({L_wt}) does not match model length ({L})."
+        )
     print("-" * 80 + "\n")
     
     # generate DMS
@@ -115,12 +114,11 @@ def main():
     
     print("[OUTPUT]")
     print("-" * 80)
-    folder = args.output
-    os.makedirs(folder, exist_ok=True)
-    fname_out = os.path.join(folder, f"{wt_name}_DMS.fasta")
+    folder = ensure_output_dir(args.output)
+    fname_out = folder / f"{wt_name}_DMS.fasta"
     
     print("  Saving DMS results...")
-    with open(fname_out, "w") as f:
+    with fname_out.open("w") as f:
         for i, res_old, res_new, e, seq in zip(site_list, old_residues, new_residues, deltaE, dms_decoded):
             f.write(f">{res_old}{i}{res_new} | DCAscore: {e:.3f}\n")
             f.write(seq + "\n")
