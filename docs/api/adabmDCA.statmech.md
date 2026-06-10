@@ -53,7 +53,7 @@ compute_log_likelihood(
 ) → float
 ```
 
-Compute the log-likelihood of the model. 
+Compute the log-likelihood per residue of the model. 
 
 
 
@@ -68,7 +68,7 @@ Compute the log-likelihood of the model.
 
 **Returns:**
  
- - <b>`float`</b>:  Log-likelihood of the model. 
+ - <b>`float`</b>:  Log-likelihood per residue of the model. 
 
 
 ---

@@ -82,8 +82,9 @@ def _compute_log_likelihood(
 ) -> float:
     
     mean_energy_data = - torch.sum(fi * params["bias"]) - 0.5 * torch.sum(fij * params["coupling_matrix"])
+    L = params["bias"].shape[0]
 
-    return - mean_energy_data.item() - logZ
+    return (- mean_energy_data.item() - logZ) / L
 
 
 def compute_log_likelihood(
@@ -92,7 +93,7 @@ def compute_log_likelihood(
     params: Dict[str, torch.Tensor],
     logZ: float,
 ) -> float:
-    """Compute the log-likelihood of the model.
+    """Compute the log-likelihood per residue of the model.
 
     Args:
         fi (torch.Tensor): Single-site frequencies of the data.
@@ -101,7 +102,7 @@ def compute_log_likelihood(
         logZ (float): Log-partition function of the model.
 
     Returns:
-        float: Log-likelihood of the model.
+        float: Log-likelihood per residue of the model.
     """
     return _compute_log_likelihood(fi, fij, params, logZ)
 

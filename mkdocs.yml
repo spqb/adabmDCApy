@@ -6,6 +6,7 @@ nav:
   - Installation: installation.md
   - Input data and preprocessing: preprocessing.md
   - Training: training.md
+  - Thermodynamic integration: thermodynamic_integration.md
   - Applications: applications.md
   - Quicklist: quicklist.md
   - Script arguments: script_arguments.md

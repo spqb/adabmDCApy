@@ -12,6 +12,8 @@ COMMANDS = {
     "entropy": "adabmDCA.scripts.td_integration",
     "reintegrate": "adabmDCA.scripts.reintegrate",
     "profmark": "adabmDCA.scripts.profmark",
+    "plot-training-log": "adabmDCA.plot_training_log",
+    "plot_training_log": "adabmDCA.plot_training_log",
 }
 
 

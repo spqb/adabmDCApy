@@ -159,7 +159,7 @@ def import_from_fasta(
     sequences = []
     names = []
     for record in records:
-        names.append(str(record.id))
+        names.append(str(record.description))
         sequences.append(str(record.seq))
     
     # Filter sequences

@@ -168,3 +168,4 @@ Pipfile
 Pipfile.lock
 wandb/
 models/
+plots/

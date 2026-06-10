@@ -38,6 +38,7 @@ class CliTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("Invalid command 'unknown'", result.stdout)
         self.assertIn("train", result.stdout)
+        self.assertIn("plot-training-log", result.stdout)
 
     def test_command_help_does_not_require_runtime_dependencies(self):
         commands = [
@@ -50,6 +51,8 @@ class CliTests(unittest.TestCase):
             "entropy",
             "reintegrate",
             "profmark",
+            "plot-training-log",
+            "plot_training_log",
         ]
 
         for command in commands:
@@ -79,6 +82,21 @@ class CliTests(unittest.TestCase):
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("0.1 for edgeDCA", result.stdout)
+
+    def test_train_help_uses_validation_flag(self):
+        result = run_cli("train", "--help")
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("-v VAL, --val VAL", result.stdout)
+        self.assertIn("validation", result.stdout)
+        self.assertIn("metrics are computed", result.stdout)
+        self.assertNotIn("--test", result.stdout)
+
+    def test_plot_training_log_missing_file_reports_parser_error(self):
+        result = run_cli("plot-training-log", "missing.log")
+
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("Log file 'missing.log' not found", result.stderr)
 
 
 if __name__ == "__main__":

@@ -37,6 +37,12 @@ adabmDCA train -m edDCA -d <fasta_file> -p <file_params> -c <file_chains>
 adabmDCA train -m edDCA -d <fasta_file>
 ```
 
+- __Train an `edgeDCA` model__ by activating residue-residue edges:
+
+```bash
+adabmDCA train -m edgeDCA -d <fasta_file> -o <output_folder>
+```
+
 - __Generate sequences__ from a trained model:
 
 ```bash

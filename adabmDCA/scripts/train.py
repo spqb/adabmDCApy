@@ -30,13 +30,6 @@ def main():
     from adabmDCA.checkpoint import Checkpoint
     from adabmDCA.graph import compute_density
     from adabmDCA.training import train_graph, train_eaDCA, train_edDCA, train_edgeDCA
-
-    routines = {
-        "bmDCA": train_graph,
-        "eaDCA": train_eaDCA,
-        "edDCA": train_edDCA,
-        "edgeDCA": train_edgeDCA,
-    }
     
     print("\n" + "="*80)
     print(f"  TRAINING {args.model.upper()} MODEL")
@@ -51,6 +44,8 @@ def main():
     print("-" * 80)
     template = "  {0:<28} {1:<50}"
     print(template.format("Input MSA:", str(args.data)))
+    if args.val is not None:
+        print(template.format("Validation MSA:", str(args.val)))
     print(template.format("Output folder:", str(args.output)))
     print(template.format("Model type:", args.model))
     print(template.format("Alphabet:", args.alphabet))
@@ -71,9 +66,9 @@ def main():
     if not os.path.exists(args.data):
         raise FileNotFoundError(f"Data file {args.data} not found.")
     
-    if args.test is not None:
-        if not os.path.exists(args.test):
-            raise FileNotFoundError(f"Test file {args.test} not found.")
+    if args.val is not None:
+        if not os.path.exists(args.val):
+            raise FileNotFoundError(f"Validation file {args.val} not found.")
     
     # Create the folder where to save the model
     folder = args.output
@@ -117,11 +112,11 @@ def main():
         remove_duplicates=True,
     )
     
-    # Import the test dataset if provided
-    if args.test is not None:
-        print("  Importing test dataset...")
-        test_dataset = DatasetDCA(
-            path_data=args.test,
+    # Import the validation dataset if provided
+    if args.val is not None:
+        print("  Importing validation dataset...")
+        val_dataset = DatasetDCA(
+            path_data=args.val,
             path_weights=None,
             alphabet=args.alphabet,
             clustering_th=args.clustering_seqid,
@@ -132,16 +127,15 @@ def main():
             filter_sequences=True,
             remove_duplicates=True,
         )
-        pseudocount_test = 1. / test_dataset.get_effective_size()
+        pseudocount_val = 1. / val_dataset.get_effective_size()
         if args.model == "edgeDCA":
-            fi_test, fij_test = test_dataset.get_frequencies(pseudocount=1e-6)
+            fi_val, fij_val = val_dataset.get_frequencies(pseudocount=1e-6)
         else:
-            fi_test, fij_test = test_dataset.get_frequencies(pseudocount=pseudocount_test)
+            fi_val, fij_val = val_dataset.get_frequencies(pseudocount=pseudocount_val)
     else:
-        fi_test = None
-        fij_test = None
+        fi_val = None
+        fij_val = None
     
-    training_routine = routines[args.model]
     tokens = get_tokens(args.alphabet)
     
     # Save the weights if not already provided
@@ -236,30 +230,94 @@ def main():
         use_wandb=args.wandb,
     )
 
-    _, _, _, history = training_routine(
-        sampler=sampler,
-        fij_target=fij_target,
-        fi_target=fi_target,
-        fi_test=fi_test,
-        fij_test=fij_test,
-        fi_pseudocounted=fi_pseudocounted,
-        fij_pseudocounted=fij_pseudocounted,
-        params=params,
-        mask=mask,
-        chains=chains,
-        log_weights=log_weights,
-        target_pearson=args.target,
-        pseudo_count=args.pseudocount,
-        nsweeps=args.nsweeps,
-        max_epochs=args.nepochs,
-        lr=args.lr,
-        factivate=args.factivate,
-        gsteps=args.gsteps,
-        drate=args.drate,
-        target_density=args.density,
-        checkpoint=checkpoint,
-        l2_reg=args.l2_reg,
-    )
+    def run_bmDCA():
+        return train_graph(
+            sampler=sampler,
+            chains=chains,
+            mask=mask,
+            fi_target=fi_target,
+            fij_target=fij_target,
+            params=params,
+            nsweeps=args.nsweeps,
+            lr=args.lr,
+            max_epochs=args.nepochs,
+            target_pearson=args.target,
+            fi_val=fi_val,
+            fij_val=fij_val,
+            checkpoint=checkpoint,
+            log_weights=log_weights,
+            l2_reg=args.l2_reg,
+        )
+
+    def run_eaDCA():
+        return train_eaDCA(
+            sampler=sampler,
+            fi_target=fi_target,
+            fij_target=fij_target,
+            params=params,
+            mask=mask,
+            chains=chains,
+            log_weights=log_weights,
+            target_pearson=args.target,
+            nsweeps=args.nsweeps,
+            max_epochs=args.nepochs,
+            pseudo_count=args.pseudocount,
+            lr=args.lr,
+            factivate=args.factivate,
+            gsteps=args.gsteps,
+            fi_val=fi_val,
+            fij_val=fij_val,
+            checkpoint=checkpoint,
+            l2_reg=args.l2_reg,
+        )
+
+    def run_edDCA():
+        return train_edDCA(
+            sampler=sampler,
+            chains=chains,
+            log_weights=log_weights,
+            fi_target=fi_target,
+            fij_target=fij_target,
+            params=params,
+            mask=mask,
+            lr=args.lr,
+            nsweeps=args.nsweeps,
+            target_pearson=args.target,
+            target_density=args.density,
+            drate=args.drate,
+            checkpoint=checkpoint,
+            fi_val=fi_val,
+            fij_val=fij_val,
+            l2_reg=args.l2_reg,
+        )
+
+    def run_edgeDCA():
+        return train_edgeDCA(
+            sampler=sampler,
+            fi_target=fi_target,
+            fij_target=fij_target,
+            fi_pseudocounted=fi_pseudocounted,
+            fij_pseudocounted=fij_pseudocounted,
+            params=params,
+            mask=mask,
+            chains=chains,
+            target_pearson=args.target,
+            nsweeps=args.nsweeps,
+            max_epochs=args.nepochs,
+            pseudo_count=args.pseudocount,
+            fi_val=fi_val,
+            fij_val=fij_val,
+            checkpoint=checkpoint,
+        )
+
+    routines = {
+        "bmDCA": run_bmDCA,
+        "eaDCA": run_eaDCA,
+        "edDCA": run_edDCA,
+        "edgeDCA": run_edgeDCA,
+    }
+
+    _, _, _, history = routines[args.model]()
     
     print("\n" + "=" * 80)
     print("  TRAINING COMPLETED SUCCESSFULLY")
@@ -267,7 +325,7 @@ def main():
     print("\n" + "-" * 80)
     print(f"  Final graph density: {history['Density'][-1]:.4f}")
     print(f"  Final Pearson: {history['Pearson'][-1]:.4f}")
-    print(f"  Final log-likelihood: {history['LL_train'][-1]:.3f}")
+    print(f"  Final log-likelihood per residue: {history['LL_train'][-1]:.3f}")
     print(f"  Total steps: {history['Epochs'][-1]}")
     print(f"\n  Results saved in: {folder}")
     print(f"    \u2713 Parameters: {file_paths['params']}")

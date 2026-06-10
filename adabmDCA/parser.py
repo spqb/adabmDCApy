@@ -5,7 +5,7 @@ def add_args_dca(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     dca_args.add_argument("-d", "--data",         type=str,   required=True,        help="Filename of the fasta file to be used for training the model.")
     dca_args.add_argument("-o", "--output",       type=str,   default='DCA_model',  help="(Defaults to 'DCA_model'). Path to the folder where to save the model.")
     dca_args.add_argument("-m", "--model",        type=str,   default="bmDCA",      help="(Defaults to 'bmDCA'). Type of model to be trained.", choices=["bmDCA", "eaDCA", "edDCA", "edgeDCA"])
-    dca_args.add_argument("-t", "--test",         type=str,   default=None,         help="(Defaults to None). Filename of the fasta file to be used for testing the model. If provided, the test log-likelihood is computed at each checkpoint.")
+    dca_args.add_argument("-v", "--val",          type=str,   default=None,         help="(Defaults to None). Filename of the fasta file to be used for validating the model. If provided, validation metrics are computed at each checkpoint.")
     dca_args.add_argument("-p", "--path_params",  type=str,   default=None,         help="(Defaults to None) Path to the file containing the model's parameters. Required for restoring an old training.")
     dca_args.add_argument("-c", "--path_chains",  type=str,   default=None,         help="(Defaults to None) Path to the fasta file containing the model's chains. Required for restoring an old training.")
     dca_args.add_argument("-l", "--label",        type=str,   default=None,         help="(Defaults to None). If provided, adds a label to the output files inside the output folder.")
@@ -77,6 +77,7 @@ def add_args_contacts(parser: argparse.ArgumentParser) -> argparse.ArgumentParse
     parser.add_argument("-d", "--data",         type=str,    default=None,           help="(Defaults to None). Path to the file containing the data. Used for the mean-field approximation only.")
     parser.add_argument("-l", "--label",        type=str,    default=None,           help="(Defaults to None). If provided, adds a label to the output files inside the output folder.")
     parser.add_argument("--alphabet",           type=str,    default="protein",      help="(Defaults to 'protein'). Type of encoding for the sequences. Choose among ['protein', 'rna', 'dna'] or a user-defined string of tokens.")
+    parser.add_argument("--pseudocount",        type=float,   default=0.5,            help="(Defaults to 0.5). Pseudocount used to regularize the empirical frequencies in the mean-field approximation.")
     parser.add_argument("--device",             type=str,    default="cuda",         help="(Defaults to 'cuda'). Device to be used.")
     parser.add_argument("--dtype",              type=str,    default="float32",      help="(Defaults to 'float32'). Data type to be used.")
 

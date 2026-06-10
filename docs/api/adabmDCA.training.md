@@ -102,8 +102,8 @@ train_graph(
     lr: float,
     max_epochs: int,
     target_pearson: float,
-    fi_test: Optional[Tensor] = None,
-    fij_test: Optional[Tensor] = None,
+    fi_val: Optional[Tensor] = None,
+    fij_val: Optional[Tensor] = None,
     checkpoint: Optional[Checkpoint] = None,
     check_slope: bool = False,
     log_weights: Optional[Tensor] = None,
@@ -130,8 +130,8 @@ Trains the model on a given graph until the target Pearson correlation is reache
  - <b>`lr`</b> (float):  Learning rate. 
  - <b>`max_epochs`</b> (int):  Maximum number of gradient updates to be done. 
  - <b>`target_pearson`</b> (float):  Target Pearson coefficient. 
- - <b>`fi_test`</b> (Optional[torch.Tensor], optional):  Single-point frequencies of the test data. Defaults to None. 
- - <b>`fij_test`</b> (Optional[torch.Tensor], optional):  Two-point frequencies of the test data. Defaults to None. 
+ - <b>`fi_val`</b> (Optional[torch.Tensor], optional):  Single-point frequencies of the validation data. Defaults to None. 
+ - <b>`fij_val`</b> (Optional[torch.Tensor], optional):  Two-point frequencies of the validation data. Defaults to None. 
  - <b>`checkpoint`</b> (Optional[Checkpoint], optional):  Checkpoint class to be used for saving the model. Defaults to None. 
  - <b>`check_slope`</b> (bool, optional):  Whether to take into account the slope for the convergence criterion or not. Defaults to False. 
  - <b>`log_weights`</b> (Optional[torch.Tensor], optional):  Log-weights used for the online computation of the log-likelihood. Defaults to None. 
@@ -167,8 +167,8 @@ train_eaDCA(
     lr: float,
     factivate: float,
     gsteps: int,
-    fi_test: Optional[Tensor] = None,
-    fij_test: Optional[Tensor] = None,
+    fi_val: Optional[Tensor] = None,
+    fij_val: Optional[Tensor] = None,
     checkpoint: Optional[Checkpoint] = None,
     l2_reg: float = 0.0,
     *args,
@@ -196,8 +196,8 @@ Fits an eaDCA model on the training data and saves the results in a file.
  - <b>`lr`</b> (float):  Learning rate. 
  - <b>`factivate`</b> (float):  Fraction of inactive couplings to activate at each step. 
  - <b>`gsteps`</b> (int):  Number of gradient updates to be performed on a given graph. 
- - <b>`fi_test`</b> (Optional[torch.Tensor], optional):  Single-point frequencies of the test data. Defaults to None. 
- - <b>`fij_test`</b> (Optional[torch.Tensor], optional):  Two-point frequencies of the test data. Defaults to None. 
+ - <b>`fi_val`</b> (Optional[torch.Tensor], optional):  Single-point frequencies of the validation data. Defaults to None. 
+ - <b>`fij_val`</b> (Optional[torch.Tensor], optional):  Two-point frequencies of the validation data. Defaults to None. 
  - <b>`checkpoint`</b> (Optional[Checkpoint], optional):  Checkpoint class to be used to save the model. Defaults to None. 
  - <b>`l2_reg`</b> (float, optional):  L2 regularization coefficient. Defaults to 0.0. 
 
@@ -229,8 +229,8 @@ train_edDCA(
     target_density: float,
     drate: float,
     checkpoint: Optional[Checkpoint] = None,
-    fi_test: Optional[Tensor] = None,
-    fij_test: Optional[Tensor] = None,
+    fi_val: Optional[Tensor] = None,
+    fij_val: Optional[Tensor] = None,
     l2_reg: float = 0.0,
     *args,
     **kwargs
@@ -256,8 +256,8 @@ Fits an edDCA model on the training data and saves the results in a file.
  - <b>`target_density`</b> (float):  Target density of the coupling matrix. 
  - <b>`drate`</b> (float):  Percentage of active couplings to be pruned at each decimation step. 
  - <b>`checkpoint`</b> (Optional[Checkpoint], optional):  Checkpoint class to be used to save the model. Defaults to None. 
- - <b>`fi_test`</b> (Optional[torch.Tensor], optional):  Single-point frequencies of the test data. Defaults to None. 
- - <b>`fij_test`</b> (Optional[torch.Tensor], optional):  Two-point frequencies of the test data. Defaults to None. 
+ - <b>`fi_val`</b> (Optional[torch.Tensor], optional):  Single-point frequencies of the validation data. Defaults to None. 
+ - <b>`fij_val`</b> (Optional[torch.Tensor], optional):  Two-point frequencies of the validation data. Defaults to None. 
  - <b>`l2_reg`</b> (float, optional):  L2 regularization coefficient. Defaults to 0.0. 
 
 
@@ -287,15 +287,15 @@ train_edgeDCA(
     nsweeps: int,
     max_epochs: int,
     pseudo_count: float,
-    fi_test: Optional[Tensor] = None,
-    fij_test: Optional[Tensor] = None,
+    fi_val: Optional[Tensor] = None,
+    fij_val: Optional[Tensor] = None,
     checkpoint: Optional[Checkpoint] = None,
     *args,
     **kwargs
 ) → Tuple[Tensor, Dict[str, Tensor], Tensor, Dict[str, List[float]]]
 ```
 
-Fits an edge activation DCA model (edgeDCA)on the training data and saves the results in a file. 
+Fits an edge activation DCA model (edgeDCA) on the training data and saves the results in a file. 
 
 
 
@@ -313,8 +313,8 @@ Fits an edge activation DCA model (edgeDCA)on the training data and saves the re
  - <b>`nsweeps`</b> (int):  Number of Monte Carlo steps to update the state of the model. 
  - <b>`max_epochs`</b> (int):  Maximum number of epochs to be performed. 
  - <b>`pseudo_count`</b> (float):  Pseudo count for the single and two points statistics. Acts as a regularization. 
- - <b>`fi_test`</b> (Optional[torch.Tensor], optional):  Single-point frequencies of the test data. Defaults to None. 
- - <b>`fij_test`</b> (Optional[torch.Tensor], optional):  Two-point frequencies of the test data. Defaults to None. 
+ - <b>`fi_val`</b> (Optional[torch.Tensor], optional):  Single-point frequencies of the validation data. Defaults to None. 
+ - <b>`fij_val`</b> (Optional[torch.Tensor], optional):  Two-point frequencies of the validation data. Defaults to None. 
  - <b>`checkpoint`</b> (Optional[Checkpoint], optional):  Checkpoint class to be used to save the model. Defaults to None. 
 
 
