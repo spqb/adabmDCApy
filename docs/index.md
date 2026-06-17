@@ -19,11 +19,12 @@ All versions share a unified terminal-based interface, allowing users to choose 
 ## Core Capabilities
 
 ### Model Training
-Choose from three training strategies to fit your model complexity and goals:
+Choose from four training strategies to fit your model complexity and goals:
 
 - [**`bmDCA`**](training.md#bmdca): Fully-connected Boltzmann Machine [[Figliuzzi et al., 2018](https://doi.org/10.1093/molbev/msv211)]
 - [**`eaDCA`**](training.md#eadca): Sparse model with progressively added couplings [[Calvanese et al., 2024](https://doi.org/10.1093/nar/gkae289)]
 - [**`edDCA`**](training.md#eddca): Prunes an existing `bmDCA` model down to a sparse network [[Barrat-Charlaix et al., 2021](https://doi.org/10.1103/PhysRevE.104.024407)]
+- [**`edgeDCA`**](training.md#edgedca): Sparse model that activates complete residue-residue edges according to the largest empirical/model discrepancy
 
 ### Applications of Pretrained Models
 Once trained, models can be used to:
@@ -37,7 +38,7 @@ Once trained, models can be used to:
 The Python version includes exclusive features:
 
 - [Experimental feedback reintegration](applications.md#reintegration) for refined models [[Calvanese et al., 2025](https://doi.org/10.48550/arXiv.2504.01593)]
-- Thermodynamic integration to estimate model entropy
+- [Thermodynamic integration](thermodynamic_integration.md#thermodynamic-integration) to estimate model entropy
 - [`Profmark`](applications.md#profmark): GPU-accelerated dataset splitting with phylogenetic and sampling bias control, based on the `cobalt` algorithm [[Petti et al., 2022](https://doi.org/10.1371/journal.pcbi.1009492)]
 
 ## Get Started

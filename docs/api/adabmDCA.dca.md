@@ -122,7 +122,7 @@ Computes the contact map from the model coupling matrix.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/dca.py#L132"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/dca.py#L136"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `get_mf_contact_map`
 
@@ -130,11 +130,12 @@ Computes the contact map from the model coupling matrix.
 get_mf_contact_map(
     data: Tensor,
     tokens: str,
-    weights: Optional[Tensor] = None
+    weights: Optional[Tensor] = None,
+    pseudo_count: float = 0.5
 ) → ndarray
 ```
 
-Computes the contact map using mean-field approximation from the data. 
+Computes the contact map using the mean-field DCA approximation from the data. 
 
 
 
@@ -143,6 +144,7 @@ Computes the contact map using mean-field approximation from the data.
  - <b>`data`</b> (torch.Tensor):  Input one-hot data tensor. 
  - <b>`tokens`</b> (str):  Alphabet to be used. 
  - <b>`weights`</b> (Optional[torch.Tensor]):  Weights for the data points. Defaults to None. 
+ - <b>`pseudo_count`</b> (float):  Pseudocount used to regularize the empirical frequencies. Defaults to 0.5. 
 
 
 

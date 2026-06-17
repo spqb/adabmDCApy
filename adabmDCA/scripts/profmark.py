@@ -1,10 +1,8 @@
 import argparse
-import logging
-import os
-import torch
-from adabmDCA.fasta import import_from_fasta, get_tokens, write_fasta
-from adabmDCA.cobalt import run_cobalt
+from pathlib import Path
+
 from adabmDCA.parser import add_args_profmark
+from adabmDCA.scripts._utils import require_file
 
 # import command-line input arguments
 def create_parser():
@@ -13,15 +11,21 @@ def create_parser():
     
     return parser
 
-def main(args):
+def main(args=None):
+    if args is None:
+        args = create_parser().parse_args()
+
+    import torch
+
+    from adabmDCA.cobalt import run_cobalt
+    from adabmDCA.fasta import import_from_fasta, get_tokens, write_fasta
+    from adabmDCA.utils import get_device
+
     print("\n" + "="*80)
     print("  DATASET SPLITTING - COBALT ALGORITHM")
     print("="*80 + "\n")
     
-    # Set the device
-    if args.device == "cuda" and not torch.cuda.is_available():
-        args.device = "cpu"
-    device = torch.device(args.device)
+    device = get_device(args.device, message=False)
     
     # Configuration section
     print("[CONFIGURATION]")
@@ -40,13 +44,10 @@ def main(args):
     print(template.format("Device:", str(device)))
     print("-" * 80 + "\n")
     
-    # check if the output directory exists
-    if os.path.dirname(args.output_prefix):
-        if not os.path.exists(os.path.dirname(args.output_prefix)):
-            os.makedirs(os.path.dirname(args.output_prefix))
-    # check if the input MSA exists
-    if not os.path.exists(args.input_msa):
-        raise FileNotFoundError(f"Input MSA file {args.input_msa} does not exist.")
+    output_prefix = Path(args.output_prefix)
+    if output_prefix.parent != Path("."):
+        output_prefix.parent.mkdir(parents=True, exist_ok=True)
+    require_file(args.input_msa, "Input MSA file")
     
     # load the MSA
     print("[DATA LOADING]")
@@ -107,8 +108,8 @@ def main(args):
     # write the training and test sets to files
     print("[OUTPUT]")
     print("-" * 80)
-    train_file = os.path.join(args.output_prefix + ".train.fasta")
-    test_file = os.path.join(args.output_prefix + ".test.fasta")
+    train_file = output_prefix.with_suffix(output_prefix.suffix + ".train.fasta")
+    test_file = output_prefix.with_suffix(output_prefix.suffix + ".test.fasta")
     
     print("  Saving training set...")
     write_fasta(
@@ -132,12 +133,10 @@ def main(args):
     print("=" * 80)
     print("  DATASET SPLITTING COMPLETED SUCCESSFULLY")
     print("=" * 80)
-    print(f"\n  Results saved in: {os.path.dirname(args.output_prefix) if os.path.dirname(args.output_prefix) else '.'}")
+    print(f"\n  Results saved in: {output_prefix.parent}")
     print(f"    • Training set: {train_file} ({len(train)} sequences)")
     print(f"    • Test set:     {test_file} ({len(test)} sequences)")
     print("\n" + "=" * 80 + "\n")
     
 if __name__ == "__main__":
-    parser = create_parser()
-    args = parser.parse_args()
-    main(args)
+    main()

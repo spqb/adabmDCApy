@@ -55,10 +55,9 @@ A small **pseudocount** $\alpha$ is added to frequency estimates to prevent issu
 - Two-site frequency:  
   $f_{ij}(a, b) = (1 - \alpha) f^{\mathrm{data}}_{ij}(a, b) + \frac{\alpha}{q^2}$
 
-If not set via `--pseudocount`, the default is:
+If not set via `--pseudocount`, the default is `0.1` for `edgeDCA`; for all other training routines it is:
 $$
 \alpha = \frac{1}{M_{\text{eff}}}, \quad \text{with} \quad M_{\text{eff}} = \sum_{m=1}^M w^{(m)}
 $$
 being the _effective number of sequences._
 ---
-

@@ -1,3 +1,51 @@
 [build-system]
-requires = ["setuptools>=61.0"]
+requires = ["setuptools>=77.0.0"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "adabmDCA"
+dynamic = ["version"]
+description = "Python implementation of Direct Coupling Analysis"
+readme = { file = "README.md", content-type = "text/markdown" }
+requires-python = ">=3.10"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+authors = [
+    { name = "Lorenzo Rosset", email = "rosset.lorenzo@gmail.com" },
+    { name = "Roberto Netti" },
+    { name = "Anna Paola Muntoni" },
+    { name = "Francesco Zamponi" },
+    { name = "Martin Weigt" },
+]
+maintainers = [
+    { name = "Lorenzo Rosset", email = "rosset.lorenzo@gmail.com" },
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "matplotlib>=3.8.0",
+    "numpy>=1.26.4",
+    "pandas>=2.2.2",
+    "torch>=2.1.0",
+    "tqdm>=4.66.6",
+    "wandb>=0.12.0",
+    "biopython>=1.85",
+    "seaborn>=0.12.2",
+]
+
+[project.urls]
+Homepage = "https://github.com/spqb/adabmDCA"
+
+[project.scripts]
+adabmDCA = "adabmDCA.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["adabmDCA", "adabmDCA.*"]
+
+[tool.setuptools.dynamic]
+version = { attr = "adabmDCA.__version__" }
+
+[tool.setuptools]
+include-package-data = true

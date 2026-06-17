@@ -1,49 +1,53 @@
-import subprocess
 import sys
-import os
 import importlib
+from contextlib import contextmanager
+
+COMMANDS = {
+    "train": "adabmDCA.scripts.train",
+    "sample": "adabmDCA.scripts.sample",
+    "contacts": "adabmDCA.scripts.contacts",
+    "energies": "adabmDCA.scripts.energies",
+    "dms": "adabmDCA.scripts.dms",
+    "DMS": "adabmDCA.scripts.dms",
+    "entropy": "adabmDCA.scripts.td_integration",
+    "reintegrate": "adabmDCA.scripts.reintegrate",
+    "profmark": "adabmDCA.scripts.profmark",
+    "plot-training-log": "adabmDCA.plot_training_log",
+    "plot_training_log": "adabmDCA.plot_training_log",
+}
+
+
+@contextmanager
+def script_argv(command: str, args: list[str]):
+    previous_argv = sys.argv[:]
+    sys.argv = [f"adabmDCA {command}", *args]
+    try:
+        yield
+    finally:
+        sys.argv = previous_argv
+
+
+def _usage() -> str:
+    commands = "', '".join(COMMANDS)
+    return f"Use one of '{commands}'."
+
 
 def main():
     print(f"🧬 adabmDCA version: {importlib.import_module('adabmDCA').__version__}")
-    # Get the directory of the current script
-    SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
-    # Check if the first positional argument is provided
     if len(sys.argv) < 2:
-        print("Error: No command provided. Use 'train', 'sample', 'contacts', 'energies', 'entropy', 'reintegrate', 'DMS' or 'profmark'.")
+        print(f"Error: No command provided. {_usage()}")
         sys.exit(1)
 
-    # Assign the first positional argument to a variable
-    COMMAND = sys.argv[1]
+    command = sys.argv[1]
+    module_name = COMMANDS.get(command)
+    if module_name is None:
+        print(f"Error: Invalid command '{command}'. {_usage()}")
+        sys.exit(1)
 
-    # Map the command to the corresponding script
-    match COMMAND:
-        case "train":
-            SCRIPT = "train.py"
-        case "sample":
-            SCRIPT = "sample.py"
-        case "contacts":
-            SCRIPT = "contacts.py"
-        case "energies":
-            SCRIPT = "energies.py"
-        case "DMS":
-            SCRIPT = "dms.py"
-        case "entropy":
-            SCRIPT = "td_integration.py"
-        case "reintegrate":
-            SCRIPT = "reintegrate.py"
-        case "profmark":
-            SCRIPT = "profmark.py"
-        case _:
-            print(f"Error: Invalid command '{COMMAND}'. Use 'train', 'sample', 'contacts', 'energies', 'entropy', 'reintegrate', 'DMS' or 'profmark'.")
-            sys.exit(1)
-
-    # Run the corresponding Python script with the remaining optional arguments
-    REPO_SCRIPTS = os.path.join(SCRIPT_DIR, "scripts")
-    script_path = os.path.join(REPO_SCRIPTS, SCRIPT)
-    proc = subprocess.call(
-        [sys.executable, script_path] + sys.argv[2:],
-    )
+    module = importlib.import_module(module_name)
+    with script_argv(command, sys.argv[2:]):
+        module.main()
 
 if __name__ == "__main__":
     main()

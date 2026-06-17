@@ -1,12 +1,19 @@
 import argparse
-import os
-import numpy as np
-import subprocess
-import torch
-from adabmDCA.fasta import get_tokens, write_fasta
+from contextlib import contextmanager
+import sys
+
 from adabmDCA.parser import add_args_train, add_args_reintegration
-from adabmDCA.utils import get_device, get_dtype
-from adabmDCA.dataset import DatasetDCA
+from adabmDCA.scripts._utils import ensure_output_dir, require_file
+
+
+@contextmanager
+def training_argv(args: list[str]):
+    previous_argv = sys.argv[:]
+    sys.argv = ["adabmDCA train", *args]
+    try:
+        yield
+    finally:
+        sys.argv = previous_argv
 
 def create_parser():
     parser = argparse.ArgumentParser(description='Reintegrate a DCA model.')
@@ -17,6 +24,13 @@ def create_parser():
 def main():    
     parser = create_parser()
     args = parser.parse_args()
+
+    import numpy as np
+    import torch
+
+    from adabmDCA.dataset import DatasetDCA
+    from adabmDCA.fasta import get_tokens, write_fasta
+    from adabmDCA.utils import get_device, get_dtype
     
     print("\n" + "="*80)
     print("  REINTEGRATED DCA MODEL TRAINING")
@@ -41,10 +55,16 @@ def main():
     print(template.format("Device:", str(device)))
     print(template.format("Data type:", args.dtype))
     print("-" * 80 + "\n")
+    require_file(args.data, "Natural data file")
+    require_file(args.reint, "Reintegration data file")
+    require_file(args.adj, "Adjustment vector file")
+    if args.path_params is not None:
+        require_file(args.path_params, "Parameters file")
+    if args.path_chains is not None:
+        require_file(args.path_chains, "Chains file")
     
     # Create the folder where to save the model
-    folder = args.output
-    os.makedirs(folder, exist_ok=True)
+    folder = ensure_output_dir(args.output)
     
     print("[DATA LOADING]")
     print("-" * 80)
@@ -90,6 +110,8 @@ def main():
     
     if args.lambda_ is None:
         span_adjust = torch.abs(dataset_reint.weights).max()
+        if torch.isclose(span_adjust, torch.zeros_like(span_adjust)):
+            raise ValueError("Cannot infer lambda_: adjustment vector contains only zeros.")
         lambda_ = 1 / span_adjust
         print(f"  Lambda (auto): {lambda_:.6f} (1 / max|adjust|)")
     else:
@@ -108,7 +130,7 @@ def main():
     args.label = f"{args.label}-lambda_{lambda_:.2f}" if args.label is not None else f"lambda_{lambda_}"
     
     print("  Saving reintegrated dataset...")
-    path_msa = os.path.join(folder, f"{args.label}_msa.fasta")
+    path_msa = folder / f"{args.label}_msa.fasta"
     write_fasta(
         fname=path_msa,
         headers=msa_names,
@@ -118,7 +140,7 @@ def main():
     )
     print(f"  ✓ MSA saved: {path_msa}")
     
-    path_weights = os.path.join(folder, f"{args.label}_weights.dat")
+    path_weights = folder / f"{args.label}_weights.dat"
     np.savetxt(path_weights, weights.cpu().numpy())
     print(f"  ✓ Weights saved: {path_weights}")
     print("-" * 80 + "\n")
@@ -128,9 +150,7 @@ def main():
     print("-" * 80)
     print("  Starting DCA training with reintegrated dataset...")
     print("-" * 80 + "\n")
-    train_command = [
-        "adabmDCA",
-        "train",
+    train_args = [
         "--data", str(path_msa),
         "--weights", str(path_weights),
         "--output", str(folder),
@@ -152,24 +172,27 @@ def main():
         "--drate", str(args.drate),
     ]
     if args.pseudocount is None:
-        pseudocount_default = 1e-6
-        train_command.append("--pseudocount")
-        train_command.append(str(pseudocount_default))
+        pseudocount_default = 0.1 if args.model == "edgeDCA" else 1e-6
+        train_args.append("--pseudocount")
+        train_args.append(str(pseudocount_default))
     else:
-        train_command.append("--pseudocount")
-        train_command.append(str(args.pseudocount))
+        train_args.append("--pseudocount")
+        train_args.append(str(args.pseudocount))
     if args.no_reweighting:
-        train_command.append("--no_reweighting")
+        train_args.append("--no_reweighting")
     if args.wandb:
-        train_command.append("--wandb")
+        train_args.append("--wandb")
     if args.path_params is not None:
-        train_command.append("--path_params")
-        train_command.append(str(args.path_params))
+        train_args.append("--path_params")
+        train_args.append(str(args.path_params))
     if args.path_chains is not None:
-        train_command.append("--path_chains")
-        train_command.append(str(args.path_chains))
+        train_args.append("--path_chains")
+        train_args.append(str(args.path_chains))
     
-    subprocess.run(train_command, check=True)
+    from adabmDCA.scripts import train as train_script
+
+    with training_argv(train_args):
+        train_script.main()
     
 if __name__ == "__main__":
     main()

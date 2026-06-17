@@ -39,9 +39,9 @@ class Checkpoint:
             "Pearson": 0.0,
             "Slope": 0.0,
             "LL_train": 0.0,
-            "LL_test": 0.0,
-            "Pearson_test": 0.0,
-            "Slope_test": 0.0,
+            "LL_val": 0.0,
+            "Pearson_val": 0.0,
+            "Slope_val": 0.0,
             "ESS": 0.0,
             "Entropy": 0.0,
             "Density": 0.0,
@@ -57,6 +57,8 @@ class Checkpoint:
             
             f.write(template.format("model:", str(args["model"])))
             f.write(template.format("input MSA:", str(args["data"])))
+            if args.get("val") is not None:
+                f.write(template.format("validation MSA:", str(args["val"])))
             f.write(template.format("alphabet:", args["alphabet"]))
             f.write(template.format("sampler:", args["sampler"]))
             f.write(template.format("nchains:", args["nchains"]))

@@ -1,7 +1,7 @@
 from typing import Dict
 import itertools
 import torch
-from adabmDCA.functional import one_hot
+from adabmDCA.stats import get_freq_two_points
 
 
 def compute_energy(
@@ -82,8 +82,9 @@ def _compute_log_likelihood(
 ) -> float:
     
     mean_energy_data = - torch.sum(fi * params["bias"]) - 0.5 * torch.sum(fij * params["coupling_matrix"])
+    L = params["bias"].shape[0]
 
-    return - mean_energy_data.item() - logZ
+    return (- mean_energy_data.item() - logZ) / L
 
 
 def compute_log_likelihood(
@@ -92,7 +93,7 @@ def compute_log_likelihood(
     params: Dict[str, torch.Tensor],
     logZ: float,
 ) -> float:
-    """Compute the log-likelihood of the model.
+    """Compute the log-likelihood per residue of the model.
 
     Args:
         fi (torch.Tensor): Single-site frequencies of the data.
@@ -101,7 +102,7 @@ def compute_log_likelihood(
         logZ (float): Log-partition function of the model.
 
     Returns:
-        float: Log-likelihood of the model.
+        float: Log-likelihood per residue of the model.
     """
     return _compute_log_likelihood(fi, fij, params, logZ)
 
@@ -124,8 +125,8 @@ def enumerate_states(
     if q**L > 5**11:
         raise ValueError("The number of states is too large to enumerate.")
     
-    all_states = torch.tensor(list(itertools.product(range(q), repeat=L)), device=device)
-    return one_hot(all_states, q)
+    all_states = torch.tensor(list(itertools.product(range(q), repeat=L)), device=device).long()
+    return torch.nn.functional.one_hot(all_states, q).float()
 
 
 def compute_logZ_exact(
@@ -277,3 +278,32 @@ def iterate_tap(
             break
     
     return mag_
+
+# Edge activation functions
+
+def _update_logZ_edge_activation(
+    logZ: float,
+    ids_edge: tuple[int, int],
+    fij: torch.Tensor,
+    pij: torch.Tensor,
+    chains_estimate: torch.Tensor,
+) -> float:
+    """Updates the log-partition function of the model using the edge-activation algorithm.
+
+    Args:
+        logZ (float): Log-partition function at time t-1.
+        ids_edge (tuple[int, int]): Indices of the newly activated edge.
+        fij (torch.Tensor): Two-point frequencies of the dataset.
+        pij (torch.Tensor): Two-point marginals of the model.
+        chains_estimate (torch.Tensor): Chains used for the partition function estimation.
+
+    Returns:
+        float: Updated log-partition function.
+    """
+    pij_estimate = get_freq_two_points(data=chains_estimate, pseudo_count=1e-6)
+    fij_edge = fij[ids_edge[0], :, ids_edge[1], :]
+    pij_edge = pij[ids_edge[0], :, ids_edge[1], :]
+    pij_estimate_edge = pij_estimate[ids_edge[0], :, ids_edge[1], :]
+    delta_logZ = torch.log(torch.sum(fij_edge / pij_edge * pij_estimate_edge)).item()
+    
+    return logZ + delta_logZ

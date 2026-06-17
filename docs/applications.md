@@ -94,7 +94,7 @@ Output Files:
 To simulate a mutational scan around a wild-type sequence:
 
 ```bash
-adabmDCA DMS -d <WT> -p <file_params> -o <output_folder>
+adabmDCA dms -d <WT> -p <file_params> -o <output_folder>
 ```
 
 Output Files:

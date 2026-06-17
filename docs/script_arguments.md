@@ -8,7 +8,8 @@ In this section we list all the possible command-line arguments for the main rou
 |---------------------------|--------------|-------------|
 | `-d, --data`             | N/A          | Filename of the dataset to be used for training the model. |
 | `-o, --output`           | DCA_model    | Path to the folder where to save the model. |
-| `-m, --model`            | bmDCA        | Type of model to be trained. Possible options are `bmDCA`, `eaDCA`, and `edDCA`. |
+| `-m, --model`            | bmDCA        | Type of model to be trained. Possible options are `bmDCA`, `eaDCA`, `edDCA`, and `edgeDCA`. |
+| `-v, --val`             | None         | Filename of the validation dataset. If provided, validation metrics are computed at each checkpoint. |
 | `-w, --weights`          | None         | Path to the file containing the weights of the sequences. If `None`, the weights are computed automatically. |
 | `--clustering_seqid`     | 0.8          | Sequence identity threshold to be used for computing the sequence weights. |
 | `--no_reweighting`       | N/A          | If this flag is used, the routine assigns uniform weights to the sequences. |
@@ -22,7 +23,7 @@ In this section we list all the possible command-line arguments for the main rou
 | `--nchains`             | 10000        | Number of Markov chains to run in parallel. |
 | `--target`              | 0.95         | Pearson correlation coefficient on the two-sites statistics to be reached. |
 | `--nepochs`             | 50000        | Maximum number of epochs allowed. |
-| `--pseudocount`        | None         | Pseudo count for the single and two-sites statistics. Acts as a regularization. If `None`, it is set to $1/M_{\mathrm{eff}}$. |
+| `--pseudocount`        | None         | Pseudo count for the single and two-sites statistics. Acts as a regularization. If `None`, it is set to `0.1` for `edgeDCA` and $1/M_{\mathrm{eff}}$ otherwise. |
 | `--seed`               | 0            | Random seed. |
 | `--nthreads`¹         | 1            | Number of threads used in the Julia multithreaded version. |
 | `--device`¹           | cuda         | Device to be used between cuda (GPU) and CPU. Used in the Python version. |
@@ -42,6 +43,10 @@ In this section we list all the possible command-line arguments for the main rou
 | `--gsteps`            | 10           | The number of gradient updates applied at each step of the graph convergence process. |
 | `--density`          | 0.02         | Target density to be reached. |
 | `--drate`            | 0.01         | Fraction of remaining couplings to be pruned at each decimation step. |
+
+### edgeDCA notes
+
+`edgeDCA` uses the standard training options above. It starts from an empty coupling graph and activates one complete residue-residue edge at each graph update, choosing the inactive edge with the largest KL discrepancy between empirical and model two-site statistics. If `--pseudocount` is not provided, its default is `0.1`.
 
                                                         
 ## Sampling from a DCA model 
@@ -96,11 +101,12 @@ In this section we list all the possible command-line arguments for the main rou
 | Command                   | Default value | Description |
 |---------------------------|--------------|-------------|
 | `-p, --path_params`      | N/A          | Path to the file containing the parameters of the DCA model. |
+| `-d, --data`             | None         | Path to the data MSA. Used to compute contacts with the mean-field DCA approximation when `--path_params` is not provided. |
 | `-o, --output`           | N/A          | Path to the folder where to save the output. |
 | `-l, --label`           | None         | If provided, adds a label to the output files inside the output folder. |
 | `--alphabet`            | protein      | Type of encoding for the sequences. Choose among `protein`, `rna`, `dna`, or a user-defined string of tokens. |
+| `--pseudocount`         | 0.5          | Pseudocount used to regularize empirical frequencies in the mean-field approximation. |
 | `--device`¹            | cuda         | Device to be used between cuda (GPU) and CPU. Used in the Python version. |
 | `--dtype`¹             | float32      | Data type to be used between float32 and float64. Used in the Python version. |
 
 ¹ Used in specific versions of the software.
-

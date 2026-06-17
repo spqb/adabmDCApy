@@ -10,15 +10,19 @@
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/graph.py#L28"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/graph.py#L46"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
-## <kbd>function</kbd> `update_mask_activation`
+## <kbd>function</kbd> `update_mask_element_activation`
 
 ```python
-update_mask_activation(Dkl: Tensor, mask: Tensor, nactivate: int) → Tensor
+update_mask_element_activation(
+    Dkl: Tensor,
+    mask: Tensor,
+    nactivate: int
+) → Tensor
 ```
 
-Updates the mask by removing the nactivate couplings with the smallest Dkl. 
+Updates the mask by activating the nactivate couplings with the largest Dkl. 
 
 
 
@@ -37,7 +41,7 @@ Updates the mask by removing the nactivate couplings with the smallest Dkl.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/graph.py#L127"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/graph.py#L169"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `update_mask_decimation`
 
@@ -64,7 +68,7 @@ Updates the mask by removing the n_remove couplings with the smallest Dkl.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/graph.py#L152"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/graph.py#L194"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `decimate_graph`
 

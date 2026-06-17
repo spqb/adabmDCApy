@@ -1,7 +1,7 @@
 import numpy as np
 import torch
 from typing import Tuple, Dict, Optional
-from adabmDCA.stats import get_covariance_matrix
+from adabmDCA.stats import get_freq_single_point, get_freq_two_points
 
 
 def get_seqid(
@@ -122,7 +122,11 @@ def get_contact_map(
     # Set to zero the diagonal
     cm = cm - torch.diag(cm.diag())
     # Compute the average-product corrected Frobenius norm
-    Fapc = cm - torch.outer(cm.sum(1), cm.sum(0)) / cm.sum()
+    cm_sum = cm.sum()
+    if torch.isclose(cm_sum, torch.zeros((), device=device, dtype=cm.dtype)):
+        Fapc = cm
+    else:
+        Fapc = cm - torch.outer(cm.sum(1), cm.sum(0)) / cm_sum
     # set to zero the diagonal
     Fapc = Fapc - torch.diag(Fapc.diag())
 
@@ -132,51 +136,61 @@ def get_contact_map(
 def get_mf_contact_map(
     data: torch.Tensor,
     tokens: str,
-    weights: Optional[torch.Tensor] = None
+    weights: Optional[torch.Tensor] = None,
+    pseudo_count: float = 0.5,
 ) -> np.ndarray:
     """
-    Computes the contact map using mean-field approximation from the data.
+    Computes the contact map using the mean-field DCA approximation from the data.
 
     Args:
         data (torch.Tensor): Input one-hot data tensor.
         tokens (str): Alphabet to be used.
         weights (Optional[torch.Tensor]): Weights for the data points. Defaults to None.
+        pseudo_count (float): Pseudocount used to regularize the empirical frequencies. Defaults to 0.5.
 
     Returns:
         np.ndarray: Contact map.
     """
+    if data.dim() != 3:
+        raise ValueError(f"Expected data to be a 3D tensor, but got {data.dim()}D tensor instead")
+    if not 0.0 <= pseudo_count <= 1.0:
+        raise ValueError(f"pseudo_count must be between 0 and 1, got {pseudo_count}")
+
     device = data.device
     dtype = data.dtype
     L, q = data.shape[1], data.shape[2]
+
     # Get index of the gap symbol
     if "-" not in tokens:
         raise ValueError(f"Gap symbol '-' not found in alphabet: {tokens}")
     gap_idx = tokens.index("-")
-    
-    # Compute the covariance matrix
-    Cij = get_covariance_matrix(data, weights=weights)
-    shrink = 4.5 / torch.sqrt(torch.tensor(data.shape[0], dtype=dtype, device=device)) * torch.eye(Cij.shape[0], device=device, dtype=dtype)
-    Cij += shrink
-        
-    # Invert the covariance matrix to get the coupling matrix
-    Jij = -torch.linalg.inv(Cij)
+    state_mask = torch.arange(q, device=device) != gap_idx
+    state_idx = torch.where(state_mask)[0]
+    q_reduced = len(state_idx)
 
-    # partial correlation coefficient
-    Jij_diag = torch.diag(Jij)
-    pcc = Jij / torch.sqrt(Jij_diag[:, None] * Jij_diag[None, :])
-    pcc = pcc.reshape(L, q, L, q)
+    if q_reduced < 1:
+        raise ValueError("At least one non-gap state is required to compute mfDCA contacts")
     
-    # Take all the entries of the coupling matrix except where the gap is involved
-    mask = torch.arange(q, device=device) != gap_idx
-    pcc = pcc[:, mask, :, :][:, :, :, mask]
-    
-    # Compute the Frobenius norm
-    F = torch.sqrt(torch.square(pcc).sum([1, 3]))
-    # Set to zero the diagonal
-    F = F - torch.diag(F.diag())
-    # Compute the average-product corrected Frobenius norm
-    Fapc = F - (F.sum(1, keepdim=True) * F.sum(0, keepdim=True)) / F.sum()
-    # Set to zero the diagonal
-    Fapc = Fapc - torch.diag(Fapc.diag())
+    fi = get_freq_single_point(data=data, weights=weights, pseudo_count=pseudo_count)
+    fij = get_freq_two_points(data=data, weights=weights, pseudo_count=pseudo_count)
 
-    return Fapc.cpu().numpy()
+    fi_reduced = fi[:, state_mask]
+    fij_reduced = fij[:, state_mask, :, :][:, :, :, state_mask]
+    covariance = fij_reduced - torch.einsum("ia,jb->iajb", fi_reduced, fi_reduced)
+    covariance = covariance.reshape(L * q_reduced, L * q_reduced)
+
+    # Mean-field DCA inverts the reduced Potts covariance matrix and uses the
+    # negative inverse as the coupling matrix in the reference-state gauge.
+    Jij_reduced = -torch.linalg.inv(covariance).reshape(L, q_reduced, L, q_reduced)
+
+    Jij = torch.zeros((L, q, L, q), device=device, dtype=dtype)
+    for a_reduced, a_full in enumerate(state_idx):
+        for b_reduced, b_full in enumerate(state_idx):
+            Jij[:, a_full, :, b_full] = Jij_reduced[:, a_reduced, :, b_reduced]
+
+    params = {
+        "bias": torch.zeros((L, q), device=device, dtype=dtype),
+        "coupling_matrix": Jij,
+    }
+
+    return get_contact_map(params=params, tokens=tokens)

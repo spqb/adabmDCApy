@@ -16,9 +16,9 @@ $ adabmDCA train -m <model> -d <fasta_file> -o <output_folder> -l <label>
 
 ## Arguments
 
-- **`<model>`** ∈ `{bmDCA, eaDCA, edDCA}`  
+- **`<model>`** ∈ `{bmDCA, eaDCA, edDCA, edgeDCA}`  
   Selects the training routine.  
-  By default, the fully connected `bmDCA` algorithm is used. `edDCA` can follow two different routines: either it decimates a pre-trained `bmDCA` model, or it first trains a `bmDCA` model and then decimates it.
+  By default, the fully connected `bmDCA` algorithm is used. `eaDCA` and `edgeDCA` build sparse models by activating couplings during training, while `edDCA` sparsifies a model by decimation. `edDCA` can either decimate a pre-trained `bmDCA` model, or first train a `bmDCA` model and then decimate it.
 - **`<fasta_file>`** – Path to the FASTA file containing the training MSA.
 - **`<output_folder>`** – Folder where results will be stored (created if missing).
 - **`<label>`** – Optional tag for output files.
@@ -54,7 +54,7 @@ During training, adabmDCA maintains three output files:
 
 **Update intervals:**
 - `bmDCA`: every 50 updates  
-- `eaDCA`, `edDCA`: every 10 updates  
+- `eaDCA`, `edDCA`, `edgeDCA`: every 10 updates  
 
 ---
 
@@ -142,6 +142,32 @@ Key hyperparameters:
 
 ---
 
+# <span id="edgedca">edgeDCA (Edge Activation DCA)</span>
+
+Enable with:
+
+```
+--model edgeDCA
+```
+
+`edgeDCA` trains a sparse model by starting from an empty coupling graph and progressively activating whole residue-residue edges. At each graph update, the algorithm compares empirical and model two-site statistics, selects the inactive edge with the largest KL discrepancy, activates all couplings for that pair of sites, and initializes them from the empirical/model frequency ratio. The Markov chains are then resampled and the process repeats until the target Pearson correlation is reached or the maximum number of epochs is exceeded.
+
+This differs from `eaDCA`, which activates individual coupling entries. `edgeDCA` activates complete site pairs, so it is useful when you want a sparse interaction graph at the residue-pair level.
+
+Important defaults:
+
+- `--pseudocount`: if not set, defaults to `0.1` for `edgeDCA`
+- `--target`: Pearson threshold on two-site statistics, default `0.95`
+- `--nsweeps`: Monte Carlo sweeps between edge activations, default `10`
+
+Example:
+
+```bash
+$ adabmDCA train -m edgeDCA -d <fasta_file> -o <output_folder>
+```
+
+---
+
 # Choosing Hyperparameters
 
 Defaults work well for clean and moderately diverse MSAs. For more difficult datasets, consider tuning:
@@ -175,9 +201,14 @@ Defaults work well for clean and moderately diverse MSAs. For more difficult dat
 
 Controlled by `--pseudocount`.
 
-Default:
+Default for `bmDCA`, `eaDCA`, and `edDCA`:
 ```
 α = 1 / M_eff
+```
+
+Default for `edgeDCA`:
+```
+α = 0.1
 ```
 
 Increasing α (e.g. α = 0.001 or 0.01) may help when the training struggle converging or the mixing time of the model is very high, but it also makes the model less expressive.

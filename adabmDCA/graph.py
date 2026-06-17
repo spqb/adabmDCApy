@@ -3,7 +3,25 @@ import torch
 
 
 @torch.jit.script
-def compute_Dkl_activation(
+def compute_density(mask: torch.Tensor) -> float:
+    """Computes the density of active couplings in the coupling matrix.
+
+    Args:
+        mask (torch.Tensor): Mask.
+
+    Returns:
+        float: Density.
+    """
+    L, q, _, _ = mask.shape
+    density = mask.sum() / (q**2 * L * (L-1))
+    
+    return density.item()
+
+
+# Element-wise activation functions
+
+@torch.jit.script
+def compute_Dkl_element_activation(
     fij: torch.Tensor,
     pij: torch.Tensor,
 ) -> torch.Tensor:
@@ -25,12 +43,12 @@ def compute_Dkl_activation(
     return Dkl
 
 
-def update_mask_activation(
+def update_mask_element_activation(
     Dkl: torch.Tensor,
     mask: torch.Tensor,
     nactivate: int,
 ) -> torch.Tensor:
-    """Updates the mask by removing the nactivate couplings with the smallest Dkl.
+    """Updates the mask by activating the nactivate couplings with the largest Dkl.
     
     Args:
         Dkl (torch.Tensor): Kullback-Leibler divergence matrix.
@@ -51,7 +69,7 @@ def update_mask_activation(
 
 
 @torch.jit.script
-def activate_graph(
+def activate_graph_elements(
     mask: torch.Tensor,
     fij: torch.Tensor,
     pij: torch.Tensor,
@@ -68,14 +86,38 @@ def activate_graph(
     Returns:
         torch.Tensor: Updated mask.
     """
-    
-    # Compute the Kullback-Leibler divergence of all the couplings
-    Dkl = compute_Dkl_activation(fij=fij, pij=pij)
-    # Update the graph
-    mask = update_mask_activation(Dkl=Dkl, mask=mask, nactivate=nactivate)
+    Dkl = compute_Dkl_element_activation(fij=fij, pij=pij)
+    mask = update_mask_element_activation(Dkl=Dkl, mask=mask, nactivate=nactivate)
     
     return mask
 
+
+# Edge-wise activation functions
+
+@torch.jit.script
+def compute_Dkl_edge_activation(
+    fij: torch.Tensor,
+    pij: torch.Tensor,
+) -> torch.Tensor:
+    """Computes the Kullback-Leibler divergence matrix of all the possible edges.
+    
+    Args:
+        fij (torch.Tensor): Two-point frequences of the dataset.
+        pij (torch.Tensor): Two-point marginals of the model.
+    
+    Returns:
+        torch.Tensor: Kullback-Leibler divergence matrix.
+    """
+    L = fij.shape[0]
+    # Compute the Dkl of each edge
+    Dkl = torch.sum(fij * (torch.log(fij) - torch.log(pij)), dim=(1, 3))
+    # The auto-correlations have not to be considered and the lower triangular part of the Dkl matrix is set to -inf
+    Dkl_idx_inf = torch.tril_indices(L, L, offset=0)
+    Dkl[Dkl_idx_inf[0], Dkl_idx_inf[1]] = -float("inf")
+    
+    return Dkl
+
+# Graph decimation functions
 
 @torch.jit.script
 def compute_sym_Dkl(
@@ -172,19 +214,3 @@ def decimate_graph(
     params["coupling_matrix"] *= mask
     
     return params, mask
-
-
-@torch.jit.script
-def compute_density(mask: torch.Tensor) -> float:
-    """Computes the density of active couplings in the coupling matrix.
-
-    Args:
-        mask (torch.Tensor): Mask.
-
-    Returns:
-        float: Density.
-    """
-    L, q, _, _ = mask.shape
-    density = mask.sum() / (q**2 * L * (L-1))
-    
-    return density.item()

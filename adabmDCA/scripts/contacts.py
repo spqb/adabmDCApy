@@ -1,14 +1,7 @@
 import argparse
-import os
-import matplotlib.pyplot as plt
 
-from adabmDCA.fasta import get_tokens
-from adabmDCA.io import load_params
-from adabmDCA.utils import get_device, get_dtype
 from adabmDCA.parser import add_args_contacts
-from adabmDCA.dca import get_contact_map, get_mf_contact_map
-from adabmDCA.plot import plot_contact_map
-from adabmDCA.dataset import DatasetDCA
+from adabmDCA.scripts._utils import ensure_output_dir, require_file
 
 # import command-line input arguments
 def create_parser():
@@ -23,6 +16,15 @@ def main():
     # Parse arguments
     parser = create_parser()
     args = parser.parse_args()
+
+    import matplotlib.pyplot as plt
+
+    from adabmDCA.dataset import DatasetDCA
+    from adabmDCA.dca import get_contact_map, get_mf_contact_map
+    from adabmDCA.fasta import get_tokens
+    from adabmDCA.io import load_params
+    from adabmDCA.plot import plot_contact_map
+    from adabmDCA.utils import get_device, get_dtype
     
     print("\n" + "="*80)
     print("  CONTACT MAP PREDICTION")
@@ -36,9 +38,12 @@ def main():
     if args.path_params is None and args.data is None:
         raise ValueError("Either the data file or the parameters file must be provided.")
     
-    # Check if the parameters file exists
-    if args.path_params is not None and not os.path.exists(args.path_params):
-        raise FileNotFoundError(f"Parameters file {args.path_params} not found.")
+    if args.path_params is not None:
+        require_file(args.path_params, "Parameters file")
+    if args.path_params is None:
+        require_file(args.data, "Data file")
+
+    output_dir = ensure_output_dir(args.output)
     
     # Configuration section
     print("[CONFIGURATION]")
@@ -50,6 +55,7 @@ def main():
     else:
         print(template.format("Method:", "Mean-field approximation"))
         print(template.format("Data file:", args.data))
+        print(template.format("Pseudocount:", args.pseudocount))
     print(template.format("Output folder:", args.output))
     if args.label is not None:
         print(template.format("Label:", args.label))
@@ -77,7 +83,12 @@ def main():
         )
         print(f"  ✓ Data loaded ({len(dataset)} sequences)")
         print("  Computing Frobenius norm matrix...")
-        Fapc = get_mf_contact_map(dataset.to_one_hot(), tokens=tokens, weights=dataset.weights)
+        Fapc = get_mf_contact_map(
+            dataset.to_one_hot(),
+            tokens=tokens,
+            weights=dataset.weights,
+            pseudo_count=args.pseudocount,
+        )
     else:
         print(f"  Loading parameters from: {args.path_params}")
         params = load_params(args.path_params, tokens=tokens, device=device, dtype=dtype)
@@ -100,16 +111,18 @@ def main():
     print("[OUTPUT]")
     print("-" * 80)
     if args.label is not None:
-        fname_out = os.path.join(args.output, f"{args.label}_contact_map")
+        fname_out = output_dir / f"{args.label}_contact_map"
     else:
-        fname_out = os.path.join(args.output, "contact_map")
+        fname_out = output_dir / "contact_map"
     
     print("  Saving contact map matrix...")
-    with open(fname_out + ".txt", "w") as f:
+    matrix_file = fname_out.with_suffix(".txt")
+    plot_file = fname_out.with_suffix(".png")
+    with matrix_file.open("w") as f:
         for i in range(Fapc.shape[0]):
             for j in range(Fapc.shape[1]):
                 f.write(f"{i},{j},{Fapc[i, j]}\n")
-    print(f"  ✓ Matrix saved: {fname_out}.txt")
+    print(f"  ✓ Matrix saved: {matrix_file}")
                 
     # plot the contact map into a file
     print("  Generating contact map plot...")
@@ -118,16 +131,17 @@ def main():
     ax = fig.add_subplot(111)
     ax = plot_contact_map(ax, Fapc)
     fig.tight_layout()
-    fig.savefig(fname_out + ".png")
-    print(f"  ✓ Plot saved: {fname_out}.png")
+    fig.savefig(plot_file)
+    plt.close(fig)
+    print(f"  ✓ Plot saved: {plot_file}")
     print("-" * 80 + "\n")
 
     print("=" * 80)
     print("  CONTACT MAP PREDICTION COMPLETED SUCCESSFULLY")
     print("=" * 80)
     print(f"\n  Results saved in: {args.output}")
-    print(f"    • Matrix file: {fname_out}.txt")
-    print(f"    • Plot file:   {fname_out}.png")
+    print(f"    • Matrix file: {matrix_file}")
+    print(f"    • Plot file:   {plot_file}")
     print(f"    • Matrix size: {map_size} × {map_size}")
     print("\n" + "=" * 80 + "\n")
     
