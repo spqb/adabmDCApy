@@ -17,7 +17,7 @@ In this section we list all the possible command-line arguments for the main rou
 | `-c, --path_chains`      | None         | Path to the FASTA file containing the model's chains. Required for restoring the training. |
 | `-l, --label`           | None         | A label to identify different algorithm runs. It prefixes the output files with this label. |
 | `--alphabet`            | protein      | Type of encoding for the sequences. Choose among `protein`, `rna`, `dna`, or a user-defined string of tokens. |
-| `--lr`                  | 0.05         | Learning rate. |
+| `--lr`                  | 0.05         | Learning rate. Ignored when `--model edgeDCA` is used. |
 | `--nsweeps`             | 10           | Number of sweeps for each gradient estimation. |
 | `--sampler`             | gibbs        | Sampling method to be used. Possible options are `gibbs` and `metropolis`. |
 | `--nchains`             | 10000        | Number of Markov chains to run in parallel. |
@@ -46,7 +46,9 @@ In this section we list all the possible command-line arguments for the main rou
 
 ### edgeDCA notes
 
-`edgeDCA` uses the standard training options above. It starts from an empty coupling graph and activates one complete residue-residue edge at each graph update, choosing the inactive edge with the largest KL discrepancy between empirical and model two-site statistics. If `--pseudocount` is not provided, its default is `0.1`.
+`edgeDCA` uses the standard training options above, except that `--lr` is ignored. It starts from an empty coupling graph and activates one complete residue-residue edge at each graph update, choosing the inactive edge with the largest KL discrepancy between empirical and model two-site statistics. If `--pseudocount` is not provided, its default is `0.1`.
+
+For `edgeDCA`, `--pseudocount` acts as an effective learning rate for edge activation: the closer it is to `1`, the smaller the effective learning rate is. On some datasets, values up to `0.95` can be used.
 
                                                         
 ## Sampling from a DCA model 

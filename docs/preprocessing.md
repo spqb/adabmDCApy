@@ -60,4 +60,7 @@ $$
 \alpha = \frac{1}{M_{\text{eff}}}, \quad \text{with} \quad M_{\text{eff}} = \sum_{m=1}^M w^{(m)}
 $$
 being the _effective number of sequences._
+
+For `edgeDCA`, this pseudocount also acts as an effective learning rate: values closer to `1` produce smaller updates, and some datasets can use values up to `0.95`. The explicit `--lr` parameter is ignored by `edgeDCA`.
+
 ---
