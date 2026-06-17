@@ -157,8 +157,11 @@ This differs from `eaDCA`, which activates individual coupling entries. `edgeDCA
 Important defaults:
 
 - `--pseudocount`: if not set, defaults to `0.1` for `edgeDCA`
+- `--lr`: ignored by `edgeDCA`
 - `--target`: Pearson threshold on two-site statistics, default `0.95`
 - `--nsweeps`: Monte Carlo sweeps between edge activations, default `10`
+
+For `edgeDCA`, the pseudocount acts as an effective learning rate for edge activation: the closer the pseudocount is to `1`, the smaller the effective learning rate is. Some datasets can require much stronger regularization, with `--pseudocount` values up to `0.95`. The explicit learning-rate parameter `--lr` is not used by `edgeDCA`.
 
 Example:
 
@@ -181,6 +184,7 @@ Defaults work well for clean and moderately diverse MSAs. For more difficult dat
   ```
   --lr 0.005
   ```
+- For `edgeDCA`, `--lr` is ignored; tune `--pseudocount` instead.
 
 ### Number of Markov Chains
 
@@ -211,4 +215,4 @@ Default for `edgeDCA`:
 α = 0.1
 ```
 
-Increasing α (e.g. α = 0.001 or 0.01) may help when the training struggle converging or the mixing time of the model is very high, but it also makes the model less expressive.
+For `bmDCA`, `eaDCA`, and `edDCA`, increasing α (e.g. α = 0.001 or 0.01) may help when the training struggle converging or the mixing time of the model is very high, but it also makes the model less expressive. For `edgeDCA`, α controls the effective learning rate of edge activation: values closer to `1` make updates smaller, and values up to `0.95` can be useful on some datasets. `edgeDCA` still points towards the original statistics, without pseudocount, so the pseudocount does not interfere with the expressivity of the model.
