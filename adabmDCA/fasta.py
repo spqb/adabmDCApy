@@ -5,31 +5,7 @@ import gzip
 
 import torch
 
-# Default alphabets
-TOKENS_PROTEIN = "-ACDEFGHIKLMNPQRSTVWY"
-TOKENS_RNA = "-ACGU"
-TOKENS_DNA = "-ACGT"
-
-
-def get_tokens(alphabet: str) -> str:
-    """Converts a known alphabet into the corresponding tokens, otherwise returns the custom alphabet.
-
-    Args:
-        alphabet (str): Alphabet to be used for the encoding. It can be either "protein", "rna", "dna" or a custom string of tokens.
-
-    Returns:
-        str: Tokens of the alphabet.
-    """
-    if not isinstance(alphabet, str):
-        raise TypeError("Argument 'alphabet' must be of type str")
-    if alphabet == "protein":
-        return TOKENS_PROTEIN
-    elif alphabet == "rna":
-        return TOKENS_RNA
-    elif alphabet == "dna":
-        return TOKENS_DNA
-    else:
-        return alphabet
+from adabmDCA.alphabet import TOKENS_DNA, TOKENS_PROTEIN, TOKENS_RNA, get_tokens
     
     
 def encode_sequence(sequence: Union[str, Iterable[str]], tokens: str) -> np.ndarray:

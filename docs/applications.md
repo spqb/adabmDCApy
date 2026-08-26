@@ -163,4 +163,4 @@ adabmDCA profmark -t1 <t1> -t2 <t2> --bestof <n_trials> <output_prefix> <input_m
 - `--maxtrain`, `--maxtest`: size limits for train and test sets
 - `--alphabet`: sequence type (`protein`, `rna`, `dna`)
 - `--seed`: random seed (default 42)
-- `--device`: computation device (default `cuda`)
+- `--device`: computation device (default `auto`: CUDA, then MPS, then CPU)

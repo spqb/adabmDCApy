@@ -236,15 +236,25 @@ def get_device(device: str, message: bool = True) -> torch.device:
     """Returns the device where to store the tensors.
     
     Args:
-        device (str): Device to be used. Possible values are 'cpu', 'cuda', 'mps'.
+        device (str): Device to use. ``auto`` prefers CUDA, then MPS, then CPU.
+            Explicit values include ``cpu``, ``cuda`` and ``mps``.
         message (bool, optional): Print the device. Defaults to True.
         
     Returns:
         torch.device: Device.
     """
+    device = str(device).lower()
+    if device == "auto":
+        if torch.cuda.is_available():
+            device = "cuda"
+        elif hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
+            device = "mps"
+        else:
+            device = "cpu"
+
     if "mps" in device:
         if message:
-            print(f"Running on M chip GPU, Metal Performance Shaders (MPS)")
+            print("Running on M chip GPU, Metal Performance Shaders (MPS)")
         return torch.device(device)
     if "cuda" in device and torch.cuda.is_available():
         if message:

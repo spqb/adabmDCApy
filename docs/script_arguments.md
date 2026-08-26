@@ -26,7 +26,7 @@ In this section we list all the possible command-line arguments for the main rou
 | `--pseudocount`        | None         | Pseudo count for the single and two-sites statistics. Acts as a regularization. If `None`, it is set to `0.1` for `edgeDCA` and $1/M_{\mathrm{eff}}$ otherwise. |
 | `--seed`               | 0            | Random seed. |
 | `--nthreads`¹         | 1            | Number of threads used in the Julia multithreaded version. |
-| `--device`¹           | cuda         | Device to be used between cuda (GPU) and CPU. Used in the Python version. |
+| `--device`¹           | auto         | Select CUDA when available, otherwise MPS, otherwise CPU. |
 | `--dtype`¹            | float32      | Data type to be used between float32 and float64. Used in the Python version. |
 
 ### eaDCA options
@@ -65,12 +65,13 @@ For `edgeDCA`, `--pseudocount` acts as an effective learning rate for edge activ
 | `--no_reweighting`       | N/A          | If this flag is used, the routine assigns uniform weights to the sequences. |
 | `--nmeasure`            | 10000        | Number of data sequences to use for computing the mixing time. The value min(`nmeasure`, len(data)) is taken. |
 | `--nmix`                | 2            | Number of mixing times used to generate 'ngen' sequences starting from random. |
-| `--max_nsweeps`         | 10000        | Maximum number of sweeps allowed. |
+| `--max_nsweeps`         | 5000         | Maximum number of sweeps allowed. |
 | `--alphabet`            | protein      | Type of encoding for the sequences. Choose among `protein`, `rna`, `dna`, or a user-defined string of tokens. |
 | `--sampler`             | gibbs        | Sampling method to be used. Possible options are `gibbs` and `metropolis`. |
 | `--beta`               | 1.0          | Inverse temperature to be used for the sampling. |
+| `--seed`               | 0            | Random seed for reproducible sequence generation. |
 | `--pseudocount`        | None         | Pseudo count for the single and two-sites statistics. Acts as a regularization. If `None`, it is set to $1/M_{\mathrm{eff}}$. |
-| `--device`¹            | cuda         | Device to be used between cuda (GPU) and CPU. Used in the Python version. |
+| `--device`¹            | auto         | Select CUDA when available, otherwise MPS, otherwise CPU. |
 | `--dtype`¹             | float32      | Data type to be used between float32 and float64. Used in the Python version. |
 
 
@@ -82,7 +83,7 @@ For `edgeDCA`, `--pseudocount` acts as an effective learning rate for edge activ
 | `-p, --path_params`      | N/A          | Path to the file containing the parameters of the DCA model. |
 | `-o, --output`           | N/A          | Path to the folder where to save the output. |
 | `--alphabet`            | protein      | Type of encoding for the sequences. Choose among `protein`, `rna`, `dna`, or a user-defined string of tokens. |
-| `--device`¹            | cuda         | Device to be used between cuda (GPU) and CPU. Used in the Python version. |
+| `--device`¹            | auto         | Select CUDA when available, otherwise MPS, otherwise CPU. |
 | `--dtype`¹             | float32      | Data type to be used between float32 and float64. Used in the Python version. |
 
 ## Generate a Deep Mutational Scan (DMS) from a wild type
@@ -93,7 +94,7 @@ For `edgeDCA`, `--pseudocount` acts as an effective learning rate for edge activ
 | `-p, --path_params`      | N/A          | Path to the file containing the parameters of the DCA model. |
 | `-o, --output`           | N/A          | Path to the folder where to save the output. |
 | `--alphabet`            | protein      | Type of encoding for the sequences. Choose among `protein`, `rna`, `dna`, or a user-defined string of tokens. |
-| `--device`¹            | cuda         | Device to be used between cuda (GPU) and CPU. Used in the Python version. |
+| `--device`¹            | auto         | Select CUDA when available, otherwise MPS, otherwise CPU. |
 | `--dtype`¹             | float32      | Data type to be used between float32 and float64. Used in the Python version. |
 
 
@@ -108,7 +109,7 @@ For `edgeDCA`, `--pseudocount` acts as an effective learning rate for edge activ
 | `-l, --label`           | None         | If provided, adds a label to the output files inside the output folder. |
 | `--alphabet`            | protein      | Type of encoding for the sequences. Choose among `protein`, `rna`, `dna`, or a user-defined string of tokens. |
 | `--pseudocount`         | 0.5          | Pseudocount used to regularize empirical frequencies in the mean-field approximation. |
-| `--device`¹            | cuda         | Device to be used between cuda (GPU) and CPU. Used in the Python version. |
+| `--device`¹            | auto         | Select CUDA when available, otherwise MPS, otherwise CPU. |
 | `--dtype`¹             | float32      | Data type to be used between float32 and float64. Used in the Python version. |
 
 ¹ Used in specific versions of the software.

@@ -1,45 +1,63 @@
-import os
 import argparse
+import math
 
 from adabmDCA.parser import add_args_train
 
 
-# import command-line input arguments
 def create_parser():
-    # Important arguments
-    parser = argparse.ArgumentParser(description='Train a DCA model.')
-    parser = add_args_train(parser)
-    
-    return parser
+    parser = argparse.ArgumentParser(description="Train a DCA model.")
+    return add_args_train(parser)
+
+
+class _TrainingProgressRenderer:
+    """Render structured training events for an interactive terminal."""
+
+    def __init__(self, *, target_pearson: float, max_epochs: int) -> None:
+        from tqdm import tqdm
+
+        self._target = target_pearson
+        self._max_epochs = max_epochs
+        self._bar = tqdm(
+            total=target_pearson,
+            colour="red",
+            dynamic_ncols=True,
+            leave=False,
+            ascii="-#",
+            bar_format="  {desc}: [{bar}] Pearson {n:.4f}/{total:.4f} [{elapsed}]",
+        )
+
+    def __call__(self, event) -> None:
+        pearson = event.metrics.get("Pearson", 0.0)
+        if math.isfinite(pearson):
+            self._bar.n = min(max(0.0, pearson), self._target)
+
+        description = f"Epoch {event.epoch}/{self._max_epochs}"
+        likelihood = event.metrics.get("LL_train")
+        if likelihood is not None and math.isfinite(likelihood):
+            description += f" | LL/L {likelihood:.3f}"
+        density = event.metrics.get("Density")
+        if density is not None and math.isfinite(density):
+            description += f" | density {density:.4f}"
+        self._bar.set_description(description)
+        self._bar.refresh()
+
+    def close(self) -> None:
+        self._bar.close()
 
 
 def main():
-    
-    # Load parser, training dataset and DCA model
-    parser = create_parser()
-    args = parser.parse_args()
+    args = create_parser().parse_args()
 
-    import numpy as np
-    import torch
+    from adabmDCA.api.training import train_model
+    from adabmDCA.utils import get_device, get_dtype
 
-    from adabmDCA.dataset import DatasetDCA
-    from adabmDCA.fasta import get_tokens
-    from adabmDCA.io import load_chains, load_params
-    from adabmDCA.utils import init_chains, init_parameters, get_device, get_dtype
-    from adabmDCA.sampling import get_sampler
-    from adabmDCA.checkpoint import Checkpoint
-    from adabmDCA.graph import compute_density
-    from adabmDCA.training import train_graph, train_eaDCA, train_edDCA, train_edgeDCA
-    
-    print("\n" + "="*80)
+    print("\n" + "=" * 80)
     print(f"  TRAINING {args.model.upper()} MODEL")
-    print("="*80 + "\n")
-    
-    # Set the device
+    print("=" * 80 + "\n")
+
     device = get_device(args.device)
-    dtype = get_dtype(args.dtype)
-    
-    # Configuration section
+    get_dtype(args.dtype)
+
     print("[CONFIGURATION]")
     print("-" * 80)
     template = "  {0:<28} {1:<50}"
@@ -55,284 +73,72 @@ def main():
     print(template.format("Target Pearson Cij:", args.target))
     if args.pseudocount is not None:
         print(template.format("Pseudocount:", args.pseudocount))
-    if args.l2_reg > 0.0 and args.model in ["bmDCA", "edDCA", "eaDCA"]:
+    if args.l2_reg > 0.0 and args.model in {"bmDCA", "edDCA", "eaDCA"}:
         print(template.format("L2 regularization:", args.l2_reg))
     print(template.format("Random seed:", args.seed))
     print(template.format("Device:", str(device)))
     print(template.format("Data type:", args.dtype))
     print("-" * 80 + "\n")
-    
-    # Check if the data file exist
-    if not os.path.exists(args.data):
-        raise FileNotFoundError(f"Data file {args.data} not found.")
-    
-    if args.val is not None:
-        if not os.path.exists(args.val):
-            raise FileNotFoundError(f"Validation file {args.val} not found.")
-    
-    # Create the folder where to save the model
-    folder = args.output
-    os.makedirs(folder, exist_ok=True)
 
-    if args.label is not None:
-        file_paths = {
-            "log" : os.path.join(folder, f"{args.label}.log"),
-            "params" : os.path.join(folder, f"{args.label}_params.dat"),
-            "chains" : os.path.join(folder, f"{args.label}_chains.fasta")
-        }
-        
-    else:
-        file_paths = {
-            "log" : os.path.join(folder, f"adabmDCA.log"),
-            "params" : os.path.join(folder, f"params.dat"),
-            "chains" : os.path.join(folder, f"chains.fasta")
-        }
-    
-    print("[OUTPUT FILES]")
-    print("-" * 80)
-    print(f"  Log file:        {file_paths['log']}")
-    print(f"  Parameters file: {file_paths['params']}")
-    print(f"  Chains file:     {file_paths['chains']}")
-    print("-" * 80 + "\n")
-    
-    # Import dataset
-    print("[DATA LOADING]")
-    print("-" * 80)
-    print("  Importing training dataset...")
-    dataset = DatasetDCA(
-        path_data=args.data,
-        path_weights=args.weights,
-        alphabet=args.alphabet,
-        clustering_th=args.clustering_seqid,
-        no_reweighting=args.no_reweighting,
-        device=device,
-        dtype=dtype,
-        message=False,
-        filter_sequences=True,
-        remove_duplicates=True,
-    )
-    
-    # Import the validation dataset if provided
-    if args.val is not None:
-        print("  Importing validation dataset...")
-        val_dataset = DatasetDCA(
-            path_data=args.val,
-            path_weights=None,
+    progress = None
+    if not args.no_progress:
+        progress = _TrainingProgressRenderer(
+            target_pearson=args.target,
+            max_epochs=args.nepochs,
+        )
+    try:
+        result = train_model(
+            args.data,
+            model_type=args.model,
+            validation_path=args.val,
+            weights_path=args.weights,
+            output_dir=args.output,
+            label=args.label,
+            initial_params_path=args.path_params,
+            initial_chains_path=args.path_chains,
             alphabet=args.alphabet,
-            clustering_th=args.clustering_seqid,
+            learning_rate=args.lr,
+            n_sweeps=args.nsweeps,
+            sampler=args.sampler,
+            n_chains=args.nchains,
+            target_pearson=args.target,
+            max_epochs=args.nepochs,
+            pseudocount=args.pseudocount,
+            l2_regularization=args.l2_reg,
+            seed=args.seed,
+            clustering_seqid=args.clustering_seqid,
             no_reweighting=args.no_reweighting,
-            device=device,
-            dtype=dtype,
-            message=False,
-            filter_sequences=True,
-            remove_duplicates=True,
-        )
-        pseudocount_val = 1. / val_dataset.get_effective_size()
-        if args.model == "edgeDCA":
-            fi_val, fij_val = val_dataset.get_frequencies(pseudocount=1e-6)
-        else:
-            fi_val, fij_val = val_dataset.get_frequencies(pseudocount=pseudocount_val)
-    else:
-        fi_val = None
-        fij_val = None
-    
-    tokens = get_tokens(args.alphabet)
-    
-    # Save the weights if not already provided
-    if args.weights is None:
-        if args.label is not None:
-            path_weights = os.path.join(folder, f"{args.label}_weights.dat")
-        else:
-            path_weights = os.path.join(folder, "weights.dat")
-        np.savetxt(path_weights, dataset.weights.cpu().numpy())
-        print(f"  ✓ Weights saved: {path_weights}")
-        
-    # Set the random seed
-    torch.manual_seed(args.seed)
-        
-    # Shuffle the dataset
-    dataset.shuffle()
-    
-    # Compute statistics of the data
-    L = dataset.get_num_residues()
-    q = dataset.get_num_states()
-    M = len(dataset)
-    M_eff = dataset.get_effective_size()
-    
-    print(f"\n  Dataset statistics:")
-    print(f"    • Sequence length (L): {L}")
-    print(f"    • Alphabet size (q): {q}")
-    print(f"    • Number of sequences (M): {M}")
-    print(f"    • Effective sequences (M_eff): {M_eff}")
-    
-    if args.pseudocount is None:
-        args.pseudocount = 0.1 if args.model == "edgeDCA" else 1. / dataset.get_effective_size()
-        print(f"    • Pseudocount (auto): {args.pseudocount:.6f}")
-    print("-" * 80 + "\n")
-    
-    if args.model == "edgeDCA":
-        fi_target, fij_target = dataset.get_frequencies(pseudocount=1e-6)
-        fi_pseudocounted, fij_pseudocounted = dataset.get_frequencies(pseudocount=args.pseudocount)
-    else:
-        fi_target, fij_target = dataset.get_frequencies(pseudocount=args.pseudocount)
-        fi_pseudocounted, fij_pseudocounted = fi_target, fij_target
-
-    # Initialize parameters and chains
-    print("[INITIALIZATION]")
-    print("-" * 80)
-    if args.path_params:
-        print(f"  Loading parameters from: {args.path_params}")
-        tokens = get_tokens(args.alphabet)
-        params = load_params(fname=args.path_params, tokens=tokens, device=device, dtype=dtype)
-        print("  ✓ Parameters loaded")
-        mask = ~ torch.isclose(params["coupling_matrix"], torch.zeros_like(params["coupling_matrix"]))
-        density = compute_density(mask) * 100
-        print(f"  ✓ Model density: {density:.3f}%")
-        
-    else:
-        print("  Initializing parameters from data statistics...")
-        params = init_parameters(fi=fi_target)
-        print("  ✓ Parameters initialized")
-        
-        if args.model in ["bmDCA", "edDCA"]:
-            mask = torch.ones(size=(L, q, L, q), dtype=torch.bool, device=device)
-            mask[torch.arange(L), :, torch.arange(L), :] = 0
-            
-        else:
-            mask = torch.zeros(size=(L, q, L, q), device=device, dtype=torch.bool)
-    
-    if args.path_chains:
-        print(f"  Loading chains from: {args.path_chains}")
-        chains, log_weights = load_chains(fname=args.path_chains, tokens=dataset.tokens, load_weights=True, device=device, dtype=dtype)
-        log_weights = log_weights.to(device=device, dtype=dtype)
-        args.nchains = chains.shape[0]
-        print(f"  ✓ Loaded {args.nchains} chains")
-        
-    else:
-        print(f"  Initializing {args.nchains} chains from data statistics...")
-        chains = init_chains(num_chains=args.nchains, L=L, q=q, fi=fi_target, device=device, dtype=dtype)
-        log_weights = torch.zeros(size=(args.nchains,), device=device, dtype=dtype)
-        print(f"  ✓ Chains initialized")
-        
-    # Select the sampling function
-    print(f"  Setting up sampler: {args.sampler}")
-    sampler = torch.jit.script(get_sampler(args.sampler))
-    print("  ✓ Sampler ready")
-    print("-" * 80 + "\n")
-    
-    print("[TRAINING]")
-    print("-" * 80)
-    
-    checkpoint = Checkpoint(
-        file_paths=file_paths,
-        tokens=tokens,
-        args=vars(args),
-        use_wandb=args.wandb,
-    )
-
-    def run_bmDCA():
-        return train_graph(
-            sampler=sampler,
-            chains=chains,
-            mask=mask,
-            fi_target=fi_target,
-            fij_target=fij_target,
-            params=params,
-            nsweeps=args.nsweeps,
-            lr=args.lr,
-            max_epochs=args.nepochs,
-            target_pearson=args.target,
-            fi_val=fi_val,
-            fij_val=fij_val,
-            checkpoint=checkpoint,
-            log_weights=log_weights,
-            l2_reg=args.l2_reg,
-        )
-
-    def run_eaDCA():
-        return train_eaDCA(
-            sampler=sampler,
-            fi_target=fi_target,
-            fij_target=fij_target,
-            params=params,
-            mask=mask,
-            chains=chains,
-            log_weights=log_weights,
-            target_pearson=args.target,
-            nsweeps=args.nsweeps,
-            max_epochs=args.nepochs,
-            pseudo_count=args.pseudocount,
-            lr=args.lr,
-            factivate=args.factivate,
-            gsteps=args.gsteps,
-            fi_val=fi_val,
-            fij_val=fij_val,
-            checkpoint=checkpoint,
-            l2_reg=args.l2_reg,
-        )
-
-    def run_edDCA():
-        return train_edDCA(
-            sampler=sampler,
-            chains=chains,
-            log_weights=log_weights,
-            fi_target=fi_target,
-            fij_target=fij_target,
-            params=params,
-            mask=mask,
-            lr=args.lr,
-            nsweeps=args.nsweeps,
-            target_pearson=args.target,
+            activation_steps=args.gsteps,
+            activation_fraction=args.factivate,
             target_density=args.density,
-            drate=args.drate,
-            checkpoint=checkpoint,
-            fi_val=fi_val,
-            fij_val=fij_val,
-            l2_reg=args.l2_reg,
+            decimation_rate=args.drate,
+            device=str(device),
+            dtype=args.dtype,
+            use_wandb=args.wandb,
+            progress=progress,
         )
+    finally:
+        if progress is not None:
+            progress.close()
 
-    def run_edgeDCA():
-        return train_edgeDCA(
-            sampler=sampler,
-            fi_target=fi_target,
-            fij_target=fij_target,
-            fi_pseudocounted=fi_pseudocounted,
-            fij_pseudocounted=fij_pseudocounted,
-            params=params,
-            mask=mask,
-            chains=chains,
-            target_pearson=args.target,
-            nsweeps=args.nsweeps,
-            max_epochs=args.nepochs,
-            pseudo_count=args.pseudocount,
-            fi_val=fi_val,
-            fij_val=fij_val,
-            checkpoint=checkpoint,
-        )
-
-    routines = {
-        "bmDCA": run_bmDCA,
-        "eaDCA": run_eaDCA,
-        "edDCA": run_edDCA,
-        "edgeDCA": run_edgeDCA,
-    }
-
-    _, _, _, history = routines[args.model]()
-    
+    history = result.history
     print("\n" + "=" * 80)
     print("  TRAINING COMPLETED SUCCESSFULLY")
     print("=" * 80)
     print("\n" + "-" * 80)
+    print(f"  Sequence length: {result.model.metadata.length}")
+    print(f"  Number of sequences: {result.num_sequences}")
+    print(f"  Effective sequences: {result.effective_sequences}")
+    print(f"  Pseudocount: {result.pseudocount:.6f}")
     print(f"  Final graph density: {history['Density'][-1]:.4f}")
     print(f"  Final Pearson: {history['Pearson'][-1]:.4f}")
     print(f"  Final log-likelihood per residue: {history['LL_train'][-1]:.3f}")
     print(f"  Total steps: {history['Epochs'][-1]}")
-    print(f"\n  Results saved in: {folder}")
-    print(f"    \u2713 Parameters: {file_paths['params']}")
-    print(f"    \u2713 Chains:     {file_paths['chains']}")
-    print(f"    \u2713 Log file:   {file_paths['log']}")
+    print(f"\n  Results saved in: {args.output}")
+    for name, path in result.artifacts.items():
+        print(f"    ✓ {name.capitalize()}: {path}")
     print("\n" + "=" * 80 + "\n")
-    
-    
+
+
 if __name__ == "__main__":
     main()

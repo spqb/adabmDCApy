@@ -19,10 +19,7 @@ def main():
 
     import matplotlib.pyplot as plt
 
-    from adabmDCA.dataset import DatasetDCA
-    from adabmDCA.dca import get_contact_map, get_mf_contact_map
-    from adabmDCA.fasta import get_tokens
-    from adabmDCA.io import load_params
+    from adabmDCA.api.contacts import predict_contacts
     from adabmDCA.plot import plot_contact_map
     from adabmDCA.utils import get_device, get_dtype
     
@@ -32,7 +29,7 @@ def main():
     
     # Set the device
     device = get_device(args.device)
-    dtype = get_dtype(args.dtype)
+    get_dtype(args.dtype)
     
     # Either the data file or the parameters file must be provided
     if args.path_params is None and args.data is None:
@@ -64,38 +61,33 @@ def main():
     print(template.format("Data type:", args.dtype))
     print("-" * 80 + "\n")
     
-    # Import parameters
+    # Compute through the public application API
     print("[CONTACT MAP COMPUTATION]")
     print("-" * 80)
-    tokens = get_tokens(args.alphabet)
     if args.path_params is None:
         print("  Using mean-field approximation...")
         print(f"  Loading data from: {args.data}")
-        dataset = DatasetDCA(
-            path_data=args.data,
-            path_weights=None,
-            alphabet=args.alphabet,
-            device=device,
-            dtype=dtype,
-            remove_duplicates=True,
-            filter_sequences=True,
-            message=False,
-        )
-        print(f"  ✓ Data loaded ({len(dataset)} sequences)")
         print("  Computing Frobenius norm matrix...")
-        Fapc = get_mf_contact_map(
-            dataset.to_one_hot(),
-            tokens=tokens,
-            weights=dataset.weights,
-            pseudo_count=args.pseudocount,
+        result = predict_contacts(
+            fasta_path=args.data,
+            alphabet=args.alphabet,
+            pseudocount=args.pseudocount,
+            device=str(device),
+            dtype=args.dtype,
         )
     else:
         print(f"  Loading parameters from: {args.path_params}")
-        params = load_params(args.path_params, tokens=tokens, device=device, dtype=dtype)
-        L, q = params["bias"].shape
+        result = predict_contacts(
+            model=args.path_params,
+            alphabet=args.alphabet,
+            device=str(device),
+            dtype=args.dtype,
+        )
+        L = result.model.length
+        q = result.model.num_states
         print(f"  ✓ Parameters loaded (L={L}, q={q})")
         print("  Computing Frobenius norm matrix...")
-        Fapc = get_contact_map(params, tokens)
+    Fapc = result.scores
     
     map_size = Fapc.shape[0]
     max_score = Fapc.max()
@@ -118,10 +110,7 @@ def main():
     print("  Saving contact map matrix...")
     matrix_file = fname_out.with_suffix(".txt")
     plot_file = fname_out.with_suffix(".png")
-    with matrix_file.open("w") as f:
-        for i in range(Fapc.shape[0]):
-            for j in range(Fapc.shape[1]):
-                f.write(f"{i},{j},{Fapc[i, j]}\n")
+    result.save_matrix(matrix_file)
     print(f"  ✓ Matrix saved: {matrix_file}")
                 
     # plot the contact map into a file

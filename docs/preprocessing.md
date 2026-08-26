@@ -28,6 +28,9 @@ The following steps are applied to every input MSA:
 3. **Reweight** sequences to correct for phylogenetic and sampling bias (optional).
 4. **Compute empirical statistics** using a pseudocount.
 
+For explicit Stockholm conversion, insertion removal, gap filtering, and JSON
+processing reports, see the [alignment utilities](alignment_preprocessing.md).
+
 ---
 
 ### <span id="computing-the-importance-weights">Sequence Reweighting</span>

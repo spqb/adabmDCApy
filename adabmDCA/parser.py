@@ -20,7 +20,8 @@ def add_args_dca(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     dca_args.add_argument("--l2_reg",             type=float, default=0.0,          help="(Defaults to 0.0). L2 regularization coefficient for the parameters.")
     dca_args.add_argument("--seed",               type=int,   default=0,            help="(Defaults to 0). Seed for the random number generator.")
     dca_args.add_argument("--wandb",              action="store_true",              help="If provided, logs the training on Weights and Biases.")
-    dca_args.add_argument("--device",             type=str,   default="cuda",       help="(Defaults to 'cuda'). Device to be used.")
+    dca_args.add_argument("--no-progress",        action="store_true",              help="Disable the terminal training progress bar.")
+    dca_args.add_argument("--device",             type=str,   default="auto",       help="(Defaults to 'auto'). Device to use: CUDA if available, otherwise MPS, otherwise CPU.")
     dca_args.add_argument("--dtype",              type=str,   default="float32",    help="(Defaults to 'float32'). Data type to be used.")
 
     return parser
@@ -65,7 +66,7 @@ def add_args_energies(parser: argparse.ArgumentParser) -> argparse.ArgumentParse
     parser.add_argument("-p", "--path_params",  type=str,   required=True,      help="Path to the file containing the parameters of DCA model.")
     parser.add_argument("-o", "--output",       type=str,   required=True,      help="Path to the folder where to save the output.")
     parser.add_argument("--alphabet",           type=str,    default="protein",  help="(Defaults to 'protein'). Type of encoding for the sequences. Choose among ['protein', 'rna', 'dna'] or a user-defined string of tokens.")
-    parser.add_argument("--device",             type=str,    default="cuda",     help="(Defaults to 'cuda'). Device to be used.")
+    parser.add_argument("--device",             type=str,    default="auto",     help="(Defaults to 'auto'). Device to use: CUDA if available, otherwise MPS, otherwise CPU.")
     parser.add_argument("--dtype",              type=str,    default="float32",  help="(Defaults to 'float32'). Data type to be used.")
 
     return parser
@@ -78,7 +79,7 @@ def add_args_contacts(parser: argparse.ArgumentParser) -> argparse.ArgumentParse
     parser.add_argument("-l", "--label",        type=str,    default=None,           help="(Defaults to None). If provided, adds a label to the output files inside the output folder.")
     parser.add_argument("--alphabet",           type=str,    default="protein",      help="(Defaults to 'protein'). Type of encoding for the sequences. Choose among ['protein', 'rna', 'dna'] or a user-defined string of tokens.")
     parser.add_argument("--pseudocount",        type=float,   default=0.5,            help="(Defaults to 0.5). Pseudocount used to regularize the empirical frequencies in the mean-field approximation.")
-    parser.add_argument("--device",             type=str,    default="cuda",         help="(Defaults to 'cuda'). Device to be used.")
+    parser.add_argument("--device",             type=str,    default="auto",         help="(Defaults to 'auto'). Device to use: CUDA if available, otherwise MPS, otherwise CPU.")
     parser.add_argument("--dtype",              type=str,    default="float32",      help="(Defaults to 'float32'). Data type to be used.")
 
     return parser
@@ -89,7 +90,7 @@ def add_args_dms(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     parser.add_argument("-p", "--path_params",  type=str,   required=True,       help="Path to the file containing the parameters of DCA model to sample from.")
     parser.add_argument("-o", "--output",       type=str,   required=True,       help="Path to the folder where to save the output.")
     parser.add_argument("--alphabet",           type=str,    default="protein",  help="(Defaults to 'protein'). Type of encoding for the sequences. Choose among ['protein', 'rna', 'dna'] or a user-defined string of tokens.")
-    parser.add_argument("--device",             type=str,    default="cuda",     help="(Defaults to 'cuda'). Device to be used.")
+    parser.add_argument("--device",             type=str,    default="auto",     help="(Defaults to 'auto'). Device to use: CUDA if available, otherwise MPS, otherwise CPU.")
     parser.add_argument("--dtype",              type=str,    default="float32",  help="(Defaults to 'float32'). Data type to be used.")
 
     return parser
@@ -109,8 +110,9 @@ def add_args_sample(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     parser.add_argument("--alphabet",           type=str,    default="protein",  help="(Defaults to 'protein'). Type of encoding for the sequences. Choose among ['protein', 'rna', 'dna'] or a user-defined string of tokens.")
     parser.add_argument("--sampler",            type=str,    default="gibbs",    help="(Defaults to 'gibbs'). Sampling method to be used. Choose between 'metropolis' and 'gibbs'.", choices=["metropolis", "gibbs"])
     parser.add_argument("--beta",               type=float,  default=1.0,        help="(Defaults to 1.0). Inverse temperature for the sampling.")
+    parser.add_argument("--seed",               type=int,    default=0,          help="(Defaults to 0). Seed for reproducible sequence generation.")
     parser.add_argument("--pseudocount",        type=float,  default=None,       help="(Defaults to None). Pseudocount for the single and two-sites statistics used during the training. If None, 1/Meff is used.")
-    parser.add_argument("--device",             type=str,    default="cuda",     help="(Defaults to 'cuda'). Device to perform computations on.")
+    parser.add_argument("--device",             type=str,    default="auto",     help="(Defaults to 'auto'). Device to use: CUDA if available, otherwise MPS, otherwise CPU.")
     parser.add_argument("--dtype",              type=str,    default="float32",  help="(Defaults to 'float32'). Data type to be used.")
 
     parser = add_args_reweighting(parser)
@@ -136,7 +138,7 @@ def add_args_tdint(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     parser.add_argument("--nepochs",            type=int,    default=50000,           help="(Defaults to 50000). Maximum number of epochs allowed.")
     parser.add_argument("--sampler",            type=str,    default="gibbs",         help="(Defaults to 'gibbs'). Sampling method to be used. Choose between 'metropolis' and 'gibbs'.", choices=["metropolis", "gibbs"])
     parser.add_argument("--seed",               type=int,    default=0,               help="(Defaults to 0). Seed for the random number generator.")
-    parser.add_argument("--device",             type=str,    default="cuda",          help="(Defaults to 'cuda'). Device to perform computations on.")
+    parser.add_argument("--device",             type=str,    default="auto",          help="(Defaults to 'auto'). Device to use: CUDA if available, otherwise MPS, otherwise CPU.")
     parser.add_argument("--dtype",              type=str,    default="float32",       help="(Defaults to 'float32'). Data type to be used.")
 
     return parser
@@ -159,6 +161,6 @@ def add_args_profmark(parser: argparse.ArgumentParser) -> argparse.ArgumentParse
     parser.add_argument("--maxtest",     type=int,   default=None,      help="(Defaults to None) Maximum number of sequences in the test set.")
     parser.add_argument("--alphabet",    type=str,   default="protein", help="(Defaults to 'protein') Alphabet to use for encoding the sequences. Choose among 'protein', 'rna', 'dna' or a user-defined alphabet.")
     parser.add_argument("--seed",        type=int,   default=0,         help="(Defaults to 0) Random seed for reproducibility.")
-    parser.add_argument("--device",      type=str,   default="cuda",    help="(Defaults to 'cuda') Device to use for computation.")
+    parser.add_argument("--device",      type=str,   default="auto",    help="(Defaults to 'auto'). Device to use: CUDA if available, otherwise MPS, otherwise CPU.")
 
     return parser

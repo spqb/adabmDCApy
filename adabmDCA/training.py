@@ -361,6 +361,7 @@ def train_eaDCA(
     fij_val: Optional[torch.Tensor] = None,
     checkpoint: Optional[Checkpoint] = None,
     l2_reg: float = 0.0,
+    progress_bar: bool = True,
     *args, **kwargs,
 ) -> Tuple[torch.Tensor, Dict[str, torch.Tensor], torch.Tensor, Dict[str, List[float]]]:
     """
@@ -458,9 +459,10 @@ def train_eaDCA(
     timer.update(time=elapsed_time, pearson=pearson)
     estimated_total_time = timer.predict()
 
-    pbar = tqdm(initial=max(0, float(pearson)), total=target_pearson, colour="red", dynamic_ncols=True, ascii="-#",
-                bar_format=_pearson_bar_format(elapsed_time, estimated_total_time))
-    pbar.set_description(f"Update: {graph_upd:3d} | Density: {density:6.3f}% | New: {0:4d} | LL/L: {log_likelihood:8.3f}")
+    if progress_bar:
+        pbar = tqdm(initial=max(0, float(pearson)), total=target_pearson, colour="red", dynamic_ncols=True, ascii="-#",
+                    bar_format=_pearson_bar_format(elapsed_time, estimated_total_time))
+        pbar.set_description(f"Update: {graph_upd:3d} | Density: {density:6.3f}% | New: {0:4d} | LL/L: {log_likelihood:8.3f}")
     
     while pearson < target_pearson:
         # Old number of active couplings
@@ -511,8 +513,9 @@ def train_eaDCA(
         elapsed_time = time.time() - time_start
         timer.update(time=elapsed_time, pearson=pearson)
         estimated_total_time = timer.predict()
-        pbar.bar_format = _pearson_bar_format(elapsed_time, estimated_total_time)
-        pbar.set_description(f"Update: {graph_upd:3d} | Density: {density:6.3f}% | New: {int(nactive - nactive_old):4d} | LL/L: {log_likelihood:8.3f}")
+        if progress_bar:
+            pbar.bar_format = _pearson_bar_format(elapsed_time, estimated_total_time)
+            pbar.set_description(f"Update: {graph_upd:3d} | Density: {density:6.3f}% | New: {int(nactive - nactive_old):4d} | LL/L: {log_likelihood:8.3f}")
         entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
         ess = _compute_ess(log_weights)
         if fi_val is not None and fij_val is not None:
@@ -548,7 +551,8 @@ def train_eaDCA(
                     chains=chains,
                     log_weights=log_weights,
                     )
-        pbar.n = min(max(0, float(pearson)), target_pearson)
+        if progress_bar:
+            pbar.n = min(max(0, float(pearson)), target_pearson)
 
     entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
     ess = _compute_ess(log_weights)
@@ -580,7 +584,8 @@ def train_eaDCA(
             chains=chains,
             log_weights=log_weights,
         )
-    pbar.close()
+    if progress_bar:
+        pbar.close()
     
     return chains, params, log_weights, history
     
@@ -602,6 +607,7 @@ def train_edDCA(
     fi_val: Optional[torch.Tensor] = None,
     fij_val: Optional[torch.Tensor] = None,
     l2_reg: float = 0.0,
+    progress_bar: bool = True,
     *args, **kwargs,
 ) -> Tuple[torch.Tensor, Dict[str, torch.Tensor], torch.Tensor, Dict[str, List[float]]]:
     """Fits an edDCA model on the training data and saves the results in a file.
@@ -666,6 +672,7 @@ def train_edDCA(
             check_slope=False,
             checkpoint=checkpoint,
             l2_reg=l2_reg,
+            progress_bar=progress_bar,
         )
         pi = get_freq_single_point(data=chains)
         pij = get_freq_two_points(data=chains)
@@ -889,6 +896,7 @@ def train_edgeDCA(
     fi_val: Optional[torch.Tensor] = None,
     fij_val: Optional[torch.Tensor] = None,
     checkpoint: Optional[Checkpoint] = None,
+    progress_bar: bool = True,
     *args, **kwargs,
 ) -> Tuple[torch.Tensor, Dict[str, torch.Tensor], torch.Tensor, Dict[str, List[float]]]:
     """
@@ -985,9 +993,10 @@ def train_edgeDCA(
     timer.update(time=elapsed_time, pearson=pearson)
     estimated_total_time = timer.predict()
 
-    pbar = tqdm(initial=max(0, float(pearson)), total=target_pearson, colour="red", dynamic_ncols=True, ascii="-#",
-                bar_format=_pearson_bar_format(elapsed_time, estimated_total_time))
-    pbar.set_description(f"Update: {graph_upd:3d} | Density: {density:6.3f}% | New: {0:4d} | LL/L: {log_likelihood:8.3f}")
+    if progress_bar:
+        pbar = tqdm(initial=max(0, float(pearson)), total=target_pearson, colour="red", dynamic_ncols=True, ascii="-#",
+                    bar_format=_pearson_bar_format(elapsed_time, estimated_total_time))
+        pbar.set_description(f"Update: {graph_upd:3d} | Density: {density:6.3f}% | New: {0:4d} | LL/L: {log_likelihood:8.3f}")
     
     while pearson < target_pearson:
         nactive_old = nactive
@@ -1023,8 +1032,9 @@ def train_edgeDCA(
         elapsed_time = time.time() - time_start
         timer.update(time=elapsed_time, pearson=pearson)
         estimated_total_time = timer.predict()
-        pbar.bar_format = _pearson_bar_format(elapsed_time, estimated_total_time)
-        pbar.set_description(f"Update: {graph_upd:3d} | Density: {density:6.3f}% | New: {int(nactive - nactive_old):4d} | LL/L: {log_likelihood:8.3f}")
+        if progress_bar:
+            pbar.bar_format = _pearson_bar_format(elapsed_time, estimated_total_time)
+            pbar.set_description(f"Update: {graph_upd:3d} | Density: {density:6.3f}% | New: {int(nactive - nactive_old):4d} | LL/L: {log_likelihood:8.3f}")
         entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
         if fi_val is not None and fij_val is not None:
             log_likelihood_val = compute_log_likelihood(fi=fi_val, fij=fij_val, params=params, logZ=logZ)
@@ -1059,7 +1069,8 @@ def train_edgeDCA(
                     chains=chains,
                     log_weights=torch.ones(len(chains)),
                     )
-        pbar.n = min(max(0, float(pearson)), target_pearson)
+        if progress_bar:
+            pbar.n = min(max(0, float(pearson)), target_pearson)
 
     entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
     if fi_val is not None and fij_val is not None:
@@ -1090,6 +1101,7 @@ def train_edgeDCA(
             chains=chains,
             log_weights=torch.ones(len(chains)),
         )
-    pbar.close()
+    if progress_bar:
+        pbar.close()
     
     return chains, params, torch.ones(len(chains)), history

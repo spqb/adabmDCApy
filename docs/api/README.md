@@ -2,6 +2,10 @@
 
 # API Overview
 
+For notebook-oriented workflows, start with the
+[high-level Python API](../high_level_api.md). The module pages below document
+the lower-level numerical, data, and file-format primitives.
+
 ## Modules
 
 - [`adabmDCA.checkpoint`](./adabmDCA.checkpoint.md#module-adabmdcacheckpoint)

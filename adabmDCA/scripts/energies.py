@@ -18,12 +18,7 @@ def main():
     parser = create_parser()
     args = parser.parse_args()
 
-    import torch
-    from torch.nn.functional import one_hot
-
-    from adabmDCA.fasta import decode_sequence, get_tokens
-    from adabmDCA.io import import_from_fasta, load_params
-    from adabmDCA.statmech import compute_energy
+    from adabmDCA.api.scoring import score_sequences
     from adabmDCA.utils import get_device, get_dtype
     
     print("\n" + "="*80)
@@ -32,7 +27,7 @@ def main():
     
     # Set the device
     device = get_device(args.device)
-    dtype = get_dtype(args.dtype)
+    get_dtype(args.dtype)
     
     # Configuration section
     print("[CONFIGURATION]")
@@ -49,37 +44,36 @@ def main():
     require_file(args.data, "Data file")
     require_file(args.path_params, "Parameters file")
     
-    # import data
+    # Load data and compute energies through the public application API
     print("[DATA LOADING]")
     print("-" * 80)
     print(f"  Loading sequences from: {args.data}")
-    tokens = get_tokens(args.alphabet)
-    names, data = import_from_fasta(args.data, tokens=tokens, remove_duplicates=True, filter_sequences=True)
-    sequences = decode_sequence(data, tokens)
-    data = torch.tensor(data, dtype=torch.int64)
-    n_sequences = len(data)
-    seq_length = len(data[0]) if n_sequences > 0 else 0
+    result = score_sequences(
+        model=args.path_params,
+        fasta_path=args.data,
+        alphabet=args.alphabet,
+        device=str(device),
+        dtype=args.dtype,
+        remove_duplicates=True,
+    )
+    names = result.names
+    sequences = result.sequences
+    energies = result.energies
+    n_sequences = len(sequences)
+    seq_length = len(sequences[0]) if n_sequences > 0 else 0
     print(f"  ✓ Sequences loaded")
     print(f"    • Number of sequences: {n_sequences}")
     print(f"    • Sequence length: {seq_length}")
     
-    # import parameters and compute DCA energies
     print(f"  Loading parameters from: {args.path_params}")
-    params = load_params(args.path_params, tokens=tokens, device=device, dtype=dtype)
-    L = params["bias"].shape[0]
-    q = params["bias"].shape[1]
+    L = result.model.length
+    q = result.model.num_states
     print(f"  ✓ Parameters loaded (q={q}, L={L})")
-    if seq_length != L:
-        raise ValueError(
-            f"Sequence length ({seq_length}) does not match model length ({L})."
-        )
     print("-" * 80 + "\n")
     
     print("[ENERGY COMPUTATION]")
     print("-" * 80)
-    data = one_hot(data, num_classes=q).to(dtype=dtype, device=device)
     print(f"  Computing DCA energies for {n_sequences} sequences...")
-    energies = compute_energy(data, params).cpu().numpy()
     mean_energy = energies.mean()
     std_energy = energies.std()
     min_energy = energies.min()
@@ -98,10 +92,7 @@ def main():
     fname_out = folder / f"{os.path.splitext(os.path.basename(args.data))[0]}_energies.fasta"
     
     print("  Saving results...")
-    with fname_out.open("w") as f:
-        for n, s, e in zip(names, sequences, energies):
-            f.write(f">{n} | DCAenergy: {e:.3f}\n")
-            f.write(f"{s}\n")
+    result.to_fasta(fname_out)
     print(f"  ✓ Results saved: {fname_out}")
     print("-" * 80 + "\n")
     

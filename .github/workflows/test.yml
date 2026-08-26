@@ -28,6 +28,9 @@ jobs:
     - name: 📂 Create test output directory
       run: mkdir -p test_outputs
 
+    - name: 🧪 Run Python API and CLI unit tests
+      run: python -m unittest discover -s tests -v
+
     # Train bmDCA model (quick test with target=0.2)
     - name: 🧬 Train bmDCA model
       run: |

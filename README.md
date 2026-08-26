@@ -29,6 +29,7 @@ The project's main repository can be found at [adabmDCA 2.0](https://github.com/
 - Available on multiple architectures: single-core and multi-core CPUs, GPUs.
 - Ready-to-use for **residue-residue contact prediction**, **mutational-effect prediction**, and **sequence design**.
 - Compatible with protein and RNA family analysis.
+- Stockholm-to-FASTA conversion and auditable MSA preprocessing utilities.
 
 ## ⬇️ Installation
 
@@ -53,6 +54,27 @@ After installation, all the main routines can be launched through the command-li
 
 To get started with adabmDCA in Python, please refer to the [Documentation](https://spqb.github.io/adabmDCApy/) or the [Colab notebook](https://colab.research.google.com/drive/1l5e1W8pk4cB92JAlBElLzpkEk6Hdjk7B?usp=sharing).
 
+### High-level Python API
+
+The command-line workflows are also available as an intuitive Python API for
+notebooks and applications:
+
+```python
+from adabmDCA import load_model
+
+model = load_model("params.dat", alphabet="protein", device="auto")
+
+energies = model.compute_energies(["ACDEFG...", "ACDEYG..."])
+contacts = model.compute_contact_map()
+mutations = model.scan_mutations("ACDEFG...").to_dataframe()
+samples = model.sample(100, n_sweeps=1_000, seed=42)
+```
+
+Low-level tensor functions such as `compute_energy` remain available and
+backward-compatible. See the [high-level API guide](docs/high_level_api.md) for
+structured results, FASTA inputs, training, progress callbacks, and error
+handling.
+
 ## License
 
 This package is open-sourced under the MIT License.
@@ -66,5 +88,3 @@ If you use this package in your research, please cite:
 ## Acknowledgments
 
 This work was developed in collaboration with Sorbonne Université, Sapienza Università di Roma, and Politecnico di Torino.
-
-

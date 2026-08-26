@@ -14,6 +14,7 @@ COMMANDS = {
     "profmark": "adabmDCA.scripts.profmark",
     "plot-training-log": "adabmDCA.plot_training_log",
     "plot_training_log": "adabmDCA.plot_training_log",
+    "preprocess": "adabmDCA.scripts.preprocess",
 }
 
 

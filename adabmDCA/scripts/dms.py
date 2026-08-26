@@ -17,12 +17,8 @@ def main():
     parser = create_parser()
     args = parser.parse_args()
 
-    import torch
-
-    from adabmDCA.fasta import decode_sequence, encode_sequence, get_tokens
-    from adabmDCA.functional import one_hot
-    from adabmDCA.io import import_from_fasta, load_params
-    from adabmDCA.statmech import compute_energy
+    from adabmDCA.api.mutations import scan_mutations
+    from adabmDCA.io import import_from_fasta
     from adabmDCA.utils import get_device, get_dtype
     
     print("\n" + "="*80)
@@ -31,7 +27,7 @@ def main():
     
     # Set the device
     device = get_device(args.device)
-    dtype = get_dtype(args.dtype)
+    get_dtype(args.dtype)
     
     # Configuration section
     print("[CONFIGURATION]")
@@ -52,64 +48,46 @@ def main():
     print("[DATA LOADING]")
     print("-" * 80)
     print(f"  Loading wild-type sequence from: {args.data}")
-    tokens = get_tokens(args.alphabet)
     names, sequences = import_from_fasta(args.data)
     wt_name = names[0]
     # remove non-alphanumeric characters from wt name
     wt_name = "".join(e for e in wt_name if e.isalnum())
-    wt_seq = torch.tensor(encode_sequence(sequences[0], tokens))
-    L_wt = len(wt_seq)
+    wild_type = str(sequences[0])
+    L_wt = len(wild_type)
     print(f"  ✓ Wild-type loaded: {wt_name}")
     print(f"    • Length: {L_wt}")
     
     print(f"  Loading parameters from: {args.path_params}")
-    params = load_params(args.path_params, tokens=tokens, device=device, dtype=dtype)
-    L, q = params["bias"].shape
+    result = scan_mutations(
+        wild_type,
+        model=args.path_params,
+        name=wt_name,
+        alphabet=args.alphabet,
+        device=str(device),
+        dtype=args.dtype,
+    )
+    L = result.model.length
+    q = result.model.num_states
     print(f"  ✓ Parameters loaded (L={L}, q={q})")
-    if L_wt != L:
-        raise ValueError(
-            f"Wild-type sequence length ({L_wt}) does not match model length ({L})."
-        )
     print("-" * 80 + "\n")
     
     # generate DMS
     print("[MUTANT LIBRARY GENERATION]")
     print("-" * 80)
-    dms = []
-    site_list = []
-    old_residues = []
-    new_residues = []
-    
     print(f"  Generating single-point mutant library...")
-    for i in range(L):
-        for a in range(q):
-            if wt_seq[i] != a:
-                seq = wt_seq.clone()
-                seq[i] = a
-                dms.append(seq)
-                site_list.append(i)
-                old_residues.append(tokens[wt_seq[i]])
-                new_residues.append(tokens[a])
-    
-    n_mutants = len(dms)
+    n_mutants = len(result.mutations)
     print(f"  ✓ Mutant library generated: {n_mutants} single mutants")
     print("-" * 80 + "\n")
     
     print("[ENERGY COMPUTATION]")
     print("-" * 80)
     print(f"  Computing DCA scores for {n_mutants} mutants...")
-    dms = torch.vstack(dms).to(device=device)
-    dms = one_hot(dms, num_classes=q).to(dtype)
-    energies = compute_energy(dms, params)
-    energy_wt = compute_energy(one_hot(wt_seq.view(1, -1).to(device), num_classes=q).to(dtype), params)
-    deltaE = energies - energy_wt
+    energy_wt = result.wild_type_energy
+    deltaE = result.delta_energies
     print(f"  ✓ DCA scores computed")
-    print(f"    • Wild-type energy: {energy_wt.item():.3f}")
-    print(f"    • ΔE range: [{deltaE.min().item():.3f}, {deltaE.max().item():.3f}]")
-    print(f"    • Mean ΔE: {deltaE.mean().item():.3f}")
-    
-    dms = torch.argmax(dms, -1).cpu().numpy()
-    dms_decoded = decode_sequence(dms, tokens)
+    print(f"    • Wild-type energy: {energy_wt:.3f}")
+    print(f"    • ΔE range: [{deltaE.min():.3f}, {deltaE.max():.3f}]")
+    print(f"    • Mean ΔE: {deltaE.mean():.3f}")
     print("-" * 80 + "\n")
     
     print("[OUTPUT]")
@@ -118,10 +96,7 @@ def main():
     fname_out = folder / f"{wt_name}_DMS.fasta"
     
     print("  Saving DMS results...")
-    with fname_out.open("w") as f:
-        for i, res_old, res_new, e, seq in zip(site_list, old_residues, new_residues, deltaE, dms_decoded):
-            f.write(f">{res_old}{i}{res_new} | DCAscore: {e:.3f}\n")
-            f.write(seq + "\n")
+    result.to_fasta(fname_out)
     print(f"  ✓ Results saved: {fname_out}")
     print("-" * 80 + "\n")
     
