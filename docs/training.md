@@ -29,6 +29,32 @@ $ adabmDCA train -m <model> -d <fasta_file> -o <output_folder> -l <label>
 
 Training stops when the **Pearson correlation** between model and empirical connected correlations reaches the target value (default: `0.95`).
 
+Training reports gradient and graph-structure work separately. A gradient step
+updates model parameters; a structure step activates or decimates graph
+elements. For backward compatibility, `--nepochs` limits gradient steps for
+`bmDCA` and structure steps for `eaDCA`, `edDCA`, and `edgeDCA`. Use the
+unambiguous limits when controlling nested sparse-model training:
+
+```bash
+--max-gradient-steps 5000 --max-structure-steps 100
+```
+
+The final summary reports the stop reason and both counters, so reaching a
+budget is distinguishable from reaching the Pearson or density target.
+
+Python callers can use `TrainingConfig` as the canonical source of defaults
+and validation. It also makes advanced runtime values explicit, including
+checkpoint cadence, edDCA's inner gradient budget, convergence slope
+tolerance, and edgeDCA's empirical-frequency and log-partition estimation
+settings. The CLI and high-level API obtain their defaults from this same
+configuration module.
+
+Training inputs may be FASTA, compressed FASTA, Stockholm, or an in-memory
+`Alignment`. Invalid sequences are dropped and duplicate sequences are
+removed using an explicit retained-index mapping; supplied weights may refer
+to either the original or retained alignment. The returned
+`TrainingResult.input_report` records every filtering decision.
+
 - Early training is fast (e.g., Pearson ≈ 0.9 after ~100 iterations).  
 - Approaching higher values takes significantly longer (power‑law decay).
 

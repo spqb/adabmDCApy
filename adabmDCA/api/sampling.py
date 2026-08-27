@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from collections.abc import Callable
 from pathlib import Path
 
@@ -12,6 +13,11 @@ from adabmDCA.api.model import DCAModel, load_model
 from adabmDCA.api.results import SamplingProgress, SamplingResult
 from adabmDCA.dataset import DatasetDCA
 from adabmDCA.fasta import decode_sequence
+from adabmDCA.input_loading import (
+    AlignmentInput,
+    AlignmentLoadConfig,
+    WeightInput,
+)
 from adabmDCA.resampling import compute_mixing_time
 from adabmDCA.sampling import get_sampler
 from adabmDCA.statmech import compute_energy
@@ -21,7 +27,6 @@ from adabmDCA.stats import (
     get_freq_two_points,
 )
 from adabmDCA.utils import init_chains, resample_sequences
-
 
 ProgressCallback = Callable[[SamplingProgress], None]
 CancellationHook = Callable[[], bool]
@@ -53,8 +58,8 @@ def sample_sequences(
     sampler: str = "gibbs",
     beta: float = 1.0,
     seed: int = 0,
-    reference_fasta: str | Path | None = None,
-    weights_path: str | Path | None = None,
+    reference_fasta: AlignmentInput | None = None,
+    weights_path: WeightInput | None = None,
     n_measure: int = 10_000,
     mixing_multiplier: int = 2,
     pseudocount: float | None = None,
@@ -77,9 +82,11 @@ def sample_sequences(
         raise InputValidationError("n_sequences must be at least 1.")
     if n_sweeps < 0:
         raise InputValidationError("n_sweeps cannot be negative.")
+    if reference_fasta is not None and n_sweeps < 1:
+        raise InputValidationError("n_sweeps must be at least 1 when estimating mixing time.")
     if sampler not in {"gibbs", "metropolis"}:
         raise InputValidationError("sampler must be either 'gibbs' or 'metropolis'.")
-    if beta <= 0:
+    if not math.isfinite(beta) or beta <= 0:
         raise InputValidationError("beta must be greater than zero.")
     if mixing_multiplier < 1:
         raise InputValidationError("mixing_multiplier must be at least 1.")
@@ -91,9 +98,7 @@ def sample_sequences(
         raise InputValidationError("clustering_seqid must be greater than 0 and at most 1.")
     _check_cancelled(is_cancelled)
 
-    loaded = model if isinstance(model, DCAModel) else load_model(
-        model, alphabet=alphabet, device=device, dtype=dtype
-    )
+    loaded = model if isinstance(model, DCAModel) else load_model(model, alphabet=alphabet, device=device, dtype=dtype)
     torch.manual_seed(seed)
     if loaded.params["bias"].device.type == "cuda":
         torch.cuda.manual_seed_all(seed)
@@ -111,22 +116,19 @@ def sample_sequences(
     sampling_history: dict[str, list[float]] = {}
 
     if reference_fasta is not None:
-        reference_path = Path(reference_fasta)
-        if not reference_path.is_file():
-            raise InputValidationError(f"Reference FASTA file '{reference_path}' was not found.")
-        if weights_path is not None and not Path(weights_path).is_file():
-            raise InputValidationError(f"Weights file '{weights_path}' was not found.")
-        dataset = DatasetDCA(
-            path_data=str(reference_path),
-            path_weights=None if weights_path is None else str(weights_path),
-            alphabet=loaded.tokens,
+        dataset = DatasetDCA.from_alignment(
+            reference_fasta,
+            weights=weights_path,
+            load_config=AlignmentLoadConfig(
+                alphabet=loaded.tokens,
+                invalid_sequences="drop",
+                remove_duplicates=True,
+                expected_length=metadata.length,
+            ),
             clustering_th=clustering_seqid,
             no_reweighting=no_reweighting,
-            filter_sequences=True,
-            remove_duplicates=True,
             device=loaded.params["bias"].device,
             dtype=loaded.params["bias"].dtype,
-            message=False,
         )
         effective_pseudocount = pseudocount
         if effective_pseudocount is None:

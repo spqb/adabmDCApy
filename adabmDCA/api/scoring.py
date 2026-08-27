@@ -13,6 +13,7 @@ from adabmDCA.api.model import DCAModel, load_model
 from adabmDCA.api.results import EnergyResult
 from adabmDCA.api.runtime import load_fasta_sequences, normalize_sequences
 from adabmDCA.fasta import encode_sequence
+from adabmDCA.input_loading import AlignmentInput
 from adabmDCA.statmech import compute_energy
 
 
@@ -23,16 +24,14 @@ def _coerce_model(
     device: str,
     dtype: str,
 ) -> DCAModel:
-    return model if isinstance(model, DCAModel) else load_model(
-        model, alphabet=alphabet, device=device, dtype=dtype
-    )
+    return model if isinstance(model, DCAModel) else load_model(model, alphabet=alphabet, device=device, dtype=dtype)
 
 
 def score_sequences(
     sequences: str | Iterable[str] | None = None,
     *,
     model: DCAModel | str | Path,
-    fasta_path: str | Path | None = None,
+    fasta_path: AlignmentInput | None = None,
     alphabet: str = "protein",
     device: str = "auto",
     dtype: str = "float32",
@@ -58,18 +57,14 @@ def score_sequences(
         )
     else:
         names = ()
-        normalized = normalize_sequences(
-            sequences, tokens=loaded.tokens, expected_length=loaded.metadata.length
-        )
+        normalized = normalize_sequences(sequences, tokens=loaded.tokens, expected_length=loaded.metadata.length)
 
     encoded = torch.as_tensor(
         encode_sequence(list(normalized), loaded.tokens),
         dtype=torch.int64,
         device=loaded.params["bias"].device,
     )
-    data = one_hot(encoded, num_classes=len(loaded.tokens)).to(
-        dtype=loaded.params["bias"].dtype
-    )
+    data = one_hot(encoded, num_classes=len(loaded.tokens)).to(dtype=loaded.params["bias"].dtype)
     energies = compute_energy(data, loaded.params).detach().cpu().numpy()
     return EnergyResult(
         sequences=normalized,
@@ -83,7 +78,7 @@ def compute_energies(
     sequences: str | Iterable[str] | None = None,
     *,
     model: DCAModel | str | Path,
-    fasta_path: str | Path | None = None,
+    fasta_path: AlignmentInput | None = None,
     alphabet: str = "protein",
     device: str = "auto",
     dtype: str = "float32",

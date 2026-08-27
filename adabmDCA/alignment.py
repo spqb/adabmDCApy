@@ -2,19 +2,20 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 import gzip
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal, TextIO
 
 from Bio import SeqIO
 
 from adabmDCA.api.exceptions import (
+    AdabmDCAError,
     AlignmentFormatError,
     AlignmentLengthError,
+    AlignmentLoadError,
     InputValidationError,
 )
-
 
 AlignmentFormat = Literal["auto", "fasta", "stockholm"]
 
@@ -103,7 +104,7 @@ def detect_alignment_format(path: str | Path) -> Literal["fasta", "stockholm"]:
     """Detect FASTA or Stockholm from the first meaningful input line."""
     input_path = Path(path)
     if not input_path.is_file():
-        raise InputValidationError(
+        raise AlignmentLoadError(
             f"Alignment file '{input_path}' was not found.",
             details={"path": str(input_path)},
         )
@@ -142,7 +143,10 @@ def read_alignment(
             details={"supported_formats": ["fasta", "stockholm"]},
         )
     if not input_path.is_file():
-        raise InputValidationError(f"Alignment file '{input_path}' was not found.")
+        raise AlignmentLoadError(
+            f"Alignment file '{input_path}' was not found.",
+            details={"path": str(input_path)},
+        )
 
     try:
         with _open_text(input_path) as handle:
@@ -150,14 +154,25 @@ def read_alignment(
                 parsed = _parse_stockholm(handle, source=input_path)
             else:
                 records = list(SeqIO.parse(handle, "fasta"))
-                parsed = [
-                    Alignment(
-                        names=tuple(record.description or record.id for record in records),
-                        sequences=tuple(str(record.seq) for record in records),
-                        source=input_path,
-                    )
-                ] if records else []
-    except Exception as exc:
+                parsed = (
+                    [
+                        Alignment(
+                            names=tuple(record.description or record.id for record in records),
+                            sequences=tuple(str(record.seq) for record in records),
+                            source=input_path,
+                        )
+                    ]
+                    if records
+                    else []
+                )
+    except AdabmDCAError:
+        raise
+    except (OSError, UnicodeError) as exc:
+        raise AlignmentLoadError(
+            f"Could not read alignment '{input_path}': {exc}",
+            details={"path": str(input_path), "format": selected_format},
+        ) from exc
+    except (IndexError, KeyError, TypeError, ValueError) as exc:
         raise AlignmentFormatError(
             f"Could not parse '{input_path}' as {selected_format}: {exc}",
             details={"path": str(input_path), "format": selected_format},

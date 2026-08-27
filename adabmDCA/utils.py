@@ -183,7 +183,6 @@ def get_mask_save(L: int, q: int, device: torch.device) -> torch.Tensor:
     return mask_save
 
 
-@torch.jit.script
 def systematic_resampling(
     chains: torch.Tensor,
     weights: torch.Tensor,

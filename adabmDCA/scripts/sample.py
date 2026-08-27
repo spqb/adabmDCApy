@@ -1,62 +1,25 @@
+"""Command-line adapter for model-based sequence generation."""
+
+from __future__ import annotations
+
 import argparse
 
 from adabmDCA.parser import add_args_sample
 
 
-def create_parser():
-    parser = argparse.ArgumentParser(description="Samples from a DCA model.")
-    return add_args_sample(parser)
+def create_parser() -> argparse.ArgumentParser:
+    return add_args_sample(argparse.ArgumentParser(description="Sample sequences from a DCA model."))
 
 
-def main():
-    args = create_parser().parse_args()
+class _SamplingProgressRenderer:
+    def __init__(self) -> None:
+        self._bar = None
 
-    import pandas as pd
-    from tqdm import tqdm
+    def __call__(self, event) -> None:
+        if self._bar is None:
+            from tqdm import tqdm
 
-    from adabmDCA.api.results import SamplingProgress
-    from adabmDCA.api.sampling import sample_sequences
-    from adabmDCA.scripts._utils import ensure_output_dir, require_file
-    from adabmDCA.utils import get_device, get_dtype
-
-    print("\n" + "=" * 80)
-    print("  SAMPLING FROM DCA MODEL")
-    print("=" * 80 + "\n")
-
-    folder = ensure_output_dir(args.output)
-    require_file(args.path_params, "Parameters file")
-    if args.data is not None:
-        require_file(args.data, "Data file")
-    if args.weights is not None:
-        require_file(args.weights, "Weights file")
-
-    device = get_device(args.device)
-    get_dtype(args.dtype)
-
-    print("[CONFIGURATION]")
-    print("-" * 80)
-    template = "  {0:<28} {1:<50}"
-    print(template.format("Parameters file:", args.path_params))
-    if args.data is not None:
-        print(template.format("Reference data:", args.data))
-    print(template.format("Output folder:", str(folder)))
-    print(template.format("Output label:", args.label if args.label is not None else "None"))
-    print(template.format("Number of samples:", args.ngen))
-    print(template.format("Sampler:", args.sampler))
-    print(template.format("Beta (temperature):", args.beta))
-    print(template.format("Seed:", args.seed))
-    print(template.format("Device:", str(device)))
-    print(template.format("Data type:", args.dtype))
-    print("-" * 80 + "\n")
-
-    print("[SAMPLING]")
-    print("-" * 80)
-    progress_bar = None
-
-    def report(event: SamplingProgress) -> None:
-        nonlocal progress_bar
-        if progress_bar is None:
-            progress_bar = tqdm(
+            self._bar = tqdm(
                 total=event.total,
                 colour="red",
                 dynamic_ncols=True,
@@ -64,10 +27,19 @@ def main():
                 ascii="-#",
                 bar_format="  {desc}: [{bar}] {n}/{total} sweeps [{elapsed}]",
             )
-            progress_bar.set_description("Sampling")
-        progress_bar.update(event.completed - progress_bar.n)
+            self._bar.set_description("Sampling")
+        self._bar.update(event.completed - self._bar.n)
 
-    result = sample_sequences(
+    def close(self) -> None:
+        if self._bar is not None:
+            self._bar.close()
+
+
+def run(args, *, progress=None):
+    """Execute sampling from parsed CLI arguments and return its result."""
+    from adabmDCA.api.sampling import sample_sequences
+
+    return sample_sequences(
         model=args.path_params,
         n_sequences=args.ngen,
         n_sweeps=args.max_nsweeps,
@@ -82,46 +54,50 @@ def main():
         clustering_seqid=args.clustering_seqid,
         no_reweighting=args.no_reweighting,
         alphabet=args.alphabet,
-        device=str(device),
+        device=args.device,
         dtype=args.dtype,
-        progress=report,
+        progress=progress,
     )
-    if progress_bar is not None:
-        progress_bar.close()
-    print(f"  ✓ Sampling completed ({result.num_sweeps} sweeps)")
-    print("-" * 80 + "\n")
 
-    print("[OUTPUT]")
-    print("-" * 80)
-    mean_energy = result.energies.mean()
-    std_energy = result.energies.std()
-    print(f"  ✓ Mean energy: {mean_energy:.3f} ± {std_energy:.3f}")
 
-    samples_filename = f"{args.label}_samples.fasta" if args.label is not None else "samples.fasta"
-    fasta_file = folder / samples_filename
-    result.to_fasta(fasta_file)
-    print(f"  ✓ Samples saved: {fasta_file}")
+def main(args=None) -> int:
+    args = create_parser().parse_args() if args is None else args
 
-    mix_name = f"{args.label}_mix.log" if args.label is not None else "mix.log"
-    sampling_name = f"{args.label}_sampling.log" if args.label is not None else "sampling.log"
-    mix_log_file = folder / mix_name
-    sampling_log_file = folder / sampling_name
-    pd.DataFrame.from_dict(result.mixing_history).to_csv(mix_log_file, index=False)
-    pd.DataFrame.from_dict(result.sampling_history).to_csv(sampling_log_file, index=False)
-    print("  ✓ Logs saved")
-    print("-" * 80 + "\n")
+    from adabmDCA.scripts._frontend import print_completion, print_configuration, print_header
 
-    print("=" * 80)
-    print("  SAMPLING COMPLETED SUCCESSFULLY")
-    print("=" * 80)
-    print(f"\n  Results saved in: {folder}")
-    print(f"    • Samples: {fasta_file}")
-    if result.mixing_history:
-        print(f"    • Mixing time log: {mix_log_file}")
-    if result.sampling_history:
-        print(f"    • Sampling log: {sampling_log_file}")
-    print("\n" + "=" * 80 + "\n")
+    print_header("Sampling from a DCA model")
+    print_configuration(
+        {
+            "model": args.path_params,
+            "reference": args.data,
+            "output": args.output,
+            "label": args.label,
+            "sequences": args.ngen,
+            "sampler": args.sampler,
+            "beta": args.beta,
+            "seed": args.seed,
+            "device": args.device,
+            "dtype": args.dtype,
+        }
+    )
+    renderer = _SamplingProgressRenderer()
+    try:
+        result = run(args, progress=renderer)
+    finally:
+        renderer.close()
+    artifacts = result.save_bundle(args.output, label=args.label)
+    print_completion(
+        "Sampling completed successfully.",
+        metrics={
+            "sequences": len(result.sequences),
+            "sweeps": result.num_sweeps,
+            "mean energy": f"{result.energies.mean():.3f}",
+            "standard deviation": f"{result.energies.std():.3f}",
+        },
+        artifacts=artifacts,
+    )
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

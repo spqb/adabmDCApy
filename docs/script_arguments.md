@@ -22,7 +22,9 @@ In this section we list all the possible command-line arguments for the main rou
 | `--sampler`             | gibbs        | Sampling method to be used. Possible options are `gibbs` and `metropolis`. |
 | `--nchains`             | 10000        | Number of Markov chains to run in parallel. |
 | `--target`              | 0.95         | Pearson correlation coefficient on the two-sites statistics to be reached. |
-| `--nepochs`             | 50000        | Maximum number of epochs allowed. |
+| `--nepochs`             | 50000        | Compatibility limit: gradient steps for bmDCA, structure steps for sparse models. |
+| `--max-gradient-steps`  | None         | Global limit on parameter-gradient updates, including nested eaDCA/edDCA optimization. |
+| `--max-structure-steps` | None         | Limit on graph activation or decimation steps. |
 | `--pseudocount`        | None         | Pseudo count for the single and two-sites statistics. Acts as a regularization. If `None`, it is set to `0.1` for `edgeDCA` and $1/M_{\mathrm{eff}}$ otherwise. |
 | `--seed`               | 0            | Random seed. |
 | `--nthreads`¹         | 1            | Number of threads used in the Julia multithreaded version. |

@@ -121,7 +121,129 @@ training = train_model(
 
 model = training.model
 display(training.history_dataframe())
+print(training.stop_reason, training.converged)
+print(training.gradient_steps, training.structure_steps, training.sweeps)
 ```
+
+`max_epochs` remains a compatibility limit: it counts gradient steps for
+`bmDCA` and graph-structure steps for sparse models. Nested `eaDCA` and
+`edDCA` runs can set independent global budgets with
+`max_gradient_steps=` and `max_structure_steps=`. Progress events expose the
+same counters in addition to the legacy `epoch` field.
+
+For reproducible applications, collect training values in the immutable,
+validated configuration object:
+
+```python
+from adabmDCA import TrainingConfig, train_model
+
+config = TrainingConfig(
+    model_type="eaDCA",
+    n_chains=2_000,
+    max_structure_steps=100,
+    max_gradient_steps=5_000,
+    checkpoint_interval=5,
+)
+training = train_model("alignment.fasta", config=config)
+```
+
+When `config=` is provided it is authoritative for training values; path,
+output, progress, and cancellation arguments remain on `train_model()`. The
+configuration also exposes model-aware `limits`,
+`resolved_checkpoint_interval`, and `resolve_pseudocount(effective_size)`.
+
+## Input loading
+
+High-level alignment arguments accept either a path or an in-memory
+`Alignment`. FASTA, gzip-compressed FASTA, and Stockholm paths pass through
+the same parser and validation policy:
+
+```python
+from adabmDCA import Alignment, TrainingConfig, train_model
+
+alignment = Alignment(
+    names=("sequence_1", "sequence_2"),
+    sequences=("ACDE-", "ACD--"),
+)
+training = train_model(alignment, config=TrainingConfig(n_chains=1_000))
+print(training.input_report)
+```
+
+`AlignmentLoadConfig` controls invalid-sequence handling, deduplication,
+expected length, format selection, and gap normalization. `LoadedAlignment`
+reports retained, invalid, and duplicate indices. Sequence weights can be a
+path, sequence, NumPy array, or tensor and are aligned using those retained
+indices.
+
+`DatasetDCA.from_alignment()` and `DatasetDCA.from_loaded_alignment()` build
+the tensor dataset without constructor-owned file parsing. The legacy
+`DatasetDCA(path_data=...)` form remains available as a compatibility wrapper.
+
+## Output serialization
+
+High-level result objects own their serialization. JSON outputs use a stable
+envelope with `schema_version`, `result_type`, and `data`; NumPy values,
+tensors, paths, dataclasses, and non-finite floating-point values are converted
+to strict JSON safely.
+
+```python
+scores = model.score_sequences(["ACDEFGHIK"])
+scores.to_json("outputs/scores.json")
+scores.to_csv("outputs/scores.csv")
+scores.to_fasta("outputs/scores.fasta")
+
+# Infer the serializer from the suffix.
+scores.save("outputs/scores.json")
+```
+
+Composite results expose `save_bundle()`. Bundles use predictable filenames,
+create their parent directories, write files atomically, and return a mapping
+of artifact names to paths:
+
+```python
+artifacts = result.save_bundle("outputs", label="experiment_1")
+print(artifacts["summary"])
+```
+
+Contact maps include labelled CSV, NumPy `.npy`, JSON metadata, and the
+historical headerless matrix. Sampling bundles include FASTA, sequence CSV,
+JSON metadata, and diagnostic histories. Training bundles contain a portable
+summary and normalized history without duplicating model and chain tensors in
+JSON. Serialization failures raise `OutputSerializationError`.
+
+The CLI uses these same methods; output formatting is therefore identical in
+notebooks, Python services, and terminal commands.
+
+## Additional workflow APIs
+
+Specialized front-end workflows are also callable without constructing command
+line arguments:
+
+```python
+from adabmDCA import estimate_entropy, reintegrate_model, split_alignment
+
+split = split_alignment("family.fasta", attempts=10, seed=4)
+split.save_bundle("profile/family")
+
+reintegrated = reintegrate_model(
+    "natural.fasta",
+    "tested.fasta",
+    "adjustments.dat",
+    config=config,
+    output_dir="reintegrated_model",
+)
+
+entropy = estimate_entropy(
+    model="params.dat",
+    natural_alignment="family.fasta",
+    target_alignment="target.fasta",
+    n_steps=100,
+    progress=lambda event: print(event.stage, event.completed, event.total),
+)
+```
+
+Entropy estimation supports cancellation and bounds the adaptive `theta_max`
+search with `max_theta_iterations`, avoiding an unbounded front-end loop.
 
 Set `output_dir` to retain parameters, chains, weights, and the historical
 training log:
@@ -156,8 +278,21 @@ except AdabmDCAError as error:
     print(error.to_dict())
 ```
 
-The dictionary contains a stable error code, a human-readable message, and
-structured details suitable for notebooks, CLIs, and tool adapters.
+The dictionary contains a stable error code, a process-oriented `exit_code`, a
+human-readable message, and structured details suitable for notebooks, CLIs,
+and tool adapters. Exit code 2 denotes invalid usage or incompatible inputs,
+1 denotes loading, serialization, computation, or convergence failure, and
+130 denotes cancellation.
+
+Expected errors from external parsers and serializers retain their original
+exception through Python exception chaining (`error.__cause__`). Unexpected
+programming exceptions are deliberately not converted into application
+errors, so bugs keep their traceback instead of being mislabeled as bad user
+input.
+
+The top-level CLI renders these structured errors consistently on standard
+error and returns the exception's declared exit code. Unexpected programming
+errors are not swallowed, so they retain their traceback.
 
 ## Compatibility and versioning
 

@@ -22,9 +22,10 @@ The tool first estimates the **mixing time** `t_mix` by simulating chains from t
 
 Output Files:
 
-- A FASTA file of generated sequences
-- A log file for reproducing the mixing time surves ([Fig. 3](#fig-mixing-time)-left)
-- A log file tracking the Pearson $C_{ij}$ score as a function of the sampling time 
+- A FASTA file and CSV table of generated sequences
+- A JSON result summary
+- A CSV-compatible log for reproducing the mixing-time curves ([Fig. 3](#fig-mixing-time)-left)
+- A log tracking the Pearson $C_{ij}$ score as a function of sampling time
 
 ### Convergence Criterion
 
@@ -71,7 +72,11 @@ Zero-sum gauge and gap symbols are handled internally.
 
 Output Files:
 
-- `<label>_frobenius.txt` with scores for each pair.
+- `<label>_contact_map.txt` in the historical headerless format
+- `<label>_contact_map.csv` with labelled columns
+- `<label>_contact_map.npy` containing the native matrix
+- `<label>_contact_map.json` with method and model metadata
+- `<label>_contact_map.png` with the plotted contact map
 
 ---
 
@@ -85,7 +90,9 @@ adabmDCA energies -d <fasta_file> -p <file_params> -o <output_folder>
 
 Output Files:
 
-- FASTA file where each sequence is annotated with its statistical energy. Lower energies correspond to more likely (or better fitting) sequences under the model.
+- FASTA, CSV, and JSON representations. In FASTA each sequence is annotated with
+  its statistical energy. Lower energies correspond to more likely sequences
+  under the model.
 
 ---
 
@@ -99,7 +106,9 @@ adabmDCA dms -d <WT> -p <file_params> -o <output_folder>
 
 Output Files:
 
-- FASTA file where each sequence represents a single-point mutant, named by mutation and $\Delta E$ (change in energy). Example:
+- FASTA, CSV, and JSON representations. Each FASTA sequence represents a
+  single-point mutant, named by mutation and $\Delta E$ (change in energy).
+  Example:
 
 ```
 >G27A | DCAscore: -0.6
@@ -164,3 +173,6 @@ adabmDCA profmark -t1 <t1> -t2 <t2> --bestof <n_trials> <output_prefix> <input_m
 - `--alphabet`: sequence type (`protein`, `rna`, `dna`)
 - `--seed`: random seed (default 42)
 - `--device`: computation device (default `auto`: CUDA, then MPS, then CPU)
+
+The split also produces `<output_prefix>.split.json`, containing the selected
+sequences, score, seed, and number of attempted partitions.

@@ -248,7 +248,6 @@ def write_fasta(
             f.write('\n')
             
 
-@torch.jit.script
 def _get_sequence_weight(s: torch.Tensor, data: torch.Tensor, L: int, th: float):
     seq_id = torch.sum(s == data, dim=1) / L
     n_clust = torch.sum(seq_id > th)

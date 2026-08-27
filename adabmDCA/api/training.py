@@ -4,100 +4,109 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from pathlib import Path
-from typing import Any
 
 import numpy as np
 import torch
 
-from adabmDCA.api.exceptions import InputValidationError, OperationCancelledError
+from adabmDCA.api.exceptions import OperationCancelledError
+from adabmDCA.api.input_loading import load_training_inputs
 from adabmDCA.api.model import DCAModel
 from adabmDCA.api.results import TrainingProgress, TrainingResult
 from adabmDCA.api.runtime import resolve_runtime
 from adabmDCA.checkpoint import Checkpoint
-from adabmDCA.dataset import DatasetDCA
 from adabmDCA.fasta import get_tokens
-from adabmDCA.io import load_chains, load_params
+from adabmDCA.input_loading import AlignmentInput, WeightInput
 from adabmDCA.sampling import get_sampler
 from adabmDCA.training import train_eaDCA, train_edDCA, train_edgeDCA, train_graph
+from adabmDCA.training_config import (
+    DEFAULT_ACTIVATION_FRACTION,
+    DEFAULT_ACTIVATION_STEPS,
+    DEFAULT_ALPHABET,
+    DEFAULT_CLUSTERING_SEQID,
+    DEFAULT_DECIMATION_RATE,
+    DEFAULT_DEVICE,
+    DEFAULT_DTYPE,
+    DEFAULT_L2_REGULARIZATION,
+    DEFAULT_LEARNING_RATE,
+    DEFAULT_MAX_EPOCHS,
+    DEFAULT_MODEL_TYPE,
+    DEFAULT_N_CHAINS,
+    DEFAULT_N_SWEEPS,
+    DEFAULT_SAMPLER,
+    DEFAULT_SEED,
+    DEFAULT_TARGET_DENSITY,
+    DEFAULT_TARGET_PEARSON,
+    TrainingConfig,
+)
+from adabmDCA.training_control import (
+    StopReason,
+    TrainingCancelled,
+    TrainingController,
+    TrainingCounters,
+)
 from adabmDCA.utils import init_chains, init_parameters
-
 
 ProgressCallback = Callable[[TrainingProgress], None]
 CancellationHook = Callable[[], bool]
 
 
-class _TrainingObserver:
-    """Adapt checkpoints, callbacks, and cancellation to the training API."""
+def _progress_observer(progress: ProgressCallback | None):
+    """Translate low-level records into the stable public progress event."""
+    if progress is None:
+        return None
 
-    def __init__(
-        self,
-        checkpoint: Checkpoint | None,
-        progress: ProgressCallback | None,
-        is_cancelled: CancellationHook | None,
-        max_epochs: int,
-    ) -> None:
-        self._checkpoint = checkpoint
-        self._progress = progress
-        self._is_cancelled = is_cancelled
-        self.max_epochs = max_epochs
-        self.checkpt_interval = 50
-        self.file_paths = (
-            checkpoint.file_paths
-            if checkpoint is not None
-            else {"log": "training.log", "params": "params.dat", "chains": "chains.fasta"}
+    def notify(record: dict, counters: TrainingCounters) -> None:
+        metrics = {
+            key: float(value.detach().cpu()) if isinstance(value, torch.Tensor) else float(value)
+            for key, value in record.items()
+            if isinstance(value, (int, float, torch.Tensor))
+        }
+        progress(
+            TrainingProgress(
+                epoch=int(record.get("Epochs", 0)),
+                metrics=metrics,
+                gradient_steps=counters.gradient_steps,
+                structure_steps=counters.structure_steps,
+                sweeps=counters.sweeps,
+            )
         )
 
-    def log(self, record: dict[str, Any]) -> None:
-        if self._is_cancelled is not None and self._is_cancelled():
-            raise OperationCancelledError("Model training was cancelled by the caller.")
-        if self._checkpoint is not None:
-            self._checkpoint.log(record)
-        if self._progress is not None:
-            metrics = {
-                key: float(value.detach().cpu()) if isinstance(value, torch.Tensor) else float(value)
-                for key, value in record.items()
-                if isinstance(value, (int, float, torch.Tensor))
-            }
-            self._progress(TrainingProgress(epoch=int(record.get("Epochs", 0)), metrics=metrics))
-
-    def check(self, updates: int) -> bool:
-        return updates % self.checkpt_interval == 0 or updates == self.max_epochs
-
-    def save(self, **kwargs) -> None:
-        if self._checkpoint is not None:
-            self._checkpoint.file_paths = self.file_paths
-            self._checkpoint.save(**kwargs)
+    return notify
 
 
 def train_model(
-    data_path: str | Path,
+    data_path: AlignmentInput,
     *,
-    model_type: str = "bmDCA",
-    validation_path: str | Path | None = None,
-    weights_path: str | Path | None = None,
+    config: TrainingConfig | None = None,
+    model_type: str = DEFAULT_MODEL_TYPE,
+    validation_path: AlignmentInput | None = None,
+    weights_path: WeightInput | None = None,
     output_dir: str | Path | None = None,
     label: str | None = None,
     initial_params_path: str | Path | None = None,
     initial_chains_path: str | Path | None = None,
-    alphabet: str = "protein",
-    learning_rate: float = 0.01,
-    n_sweeps: int = 10,
-    sampler: str = "gibbs",
-    n_chains: int = 10_000,
-    target_pearson: float = 0.95,
-    max_epochs: int = 50_000,
+    alphabet: str = DEFAULT_ALPHABET,
+    learning_rate: float = DEFAULT_LEARNING_RATE,
+    n_sweeps: int = DEFAULT_N_SWEEPS,
+    sampler: str = DEFAULT_SAMPLER,
+    n_chains: int = DEFAULT_N_CHAINS,
+    target_pearson: float = DEFAULT_TARGET_PEARSON,
+    max_epochs: int = DEFAULT_MAX_EPOCHS,
+    max_gradient_steps: int | None = None,
+    max_structure_steps: int | None = None,
     pseudocount: float | None = None,
-    l2_regularization: float = 0.0,
-    seed: int = 0,
-    clustering_seqid: float = 0.8,
+    l2_regularization: float = DEFAULT_L2_REGULARIZATION,
+    seed: int = DEFAULT_SEED,
+    clustering_seqid: float = DEFAULT_CLUSTERING_SEQID,
     no_reweighting: bool = False,
-    activation_steps: int = 10,
-    activation_fraction: float = 0.001,
-    target_density: float = 0.02,
-    decimation_rate: float = 0.01,
-    device: str = "auto",
-    dtype: str = "float32",
+    activation_steps: int = DEFAULT_ACTIVATION_STEPS,
+    activation_fraction: float = DEFAULT_ACTIVATION_FRACTION,
+    target_density: float = DEFAULT_TARGET_DENSITY,
+    decimation_rate: float = DEFAULT_DECIMATION_RATE,
+    device: str = DEFAULT_DEVICE,
+    dtype: str = DEFAULT_DTYPE,
     use_wandb: bool = False,
+    allow_signed_weights: bool = False,
     progress: ProgressCallback | None = None,
     is_cancelled: CancellationHook | None = None,
 ) -> TrainingResult:
@@ -107,32 +116,54 @@ def train_model(
     parameter, chain, weight, and log artifacts; omit it for an in-memory
     notebook workflow.
     """
-    if model_type not in {"bmDCA", "eaDCA", "edDCA", "edgeDCA"}:
-        raise InputValidationError(f"Unsupported model_type '{model_type}'.")
-    if sampler not in {"gibbs", "metropolis"}:
-        raise InputValidationError("sampler must be either 'gibbs' or 'metropolis'.")
-    if n_chains < 1 or n_sweeps < 1 or max_epochs < 1:
-        raise InputValidationError("n_chains, n_sweeps, and max_epochs must be positive.")
-    if not 0.0 <= target_pearson <= 1.0:
-        raise InputValidationError("target_pearson must be between 0 and 1.")
+    training_config = config or TrainingConfig(
+        model_type=model_type,
+        alphabet=alphabet,
+        learning_rate=learning_rate,
+        n_sweeps=n_sweeps,
+        sampler=sampler,
+        n_chains=n_chains,
+        target_pearson=target_pearson,
+        max_epochs=max_epochs,
+        max_gradient_steps=max_gradient_steps,
+        max_structure_steps=max_structure_steps,
+        pseudocount=pseudocount,
+        l2_regularization=l2_regularization,
+        seed=seed,
+        clustering_seqid=clustering_seqid,
+        no_reweighting=no_reweighting,
+        activation_steps=activation_steps,
+        activation_fraction=activation_fraction,
+        target_density=target_density,
+        decimation_rate=decimation_rate,
+        device=device,
+        dtype=dtype,
+        use_wandb=use_wandb,
+    )
+    model_type = training_config.model_type
+    alphabet = training_config.alphabet
+    learning_rate = training_config.learning_rate
+    n_sweeps = training_config.n_sweeps
+    sampler = training_config.sampler
+    n_chains = training_config.n_chains
+    target_pearson = training_config.target_pearson
+    max_epochs = training_config.max_epochs
+    max_gradient_steps = training_config.max_gradient_steps
+    max_structure_steps = training_config.max_structure_steps
+    pseudocount = training_config.pseudocount
+    l2_regularization = training_config.l2_regularization
+    seed = training_config.seed
+    clustering_seqid = training_config.clustering_seqid
+    no_reweighting = training_config.no_reweighting
+    activation_steps = training_config.activation_steps
+    activation_fraction = training_config.activation_fraction
+    target_density = training_config.target_density
+    decimation_rate = training_config.decimation_rate
+    device = training_config.device
+    dtype = training_config.dtype
+    use_wandb = training_config.use_wandb
     if is_cancelled is not None and is_cancelled():
         raise OperationCancelledError("Model training was cancelled by the caller.")
-
-    data_path = Path(data_path)
-    if not data_path.is_file():
-        raise InputValidationError(f"Training FASTA file '{data_path}' was not found.")
-    if validation_path is not None and not Path(validation_path).is_file():
-        raise InputValidationError(f"Validation FASTA file '{validation_path}' was not found.")
-    if weights_path is not None and not Path(weights_path).is_file():
-        raise InputValidationError(f"Weights file '{weights_path}' was not found.")
-    if initial_params_path is not None and not Path(initial_params_path).is_file():
-        raise InputValidationError(
-            f"Initial parameter file '{initial_params_path}' was not found."
-        )
-    if initial_chains_path is not None and not Path(initial_chains_path).is_file():
-        raise InputValidationError(
-            f"Initial chain file '{initial_chains_path}' was not found."
-        )
 
     resolved_device, resolved_dtype = resolve_runtime(device, dtype)
     tokens = get_tokens(alphabet)
@@ -140,59 +171,42 @@ def train_model(
     if resolved_device.type == "cuda":
         torch.cuda.manual_seed_all(seed)
 
-    dataset = DatasetDCA(
-        path_data=str(data_path),
-        path_weights=None if weights_path is None else str(weights_path),
-        alphabet=alphabet,
-        clustering_th=clustering_seqid,
-        no_reweighting=no_reweighting,
+    loaded_inputs = load_training_inputs(
+        data_path,
+        config=training_config,
         device=resolved_device,
         dtype=resolved_dtype,
-        message=False,
-        filter_sequences=True,
-        remove_duplicates=True,
+        validation=validation_path,
+        weights=weights_path,
+        initial_params_path=initial_params_path,
+        initial_chains_path=initial_chains_path,
+        allow_signed_weights=allow_signed_weights,
     )
-    if validation_path is not None:
-        validation = DatasetDCA(
-            path_data=str(validation_path),
-            path_weights=None,
-            alphabet=alphabet,
-            clustering_th=clustering_seqid,
-            no_reweighting=no_reweighting,
-            device=resolved_device,
-            dtype=resolved_dtype,
-            message=False,
-            filter_sequences=True,
-            remove_duplicates=True,
-        )
+    dataset = loaded_inputs.training
+    validation = loaded_inputs.validation
+    if validation is not None:
         validation_pseudocount = 1.0 / validation.get_effective_size()
         fi_val, fij_val = validation.get_frequencies(
-            pseudocount=1e-6 if model_type == "edgeDCA" else validation_pseudocount
+            pseudocount=training_config.empirical_pseudocount or validation_pseudocount
         )
     else:
         fi_val = fij_val = None
 
     effective_size = float(dataset.get_effective_size())
-    effective_pseudocount = pseudocount
-    if effective_pseudocount is None:
-        effective_pseudocount = 0.1 if model_type == "edgeDCA" else 1.0 / effective_size
+    effective_pseudocount = training_config.resolve_pseudocount(effective_size)
 
     dataset.shuffle()
     length = dataset.get_num_residues()
     num_states = dataset.get_num_states()
     if model_type == "edgeDCA":
-        fi_target, fij_target = dataset.get_frequencies(pseudocount=1e-6)
-        fi_pseudocounted, fij_pseudocounted = dataset.get_frequencies(
-            pseudocount=effective_pseudocount
-        )
+        fi_target, fij_target = dataset.get_frequencies(pseudocount=training_config.empirical_pseudocount)
+        fi_pseudocounted, fij_pseudocounted = dataset.get_frequencies(pseudocount=effective_pseudocount)
     else:
         fi_target, fij_target = dataset.get_frequencies(pseudocount=effective_pseudocount)
         fi_pseudocounted, fij_pseudocounted = fi_target, fij_target
 
-    if initial_params_path is not None:
-        params = load_params(
-            str(initial_params_path), tokens=tokens, device=resolved_device, dtype=resolved_dtype
-        )
+    if loaded_inputs.initial_params is not None:
+        params = loaded_inputs.initial_params
         mask = ~torch.isclose(params["coupling_matrix"], torch.zeros_like(params["coupling_matrix"]))
     else:
         params = init_parameters(fi=fi_target)
@@ -210,14 +224,9 @@ def train_model(
                 device=resolved_device,
             )
 
-    if initial_chains_path is not None:
-        chains, log_weights = load_chains(
-            str(initial_chains_path),
-            tokens=dataset.tokens,
-            load_weights=True,
-            device=resolved_device,
-            dtype=resolved_dtype,
-        )
+    if loaded_inputs.initial_chains is not None:
+        chains = loaded_inputs.initial_chains
+        log_weights = loaded_inputs.initial_log_weights
         n_chains = chains.shape[0]
     else:
         chains = init_chains(
@@ -241,114 +250,151 @@ def train_model(
             "params": str(folder / (f"{label}_params.dat" if label else "params.dat")),
             "chains": str(folder / (f"{label}_chains.fasta" if label else "chains.fasta")),
         }
-        config = {
+        checkpoint_metadata = {
+            **training_config.as_dict(),
             "label": label,
             "model": model_type,
-            "data": str(data_path),
-            "val": None if validation_path is None else str(validation_path),
+            "data": str(loaded_inputs.training_alignment.alignment.source or "<memory>"),
+            "val": (
+                None
+                if loaded_inputs.validation_alignment is None
+                else str(loaded_inputs.validation_alignment.alignment.source or "<memory>")
+            ),
             "alphabet": alphabet,
             "sampler": sampler,
             "nchains": n_chains,
             "nsweeps": n_sweeps,
             "lr": learning_rate,
-            "pseudocount": effective_pseudocount,
             "dtype": dtype,
             "target": target_pearson,
             "gsteps": activation_steps,
             "factivate": activation_fraction,
             "seed": seed,
             "nepochs": max_epochs,
+            "pseudocount": effective_pseudocount,
+            "checkpoint_interval": training_config.resolved_checkpoint_interval,
         }
-        checkpoint = Checkpoint(file_paths, tokens, config, use_wandb=use_wandb)
+        checkpoint = Checkpoint(
+            file_paths,
+            tokens,
+            checkpoint_metadata,
+            use_wandb=use_wandb,
+            config=training_config,
+        )
         artifacts = {key: Path(value) for key, value in file_paths.items()}
         if weights_path is None:
             weights_output = folder / (f"{label}_weights.dat" if label else "weights.dat")
             np.savetxt(weights_output, dataset.weights.detach().cpu().numpy())
             artifacts["weights"] = weights_output
 
-    observer = _TrainingObserver(checkpoint, progress, is_cancelled, max_epochs)
+    limits = training_config.limits
+    gradient_limit = limits.max_gradient_steps
+    structure_limit = limits.max_structure_steps
+    controller = TrainingController(
+        limits=limits,
+        checkpoint=checkpoint,
+        observer=_progress_observer(progress),
+        is_cancelled=is_cancelled,
+    )
     sampling_function = torch.jit.script(get_sampler(sampler))
 
-    if model_type == "bmDCA":
-        chains, params, log_weights, history = train_graph(
-            sampler=sampling_function,
-            chains=chains,
-            mask=mask,
-            fi_target=fi_target,
-            fij_target=fij_target,
-            params=params,
-            nsweeps=n_sweeps,
-            lr=learning_rate,
-            max_epochs=max_epochs,
-            target_pearson=target_pearson,
-            fi_val=fi_val,
-            fij_val=fij_val,
-            checkpoint=observer,
-            log_weights=log_weights,
-            l2_reg=l2_regularization,
-            progress_bar=False,
-        )
-    elif model_type == "eaDCA":
-        chains, params, log_weights, history = train_eaDCA(
-            sampler=sampling_function,
-            fi_target=fi_target,
-            fij_target=fij_target,
-            params=params,
-            mask=mask,
-            chains=chains,
-            log_weights=log_weights,
-            target_pearson=target_pearson,
-            nsweeps=n_sweeps,
-            max_epochs=max_epochs,
-            pseudo_count=effective_pseudocount,
-            lr=learning_rate,
-            factivate=activation_fraction,
-            gsteps=activation_steps,
-            fi_val=fi_val,
-            fij_val=fij_val,
-            checkpoint=observer,
-            l2_reg=l2_regularization,
-            progress_bar=False,
-        )
-    elif model_type == "edDCA":
-        chains, params, log_weights, history = train_edDCA(
-            sampler=sampling_function,
-            chains=chains,
-            log_weights=log_weights,
-            fi_target=fi_target,
-            fij_target=fij_target,
-            params=params,
-            mask=mask,
-            lr=learning_rate,
-            nsweeps=n_sweeps,
-            target_pearson=target_pearson,
-            target_density=target_density,
-            drate=decimation_rate,
-            checkpoint=observer,
-            fi_val=fi_val,
-            fij_val=fij_val,
-            l2_reg=l2_regularization,
-            progress_bar=False,
-        )
-    else:
-        chains, params, log_weights, history = train_edgeDCA(
-            sampler=sampling_function,
-            fi_target=fi_target,
-            fij_target=fij_target,
-            fi_pseudocounted=fi_pseudocounted,
-            fij_pseudocounted=fij_pseudocounted,
-            params=params,
-            mask=mask,
-            chains=chains,
-            target_pearson=target_pearson,
-            nsweeps=n_sweeps,
-            max_epochs=max_epochs,
-            pseudo_count=effective_pseudocount,
-            fi_val=fi_val,
-            fij_val=fij_val,
-            checkpoint=observer,
-            progress_bar=False,
-        )
+    try:
+        if model_type == "bmDCA":
+            chains, params, log_weights, history = train_graph(
+                sampler=sampling_function,
+                chains=chains,
+                mask=mask,
+                fi_target=fi_target,
+                fij_target=fij_target,
+                params=params,
+                nsweeps=n_sweeps,
+                lr=learning_rate,
+                max_epochs=gradient_limit,
+                target_pearson=target_pearson,
+                fi_val=fi_val,
+                fij_val=fij_val,
+                checkpoint=checkpoint,
+                controller=controller,
+                log_weights=log_weights,
+                l2_reg=l2_regularization,
+                progress_bar=False,
+                slope_tolerance=training_config.slope_tolerance,
+            )
+        elif model_type == "eaDCA":
+            chains, params, log_weights, history = train_eaDCA(
+                sampler=sampling_function,
+                fi_target=fi_target,
+                fij_target=fij_target,
+                params=params,
+                mask=mask,
+                chains=chains,
+                log_weights=log_weights,
+                target_pearson=target_pearson,
+                nsweeps=n_sweeps,
+                max_epochs=structure_limit,
+                max_gradient_steps=gradient_limit,
+                pseudo_count=effective_pseudocount,
+                lr=learning_rate,
+                factivate=activation_fraction,
+                gsteps=activation_steps,
+                fi_val=fi_val,
+                fij_val=fij_val,
+                checkpoint=checkpoint,
+                controller=controller,
+                checkpoint_interval=training_config.resolved_checkpoint_interval,
+                l2_reg=l2_regularization,
+                progress_bar=False,
+            )
+        elif model_type == "edDCA":
+            chains, params, log_weights, history = train_edDCA(
+                sampler=sampling_function,
+                chains=chains,
+                log_weights=log_weights,
+                fi_target=fi_target,
+                fij_target=fij_target,
+                params=params,
+                mask=mask,
+                lr=learning_rate,
+                nsweeps=n_sweeps,
+                target_pearson=target_pearson,
+                target_density=target_density,
+                drate=decimation_rate,
+                max_epochs=structure_limit,
+                max_gradient_steps=gradient_limit,
+                checkpoint=checkpoint,
+                controller=controller,
+                inner_gradient_steps=training_config.inner_gradient_steps,
+                checkpoint_interval=training_config.resolved_checkpoint_interval,
+                fi_val=fi_val,
+                fij_val=fij_val,
+                l2_reg=l2_regularization,
+                progress_bar=False,
+            )
+        else:
+            chains, params, log_weights, history = train_edgeDCA(
+                sampler=sampling_function,
+                fi_target=fi_target,
+                fij_target=fij_target,
+                fi_pseudocounted=fi_pseudocounted,
+                fij_pseudocounted=fij_pseudocounted,
+                params=params,
+                mask=mask,
+                chains=chains,
+                target_pearson=target_pearson,
+                nsweeps=n_sweeps,
+                max_epochs=structure_limit,
+                pseudo_count=effective_pseudocount,
+                fi_val=fi_val,
+                fij_val=fij_val,
+                checkpoint=checkpoint,
+                controller=controller,
+                empirical_pseudocount=training_config.edge_empirical_pseudocount,
+                logz_chain_fraction=training_config.edge_logz_chain_fraction,
+                checkpoint_interval=training_config.resolved_checkpoint_interval,
+                progress_bar=False,
+            )
+    except TrainingCancelled as exc:
+        raise OperationCancelledError(str(exc)) from exc
 
     trained = DCAModel(params, alphabet=alphabet, source=artifacts.get("params"))
     return TrainingResult(
@@ -360,4 +406,15 @@ def train_model(
         num_sequences=len(dataset),
         effective_sequences=effective_size,
         artifacts=artifacts,
+        converged=controller.stop_reason
+        in {
+            StopReason.TARGET_PEARSON,
+            StopReason.TARGET_DENSITY,
+        },
+        stop_reason=(controller.stop_reason.value if controller.stop_reason is not None else None),
+        gradient_steps=controller.counters.gradient_steps,
+        structure_steps=controller.counters.structure_steps,
+        sweeps=controller.counters.sweeps,
+        config=training_config,
+        input_report=loaded_inputs.training_alignment.to_dict(),
     )

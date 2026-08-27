@@ -73,7 +73,6 @@ def _compute_ess(log_weights: torch.Tensor) -> float:
     return numerator / denominator
 
 
-@torch.jit.script
 def _compute_log_likelihood(
     fi: torch.Tensor,
     fij: torch.Tensor,
@@ -199,7 +198,6 @@ def _get_acceptance_rate(
     return acceptance_rate
 
 
-@torch.jit.script
 def _tap_residue(
     idx: int,
     mag: torch.Tensor,

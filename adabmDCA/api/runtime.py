@@ -3,12 +3,11 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
-from pathlib import Path
 
 import torch
 
 from adabmDCA.api.exceptions import InputValidationError, ModelCompatibilityError
-from adabmDCA.fasta import get_tokens, import_from_fasta
+from adabmDCA.input_loading import AlignmentInput, AlignmentLoadConfig, load_alignment
 from adabmDCA.utils import get_device, get_dtype
 
 
@@ -29,7 +28,10 @@ def normalize_sequences(
     expected_length: int | None = None,
 ) -> tuple[str, ...]:
     """Validate and normalize one or more aligned biological sequences."""
-    values = (sequences,) if isinstance(sequences, str) else tuple(str(s) for s in sequences)
+    try:
+        values = (sequences,) if isinstance(sequences, str) else tuple(str(s) for s in sequences)
+    except TypeError as exc:
+        raise InputValidationError("sequences must be a string or an iterable of strings.") from exc
     if not values:
         raise InputValidationError("At least one sequence is required.")
 
@@ -57,29 +59,20 @@ def normalize_sequences(
 
 
 def load_fasta_sequences(
-    path: str | Path,
+    path: AlignmentInput,
     *,
     alphabet: str,
     expected_length: int | None = None,
     remove_duplicates: bool = False,
 ) -> tuple[tuple[str, ...], tuple[str, ...]]:
     """Load names and validated sequences from a FASTA file."""
-    fasta_path = Path(path)
-    if not fasta_path.is_file():
-        raise InputValidationError(
-            f"FASTA file '{fasta_path}' was not found.",
-            details={"path": str(fasta_path)},
-        )
-    try:
-        names, sequences = import_from_fasta(
-            str(fasta_path),
+    loaded = load_alignment(
+        path,
+        config=AlignmentLoadConfig(
+            alphabet=alphabet,
+            invalid_sequences="error",
             remove_duplicates=remove_duplicates,
-        )
-    except (OSError, RuntimeError, ValueError) as exc:
-        raise InputValidationError(f"Could not read FASTA file '{fasta_path}': {exc}") from exc
-    normalized = normalize_sequences(
-        sequences.tolist(),
-        tokens=get_tokens(alphabet),
-        expected_length=expected_length,
+            expected_length=expected_length,
+        ),
     )
-    return tuple(str(name) for name in names), normalized
+    return loaded.alignment.names, loaded.alignment.sequences

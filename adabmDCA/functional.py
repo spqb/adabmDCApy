@@ -1,7 +1,6 @@
 import torch
 
 
-@torch.jit.script
 def _one_hot(x: torch.Tensor, num_classes: int = -1, dtype: torch.dtype = torch.float32) -> torch.Tensor:
    
     if x.dim() not in (1, 2):

@@ -1,10 +1,9 @@
 import argparse
 import subprocess
 import sys
-from tempfile import TemporaryDirectory
 import unittest
 from pathlib import Path
-
+from tempfile import TemporaryDirectory
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -14,20 +13,34 @@ def run_cli(*args: str) -> subprocess.CompletedProcess[str]:
         [sys.executable, "-m", "adabmDCA.cli", *args],
         cwd=ROOT,
         text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        capture_output=True,
         check=False,
     )
 
 
 class CliTests(unittest.TestCase):
+    def test_global_help_lists_commands(self):
+        for flag in ("-h", "--help", "help"):
+            with self.subTest(flag=flag):
+                result = run_cli(flag)
+
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertIn("usage: adabmDCA <command> [options]", result.stdout)
+                self.assertIn("train", result.stdout)
+                self.assertIn("preprocess", result.stdout)
+
+    def test_global_version_flag_succeeds(self):
+        result = run_cli("--version")
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertRegex(result.stdout.strip(), r"adabmDCA version: \d+\.\d+\.\d+$")
+
     def test_package_import_is_lightweight(self):
         result = subprocess.run(
             [sys.executable, "-c", "import adabmDCA; print(adabmDCA.__version__)"],
             cwd=ROOT,
             text=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            capture_output=True,
             check=False,
         )
 
@@ -115,7 +128,8 @@ class CliTests(unittest.TestCase):
         result = run_cli("train", "--help")
 
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("-v VAL, --val VAL", result.stdout)
+        self.assertIn("-v", result.stdout)
+        self.assertIn("--val VAL", result.stdout)
         self.assertIn("validation", result.stdout)
         self.assertIn("metrics are computed", result.stdout)
         self.assertNotIn("--test", result.stdout)
@@ -125,6 +139,13 @@ class CliTests(unittest.TestCase):
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("--no-progress", result.stdout)
+
+    def test_train_help_exposes_unambiguous_step_limits(self):
+        result = run_cli("train", "--help")
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("--max-gradient-steps", result.stdout)
+        self.assertIn("--max-structure-steps", result.stdout)
 
     def test_train_renders_structured_progress_by_default(self):
         with TemporaryDirectory() as directory:
@@ -158,13 +179,28 @@ class CliTests(unittest.TestCase):
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("Pearson", result.stderr)
-        self.assertIn("Epoch 1/1", result.stderr)
+        self.assertIn("Step 1/1", result.stderr)
 
     def test_plot_training_log_missing_file_reports_parser_error(self):
         result = run_cli("plot-training-log", "missing.log")
 
         self.assertEqual(result.returncode, 2)
         self.assertIn("Log file 'missing.log' not found", result.stderr)
+
+    def test_structured_application_errors_are_rendered_without_traceback(self):
+        result = run_cli(
+            "energies",
+            "--data",
+            "missing.fasta",
+            "--path_params",
+            "missing.dat",
+            "--output",
+            "unused-output",
+        )
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("Error [model_load_error]", result.stderr)
+        self.assertNotIn("Traceback", result.stderr)
 
 
 if __name__ == "__main__":

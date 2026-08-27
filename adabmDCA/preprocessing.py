@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
-import json
 from pathlib import Path
 
 from adabmDCA.alignment import (
@@ -12,8 +11,9 @@ from adabmDCA.alignment import (
     normalize_gap_symbols,
     read_alignment,
 )
-from adabmDCA.api.exceptions import InputValidationError
 from adabmDCA.alphabet import get_tokens
+from adabmDCA.api.exceptions import InputValidationError
+from adabmDCA.api.serialization import RESULT_SCHEMA_VERSION, write_json
 
 
 @dataclass(frozen=True)
@@ -46,9 +46,15 @@ class AlignmentProcessingReport:
         return asdict(self)
 
     def to_json(self, path: str | Path, *, indent: int = 2) -> Path:
-        output = Path(path)
-        output.write_text(json.dumps(self.to_dict(), indent=indent) + "\n", encoding="utf-8")
-        return output
+        return write_json(
+            path,
+            {
+                "schema_version": RESULT_SCHEMA_VERSION,
+                "result_type": "alignment_processing",
+                **self.to_dict(),
+            },
+            indent=indent,
+        )
 
 
 @dataclass(frozen=True)
@@ -148,15 +154,9 @@ def preprocess_alignment(
 ) -> AlignmentProcessingResult:
     """Read, explicitly transform, optionally validate, and write an MSA."""
     selected = config or AlignmentProcessingConfig()
-    should_remove_insertions = (
-        selected.remove_insertions if remove_insertions is None else remove_insertions
-    )
-    should_remove_duplicates = (
-        selected.remove_duplicates if remove_duplicates is None else remove_duplicates
-    )
-    selected_gap_fraction = (
-        selected.max_gap_fraction if max_gap_fraction is None else max_gap_fraction
-    )
+    should_remove_insertions = selected.remove_insertions if remove_insertions is None else remove_insertions
+    should_remove_duplicates = selected.remove_duplicates if remove_duplicates is None else remove_duplicates
+    selected_gap_fraction = selected.max_gap_fraction if max_gap_fraction is None else max_gap_fraction
     selected_alphabet = selected.alphabet if alphabet is None else alphabet
     selected_gap_token = selected.gap_token if gap_token is None else gap_token
 

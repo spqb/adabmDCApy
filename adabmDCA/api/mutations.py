@@ -7,6 +7,7 @@ from pathlib import Path
 import torch
 from torch.nn.functional import one_hot
 
+from adabmDCA.api.exceptions import InputValidationError
 from adabmDCA.api.model import DCAModel, load_model
 from adabmDCA.api.results import MutationRecord, MutationScanResult
 from adabmDCA.api.runtime import normalize_sequences
@@ -25,15 +26,18 @@ def scan_mutations(
     include_gap: bool = True,
 ) -> MutationScanResult:
     """Score all single-residue substitutions of ``wild_type``."""
-    loaded = model if isinstance(model, DCAModel) else load_model(
-        model, alphabet=alphabet, device=device, dtype=dtype
-    )
+    loaded = model if isinstance(model, DCAModel) else load_model(model, alphabet=alphabet, device=device, dtype=dtype)
     normalized = normalize_sequences(
         wild_type,
         tokens=loaded.tokens,
         expected_length=loaded.metadata.length,
     )[0]
     target_states = [i for i, token in enumerate(loaded.tokens) if include_gap or token != "-"]
+    if len(target_states) < 2:
+        raise InputValidationError(
+            "Mutation scanning requires at least two eligible alphabet states.",
+            details={"tokens": loaded.tokens, "include_gap": include_gap},
+        )
     encoded_wt = torch.as_tensor(
         encode_sequence(normalized, loaded.tokens),
         dtype=torch.int64,
@@ -51,12 +55,8 @@ def scan_mutations(
             descriptors.append((position, normalized[position], loaded.tokens[state]))
 
     mutants = torch.stack(categorical)
-    mutants_oh = one_hot(mutants, num_classes=len(loaded.tokens)).to(
-        dtype=loaded.params["bias"].dtype
-    )
-    wt_oh = one_hot(encoded_wt.unsqueeze(0), num_classes=len(loaded.tokens)).to(
-        dtype=loaded.params["bias"].dtype
-    )
+    mutants_oh = one_hot(mutants, num_classes=len(loaded.tokens)).to(dtype=loaded.params["bias"].dtype)
+    wt_oh = one_hot(encoded_wt.unsqueeze(0), num_classes=len(loaded.tokens)).to(dtype=loaded.params["bias"].dtype)
     energies = compute_energy(mutants_oh, loaded.params)
     wt_energy = compute_energy(wt_oh, loaded.params)[0]
     delta = (energies - wt_energy).detach().cpu().numpy()

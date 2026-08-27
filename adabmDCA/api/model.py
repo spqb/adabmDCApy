@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from pathlib import Path
-from typing import TYPE_CHECKING, Mapping
+from typing import TYPE_CHECKING
 
 import torch
 
-from adabmDCA.api.exceptions import InputValidationError, ModelLoadError
+from adabmDCA.api.exceptions import AdabmDCAError, InputValidationError, ModelLoadError
 from adabmDCA.api.results import ModelMetadata
 from adabmDCA.api.runtime import resolve_runtime
 from adabmDCA.fasta import get_tokens
@@ -15,6 +16,7 @@ from adabmDCA.io import load_params
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
+
     from adabmDCA.api.results import ContactMapResult, EnergyResult, MutationScanResult, SamplingResult
 
 
@@ -40,9 +42,7 @@ class DCAModel:
         source: str | Path | None = None,
     ) -> None:
         if "bias" not in params or "coupling_matrix" not in params:
-            raise InputValidationError(
-                "Model parameters must contain 'bias' and 'coupling_matrix'."
-            )
+            raise InputValidationError("Model parameters must contain 'bias' and 'coupling_matrix'.")
         bias = params["bias"]
         couplings = params["coupling_matrix"]
         if bias.ndim != 2 or couplings.shape != (*bias.shape, *bias.shape):
@@ -50,7 +50,10 @@ class DCAModel:
                 "Model parameter shapes are inconsistent.",
                 details={"bias_shape": tuple(bias.shape), "coupling_shape": tuple(couplings.shape)},
             )
-        tokens = get_tokens(alphabet)
+        try:
+            tokens = get_tokens(alphabet)
+        except (TypeError, ValueError) as exc:
+            raise InputValidationError("alphabet must be a valid non-empty string.") from exc
         if bias.shape[1] != len(tokens):
             raise InputValidationError(
                 "The model state count does not match the selected alphabet.",
@@ -80,7 +83,7 @@ class DCAModel:
 
         return compute_energies(sequences=sequences, model=self)
 
-    def score_sequences(self, sequences: str | Iterable[str]) -> "EnergyResult":
+    def score_sequences(self, sequences: str | Iterable[str]) -> EnergyResult:
         """Return energies plus sequence and model metadata."""
         from adabmDCA.api.scoring import score_sequences
 
@@ -92,13 +95,13 @@ class DCAModel:
 
         return compute_contact_map(model=self)
 
-    def predict_contacts(self) -> "ContactMapResult":
+    def predict_contacts(self) -> ContactMapResult:
         """Return contact scores plus method and model metadata."""
         from adabmDCA.api.contacts import predict_contacts
 
         return predict_contacts(model=self)
 
-    def scan_mutations(self, wild_type: str, *, name: str = "wild_type") -> "MutationScanResult":
+    def scan_mutations(self, wild_type: str, *, name: str = "wild_type") -> MutationScanResult:
         """Score every single-residue mutant of ``wild_type``."""
         from adabmDCA.api.mutations import scan_mutations
 
@@ -125,7 +128,7 @@ class DCAModel:
             seed=seed,
         )
 
-    def sample_sequences(self, n_sequences: int, **kwargs) -> "SamplingResult":
+    def sample_sequences(self, n_sequences: int, **kwargs) -> SamplingResult:
         """Generate sequences and return structured diagnostics."""
         from adabmDCA.api.sampling import sample_sequences
 
@@ -151,7 +154,10 @@ def load_model(
             details={"path": str(model_path)},
         )
     resolved_device, resolved_dtype = resolve_runtime(device, dtype)
-    tokens = get_tokens(alphabet)
+    try:
+        tokens = get_tokens(alphabet)
+    except (TypeError, ValueError) as exc:
+        raise InputValidationError("alphabet must be a valid non-empty string.") from exc
     try:
         params = load_params(
             str(model_path),
@@ -160,9 +166,9 @@ def load_model(
             dtype=resolved_dtype,
         )
         return DCAModel(params, alphabet=alphabet, source=model_path)
-    except (InputValidationError, ModelLoadError):
+    except AdabmDCAError:
         raise
-    except Exception as exc:
+    except (IndexError, KeyError, OSError, RuntimeError, TypeError, ValueError) as exc:
         raise ModelLoadError(
             f"Could not load model parameters from '{model_path}': {exc}",
             details={"path": str(model_path)},
@@ -177,7 +183,5 @@ def inspect_model(
     dtype: str = "float32",
 ) -> ModelMetadata:
     """Return portable metadata for an in-memory or saved model."""
-    loaded = model if isinstance(model, DCAModel) else load_model(
-        model, alphabet=alphabet, device=device, dtype=dtype
-    )
+    loaded = model if isinstance(model, DCAModel) else load_model(model, alphabet=alphabet, device=device, dtype=dtype)
     return loaded.metadata

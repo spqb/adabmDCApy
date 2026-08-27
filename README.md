@@ -1,6 +1,9 @@
 # adabmDCA 2.0 - Direct Coupling Analysis in Python
 
-## ⚡ Overview
+> [!NOTE]
+> This branch contains a vibe-coded version that is meant to follow the best code practices for compatibility with an agentic use of the package. We are still working on it.
+
+## Overview
 
 **adabmDCA 2.0** is a flexible yet easy-to-use implementation of Direct Coupling Analysis (DCA) based on Boltzmann machine learning. This package provides tools for analyzing residue-residue contacts, predicting mutational effects, scoring sequence libraries, and generating artificial sequences, applicable to both protein and RNA families. The package is designed for flexibility and performance, supporting multiple programming languages (C++, Julia, Python) and architectures (single-core/multi-core CPUs and GPUs).  
 This repository contains the Python GPU version of adabmDCA, maintained by **Lorenzo Rosset**.
@@ -9,20 +12,8 @@ This repository contains the Python GPU version of adabmDCA, maintained by **Lor
 >   - 📖 Check out our [Documentation](https://spqb.github.io/adabmDCApy/) website if you want to dive into the package's main features
 >   - ❓ Read the reference paper [Rosset et al., 2025](https://doi.org/10.1101/2025.01.31.635874) and its previous version [Muntoni et al., 2021](https://doi.org/10.1186/s12859-021-04441-9) for a detailed description of the proposed methods
 >   - 🌐 Explore the [Colab notebook](https://colab.research.google.com/drive/1l5e1W8pk4cB92JAlBElLzpkEk6Hdjk7B?usp=sharing) with a tutorial on some of the package APIs
-    
 
-The project's main repository can be found at [adabmDCA 2.0](https://github.com/spqb/adabmDCA.git).
-
-**Authors:**  
-- **Lorenzo Rosset** (Ecole Normale Supérieure ENS, Sorbonne Université)
-- **Roberto Netti** (Sorbonne Université)
-- **Anna Paola Muntoni** (Politecnico di Torino)
-- **Martin Weigt** (Sorbonne Université)
-- **Francesco Zamponi** (Sapienza Università di Roma)
-  
-**Maintainer:** Lorenzo Rosset
-
-## 🚀 Features
+## Features
 
 - **Direct Coupling Analysis (DCA)** based on Boltzmann machine learning.
 - Support for **dense** and **sparse** generative DCA models.
@@ -30,25 +21,37 @@ The project's main repository can be found at [adabmDCA 2.0](https://github.com/
 - Ready-to-use for **residue-residue contact prediction**, **mutational-effect prediction**, and **sequence design**.
 - Compatible with protein and RNA family analysis.
 - Stockholm-to-FASTA conversion and auditable MSA preprocessing utilities.
+- Versioned JSON, CSV, FASTA, and NumPy serialization owned by structured result objects.
+- Thin CLI adapters backed by reusable high-level workflow APIs.
 
-## ⬇️ Installation
+## Installation
 
-### Option 1: Install from PyPI
-Open a terminal and run
-```bash
-python -m pip install adabmDCA
-```
+### Install from the GitHub repository with uv
 
-### Option 2: Install from the GitHub repository
-Clone the repository locally and then install the requirements and the package. In a terminal, run:
+Clone the repository and synchronize its locked development environment:
 
 ```bash
-git clone git@github.com:spqb/adabmDCApy.git
+git clone https://github.com/spqb/adabmDCApy.git
 cd adabmDCApy
-pip install .
+git checkout agent-api
+uv sync --locked
+uv run adabmDCA --help
 ```
 
-## 🕶️ Usage
+To include the documentation toolchain as well:
+
+```bash
+uv sync --locked --group docs
+```
+
+An editable pip-style installation through uv is also available:
+
+```bash
+uv venv
+uv pip install -e .
+```
+
+## Usage
 
 After installation, all the main routines can be launched through the command-line interface using the command `adabmDCA`.
 

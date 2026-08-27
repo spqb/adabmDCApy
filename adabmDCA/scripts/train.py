@@ -1,12 +1,15 @@
+"""Command-line adapter for DCA model training."""
+
+from __future__ import annotations
+
 import argparse
 import math
 
 from adabmDCA.parser import add_args_train
 
 
-def create_parser():
-    parser = argparse.ArgumentParser(description="Train a DCA model.")
-    return add_args_train(parser)
+def create_parser() -> argparse.ArgumentParser:
+    return add_args_train(argparse.ArgumentParser(description="Train a DCA model."))
 
 
 class _TrainingProgressRenderer:
@@ -30,8 +33,9 @@ class _TrainingProgressRenderer:
         pearson = event.metrics.get("Pearson", 0.0)
         if math.isfinite(pearson):
             self._bar.n = min(max(0.0, pearson), self._target)
-
-        description = f"Epoch {event.epoch}/{self._max_epochs}"
+        description = f"Step {event.epoch}/{self._max_epochs}"
+        if event.gradient_steps or event.structure_steps:
+            description += f" | gradients {event.gradient_steps} | structure {event.structure_steps}"
         likelihood = event.metrics.get("LL_train")
         if likelihood is not None and math.isfinite(likelihood):
             description += f" | LL/L {likelihood:.3f}"
@@ -45,100 +49,95 @@ class _TrainingProgressRenderer:
         self._bar.close()
 
 
-def main():
-    args = create_parser().parse_args()
-
+def run(args, *, progress=None):
+    """Execute training from parsed CLI arguments and return its result."""
     from adabmDCA.api.training import train_model
-    from adabmDCA.utils import get_device, get_dtype
 
-    print("\n" + "=" * 80)
-    print(f"  TRAINING {args.model.upper()} MODEL")
-    print("=" * 80 + "\n")
+    return train_model(
+        args.data,
+        model_type=args.model,
+        validation_path=args.val,
+        weights_path=args.weights,
+        output_dir=args.output,
+        label=args.label,
+        initial_params_path=args.path_params,
+        initial_chains_path=args.path_chains,
+        alphabet=args.alphabet,
+        learning_rate=args.lr,
+        n_sweeps=args.nsweeps,
+        sampler=args.sampler,
+        n_chains=args.nchains,
+        target_pearson=args.target,
+        max_epochs=args.nepochs,
+        max_gradient_steps=args.max_gradient_steps,
+        max_structure_steps=args.max_structure_steps,
+        pseudocount=args.pseudocount,
+        l2_regularization=args.l2_reg,
+        seed=args.seed,
+        clustering_seqid=args.clustering_seqid,
+        no_reweighting=args.no_reweighting,
+        activation_steps=args.gsteps,
+        activation_fraction=args.factivate,
+        target_density=args.density,
+        decimation_rate=args.drate,
+        device=args.device,
+        dtype=args.dtype,
+        use_wandb=args.wandb,
+        progress=progress,
+    )
 
-    device = get_device(args.device)
-    get_dtype(args.dtype)
 
-    print("[CONFIGURATION]")
-    print("-" * 80)
-    template = "  {0:<28} {1:<50}"
-    print(template.format("Input MSA:", str(args.data)))
-    if args.val is not None:
-        print(template.format("Validation MSA:", str(args.val)))
-    print(template.format("Output folder:", str(args.output)))
-    print(template.format("Model type:", args.model))
-    print(template.format("Alphabet:", args.alphabet))
-    print(template.format("Learning rate:", args.lr))
-    print(template.format("Number of sweeps:", args.nsweeps))
-    print(template.format("Sampler:", args.sampler))
-    print(template.format("Target Pearson Cij:", args.target))
-    if args.pseudocount is not None:
-        print(template.format("Pseudocount:", args.pseudocount))
-    if args.l2_reg > 0.0 and args.model in {"bmDCA", "edDCA", "eaDCA"}:
-        print(template.format("L2 regularization:", args.l2_reg))
-    print(template.format("Random seed:", args.seed))
-    print(template.format("Device:", str(device)))
-    print(template.format("Data type:", args.dtype))
-    print("-" * 80 + "\n")
+def main(args=None) -> int:
+    args = create_parser().parse_args() if args is None else args
 
-    progress = None
-    if not args.no_progress:
-        progress = _TrainingProgressRenderer(
+    from adabmDCA.scripts._frontend import print_completion, print_configuration, print_header
+
+    print_header(f"Training {args.model} model")
+    print_configuration(
+        {
+            "input": args.data,
+            "validation": args.val,
+            "output": args.output,
+            "model": args.model,
+            "alphabet": args.alphabet,
+            "max epochs": args.nepochs,
+            "target Pearson": args.target,
+            "device": args.device,
+            "dtype": args.dtype,
+        }
+    )
+    renderer = (
+        None
+        if args.no_progress
+        else _TrainingProgressRenderer(
             target_pearson=args.target,
             max_epochs=args.nepochs,
         )
+    )
     try:
-        result = train_model(
-            args.data,
-            model_type=args.model,
-            validation_path=args.val,
-            weights_path=args.weights,
-            output_dir=args.output,
-            label=args.label,
-            initial_params_path=args.path_params,
-            initial_chains_path=args.path_chains,
-            alphabet=args.alphabet,
-            learning_rate=args.lr,
-            n_sweeps=args.nsweeps,
-            sampler=args.sampler,
-            n_chains=args.nchains,
-            target_pearson=args.target,
-            max_epochs=args.nepochs,
-            pseudocount=args.pseudocount,
-            l2_regularization=args.l2_reg,
-            seed=args.seed,
-            clustering_seqid=args.clustering_seqid,
-            no_reweighting=args.no_reweighting,
-            activation_steps=args.gsteps,
-            activation_fraction=args.factivate,
-            target_density=args.density,
-            decimation_rate=args.drate,
-            device=str(device),
-            dtype=args.dtype,
-            use_wandb=args.wandb,
-            progress=progress,
-        )
+        result = run(args, progress=renderer)
     finally:
-        if progress is not None:
-            progress.close()
+        if renderer is not None:
+            renderer.close()
 
-    history = result.history
-    print("\n" + "=" * 80)
-    print("  TRAINING COMPLETED SUCCESSFULLY")
-    print("=" * 80)
-    print("\n" + "-" * 80)
-    print(f"  Sequence length: {result.model.metadata.length}")
-    print(f"  Number of sequences: {result.num_sequences}")
-    print(f"  Effective sequences: {result.effective_sequences}")
-    print(f"  Pseudocount: {result.pseudocount:.6f}")
-    print(f"  Final graph density: {history['Density'][-1]:.4f}")
-    print(f"  Final Pearson: {history['Pearson'][-1]:.4f}")
-    print(f"  Final log-likelihood per residue: {history['LL_train'][-1]:.3f}")
-    print(f"  Total steps: {history['Epochs'][-1]}")
-    print(f"\n  Results saved in: {args.output}")
-    for name, path in result.artifacts.items():
-        print(f"    ✓ {name.capitalize()}: {path}")
-    print("\n" + "=" * 80 + "\n")
+    serialized = result.save_bundle(args.output, label=args.label)
+    artifacts = {**result.artifacts, **serialized}
+    print_completion(
+        "Training completed successfully.",
+        metrics={
+            "sequence length": result.model.metadata.length,
+            "sequences": result.num_sequences,
+            "effective sequences": result.effective_sequences,
+            "stop reason": result.stop_reason,
+            "gradient steps": result.gradient_steps,
+            "structure steps": result.structure_steps,
+            "sweeps": result.sweeps,
+            **result.final_metrics,
+        },
+        artifacts=artifacts,
+    )
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

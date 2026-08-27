@@ -12,22 +12,50 @@ Follow the instructions below based on your preferred environment.
 
 ## Python (GPU-oriented)
 
-### Option 1: Install from PyPI (Recommended)
+### Option 1: Install from PyPI with uv (recommended)
 
 ```{bash}
-pip install adabmDCA
+uv add adabmDCA
 ```
 
-Fastest way to get started. This installs the latest stable release.
+This adds the latest stable release to the current Python project. To install
+only the command-line application in an isolated environment, use:
 
-### Option 2: Install from GitHub
+```{bash}
+uv tool install adabmDCA
+adabmDCA --help
+```
 
-Clone the repository and install the package locally:
+The equivalent pip command remains supported:
+
+```{bash}
+python -m pip install adabmDCA
+```
+
+### Option 2: Install from GitHub with uv
+
+Clone the repository and synchronize its locked environment:
 
 ```{bash}
 git clone https://github.com/spqb/adabmDCApy.git
 cd adabmDCApy
-pip install .
+uv sync --locked
+uv run adabmDCA --help
+```
+
+The default `dev` dependency group includes the test and lint tools. To install
+the documentation dependencies too, run:
+
+```{bash}
+uv sync --locked --group docs
+uv run --group docs mkdocs serve
+```
+
+For an editable installation without project synchronization:
+
+```{bash}
+uv venv
+uv pip install -e .
 ```
 
 GitHub repo: [adabmDCApy](https://github.com/spqb/adabmDCApy.git)
