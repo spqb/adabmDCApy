@@ -1,11 +1,11 @@
-import numpy as np
-from typing import Iterable, Tuple, Union, overload, Literal, Optional
-from Bio import SeqIO
-import gzip
+import warnings
+from typing import Iterable, Literal, Optional, Tuple, Union, overload
 
+import numpy as np
 import torch
 
-from adabmDCA.alphabet import TOKENS_DNA, TOKENS_PROTEIN, TOKENS_RNA, get_tokens
+from adabmDCA.alignment import Alignment, read_alignment, write_alignment
+from adabmDCA.alphabet import get_tokens
     
     
 def encode_sequence(sequence: Union[str, Iterable[str]], tokens: str) -> np.ndarray:
@@ -102,7 +102,13 @@ def import_from_fasta(
     remove_duplicates: bool = False,
     return_mask: bool = False,
 ):
-    """Import sequences from a fasta or compressed fasta (.fas.gz) file. The following operations are performed:
+    """Import sequences from a FASTA file using the legacy array interface.
+
+    .. deprecated:: 0.7.8
+       Use :func:`adabmDCA.read_alignment` for parsing or
+       :func:`adabmDCA.load_alignment` for validated filtering and provenance.
+
+    The following operations are performed:
     - If 'tokens' is provided, encodes the sequences in numeric format.
     - If 'filter_sequences' is True, removes the sequences whose tokens are not present in the alphabet.
     - If 'remove_duplicates' is True, removes the duplicated sequences.
@@ -123,65 +129,56 @@ def import_from_fasta(
         - If 'return_mask' is False: Tuple of (headers, sequences)
         - If 'return_mask' is True: Tuple of (headers, sequences, mask)
     """
-    # Open the file, handling both .fasta and .fas.gz formats
-    if str(fasta_name).endswith(".gz"):
-        with gzip.open(fasta_name, "rt") as fasta_file: 
-            records = list(SeqIO.parse(fasta_file, "fasta"))
-    else:
-        with open(fasta_name, "r") as fasta_file:
-            records = list(SeqIO.parse(fasta_file, "fasta"))
+    warnings.warn(
+        "import_from_fasta is deprecated; use read_alignment for parsing or "
+        "load_alignment with AlignmentLoadConfig for filtering and provenance.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
 
-    # Import headers and sequences
-    sequences = []
-    names = []
-    for record in records:
-        names.append(str(record.description))
-        sequences.append(str(record.seq))
+    alignment = read_alignment(fasta_name, format="fasta")
+    names = np.asarray(alignment.names, dtype=str)
+    sequences = np.asarray(alignment.sequences, dtype=str)
+    mask = np.ones(len(sequences), dtype=bool)
     
     # Filter sequences
     if filter_sequences:
         if tokens is None:
             raise ValueError("Argument 'tokens' must be provided if 'filter_sequences' is True.")
-        tokens = get_tokens(tokens)
-        tokens_list = [a for a in tokens]
-        clean_names = []
-        clean_sequences = []
-        clean_mask = []
-        for n, s in zip(names, sequences):
-            if all(c in tokens_list for c in s):
-                if n == "":
-                    n = "unknown_sequence"
-                clean_names.append(n)
-                clean_sequences.append(s)
-                clean_mask.append(True)
-            else:
-                print(f"Unknown token found: removing sequence {n}")
-                clean_mask.append(False)
-        names = np.array(clean_names)
-        sequences = np.array(clean_sequences)
-        mask = np.array(clean_mask)
-        
-    else:
-        names = np.array(names)
-        sequences = np.array(sequences)
-        mask = np.full(len(sequences), True)
+        from adabmDCA.input_loading import AlignmentLoadConfig, load_alignment
+
+        loaded = load_alignment(
+            alignment,
+            config=AlignmentLoadConfig(
+                alphabet=tokens,
+                invalid_sequences="drop",
+                remove_duplicates=remove_duplicates,
+                normalize_dots=False,
+            ),
+        )
+        for index in loaded.dropped_indices:
+            print(f"Unknown token found: removing sequence {alignment.names[index]}")
+        names = np.asarray(loaded.alignment.names, dtype=str)
+        sequences = np.asarray(loaded.alignment.sequences, dtype=str)
+        mask = np.zeros(len(alignment), dtype=bool)
+        mask[list(loaded.retained_indices)] = True
+        remove_duplicates = False
     
     # Remove duplicates
     if remove_duplicates:
-        sequences, unique_ids = np.unique(sequences, return_index=True)
-        # sort to preserve the original order
-        order = np.argsort(unique_ids)
-        sequences = sequences[order]
-        names = names[unique_ids[order]]
-        # set to false the mask elements corresponding to the duplicates
-        original_indices_post_filtering = np.where(mask)[0]
-        original_indices_of_unique_items = original_indices_post_filtering[unique_ids]
-        mask_unique = np.full(len(mask), False)
-        mask_unique[original_indices_of_unique_items] = True
-        mask = mask & mask_unique
+        seen = set()
+        retained = []
+        for index, sequence in enumerate(sequences):
+            if sequence not in seen:
+                seen.add(sequence)
+                retained.append(index)
+        names = names[retained]
+        sequences = sequences[retained]
+        mask = np.zeros(len(alignment), dtype=bool)
+        mask[retained] = True
         
     if (tokens is not None) and (len(sequences) > 0):
-        sequences = encode_sequence(sequences, tokens)
+        sequences = encode_sequence(sequences, get_tokens(tokens))
         
     out = (names, sequences)
     if return_mask:
@@ -197,7 +194,12 @@ def write_fasta(
     remove_gaps: bool = False,
     tokens: str = "protein",
 ) -> None:
-    """Generate a fasta file with the input sequences.
+    """Generate a FASTA file using the legacy array interface.
+
+    .. deprecated:: 0.7.8
+       Construct an :class:`adabmDCA.Alignment` and call
+       :func:`adabmDCA.write_alignment`, or use a high-level result object's
+       ``to_fasta``/``save_bundle`` method.
 
     Args:
         fname (str): Name of the output fasta file.
@@ -206,6 +208,13 @@ def write_fasta(
         remove_gaps (bool, optional): If True, removes the gap from the alignment. Defaults to False.
         tokens (str): Alphabet to be used for the encoding. Defaults to 'protein'.
     """
+    warnings.warn(
+        "write_fasta is deprecated; use Alignment.write_fasta/write_alignment "
+        "or a high-level result object's to_fasta/save_bundle method.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+
     if isinstance(headers, torch.Tensor):
         headers = headers.cpu().numpy()
     if isinstance(sequences, torch.Tensor):
@@ -238,14 +247,19 @@ def write_fasta(
         else:
             raise ValueError("Input sequences must be either in string or numeric format.")
         
+    if isinstance(seqs_decoded, str):
+        seqs_decoded = np.asarray([seqs_decoded])
+    else:
+        seqs_decoded = np.asarray(seqs_decoded, dtype=str)
+
     if remove_gaps:
-        seqs_decoded = np.vectorize(lambda s: s.replace("-", ""))(seqs_decoded)
-        
-    with open(fname, 'w') as f:
-        for name_seq, seq in zip(headers_arr, seqs_decoded):
-            f.write('>' + name_seq + '\n')
-            f.write(seq)
-            f.write('\n')
+        seqs_decoded = np.asarray([sequence.replace("-", "") for sequence in seqs_decoded], dtype=str)
+
+    alignment = Alignment(
+        names=tuple(str(header) for header in headers_arr),
+        sequences=tuple(str(sequence) for sequence in seqs_decoded),
+    )
+    write_alignment(alignment, fname, format="fasta")
             
 
 def _get_sequence_weight(s: torch.Tensor, data: torch.Tensor, L: int, th: float):

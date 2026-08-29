@@ -82,7 +82,9 @@ load_params(
 ) → Dict[str, Tensor]
 ```
 
-Import the parameters of the model from a text file. 
+Import parameters from the established `J`/`h` text format. The parser uses
+bounded-memory streaming and accepts historical files containing either one
+or both coupling triangles.
 
 
 
@@ -142,6 +144,10 @@ Import the parameters of the model from a file.
 <a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/io.py#L260"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `save_params`
+
+Parameters are written in the established plain-text `J`/`h` format. Coupling
+records use the canonical `i < j` triangle and are streamed in bounded chunks.
+This remains the parameter format produced by training checkpoints.
 
 ```python
 save_params(

@@ -198,7 +198,9 @@ class HighLevelApiTests(unittest.TestCase):
         self.assertEqual(checkpoint.logged_epochs, [1, 2])
 
     def test_training_accepts_an_authoritative_config_object(self):
-        from adabmDCA import TrainingConfig, train_model
+        import torch
+
+        from adabmDCA import TrainingConfig, load_model, train_model
 
         with TemporaryDirectory() as directory:
             fasta = Path(directory) / "tiny.fasta"
@@ -223,6 +225,18 @@ class HighLevelApiTests(unittest.TestCase):
                 output_dir=Path(directory) / "model",
             )
             log_text = result.artifacts["log"].read_text(encoding="utf-8")
+            params_text = result.artifacts["params"].read_text(encoding="utf-8")
+            reloaded = load_model(result.artifacts["params"], alphabet="AB-", device="cpu")
+
+            records = [line.split() for line in params_text.splitlines()]
+            self.assertTrue(records)
+            self.assertTrue(all(parts[0] in {"J", "h"} for parts in records))
+            self.assertTrue(all(int(parts[1]) < int(parts[2]) for parts in records if parts[0] == "J"))
+            torch.testing.assert_close(reloaded.params["bias"], result.model.params["bias"])
+            torch.testing.assert_close(
+                reloaded.params["coupling_matrix"],
+                result.model.params["coupling_matrix"],
+            )
 
         self.assertEqual(result.model.tokens, "AB-")
         self.assertEqual(result.gradient_steps, 1)

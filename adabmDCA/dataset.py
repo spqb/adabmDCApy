@@ -1,3 +1,4 @@
+import warnings
 from pathlib import Path
 
 import numpy as np
@@ -46,6 +47,12 @@ class DatasetDCA(Dataset):
         device: torch.device = CPU_DEVICE,
         dtype: torch.dtype = torch.float32,
     ):
+        warnings.warn(
+            "DatasetDCA(path_data=...) is deprecated; use DatasetDCA.from_alignment() "
+            "or the high-level train_model/sample_sequences/predict_contacts APIs.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         loaded = load_alignment(
             path_data,
             config=AlignmentLoadConfig(
@@ -143,7 +150,16 @@ class DatasetDCA(Dataset):
 
     @classmethod
     def from_path(cls, path: str | Path, **kwargs) -> "DatasetDCA":
-        """Compatibility factory mirroring :meth:`from_alignment`."""
+        """Compatibility factory mirroring :meth:`from_alignment`.
+
+        .. deprecated:: 0.7.8
+           Use :meth:`from_alignment` instead.
+        """
+        warnings.warn(
+            "DatasetDCA.from_path() is deprecated; use DatasetDCA.from_alignment().",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         return cls.from_alignment(path, **kwargs)
 
     def __len__(self) -> int:

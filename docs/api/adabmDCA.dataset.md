@@ -14,6 +14,12 @@
 <a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/dataset.py#L15"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `DatasetDCA`
+
+`DatasetDCA` remains the tensor and statistics layer used by the high-level
+APIs. Its file-loading constructor (`DatasetDCA(path_data=...)`) and the
+`from_path()` alias are deprecated; use `from_alignment()` or
+`from_loaded_alignment()`. Most applications should call `train_model`,
+`sample_sequences`, or `predict_contacts` instead of constructing a dataset.
 Dataset class for handling multi-sequence alignments data. 
 
 

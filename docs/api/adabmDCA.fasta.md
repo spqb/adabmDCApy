@@ -102,6 +102,9 @@ Takes a numeric sequence or list of seqences in input an returns the correspondi
 
 ## <kbd>function</kbd> `import_from_fasta`
 
+> **Deprecated:** use `adabmDCA.read_alignment` for parsing or
+> `adabmDCA.load_alignment` for validated filtering and provenance.
+
 ```python
 import_from_fasta(
     fasta_name: str,
@@ -147,6 +150,9 @@ Import sequences from a fasta or compressed fasta (.fas.gz) file. The following 
 <a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/fasta.py#L217"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `write_fasta`
+
+> **Deprecated:** use `Alignment.write_fasta` / `adabmDCA.write_alignment`,
+> or a high-level result object's `to_fasta` / `save_bundle` method.
 
 ```python
 write_fasta(

@@ -176,8 +176,16 @@ path, sequence, NumPy array, or tensor and are aligned using those retained
 indices.
 
 `DatasetDCA.from_alignment()` and `DatasetDCA.from_loaded_alignment()` build
-the tensor dataset without constructor-owned file parsing. The legacy
-`DatasetDCA(path_data=...)` form remains available as a compatibility wrapper.
+the tensor dataset without constructor-owned file parsing. `DatasetDCA` remains
+the internal tensor/statistics layer used by the high-level workflows; the
+legacy `DatasetDCA(path_data=...)` constructor and `DatasetDCA.from_path()`
+alias are deprecated compatibility wrappers.
+
+The array-oriented `import_from_fasta()` and `write_fasta()` helpers are also
+deprecated. Use `read_alignment()` or `load_alignment()` for input,
+`Alignment.write_fasta()` or `write_alignment()` for ordinary alignment
+output, and result-owned `to_fasta()`/`save_bundle()` methods for high-level
+workflow outputs.
 
 ## Output serialization
 
@@ -256,6 +264,11 @@ training = train_model(
 )
 print(training.artifacts)
 ```
+
+Training checkpoints continue to write parameters in the interoperable
+plain-text `J`/`h` format (`params.dat` or `<label>_params.dat`). The text
+reader and writer use bounded-memory streaming; no binary format is required
+to load or resume a trained model.
 
 Long-running clients can supply `progress` and `is_cancelled` callbacks. A
 future MCP or web service can use these hooks to implement background jobs
