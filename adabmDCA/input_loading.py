@@ -144,9 +144,23 @@ def load_alignment(
         candidates = unique
 
     if not candidates:
+        details: dict[str, object] = {
+            "original_sequences": len(alignment),
+            "selected_alphabet": policy.alphabet,
+            "allowed_tokens": tokens,
+        }
+        if alignment and len(invalid) == len(alignment):
+            unexpected = sorted(set().union(*(set(sequence) - token_set for sequence in alignment.sequences)))
+            details["unexpected_tokens"] = unexpected
+            raise InputValidationError(
+                f"All sequences were removed because they contain symbols outside the selected alphabet "
+                f"'{policy.alphabet}'. Use the alphabet that matches the alignment, for example "
+                f"'--alphabet protein', '--alphabet dna', '--alphabet rna', or an explicit custom alphabet.",
+                details=details,
+            )
         raise InputValidationError(
             "The alignment is empty after applying the loading policy.",
-            details={"original_sequences": len(alignment)},
+            details=details,
         )
 
     retained = tuple(candidates)

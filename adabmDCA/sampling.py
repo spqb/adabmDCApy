@@ -250,3 +250,37 @@ def get_sampler(sampling_method: str) -> Callable:
         return metropolis_sampling
     else:
         raise KeyError("Unknown sampling method. Choose between 'metropolis' and 'gibbs'.")
+
+
+def prepare_sampler(sampling_method: str, device: torch.device) -> Callable:
+    """Select a fused CUDA sampler when it outperforms the scripted fallback."""
+    sampler = get_sampler(sampling_method)
+    scripted_sampler = torch.jit.script(sampler)
+    if device.type == "cuda":
+        try:
+            from adabmDCA.sampling_triton import (
+                gibbs_sampling_triton,
+                is_triton_available,
+                metropolis_sampling_triton,
+            )
+
+            if is_triton_available():
+                if sampling_method == "metropolis":
+                    return metropolis_sampling_triton
+
+                def adaptive_gibbs(
+                    chains: torch.Tensor,
+                    params: Dict[str, torch.Tensor],
+                    nsweeps: int,
+                    beta: float = 1.0,
+                ) -> torch.Tensor:
+                    # The gather-based Gibbs kernel wins while its N*L working
+                    # set remains modest; dense cuBLAS wins beyond this point.
+                    if chains.shape[0] * chains.shape[1] <= 250_000:
+                        return gibbs_sampling_triton(chains, params, nsweeps, beta)
+                    return scripted_sampler(chains, params, nsweeps, beta)
+
+                return adaptive_gibbs
+        except ImportError:
+            pass
+    return scripted_sampler

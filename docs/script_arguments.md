@@ -19,7 +19,7 @@ In this section we list all the possible command-line arguments for the main rou
 | `--alphabet`            | protein      | Type of encoding for the sequences. Choose among `protein`, `rna`, `dna`, or a user-defined string of tokens. |
 | `--lr`                  | 0.05         | Learning rate. Ignored when `--model edgeDCA` is used. |
 | `--nsweeps`             | 10           | Number of sweeps for each gradient estimation. |
-| `--sampler`             | gibbs        | Sampling method to be used. Possible options are `gibbs` and `metropolis`. |
+| `--sampler`             | metropolis   | Sampling method to be used. Possible options are `gibbs` and `metropolis`. |
 | `--nchains`             | 10000        | Number of Markov chains to run in parallel. |
 | `--target`              | 0.95         | Pearson correlation coefficient on the two-sites statistics to be reached. |
 | `--nepochs`             | 50000        | Compatibility limit: gradient steps for bmDCA, structure steps for sparse models. |
@@ -69,7 +69,7 @@ For `edgeDCA`, `--pseudocount` acts as an effective learning rate for edge activ
 | `--nmix`                | 2            | Number of mixing times used to generate 'ngen' sequences starting from random. |
 | `--max_nsweeps`         | 5000         | Maximum number of sweeps allowed. |
 | `--alphabet`            | protein      | Type of encoding for the sequences. Choose among `protein`, `rna`, `dna`, or a user-defined string of tokens. |
-| `--sampler`             | gibbs        | Sampling method to be used. Possible options are `gibbs` and `metropolis`. |
+| `--sampler`             | metropolis   | Sampling method to be used. Possible options are `gibbs` and `metropolis`. |
 | `--beta`               | 1.0          | Inverse temperature to be used for the sampling. |
 | `--seed`               | 0            | Random seed for reproducible sequence generation. |
 | `--pseudocount`        | None         | Pseudo count for the single and two-sites statistics. Acts as a regularization. If `None`, it is set to $1/M_{\mathrm{eff}}$. |

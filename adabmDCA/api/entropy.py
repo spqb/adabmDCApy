@@ -26,7 +26,7 @@ from adabmDCA.dca import get_seqid
 from adabmDCA.functional import one_hot
 from adabmDCA.input_loading import AlignmentInput, AlignmentLoadConfig, load_alignment
 from adabmDCA.io import load_chains
-from adabmDCA.sampling import get_sampler
+from adabmDCA.sampling import prepare_sampler
 from adabmDCA.statmech import compute_energy
 from adabmDCA.utils import init_chains, resample_sequences
 
@@ -47,7 +47,7 @@ def estimate_entropy(
     zero_sweeps: int = 100,
     target_fraction: float = 0.1,
     max_theta_iterations: int = 10_000,
-    sampler: str = "gibbs",
+    sampler: str = "metropolis",
     alphabet: str = "protein",
     seed: int = 0,
     device: str = "auto",
@@ -109,7 +109,7 @@ def estimate_entropy(
         torch.as_tensor(target.encoded_sequences[0], device=runtime_device, dtype=torch.int64),
         num_classes=num_states,
     ).to(runtime_dtype)
-    sample = torch.jit.script(get_sampler(sampler))
+    sample = prepare_sampler(sampler, loaded_model.params["bias"].device)
     if initial_chains_path is None:
         chains = init_chains(n_chains, length, num_states, device=runtime_device, dtype=runtime_dtype)
     else:

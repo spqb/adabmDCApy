@@ -112,7 +112,7 @@ class DCAModel:
         n_sequences: int,
         *,
         n_sweeps: int = 1000,
-        sampler: str = "gibbs",
+        sampler: str = "metropolis",
         beta: float = 1.0,
         seed: int = 0,
     ) -> tuple[str, ...]:

@@ -79,7 +79,7 @@ Mutation results contain both the historical zero-based position and a
 sequences = model.sample(
     100,
     n_sweeps=1_000,
-    sampler="gibbs",
+    sampler="metropolis",
     seed=42,
 )
 ```

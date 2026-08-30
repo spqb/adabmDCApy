@@ -19,7 +19,7 @@ from adabmDCA.input_loading import (
     WeightInput,
 )
 from adabmDCA.resampling import compute_mixing_time
-from adabmDCA.sampling import get_sampler
+from adabmDCA.sampling import prepare_sampler
 from adabmDCA.statmech import compute_energy
 from adabmDCA.stats import (
     get_correlation_two_points,
@@ -55,7 +55,7 @@ def sample_sequences(
     model: DCAModel | str | Path,
     n_sequences: int,
     n_sweeps: int = 1000,
-    sampler: str = "gibbs",
+    sampler: str = "metropolis",
     beta: float = 1.0,
     seed: int = 0,
     reference_fasta: AlignmentInput | None = None,
@@ -103,7 +103,7 @@ def sample_sequences(
     if loaded.params["bias"].device.type == "cuda":
         torch.cuda.manual_seed_all(seed)
 
-    sampling_function = torch.jit.script(get_sampler(sampler))
+    sampling_function = prepare_sampler(sampler, loaded.params["bias"].device)
     metadata = loaded.metadata
     samples = init_chains(
         num_chains=n_sequences,

@@ -1,6 +1,6 @@
 from importlib import import_module
 
-__version__ = "0.7.8"
+__version__ = "0.8.0"
 
 _EXPORTS = {
     "Alignment": "adabmDCA.alignment",
@@ -74,6 +74,8 @@ _EXPORTS = {
     "sampling_profile": "adabmDCA.sampling",
     "gibbs_step_independent_sites": "adabmDCA.sampling",
     "metropolis_step_independent_sites": "adabmDCA.sampling",
+    "gibbs_step_independent_sites_triton": "adabmDCA.sampling_triton",
+    "metropolis_step_independent_sites_triton": "adabmDCA.sampling_triton",
     "gibbs_step_uniform_sites": "adabmDCA.sampling",
     "metropolis_step_uniform_sites": "adabmDCA.sampling",
     "one_hot": "adabmDCA.functional",

@@ -88,7 +88,7 @@ def add_args_dca(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         "--sampler",
         type=str,
         default=DEFAULT_SAMPLER,
-        help="(Defaults to 'gibbs'). Sampling method to be used.",
+        help="(Defaults to 'metropolis'). Sampling method to be used.",
         choices=SAMPLERS,
     )
     dca_args.add_argument(
@@ -365,9 +365,9 @@ def add_args_sample(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     parser.add_argument(
         "--sampler",
         type=str,
-        default="gibbs",
-        help="(Defaults to 'gibbs'). Sampling method to be used. Choose between 'metropolis' and 'gibbs'.",
-        choices=["metropolis", "gibbs"],
+        default=DEFAULT_SAMPLER,
+        help="(Defaults to 'metropolis'). Sampling method to be used. Choose between 'metropolis' and 'gibbs'.",
+        choices=SAMPLERS,
     )
     parser.add_argument(
         "--beta", type=float, default=1.0, help="(Defaults to 1.0). Inverse temperature for the sampling."
@@ -457,9 +457,9 @@ def add_args_tdint(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     parser.add_argument(
         "--sampler",
         type=str,
-        default="gibbs",
-        help="(Defaults to 'gibbs'). Sampling method to be used. Choose between 'metropolis' and 'gibbs'.",
-        choices=["metropolis", "gibbs"],
+        default=DEFAULT_SAMPLER,
+        help="(Defaults to 'metropolis'). Sampling method to be used. Choose between 'metropolis' and 'gibbs'.",
+        choices=SAMPLERS,
     )
     parser.add_argument("--seed", type=int, default=0, help="(Defaults to 0). Seed for the random number generator.")
     parser.add_argument(

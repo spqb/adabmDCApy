@@ -32,6 +32,7 @@ from adabmDCA.training_config import (
 
 
 def test_api_and_cli_defaults_share_canonical_values():
+    assert DEFAULT_SAMPLER == "metropolis"
     expected = {
         "model_type": DEFAULT_MODEL_TYPE,
         "alphabet": DEFAULT_ALPHABET,
@@ -63,6 +64,15 @@ def test_api_and_cli_defaults_share_canonical_values():
     assert parser.get_default("nepochs") == DEFAULT_MAX_EPOCHS
     assert parser.get_default("gsteps") == DEFAULT_ACTIVATION_STEPS
     assert parser.get_default("density") == DEFAULT_TARGET_DENSITY
+    assert parser.get_default("sampler") == "metropolis"
+
+    from adabmDCA.api.entropy import estimate_entropy
+    from adabmDCA.api.model import DCAModel
+    from adabmDCA.api.sampling import sample_sequences
+
+    assert inspect.signature(sample_sequences).parameters["sampler"].default == "metropolis"
+    assert inspect.signature(estimate_entropy).parameters["sampler"].default == "metropolis"
+    assert inspect.signature(DCAModel.sample).parameters["sampler"].default == "metropolis"
 
 
 def test_model_aware_limits_and_checkpoint_intervals():

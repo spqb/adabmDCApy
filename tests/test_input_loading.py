@@ -57,6 +57,24 @@ def test_strict_loading_reports_unknown_tokens():
     assert context.value.details["unexpected_tokens"] == ["X"]
 
 
+def test_empty_filtered_alignment_suggests_correct_alphabet():
+    alignment = Alignment(("first", "second"), ("MEK", "WVL"))
+
+    with pytest.raises(InputValidationError) as context:
+        load_alignment(
+            alignment,
+            config=AlignmentLoadConfig(alphabet="dna", invalid_sequences="drop"),
+        )
+
+    error = context.value
+    assert "selected alphabet 'dna'" in error.message
+    assert "--alphabet protein" in error.message
+    assert error.details["original_sequences"] == 2
+    assert error.details["selected_alphabet"] == "dna"
+    assert error.details["allowed_tokens"] == "-ACGT"
+    assert error.details["unexpected_tokens"] == ["E", "K", "L", "M", "V", "W"]
+
+
 def test_compressed_fasta_and_stockholm_use_the_same_loader(tmp_path: Path):
     compressed = tmp_path / "alignment.fasta.gz"
     with gzip.open(compressed, "wt") as handle:

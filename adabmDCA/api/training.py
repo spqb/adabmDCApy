@@ -16,7 +16,7 @@ from adabmDCA.api.runtime import resolve_runtime
 from adabmDCA.checkpoint import Checkpoint
 from adabmDCA.fasta import get_tokens
 from adabmDCA.input_loading import AlignmentInput, WeightInput
-from adabmDCA.sampling import get_sampler
+from adabmDCA.sampling import prepare_sampler
 from adabmDCA.training import train_eaDCA, train_edDCA, train_edgeDCA, train_graph
 from adabmDCA.training_config import (
     DEFAULT_ACTIVATION_FRACTION,
@@ -296,7 +296,7 @@ def train_model(
         observer=_progress_observer(progress),
         is_cancelled=is_cancelled,
     )
-    sampling_function = torch.jit.script(get_sampler(sampler))
+    sampling_function = prepare_sampler(sampler, params["bias"].device)
 
     try:
         if model_type == "bmDCA":

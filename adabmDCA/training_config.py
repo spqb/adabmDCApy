@@ -10,13 +10,13 @@ from adabmDCA.api.exceptions import InputValidationError
 from adabmDCA.training_control import TrainingLimits
 
 MODEL_TYPES = ("bmDCA", "eaDCA", "edDCA", "edgeDCA")
-SAMPLERS = ("gibbs", "metropolis")
+SAMPLERS = ("metropolis", "gibbs")
 
 DEFAULT_MODEL_TYPE = "bmDCA"
 DEFAULT_ALPHABET = "protein"
 DEFAULT_LEARNING_RATE = 0.01
 DEFAULT_N_SWEEPS = 10
-DEFAULT_SAMPLER = "gibbs"
+DEFAULT_SAMPLER = "metropolis"
 DEFAULT_N_CHAINS = 10_000
 DEFAULT_TARGET_PEARSON = 0.95
 DEFAULT_MAX_EPOCHS = 50_000
