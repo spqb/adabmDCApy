@@ -119,6 +119,15 @@ class Checkpoint:
         with open(self.file_paths["log"], "a") as f:
             f.write(out_string + "\n")
 
+    def begin_stage(self, stage: str, metadata: dict[str, Any]) -> None:
+        """Record a training phase boundary in the human-readable log."""
+        with open(self.file_paths["log"], "a") as f:
+            f.write(f"\n[{stage.upper()}]\n")
+            f.writelines(f"{name + ':':<20} {value}\n" for name, value in metadata.items())
+            f.write("\n")
+            header = " ".join(f"{key:<15}" for key in self.logs)
+            f.write(header + "\n")
+
     def check(
         self,
         updates: int,

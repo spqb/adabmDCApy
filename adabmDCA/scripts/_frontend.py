@@ -29,9 +29,9 @@ def print_completion(
     for name, value in (metrics or {}).items():
         print(f"  {name}: {value}")
     if artifacts:
-        print("  Outputs:")
+        print("\nOutputs:")
         for name, path in artifacts.items():
-            print(f"    {name}: {path}")
+            print(f"  {name}: {path}")
 
 
 def input_stem(path: str | Path) -> str:

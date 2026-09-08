@@ -179,7 +179,43 @@ class CliTests(unittest.TestCase):
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("Pearson", result.stderr)
-        self.assertIn("Step 1/1", result.stderr)
+        self.assertIn("/0.9900", result.stderr)
+        self.assertIn("Optimization | Step 1/1", result.stderr)
+
+    def test_train_no_progress_keeps_transient_output_quiet(self):
+        with TemporaryDirectory() as directory:
+            workspace = Path(directory)
+            fasta = workspace / "tiny.fasta"
+            fasta.write_text(
+                ">s1\nAA\n>s2\nAB\n>s3\nBA\n>s4\nBB\n",
+                encoding="utf-8",
+            )
+            result = run_cli(
+                "train",
+                "--data",
+                str(fasta),
+                "--output",
+                str(workspace / "model"),
+                "--alphabet",
+                "AB-",
+                "--nchains",
+                "8",
+                "--nsweeps",
+                "1",
+                "--nepochs",
+                "1",
+                "--target",
+                "0.99",
+                "--device",
+                "cpu",
+                "--seed",
+                "3",
+                "--no-progress",
+            )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertNotIn("Pearson", result.stderr)
+        self.assertIn("Training completed successfully.", result.stdout)
 
     def test_plot_training_log_missing_file_reports_parser_error(self):
         result = run_cli("plot-training-log", "missing.log")

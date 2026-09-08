@@ -1,12 +1,8 @@
-import math
-import os
 import time
 from collections.abc import Callable
 
 import torch
-from tqdm.autonotebook import tqdm
 
-from adabmDCA.checkpoint import Checkpoint
 from adabmDCA.graph import (
     activate_graph_elements,
     compute_density,
@@ -26,33 +22,17 @@ from adabmDCA.training_config import (
     EDGE_EMPIRICAL_PSEUDOCOUNT,
     EDGE_LOGZ_CHAIN_FRACTION,
     SLOPE_TOLERANCE,
-    SPARSE_CHECKPOINT_INTERVAL,
 )
 from adabmDCA.training_control import (
     StopReason,
     TrainingController,
+    TrainingHistory,
     TrainingLimits,
     TrainingMetrics,
 )
-from adabmDCA.utils import Timer, get_mask_save
+from adabmDCA.utils import get_mask_save
 
-
-def _format_time_seconds(seconds: float | None) -> str:
-    """Format seconds as HH:MM:SS for progress reporting."""
-    if seconds is None or not math.isfinite(seconds) or seconds < 0:
-        return "--:--:--"
-    total_seconds = round(seconds)
-    hours = total_seconds // 3600
-    minutes = (total_seconds % 3600) // 60
-    secs = total_seconds % 60
-    return f"{hours:02d}:{minutes:02d}:{secs:02d}"
-
-
-def _pearson_bar_format(elapsed_time: float | None, estimated_total_time: float | None) -> str:
-    """Build a tqdm bar format string with elapsed/estimated time on the right."""
-    elapsed_fmt = _format_time_seconds(elapsed_time)
-    estimated_fmt = _format_time_seconds(estimated_total_time)
-    return f"{{desc}} {{percentage:.2f}}%[{{bar}}] Pearson: {{n:.3f}}/{{total_fmt}} [{elapsed_fmt}/{estimated_fmt}]"
+Sampler = Callable[..., torch.Tensor]
 
 
 def compute_gradient(
@@ -144,8 +124,8 @@ def update_params_edge_activation(
     Dkl = compute_Dkl_edge_activation(fij=fij, pij=pij)
     # (i,j) indices of the edge with the largest Dkl
     idx_edge = torch.argmax(Dkl)
-    i_edge = (idx_edge // Dkl.shape[1]).item()
-    j_edge = (idx_edge % Dkl.shape[1]).item()
+    i_edge = int((idx_edge // Dkl.shape[1]).item())
+    j_edge = int((idx_edge % Dkl.shape[1]).item())
     # Activate the edge in the mask
     mask[i_edge, :, j_edge, :] = 1.0
     mask[j_edge, :, i_edge, :] = 1.0
@@ -161,7 +141,7 @@ def update_params_edge_activation(
 
 
 def train_graph(
-    sampler: Callable,
+    sampler: Sampler,
     chains: torch.Tensor,
     mask: torch.Tensor,
     fi_target: torch.Tensor,
@@ -173,16 +153,12 @@ def train_graph(
     target_pearson: float,
     fi_val: torch.Tensor | None = None,
     fij_val: torch.Tensor | None = None,
-    checkpoint: Checkpoint | None = None,
     check_slope: bool = False,
     log_weights: torch.Tensor | None = None,
-    progress_bar: bool = True,
     l2_reg: float = 0.0,
     controller: TrainingController | None = None,
     slope_tolerance: float = SLOPE_TOLERANCE,
-    *args,
-    **kwargs,
-) -> tuple[torch.Tensor, dict[str, torch.Tensor], torch.Tensor, dict[str, list[float]]]:
+) -> tuple[torch.Tensor, dict[str, torch.Tensor], torch.Tensor, TrainingHistory]:
     """Trains the model on a given graph until the target Pearson correlation is reached or the maximum number of epochs is exceeded.
 
     Args:
@@ -198,10 +174,8 @@ def train_graph(
         target_pearson (float): Target Pearson coefficient.
         fi_val (Optional[torch.Tensor], optional): Single-point frequencies of the validation data. Defaults to None.
         fij_val (Optional[torch.Tensor], optional): Two-point frequencies of the validation data. Defaults to None.
-        checkpoint (Optional[Checkpoint], optional): Checkpoint class to be used for saving the model. Defaults to None.
         check_slope (bool, optional): Whether to take into account the slope for the convergence criterion or not. Defaults to False.
         log_weights (Optional[torch.Tensor], optional): Log-weights used for the online computation of the log-likelihood. Defaults to None.
-        progress_bar (bool, optional): Whether to display a progress bar or not. Defaults to True.
         l2_reg (float, optional): L2 regularization coefficient. Defaults to 0.0.
 
     Returns:
@@ -225,42 +199,22 @@ def train_graph(
     pij = get_freq_two_points(data=chains)
     controller = controller or TrainingController(
         limits=TrainingLimits(max_gradient_steps=max_epochs),
-        checkpoint=checkpoint,
     )
+    controller.begin_stage("optimization")
     history = controller.history
 
-    def halt_condition(epochs, pearson, slope, check_slope):
-        c1 = pearson < target_pearson
-        c2 = epochs < max_epochs
-        if check_slope:
-            c3 = abs(slope - 1.0) > slope_tolerance
-        else:
-            c3 = False
-        return not c2 * ((not c1) * c3 + c1)
+    def should_continue(epoch: int, pearson: float, slope: float) -> bool:
+        target_not_reached = pearson < target_pearson
+        slope_not_converged = check_slope and abs(slope - 1.0) > slope_tolerance
+        return epoch < max_epochs and (target_not_reached or slope_not_converged)
 
     # Mask for saving only the upper-diagonal coupling matrix
     mask_save = get_mask_save(L, q, device=device)
 
     pearson, slope = get_correlation_two_points(fij=fij_target, pij=pij, fi=fi_target, pi=pi)
     epochs = 0
-    timer = Timer(target_pearson=target_pearson)
-    elapsed_time = time.time() - time_start
-    timer.update(time=elapsed_time, pearson=pearson)
-    estimated_total_time = timer.predict()
 
-    if progress_bar:
-        pbar = tqdm(
-            initial=max(0, float(pearson)),
-            total=target_pearson,
-            colour="red",
-            dynamic_ncols=True,
-            leave=False,
-            ascii="-#",
-            bar_format=_pearson_bar_format(elapsed_time, estimated_total_time),
-        )
-        pbar.set_description(f"Epochs: {epochs} - LL/L: {log_likelihood:.2f}")
-
-    while not halt_condition(epochs, pearson, slope, check_slope):
+    while should_continue(epochs, pearson, slope):
         controller.check_cancellation()
 
         # Store the previous parameters
@@ -300,15 +254,6 @@ def train_graph(
         ).item()
         log_likelihood = compute_log_likelihood(fi=fi_target, fij=fij_target, params=params, logZ=logZ)
 
-        elapsed_time = time.time() - time_start
-        timer.update(time=elapsed_time, pearson=pearson)
-        estimated_total_time = timer.predict()
-
-        if progress_bar:
-            pbar.n = min(max(0, float(pearson)), target_pearson)
-            pbar.bar_format = _pearson_bar_format(elapsed_time, estimated_total_time)
-            pbar.set_description(f"Epochs: {epochs} - LL/L: {log_likelihood:.2f}")
-
         entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
         ess = _compute_ess(log_weights)
         if fi_val is not None and fij_val is not None:
@@ -341,9 +286,6 @@ def train_graph(
             },
         )
 
-    if progress_bar:
-        pbar.close()
-
     if pearson >= target_pearson and (not check_slope or abs(slope - 1.0) <= slope_tolerance):
         controller.set_stop_reason(StopReason.TARGET_PEARSON)
     else:
@@ -361,7 +303,7 @@ def train_graph(
 
 
 def train_eaDCA(
-    sampler: Callable,
+    sampler: Sampler,
     fi_target: torch.Tensor,
     fij_target: torch.Tensor,
     params: dict[str, torch.Tensor],
@@ -377,15 +319,10 @@ def train_eaDCA(
     gsteps: int,
     fi_val: torch.Tensor | None = None,
     fij_val: torch.Tensor | None = None,
-    checkpoint: Checkpoint | None = None,
     l2_reg: float = 0.0,
-    progress_bar: bool = True,
     controller: TrainingController | None = None,
     max_gradient_steps: int | None = None,
-    checkpoint_interval: int = SPARSE_CHECKPOINT_INTERVAL,
-    *args,
-    **kwargs,
-) -> tuple[torch.Tensor, dict[str, torch.Tensor], torch.Tensor, dict[str, list[float]]]:
+) -> tuple[torch.Tensor, dict[str, torch.Tensor], torch.Tensor, TrainingHistory]:
     """
     Fits an eaDCA model on the training data and saves the results in a file.
 
@@ -406,7 +343,6 @@ def train_eaDCA(
         gsteps (int): Number of gradient updates to be performed on a given graph.
         fi_val (Optional[torch.Tensor], optional): Single-point frequencies of the validation data. Defaults to None.
         fij_val (Optional[torch.Tensor], optional): Two-point frequencies of the validation data. Defaults to None.
-        checkpoint (Optional[Checkpoint], optional): Checkpoint class to be used to save the model. Defaults to None.
         l2_reg (float, optional): L2 regularization coefficient. Defaults to 0.0.
 
     Returns:
@@ -428,24 +364,17 @@ def train_eaDCA(
             max_gradient_steps=max_gradient_steps,
             max_structure_steps=max_epochs,
         ),
-        checkpoint=checkpoint,
     )
-    runtime_checkpoint = controller.checkpoint
-    if runtime_checkpoint is not None:
-        runtime_checkpoint.checkpt_interval = checkpoint_interval
-        runtime_checkpoint.max_epochs = max_epochs
+    controller.begin_stage(
+        "activation",
+        target_pearson=target_pearson,
+        activation_fraction=factivate,
+        gradient_steps_per_update=gsteps,
+    )
 
     graph_upd = 0
-    density = compute_density(mask) * 100
+    density = compute_density(mask)
     L, q = fi_target.shape
-
-    print("\n" + "-" * 80)
-    print("[ACTIVATION PHASE]")
-    print("-" * 80)
-    print(f"  Target Pearson: {target_pearson:.2f}")
-    print(f"  Activation rate: {factivate:.2%}")
-    print(f"  Gradient steps per graph update: {gsteps}")
-    print(f"  Initial density: {density:.3f}%")
 
     # Mask for saving only the upper-diagonal matrix
     mask_save = get_mask_save(L, q, device=device)
@@ -460,37 +389,10 @@ def train_eaDCA(
     pij = get_freq_two_points(data=chains)
     pearson = max(0, float(get_correlation_two_points(fij=fij_target, pij=pij, fi=fi_target, pi=pi)[0]))
 
-    # Number of active couplings
-    nactive = mask.sum()
-
     # Training loop
     time_start = time.time()
     log_likelihood = compute_log_likelihood(fi=fi_target, fij=fij_target, params=params, logZ=logZ)
-    entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
-
-    print(f"  Initial Pearson: {pearson:.4f}")
-    print(f"  Initial log-likelihood per residue: {log_likelihood:.3f}")
-    print("-" * 80 + "\n")
-
     history = controller.history
-
-    timer = Timer(target_pearson=target_pearson)
-    elapsed_time = time.time() - time_start
-    timer.update(time=elapsed_time, pearson=pearson)
-    estimated_total_time = timer.predict()
-
-    if progress_bar:
-        pbar = tqdm(
-            initial=max(0, float(pearson)),
-            total=target_pearson,
-            colour="red",
-            dynamic_ncols=True,
-            ascii="-#",
-            bar_format=_pearson_bar_format(elapsed_time, estimated_total_time),
-        )
-        pbar.set_description(
-            f"Update: {graph_upd:3d} | Density: {density:6.3f}% | New: {0:4d} | LL/L: {log_likelihood:8.3f}"
-        )
 
     while (
         pearson < target_pearson
@@ -498,8 +400,6 @@ def train_eaDCA(
         and not controller.gradient_limit_reached()
     ):
         controller.check_cancellation()
-        # Old number of active couplings
-        nactive_old = nactive
         # Compute the two-points frequencies of the simulated data with pseudo-count
         pij_Dkl = get_freq_two_points(data=chains, weights=None, pseudo_count=pseudo_count)
         # Update the graph
@@ -510,9 +410,6 @@ def train_eaDCA(
             pij=pij_Dkl,
             nactivate=nactivate,
         )
-        # New number of active couplings
-        nactive = mask.sum()
-
         # Bring the model at convergence on the graph
         remaining_gradient_steps = controller.remaining_gradient_steps()
         inner_steps = gsteps
@@ -531,8 +428,6 @@ def train_eaDCA(
             target_pearson=target_pearson,
             log_weights=log_weights,
             check_slope=False,
-            checkpoint=None,
-            progress_bar=False,
             l2_reg=l2_reg,
         )
 
@@ -546,19 +441,11 @@ def train_eaDCA(
 
         # Compute statistics of the training
         pearson, slope = get_correlation_two_points(fij=fij_target, pij=pij, fi=fi_target, pi=pi)
-        density = compute_density(mask) * 100
+        density = compute_density(mask)
         logZ = (
             torch.logsumexp(log_weights, dim=0) - torch.log(torch.tensor(len(chains), device=device, dtype=dtype))
         ).item()
         log_likelihood = compute_log_likelihood(fi=fi_target, fij=fij_target, params=params, logZ=logZ)
-        elapsed_time = time.time() - time_start
-        timer.update(time=elapsed_time, pearson=pearson)
-        estimated_total_time = timer.predict()
-        if progress_bar:
-            pbar.bar_format = _pearson_bar_format(elapsed_time, estimated_total_time)
-            pbar.set_description(
-                f"Update: {graph_upd:3d} | Density: {density:6.3f}% | New: {int(nactive - nactive_old):4d} | LL/L: {log_likelihood:8.3f}"
-            )
         entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
         ess = _compute_ess(log_weights)
         if fi_val is not None and fij_val is not None:
@@ -589,8 +476,6 @@ def train_eaDCA(
                 "log_weights": log_weights,
             },
         )
-        if progress_bar:
-            pbar.n = min(max(0, float(pearson)), target_pearson)
 
     if pearson >= target_pearson:
         controller.set_stop_reason(StopReason.TARGET_PEARSON)
@@ -606,14 +491,11 @@ def train_eaDCA(
             "log_weights": log_weights,
         }
     )
-    if progress_bar:
-        pbar.close()
-
     return chains, params, log_weights, history
 
 
 def train_edDCA(
-    sampler: Callable,
+    sampler: Sampler,
     chains: torch.Tensor,
     log_weights: torch.Tensor,
     fi_target: torch.Tensor,
@@ -625,19 +507,14 @@ def train_edDCA(
     target_pearson: float,
     target_density: float,
     drate: float,
-    checkpoint: Checkpoint | None = None,
     fi_val: torch.Tensor | None = None,
     fij_val: torch.Tensor | None = None,
     l2_reg: float = 0.0,
-    progress_bar: bool = True,
     max_epochs: int = 10_000,
     controller: TrainingController | None = None,
     max_gradient_steps: int | None = None,
     inner_gradient_steps: int = DEFAULT_INNER_GRADIENT_STEPS,
-    checkpoint_interval: int = SPARSE_CHECKPOINT_INTERVAL,
-    *args,
-    **kwargs,
-) -> tuple[torch.Tensor, dict[str, torch.Tensor], torch.Tensor, dict[str, list[float]]]:
+) -> tuple[torch.Tensor, dict[str, torch.Tensor], torch.Tensor, TrainingHistory]:
     """Fits an edDCA model on the training data and saves the results in a file.
 
     Args:
@@ -653,7 +530,6 @@ def train_edDCA(
         target_pearson (float): Pearson correlation coefficient on the two-points statistics to be reached.
         target_density (float): Target density of the coupling matrix.
         drate (float): Percentage of active couplings to be pruned at each decimation step.
-        checkpoint (Optional[Checkpoint], optional): Checkpoint class to be used to save the model. Defaults to None.
         fi_val (Optional[torch.Tensor], optional): Single-point frequencies of the validation data. Defaults to None.
         fij_val (Optional[torch.Tensor], optional): Two-point frequencies of the validation data. Defaults to None.
         l2_reg (float, optional): L2 regularization coefficient. Defaults to 0.0.
@@ -679,17 +555,14 @@ def train_edDCA(
             max_gradient_steps=max_gradient_steps,
             max_structure_steps=max_epochs,
         ),
-        checkpoint=checkpoint,
     )
-    runtime_checkpoint = controller.checkpoint
+    controller.begin_stage("equilibration", target_pearson=target_pearson)
 
     # Get the single-point and two-points frequencies of the simulated data
     pi = get_freq_single_point(data=chains)
     pij = get_freq_two_points(data=chains)
     pearson, _ = get_correlation_two_points(fi=fi_target, pi=pi, fij=fij_target, pij=pij)
     if pearson < target_pearson and not controller.gradient_limit_reached():
-        print(f"  Initial Pearson correlation: {pearson:.4f} (target: {target_pearson:.2f})")
-        print("  Bringing model to convergence threshold...")
         remaining_gradient_steps = controller.remaining_gradient_steps()
         inner_steps = inner_gradient_steps
         if remaining_gradient_steps is not None:
@@ -709,67 +582,34 @@ def train_edDCA(
             max_epochs=inner_steps,
             target_pearson=target_pearson,
             check_slope=False,
-            checkpoint=None,
             l2_reg=l2_reg,
-            progress_bar=progress_bar,
         )
         controller.add_gradient_steps(len(inner_history["Epochs"]), sweeps_per_step=nsweeps)
         pi = get_freq_single_point(data=chains)
         pij = get_freq_two_points(data=chains)
         pearson, _ = get_correlation_two_points(fi=fi_target, pi=pi, fij=fij_target, pij=pij)
         # Save the equilibrated parameters
-        if runtime_checkpoint is not None:
-            runtime_checkpoint.save(
-                params=params,
-                mask=mask,
-                chains=chains,
-                log_weights=log_weights,
-            )
-            print("  ✓ Equilibrated model saved")
-    print(f"  Current Pearson correlation: {pearson:.4f}")
+        controller.save_snapshot(
+            {
+                "params": params,
+                "mask": mask,
+                "chains": chains,
+                "log_weights": log_weights,
+            }
+        )
 
     # Mask for saving only the upper-diagonal matrix
     mask_save = get_mask_save(L, q, device=device)
 
-    if runtime_checkpoint is not None:
-        # Filenames for the decimated parameters and chains
-        parent, name = (
-            os.path.dirname(runtime_checkpoint.file_paths["params"]),
-            os.path.basename(runtime_checkpoint.file_paths["params"]),
-        )
-        new_name = name.replace(".dat", "_dec.dat")
-        runtime_checkpoint.file_paths["params_dec"] = os.path.join(parent, new_name)
-
-        name = os.path.basename(runtime_checkpoint.file_paths["chains"])
-        new_name = name.replace(".fasta", "_dec.fasta")
-        runtime_checkpoint.file_paths["chains_dec"] = os.path.join(parent, new_name)
-
-    print("\n" + "-" * 80)
-    print("[DECIMATION PHASE]")
-    print("-" * 80)
-    print(f"  Target density: {target_density:.3f}")
-    print(f"  Decimation rate: {drate:.2f}")
     initial_density = compute_density(mask)
-    print(f"  Initial density: {initial_density:.3f}")
-    print("-" * 80)
-    if runtime_checkpoint is not None:
-        with open(runtime_checkpoint.file_paths["log"], "a") as f:
-            f.write("\nDecimation\n")
-            template = "{0:<20} {1:<50}\n"
-            f.write(template.format("Target density:", target_density))
-            f.write(template.format("Decimation rate:", drate))
-            f.write("\n")
-            header_string = " ".join([f"{key:<10}" for key in runtime_checkpoint.logs])
-            f.write("{:<10} {}\n".format("Epoch", header_string))
-
-    # Template for writing the results
-    print("\n  {:<8} {:>12} {:>12} {:>12} {:>12}".format("Step", "Density", "Log-Like", "Pearson", "Slope"))
-    print("  " + "-" * 60)
+    controller.begin_stage(
+        "decimation",
+        target_density=target_density,
+        decimation_rate=drate,
+        initial_density=initial_density,
+    )
     density = compute_density(mask)
     count = 0
-    if runtime_checkpoint is not None:
-        runtime_checkpoint.checkpt_interval = checkpoint_interval
-        runtime_checkpoint.max_epochs = max_epochs
 
     history = controller.history
 
@@ -831,8 +671,6 @@ def train_edDCA(
             max_epochs=inner_steps,
             target_pearson=target_pearson,
             check_slope=False,
-            progress_bar=False,
-            checkpoint=None,
             l2_reg=l2_reg,
         )
         controller.add_gradient_steps(len(inner_history["Epochs"]), sweeps_per_step=nsweeps)
@@ -848,7 +686,6 @@ def train_edDCA(
         ).item()
         log_likelihood = compute_log_likelihood(fi=fi_target, fij=fij_target, params=params, logZ=logZ)
 
-        print(f"  {count:<8} {density:>12.4f} {log_likelihood:>12.3f} {pearson:>12.4f} {slope:>12.4f}")
         entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
         ess = _compute_ess(log_weights)
         if fi_val is not None and fij_val is not None:
@@ -899,7 +736,7 @@ def train_edDCA(
 
 
 def train_edgeDCA(
-    sampler: Callable,
+    sampler: Sampler,
     fi_target: torch.Tensor,
     fij_target: torch.Tensor,
     fi_pseudocounted: torch.Tensor,
@@ -913,15 +750,10 @@ def train_edgeDCA(
     pseudo_count: float,
     fi_val: torch.Tensor | None = None,
     fij_val: torch.Tensor | None = None,
-    checkpoint: Checkpoint | None = None,
-    progress_bar: bool = True,
     controller: TrainingController | None = None,
     empirical_pseudocount: float = EDGE_EMPIRICAL_PSEUDOCOUNT,
     logz_chain_fraction: float = EDGE_LOGZ_CHAIN_FRACTION,
-    checkpoint_interval: int = SPARSE_CHECKPOINT_INTERVAL,
-    *args,
-    **kwargs,
-) -> tuple[torch.Tensor, dict[str, torch.Tensor], torch.Tensor, dict[str, list[float]]]:
+) -> tuple[torch.Tensor, dict[str, torch.Tensor], torch.Tensor, TrainingHistory]:
     """
     Fits an edge activation DCA model (edgeDCA) on the training data and saves the results in a file.
 
@@ -940,7 +772,6 @@ def train_edgeDCA(
         pseudo_count (float): Pseudo count for the single and two points statistics. Acts as a regularization.
         fi_val (Optional[torch.Tensor], optional): Single-point frequencies of the validation data. Defaults to None.
         fij_val (Optional[torch.Tensor], optional): Two-point frequencies of the validation data. Defaults to None.
-        checkpoint (Optional[Checkpoint], optional): Checkpoint class to be used to save the model. Defaults to None.
 
     Returns:
         Tuple[torch.Tensor, Dict[str, torch.Tensor], torch.Tensor, Dict[str, List[float]]]: Updated chains and parameters, log-weights for the log-likelihood computation, and training history.
@@ -959,22 +790,12 @@ def train_edgeDCA(
     device = fi_target.device
     controller = controller or TrainingController(
         limits=TrainingLimits(max_structure_steps=max_epochs),
-        checkpoint=checkpoint,
     )
-    runtime_checkpoint = controller.checkpoint
-    if runtime_checkpoint is not None:
-        runtime_checkpoint.checkpt_interval = checkpoint_interval
-        runtime_checkpoint.max_epochs = max_epochs
+    controller.begin_stage("activation", target_pearson=target_pearson)
 
     graph_upd = 0
-    density = compute_density(mask) * 100
+    density = compute_density(mask)
     L, q = fi_target.shape
-
-    print("\n" + "-" * 80)
-    print("[ACTIVATION PHASE]")
-    print("-" * 80)
-    print(f"  Target Pearson: {target_pearson:.2f}")
-    print(f"  Initial density: {density:.3f}%")
 
     # Mask for saving only the upper-diagonal matrix
     mask_save = get_mask_save(L, q, device=device)
@@ -994,42 +815,13 @@ def train_edgeDCA(
     pij_pseudocounted = get_freq_two_points(data=chains[num_chains_logZ_estimate:], pseudo_count=pseudo_count)
     pearson = max(0, float(get_correlation_two_points(fij=fij_target, pij=pij, fi=fi_target, pi=pi)[0]))
 
-    # Number of active couplings
-    nactive = mask.sum()
-
     # Training loop
     time_start = time.time()
     log_likelihood = compute_log_likelihood(fi=fi_target, fij=fij_target, params=params, logZ=logZ)
-    entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
-
-    print(f"  Initial Pearson: {pearson:.4f}")
-    print(f"  Initial log-likelihood per residue: {log_likelihood:.3f}")
-    print("-" * 80 + "\n")
-
     history = controller.history
-
-    timer = Timer(target_pearson=target_pearson)
-    elapsed_time = time.time() - time_start
-    timer.update(time=elapsed_time, pearson=pearson)
-    estimated_total_time = timer.predict()
-
-    if progress_bar:
-        pbar = tqdm(
-            initial=max(0, float(pearson)),
-            total=target_pearson,
-            colour="red",
-            dynamic_ncols=True,
-            ascii="-#",
-            bar_format=_pearson_bar_format(elapsed_time, estimated_total_time),
-        )
-        pbar.set_description(
-            f"Update: {graph_upd:3d} | Density: {density:6.3f}% | New: {0:4d} | LL/L: {log_likelihood:8.3f}"
-        )
 
     while pearson < target_pearson and not controller.structure_limit_reached():
         controller.check_cancellation()
-        nactive_old = nactive
-
         # Update the graph
         ids_edge, mask, params = update_params_edge_activation(
             fij=fij_pseudocounted,
@@ -1037,8 +829,6 @@ def train_edgeDCA(
             params=params,
             mask=mask,
         )
-        # New number of active couplings
-        nactive = mask.sum()
         chains = sampler(chains=chains, params=params, nsweeps=nsweeps)
         graph_upd += 1
         controller.add_structure_step(sweeps=nsweeps)
@@ -1056,7 +846,7 @@ def train_edgeDCA(
 
         # Compute statistics of the training
         pearson, slope = get_correlation_two_points(fij=fij_target, pij=pij, fi=fi_target, pi=pi)
-        density = compute_density(mask) * 100
+        density = compute_density(mask)
         logZ = _update_logZ_edge_activation(
             logZ=logZ,
             ids_edge=ids_edge,
@@ -1065,14 +855,6 @@ def train_edgeDCA(
             chains_estimate=chains[:num_chains_logZ_estimate],
         )
         log_likelihood = compute_log_likelihood(fi=fi_target, fij=fij_target, params=params, logZ=logZ)
-        elapsed_time = time.time() - time_start
-        timer.update(time=elapsed_time, pearson=pearson)
-        estimated_total_time = timer.predict()
-        if progress_bar:
-            pbar.bar_format = _pearson_bar_format(elapsed_time, estimated_total_time)
-            pbar.set_description(
-                f"Update: {graph_upd:3d} | Density: {density:6.3f}% | New: {int(nactive - nactive_old):4d} | LL/L: {log_likelihood:8.3f}"
-            )
         entropy = compute_entropy(chains=chains, params=params, logZ=logZ)
         if fi_val is not None and fij_val is not None:
             log_likelihood_val = compute_log_likelihood(fi=fi_val, fij=fij_val, params=params, logZ=logZ)
@@ -1102,8 +884,6 @@ def train_edgeDCA(
                 "log_weights": torch.ones(len(chains), device=chains.device, dtype=chains.dtype),
             },
         )
-        if progress_bar:
-            pbar.n = min(max(0, float(pearson)), target_pearson)
 
     if pearson >= target_pearson:
         controller.set_stop_reason(StopReason.TARGET_PEARSON)
@@ -1118,7 +898,4 @@ def train_edgeDCA(
             "log_weights": final_log_weights,
         }
     )
-    if progress_bar:
-        pbar.close()
-
     return chains, params, final_log_weights, history

@@ -27,6 +27,7 @@ HISTORY_KEYS = (
     "Density",
     "Time",
 )
+TrainingHistory = dict[str, list[Any]]
 
 
 class StopReason(str, Enum):
@@ -69,6 +70,7 @@ class TrainingCounters:
     gradient_steps: int = 0
     structure_steps: int = 0
     sweeps: int = 0
+    stage: str = "optimization"
 
 
 @dataclass(frozen=True)
@@ -132,7 +134,7 @@ class TrainingController:
         self.observer = observer
         self.is_cancelled = is_cancelled
         self.counters = TrainingCounters()
-        self.history: dict[str, list[Any]] = {key: [] for key in HISTORY_KEYS}
+        self.history: TrainingHistory = {key: [] for key in HISTORY_KEYS}
         self.stop_reason: StopReason | None = None
         self._finalized = False
 
@@ -148,6 +150,19 @@ class TrainingController:
     def add_structure_step(self, *, sweeps: int = 0) -> None:
         self.counters.structure_steps += 1
         self.counters.sweeps += sweeps
+
+    def begin_stage(self, stage: str, **metadata: Any) -> None:
+        """Publish a phase change without coupling algorithms to a renderer."""
+        self.counters.stage = stage
+        if self.checkpoint is not None:
+            begin_stage = getattr(self.checkpoint, "begin_stage", None)
+            if begin_stage is not None:
+                begin_stage(stage, metadata)
+
+    def save_snapshot(self, snapshot: Mapping[str, Any]) -> None:
+        """Persist an explicit phase-boundary snapshot when configured."""
+        if self.checkpoint is not None:
+            self.checkpoint.save(**dict(snapshot))
 
     def remaining_gradient_steps(self) -> int | None:
         limit = self.limits.max_gradient_steps

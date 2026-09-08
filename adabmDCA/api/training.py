@@ -65,6 +65,7 @@ def _progress_observer(progress: ProgressCallback | None):
             TrainingProgress(
                 epoch=int(record.get("Epochs", 0)),
                 metrics=metrics,
+                stage=counters.stage,
                 gradient_steps=counters.gradient_steps,
                 structure_steps=counters.structure_steps,
                 sweeps=counters.sweeps,
@@ -313,11 +314,9 @@ def train_model(
                 target_pearson=target_pearson,
                 fi_val=fi_val,
                 fij_val=fij_val,
-                checkpoint=checkpoint,
                 controller=controller,
                 log_weights=log_weights,
                 l2_reg=l2_regularization,
-                progress_bar=False,
                 slope_tolerance=training_config.slope_tolerance,
             )
         elif model_type == "eaDCA":
@@ -339,11 +338,8 @@ def train_model(
                 gsteps=activation_steps,
                 fi_val=fi_val,
                 fij_val=fij_val,
-                checkpoint=checkpoint,
                 controller=controller,
-                checkpoint_interval=training_config.resolved_checkpoint_interval,
                 l2_reg=l2_regularization,
-                progress_bar=False,
             )
         elif model_type == "edDCA":
             chains, params, log_weights, history = train_edDCA(
@@ -361,14 +357,11 @@ def train_model(
                 drate=decimation_rate,
                 max_epochs=structure_limit,
                 max_gradient_steps=gradient_limit,
-                checkpoint=checkpoint,
                 controller=controller,
                 inner_gradient_steps=training_config.inner_gradient_steps,
-                checkpoint_interval=training_config.resolved_checkpoint_interval,
                 fi_val=fi_val,
                 fij_val=fij_val,
                 l2_reg=l2_regularization,
-                progress_bar=False,
             )
         else:
             chains, params, log_weights, history = train_edgeDCA(
@@ -386,12 +379,9 @@ def train_model(
                 pseudo_count=effective_pseudocount,
                 fi_val=fi_val,
                 fij_val=fij_val,
-                checkpoint=checkpoint,
                 controller=controller,
                 empirical_pseudocount=training_config.edge_empirical_pseudocount,
                 logz_chain_fraction=training_config.edge_logz_chain_fraction,
-                checkpoint_interval=training_config.resolved_checkpoint_interval,
-                progress_bar=False,
             )
     except TrainingCancelled as exc:
         raise OperationCancelledError(str(exc)) from exc

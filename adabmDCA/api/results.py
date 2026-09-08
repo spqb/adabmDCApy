@@ -410,6 +410,7 @@ class TrainingProgress:
 
     epoch: int
     metrics: dict[str, float]
+    stage: str = "optimization"
     gradient_steps: int = 0
     structure_steps: int = 0
     sweeps: int = 0

@@ -4,8 +4,12 @@ from __future__ import annotations
 
 import argparse
 import math
+from typing import TYPE_CHECKING, Any
 
 from adabmDCA.parser import add_args_train
+
+if TYPE_CHECKING:
+    from adabmDCA.api.results import TrainingProgress
 
 
 def create_parser() -> argparse.ArgumentParser:
@@ -15,27 +19,29 @@ def create_parser() -> argparse.ArgumentParser:
 class _TrainingProgressRenderer:
     """Render structured training events for an interactive terminal."""
 
-    def __init__(self, *, target_pearson: float, max_epochs: int) -> None:
+    def __init__(self, *, model_type: str, target_pearson: float, max_steps: int) -> None:
         from tqdm import tqdm
 
-        self._target = target_pearson
-        self._max_epochs = max_epochs
+        self._tracks_gradients = model_type == "bmDCA"
+        self._target_pearson = target_pearson
+        self._max_steps = max_steps
         self._bar = tqdm(
             total=target_pearson,
             colour="red",
             dynamic_ncols=True,
             leave=False,
             ascii="-#",
-            bar_format="  {desc}: [{bar}] Pearson {n:.4f}/{total:.4f} [{elapsed}]",
+            bar_format="  {desc} [{bar}] Pearson {n:.4f}/{total:.4f} [{elapsed}]",
         )
 
-    def __call__(self, event) -> None:
+    def __call__(self, event: TrainingProgress) -> None:
+        completed = event.gradient_steps if self._tracks_gradients else event.structure_steps
         pearson = event.metrics.get("Pearson", 0.0)
+        stage = event.stage.replace("_", " ").title()
+        description = f"{stage} | Step {completed}/{self._max_steps}"
         if math.isfinite(pearson):
-            self._bar.n = min(max(0.0, pearson), self._target)
-        description = f"Step {event.epoch}/{self._max_epochs}"
-        if event.gradient_steps or event.structure_steps:
-            description += f" | gradients {event.gradient_steps} | structure {event.structure_steps}"
+            self._bar.n = min(max(0.0, pearson), self._target_pearson)
+        description += f" | gradients {event.gradient_steps} | structure {event.structure_steps}"
         likelihood = event.metrics.get("LL_train")
         if likelihood is not None and math.isfinite(likelihood):
             description += f" | LL/L {likelihood:.3f}"
@@ -49,7 +55,7 @@ class _TrainingProgressRenderer:
         self._bar.close()
 
 
-def run(args, *, progress=None):
+def run(args: argparse.Namespace, *, progress: Any = None):
     """Execute training from parsed CLI arguments and return its result."""
     from adabmDCA.api.training import train_model
 
@@ -87,7 +93,7 @@ def run(args, *, progress=None):
     )
 
 
-def main(args=None) -> int:
+def main(args: argparse.Namespace | None = None) -> int:
     args = create_parser().parse_args() if args is None else args
 
     from adabmDCA.scripts._frontend import print_completion, print_configuration, print_header
@@ -110,8 +116,13 @@ def main(args=None) -> int:
         None
         if args.no_progress
         else _TrainingProgressRenderer(
+            model_type=args.model,
             target_pearson=args.target,
-            max_epochs=args.nepochs,
+            max_steps=(
+                args.max_gradient_steps or args.nepochs
+                if args.model == "bmDCA"
+                else args.max_structure_steps or args.nepochs
+            ),
         )
     )
     try:

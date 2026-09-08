@@ -122,6 +122,7 @@ class HighLevelApiTests(unittest.TestCase):
         self.assertEqual(len(result.history["Epochs"]), 1)
         self.assertEqual(len(progress_events), 1)
         self.assertEqual(progress_events[0].epoch, 1)
+        self.assertEqual(progress_events[0].stage, "optimization")
         self.assertIn("Pearson", progress_events[0].metrics)
         self.assertEqual(result.gradient_steps, 1)
         self.assertEqual(result.structure_steps, 0)
@@ -133,6 +134,7 @@ class HighLevelApiTests(unittest.TestCase):
         import torch
 
         from adabmDCA.training import train_edgeDCA
+        from adabmDCA.training_control import TrainingController, TrainingLimits
 
         fi = torch.full((2, 2), 0.5)
         fij = torch.full((2, 2, 2, 2), 0.25)
@@ -152,12 +154,16 @@ class HighLevelApiTests(unittest.TestCase):
                 self.logged_epochs.append(record["Epochs"])
 
             def check(self, updates):
-                return updates == self.max_epochs
+                return updates == 2
 
             def save(self, **kwargs):
                 pass
 
         checkpoint = RecordingCheckpoint()
+        controller = TrainingController(
+            limits=TrainingLimits(max_structure_steps=2),
+            checkpoint=checkpoint,
+        )
 
         def sampler(*, chains, params, nsweeps):
             sampler_calls.append(nsweeps)
@@ -189,8 +195,7 @@ class HighLevelApiTests(unittest.TestCase):
                 nsweeps=1,
                 max_epochs=2,
                 pseudo_count=0.1,
-                checkpoint=checkpoint,
-                progress_bar=False,
+                controller=controller,
             )
 
         self.assertEqual(history["Epochs"], [1, 2])
