@@ -30,8 +30,9 @@ DEFAULT_DECIMATION_RATE = 0.01
 DEFAULT_DEVICE = "auto"
 DEFAULT_DTYPE = "float32"
 
-DEFAULT_CHECKPOINT_INTERVAL = 50
-SPARSE_CHECKPOINT_INTERVAL = 10
+DEFAULT_CHECKPOINT_INTERVAL = 100
+# Compatibility alias: all training models now share the same default.
+SPARSE_CHECKPOINT_INTERVAL = DEFAULT_CHECKPOINT_INTERVAL
 DEFAULT_INNER_GRADIENT_STEPS = 10_000
 EDGE_DEFAULT_PSEUDOCOUNT = 0.1
 EDGE_EMPIRICAL_PSEUDOCOUNT = 1e-6
@@ -69,13 +70,15 @@ class TrainingConfig:
     device: str = DEFAULT_DEVICE
     dtype: str = DEFAULT_DTYPE
     use_wandb: bool = False
-    checkpoint_interval: int | None = None
+    checkpoint_interval: int | None = DEFAULT_CHECKPOINT_INTERVAL
     inner_gradient_steps: int = DEFAULT_INNER_GRADIENT_STEPS
     slope_tolerance: float = SLOPE_TOLERANCE
     edge_empirical_pseudocount: float = EDGE_EMPIRICAL_PSEUDOCOUNT
     edge_logz_chain_fraction: float = EDGE_LOGZ_CHAIN_FRACTION
 
     def __post_init__(self) -> None:
+        if self.dtype not in ("float32", "float64", "bfloat16"):
+            raise ConfigurationError("dtype must be float32, float64 or bfloat16.")
         if self.model_type not in MODEL_TYPES:
             raise ConfigurationError(f"Unsupported model_type '{self.model_type}'.")
         if self.sampler not in SAMPLERS:
@@ -167,9 +170,7 @@ class TrainingConfig:
     def resolved_checkpoint_interval(self) -> int:
         if self.checkpoint_interval is not None:
             return self.checkpoint_interval
-        if self.model_type == "bmDCA":
-            return DEFAULT_CHECKPOINT_INTERVAL
-        return SPARSE_CHECKPOINT_INTERVAL
+        return DEFAULT_CHECKPOINT_INTERVAL
 
     @property
     def empirical_pseudocount(self) -> float | None:

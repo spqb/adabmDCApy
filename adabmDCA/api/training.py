@@ -8,7 +8,7 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from adabmDCA.api.exceptions import OperationCancelledError
+from adabmDCA.api.exceptions import InputValidationError, OperationCancelledError
 from adabmDCA.api.input_loading import load_training_inputs
 from adabmDCA.api.model import DCAModel
 from adabmDCA.api.results import TrainingProgress, TrainingResult
@@ -16,12 +16,13 @@ from adabmDCA.api.runtime import resolve_runtime
 from adabmDCA.checkpoint import Checkpoint
 from adabmDCA.fasta import get_tokens
 from adabmDCA.input_loading import AlignmentInput, WeightInput
-from adabmDCA.sampling import prepare_sampler
+from adabmDCA.sampling import prepare_training_sampler
 from adabmDCA.training import train_eaDCA, train_edDCA, train_edgeDCA, train_graph
 from adabmDCA.training_config import (
     DEFAULT_ACTIVATION_FRACTION,
     DEFAULT_ACTIVATION_STEPS,
     DEFAULT_ALPHABET,
+    DEFAULT_CHECKPOINT_INTERVAL,
     DEFAULT_CLUSTERING_SEQID,
     DEFAULT_DECIMATION_RATE,
     DEFAULT_DEVICE,
@@ -95,6 +96,7 @@ def train_model(
     max_epochs: int = DEFAULT_MAX_EPOCHS,
     max_gradient_steps: int | None = None,
     max_structure_steps: int | None = None,
+    checkpoint_interval: int | None = DEFAULT_CHECKPOINT_INTERVAL,
     pseudocount: float | None = None,
     l2_regularization: float = DEFAULT_L2_REGULARIZATION,
     seed: int = DEFAULT_SEED,
@@ -116,6 +118,13 @@ def train_model(
     Persistence is optional. Set ``output_dir`` to retain the historical
     parameter, chain, weight, and log artifacts; omit it for an in-memory
     notebook workflow.
+    ``checkpoint_interval`` controls periodic parameter/chain saves (default
+    100 steps). The final state is also saved when training finishes.
+
+    ``dtype='bfloat16'`` uses BF16 coupling copies for CUDA/Triton sampling,
+    with float32 master parameters, statistics, chains and saved models.
+    Requires an NVIDIA Ampere or newer GPU. Sampling uses rounded couplings,
+    so the training trajectory can differ from float32.
     """
     training_config = config or TrainingConfig(
         model_type=model_type,
@@ -128,6 +137,7 @@ def train_model(
         max_epochs=max_epochs,
         max_gradient_steps=max_gradient_steps,
         max_structure_steps=max_structure_steps,
+        checkpoint_interval=checkpoint_interval,
         pseudocount=pseudocount,
         l2_regularization=l2_regularization,
         seed=seed,
@@ -166,7 +176,12 @@ def train_model(
     if is_cancelled is not None and is_cancelled():
         raise OperationCancelledError("Model training was cancelled by the caller.")
 
-    resolved_device, resolved_dtype = resolve_runtime(device, dtype)
+    master_dtype = "float32" if dtype == "bfloat16" else dtype
+    resolved_device, resolved_dtype = resolve_runtime(device, master_dtype)
+    try:
+        sampling_function = prepare_training_sampler(sampler, resolved_device, dtype)
+    except ValueError as exc:
+        raise InputValidationError(str(exc)) from exc
     tokens = get_tokens(alphabet)
     torch.manual_seed(seed)
     if resolved_device.type == "cuda":
@@ -297,7 +312,6 @@ def train_model(
         observer=_progress_observer(progress),
         is_cancelled=is_cancelled,
     )
-    sampling_function = prepare_sampler(sampler, params["bias"].device)
 
     try:
         if model_type == "bmDCA":

@@ -4,6 +4,7 @@ from adabmDCA.training_config import (
     DEFAULT_ACTIVATION_FRACTION,
     DEFAULT_ACTIVATION_STEPS,
     DEFAULT_ALPHABET,
+    DEFAULT_CHECKPOINT_INTERVAL,
     DEFAULT_CLUSTERING_SEQID,
     DEFAULT_DECIMATION_RATE,
     DEFAULT_DEVICE,
@@ -119,6 +120,12 @@ def add_args_dca(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         "--max-structure-steps", type=int, default=None, help="Optional limit on graph activation or decimation steps."
     )
     dca_args.add_argument(
+        "--checkpoint-interval",
+        type=int,
+        default=DEFAULT_CHECKPOINT_INTERVAL,
+        help="Save parameters and chains every N training steps (default: 100). The final state is also saved.",
+    )
+    dca_args.add_argument(
         "--pseudocount",
         type=float,
         default=None,
@@ -142,7 +149,14 @@ def add_args_dca(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         help="(Defaults to 'auto'). Device to use: CUDA if available, otherwise MPS, otherwise CPU.",
     )
     dca_args.add_argument(
-        "--dtype", type=str, default=DEFAULT_DTYPE, help="(Defaults to 'float32'). Data type to be used."
+        "--dtype",
+        type=str,
+        default=DEFAULT_DTYPE,
+        choices=("float32", "float64", "bfloat16"),
+        help=(
+            "Training precision (default: float32). bfloat16 uses BF16 sampling couplings "
+            "with FP32 master parameters; requires Ampere+ CUDA and Triton."
+        ),
     )
 
     return parser

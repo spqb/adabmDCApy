@@ -131,6 +131,10 @@ print(training.gradient_steps, training.structure_steps, training.sweeps)
 `max_gradient_steps=` and `max_structure_steps=`. Progress events expose the
 same counters in addition to the legacy `epoch` field.
 
+Use `checkpoint_interval=200` to change periodic parameter/chain saves from
+the default of 100 steps. A final checkpoint is saved when training finishes,
+including runs shorter than the interval. Saving requires `output_dir`.
+
 For reproducible applications, collect training values in the immutable,
 validated configuration object:
 

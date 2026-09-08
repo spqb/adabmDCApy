@@ -118,7 +118,7 @@ def gibbs_sampling(
     L = params["bias"].shape[0]
     chains_mutate = chains.clone() # avoids to modify the chains inplace
     num_steps = nsweeps * L
-    for _ in torch.arange(num_steps):
+    for _ in range(num_steps):
         chains_mutate = gibbs_step_uniform_sites(chains_mutate, params, beta)
 
     return chains_mutate
@@ -226,7 +226,7 @@ def metropolis_sampling(
     L = params["bias"].shape[0]
     chains_mutate = chains.clone() # avoids to modify the chains inplace
     num_steps = nsweeps * L
-    for _ in torch.arange(num_steps):
+    for _ in range(num_steps):
         chains_mutate = metropolis_step_uniform_sites(chains_mutate, params, beta)
 
     return chains_mutate
@@ -253,7 +253,7 @@ def get_sampler(sampling_method: str) -> Callable:
 
 
 def prepare_sampler(sampling_method: str, device: torch.device) -> Callable:
-    """Select a fused CUDA sampler when it outperforms the scripted fallback."""
+    """Select a fused CUDA sampler, or the scripted sampler without Triton."""
     sampler = get_sampler(sampling_method)
     scripted_sampler = torch.jit.script(sampler)
     if device.type == "cuda":
@@ -268,19 +268,43 @@ def prepare_sampler(sampling_method: str, device: torch.device) -> Callable:
                 if sampling_method == "metropolis":
                     return metropolis_sampling_triton
 
-                def adaptive_gibbs(
-                    chains: torch.Tensor,
-                    params: Dict[str, torch.Tensor],
-                    nsweeps: int,
-                    beta: float = 1.0,
-                ) -> torch.Tensor:
-                    # The gather-based Gibbs kernel wins while its N*L working
-                    # set remains modest; dense cuBLAS wins beyond this point.
-                    if chains.shape[0] * chains.shape[1] <= 250_000:
-                        return gibbs_sampling_triton(chains, params, nsweeps, beta)
-                    return scripted_sampler(chains, params, nsweeps, beta)
-
-                return adaptive_gibbs
+                # The former N*L threshold described the old strided gather
+                # kernel. Contiguous candidate loads also win above it.
+                return gibbs_sampling_triton
         except ImportError:
             pass
     return scripted_sampler
+
+
+def prepare_training_sampler(sampling_method: str, device: torch.device, dtype: str = "float32") -> Callable:
+    """Prepare sampling for training with optional BF16 coupling storage.
+
+    In bfloat16 mode, parameters, chains and statistics outside the sampler stay
+    float32. A fresh BF16 coupling copy is made after each parameter update;
+    biases and all field/acceptance arithmetic remain float32. The rounded
+    coupling matrix approximates the master model, so trajectories can change.
+    """
+    if dtype != "bfloat16":
+        return prepare_sampler(sampling_method, device)
+    from adabmDCA.sampling_triton import is_triton_available
+
+    if device.type != "cuda" or not torch.cuda.is_available() or not is_triton_available():
+        raise ValueError("bfloat16 training requires CUDA and Triton")
+    if torch.cuda.get_device_capability(device)[0] < 8:
+        raise ValueError("bfloat16 training requires an NVIDIA Ampere or newer GPU")
+    sampler = prepare_sampler(sampling_method, device)
+
+    def mixed_precision_sampler(
+        chains: torch.Tensor,
+        params: Dict[str, torch.Tensor],
+        nsweeps: int,
+        beta: float = 1.0,
+    ) -> torch.Tensor:
+        if chains.dtype != torch.float32 or any(value.dtype != torch.float32 for value in params.values()):
+            raise ValueError("bfloat16 training requires float32 master parameters and chains")
+        if nsweeps == 0 or chains.shape[0] == 0:
+            return chains.clone()
+        # Gibbs fuses conversion with transposition into a single BF16 copy.
+        return sampler(chains, params, nsweeps, beta, coupling_dtype=torch.bfloat16)
+
+    return mixed_precision_sampler

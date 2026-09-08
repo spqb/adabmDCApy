@@ -42,6 +42,7 @@ def test_api_and_cli_defaults_share_canonical_values():
         "n_chains": DEFAULT_N_CHAINS,
         "target_pearson": DEFAULT_TARGET_PEARSON,
         "max_epochs": DEFAULT_MAX_EPOCHS,
+        "checkpoint_interval": DEFAULT_CHECKPOINT_INTERVAL,
         "l2_regularization": DEFAULT_L2_REGULARIZATION,
         "seed": DEFAULT_SEED,
         "clustering_seqid": DEFAULT_CLUSTERING_SEQID,
@@ -65,6 +66,7 @@ def test_api_and_cli_defaults_share_canonical_values():
     assert parser.get_default("gsteps") == DEFAULT_ACTIVATION_STEPS
     assert parser.get_default("density") == DEFAULT_TARGET_DENSITY
     assert parser.get_default("sampler") == "metropolis"
+    assert parser.get_default("checkpoint_interval") == DEFAULT_CHECKPOINT_INTERVAL == 100
 
     from adabmDCA.api.entropy import estimate_entropy
     from adabmDCA.api.model import DCAModel
@@ -76,6 +78,9 @@ def test_api_and_cli_defaults_share_canonical_values():
 
 
 def test_model_aware_limits_and_checkpoint_intervals():
+    for model in ("bmDCA", "eaDCA", "edDCA", "edgeDCA"):
+        assert TrainingConfig(model_type=model).resolved_checkpoint_interval == 100
+        assert TrainingConfig(model_type=model, checkpoint_interval=None).resolved_checkpoint_interval == 100
     dense = TrainingConfig(max_epochs=12)
     assert dense.limits.max_gradient_steps == 12
     assert dense.limits.max_structure_steps is None
@@ -140,3 +145,47 @@ def test_advanced_runtime_values_are_serialized():
     assert serialized["inner_gradient_steps"] == 17
     assert serialized["slope_tolerance"] == 0.05
     assert serialized["edge_logz_chain_fraction"] == 0.3
+
+
+def test_cli_forwards_checkpoint_interval():
+    from unittest.mock import patch
+
+    from adabmDCA.scripts.train import create_parser, run
+
+    args = create_parser().parse_args(["-d", "alignment.fasta", "--checkpoint-interval", "7"])
+    with patch("adabmDCA.api.training.train_model") as train:
+        run(args)
+    assert train.call_args.kwargs["checkpoint_interval"] == 7
+
+
+@pytest.mark.parametrize("interval, saved_epochs", [(100, [5]), (3, [3, 5])])
+def test_checkpoint_schedule_and_early_final_save(tmp_path, interval, saved_epochs):
+    from unittest.mock import patch
+
+    from adabmDCA.checkpoint import Checkpoint
+
+    fasta = tmp_path / "tiny.fasta"
+    fasta.write_text(">s1\nAAAA\n>s2\nAABB\n>s3\nBBAA\n>s4\nBBBB\n")
+    observed = []
+    save = Checkpoint.save
+
+    def record_save(checkpoint, **snapshot):
+        observed.append(checkpoint.logs["Epochs"])
+        save(checkpoint, **snapshot)
+
+    # Reach the target at step five, before the configured maximum of ten.
+    correlations = [(0.0, 1.0)] * 5 + [(1.0, 1.0)]
+    with (
+        patch.object(Checkpoint, "save", record_save),
+        patch("adabmDCA.training.get_correlation_two_points", side_effect=correlations),
+    ):
+        result = train_model(
+            fasta, output_dir=tmp_path / "model", alphabet="AB-", device="cpu",
+            n_chains=8, n_sweeps=1, max_epochs=10, checkpoint_interval=interval,
+            target_pearson=0.9, no_reweighting=True,
+        )
+    assert result.gradient_steps == 5
+    assert observed == saved_epochs
+    assert result.config.checkpoint_interval == interval
+    assert result.artifacts["params"].is_file()
+    assert result.artifacts["chains"].is_file()

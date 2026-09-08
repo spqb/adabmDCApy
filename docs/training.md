@@ -66,6 +66,42 @@ For a quick coarse model, set:
 
 ---
 
+## Optional bfloat16 sampling during training
+
+The Python implementation supports mixed-precision training on NVIDIA Ampere
+or newer CUDA GPUs with Triton installed:
+
+```bash
+adabmDCA train -m bmDCA -d alignment.fasta -o model --device cuda --dtype bfloat16
+```
+
+In Python, use `train_model(..., device="cuda", dtype="bfloat16")` or
+`TrainingConfig(device="cuda", dtype="bfloat16")`. Both Gibbs and Metropolis
+support this mode for all four training algorithms. The default remains
+`float32`; `float64` is also unchanged.
+
+`bfloat16` is a mixed-precision training mode: fresh BF16 coupling copies are
+used inside sampling, while biases, master parameters, chains, frequency
+estimates, parameter updates and AIS/energy calculations remain FP32. The
+kernels convert loaded couplings to FP32 before arithmetic, and uniform random
+numbers remain FP32. Gibbs combines quantization and transposition in one
+copy. Nothing is cached across parameter updates.
+
+Saved models remain FP32 and work with the existing sampling, scoring and
+resume workflows. `result.config.dtype` records `bfloat16`, while
+`result.model.metadata.dtype` reports the actual master dtype, `float32`.
+Use `--dtype bfloat16` again when resuming to retain mixed-precision sampling.
+Other commands' `--dtype` options continue to accept float32/float64.
+
+Rounding couplings slightly changes the sampled model and can change the
+training trajectory. This mode is optional; compare convergence and final
+statistics for your data. It reduces sampling coupling bandwidth, but does
+not halve total training memory or accelerate FP32 statistics and energy
+calculations. Overall speedups depend on the workload. CPU and pre-Ampere
+GPUs reject this mode with an explicit error.
+
+---
+
 ## Output Files
 
 During training, adabmDCA maintains three output files:
@@ -78,9 +114,19 @@ During training, adabmDCA maintains three output files:
 
 - **`<label>_adabmDCA.log`** – Log file updated throughout training
 
-**Update intervals:**
-- `bmDCA`: every 50 updates  
-- `eaDCA`, `edDCA`, `edgeDCA`: every 10 updates  
+Parameters and chains are saved every **100 training steps** by default for
+all models. Set a positive interval with `--checkpoint-interval`, for example:
+
+```bash
+adabmDCA train -d alignment.fasta -o model --checkpoint-interval 200
+```
+
+In Python, use `train_model(..., checkpoint_interval=200)` or
+`TrainingConfig(checkpoint_interval=200)`. Checkpoints follow the training
+stage's step counter (gradient updates during optimization, graph updates
+during activation/decimation). Final states and explicit phase-boundary
+snapshots are saved regardless of the interval. Metrics are still logged
+every step.
 
 ---
 

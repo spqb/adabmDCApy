@@ -25,11 +25,12 @@ In this section we list all the possible command-line arguments for the main rou
 | `--nepochs`             | 50000        | Compatibility limit: gradient steps for bmDCA, structure steps for sparse models. |
 | `--max-gradient-steps`  | None         | Global limit on parameter-gradient updates, including nested eaDCA/edDCA optimization. |
 | `--max-structure-steps` | None         | Limit on graph activation or decimation steps. |
+| `--checkpoint-interval` | 100         | Save parameters and chains every N training steps. Final states are also saved. |
 | `--pseudocount`        | None         | Pseudo count for the single and two-sites statistics. Acts as a regularization. If `None`, it is set to `0.1` for `edgeDCA` and $1/M_{\mathrm{eff}}$ otherwise. |
 | `--seed`               | 0            | Random seed. |
 | `--nthreads`¹         | 1            | Number of threads used in the Julia multithreaded version. |
 | `--device`¹           | auto         | Select CUDA when available, otherwise MPS, otherwise CPU. |
-| `--dtype`¹            | float32      | Data type to be used between float32 and float64. Used in the Python version. |
+| `--dtype`¹            | float32      | Training precision: float32, float64, or bfloat16 (BF16 sampling couplings with FP32 master state; Ampere+ CUDA and Triton required). Used in the Python version. |
 
 ### eaDCA options
 

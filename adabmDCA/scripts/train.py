@@ -41,13 +41,12 @@ class _TrainingProgressRenderer:
         description = f"{stage} | Step {completed}/{self._max_steps}"
         if math.isfinite(pearson):
             self._bar.n = min(max(0.0, pearson), self._target_pearson)
-        description += f" | gradients {event.gradient_steps} | structure {event.structure_steps}"
         likelihood = event.metrics.get("LL_train")
         if likelihood is not None and math.isfinite(likelihood):
             description += f" | LL/L {likelihood:.3f}"
         density = event.metrics.get("Density")
         if density is not None and math.isfinite(density):
-            description += f" | density {density:.4f}"
+            description += f" | density {density:.2f}"
         self._bar.set_description(description)
         self._bar.refresh()
 
@@ -77,6 +76,7 @@ def run(args: argparse.Namespace, *, progress: Any = None):
         max_epochs=args.nepochs,
         max_gradient_steps=args.max_gradient_steps,
         max_structure_steps=args.max_structure_steps,
+        checkpoint_interval=args.checkpoint_interval,
         pseudocount=args.pseudocount,
         l2_regularization=args.l2_reg,
         seed=args.seed,
@@ -105,9 +105,12 @@ def main(args: argparse.Namespace | None = None) -> int:
             "validation": args.val,
             "output": args.output,
             "model": args.model,
+            "sampler": args.sampler,
             "alphabet": args.alphabet,
             "max epochs": args.nepochs,
+            "checkpoint interval": args.checkpoint_interval,
             "target Pearson": args.target,
+            "number of chains": args.nchains,
             "device": args.device,
             "dtype": args.dtype,
         }
