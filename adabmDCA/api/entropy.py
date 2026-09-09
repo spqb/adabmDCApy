@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import math
 import time
+import warnings
 from collections.abc import Callable
 from dataclasses import replace
 from pathlib import Path
@@ -58,7 +59,11 @@ def estimate_entropy(
     progress: EntropyProgress | None = None,
     is_cancelled: Callable[[], bool] | None = None,
 ) -> ThermodynamicIntegrationResult:
-    """Estimate model entropy with bounded, observable thermodynamic integration."""
+    """Estimate model entropy with bounded, observable thermodynamic integration.
+
+    Use the first valid sequence in ``target_alignment`` in input order. If
+    multiple valid sequences are provided, emit a warning and ignore the rest.
+    """
     for name, value in {
         "n_chains": n_chains,
         "n_sweeps": n_sweeps,
@@ -96,14 +101,15 @@ def estimate_entropy(
         config=AlignmentLoadConfig(
             alphabet=loaded_model.alphabet,
             invalid_sequences="drop",
-            remove_duplicates=True,
             expected_length=length,
         ),
     )
-    if target.alignment.num_sequences != 1:
-        raise InputValidationError(
-            "target_alignment must contain exactly one unique valid sequence.",
-            details={"sequences": target.alignment.num_sequences},
+    if target.alignment.num_sequences > 1:
+        warnings.warn(
+            f"target_alignment contains {target.alignment.num_sequences} valid sequences; "
+            f"using only the first ({target.alignment.names[0]!r}) for entropy estimation.",
+            UserWarning,
+            stacklevel=2,
         )
     target_sequence = one_hot(
         torch.as_tensor(target.encoded_sequences[0], device=runtime_device, dtype=torch.int64),

@@ -420,7 +420,8 @@ def add_args_tdint(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         "-d", "--data", type=str, required=True, help="Path to the file containing the data to sample from."
     )
     parser.add_argument(
-        "-t", "--path_targetseq", type=str, required=True, help="Path to the file containing the target sequence."
+        "-t", "--path_targetseq", type=str, required=True,
+        help="Path to the target alignment. Uses the first valid sequence and warns if more than one is present."
     )
     parser.add_argument(
         "-o", "--output", type=str, default="DCA_model", help="Path to the folder where to save the output."

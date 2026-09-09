@@ -10,6 +10,12 @@ adabmDCA entropy \
   -o <output_folder>
 ```
 
+The target file (`-t` / `--path_targetseq`) may contain multiple sequences.
+Entropy estimation uses the first valid sequence in input order and emits a
+warning if additional valid sequences are present, including duplicates.
+Sequences with invalid alphabet symbols are dropped; an input with no valid
+sequences still raises an error.
+
 ## Biased Model
 
 Starting from the trained model with energy \(E_0(x)\), the script defines a one-parameter family of models
