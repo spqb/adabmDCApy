@@ -1,3 +1,4 @@
+import math
 from typing import Dict, Optional, Tuple, Union
 
 import numpy as np
@@ -5,6 +6,7 @@ import pandas as pd
 import torch
 from torch.nn.functional import one_hot
 
+from adabmDCA._validation import validate_finite_parameters
 from adabmDCA.alignment import Alignment, read_alignment, write_alignment
 from adabmDCA.alphabet import get_tokens
 from adabmDCA.fasta import decode_sequence, encode_sequence, validate_alphabet
@@ -193,14 +195,20 @@ def load_params(
                 j_idx2.append(token_to_idx[parts[3]])
                 j_idx3.append(token_to_idx[parts[4]])
                 try:
-                    j_values.append(float(parts[5]))
+                    value = float(parts[5])
+                    if not math.isfinite(value):
+                        raise ValueError("Coupling values must be finite.")
+                    j_values.append(value)
                 except ValueError as exc:
                     raise ValueError(f"Invalid coupling value on line {line_number}.") from exc
                 if len(j_values) >= chunk_size:
                     flush_couplings()
             elif parts[0] == "h":
                 try:
-                    h[int(parts[1]), token_to_idx[parts[2]]] = float(parts[3])
+                    value = float(parts[3])
+                    if not math.isfinite(value):
+                        raise ValueError("Bias values must be finite.")
+                    h[int(parts[1]), token_to_idx[parts[2]]] = value
                 except ValueError as exc:
                     raise ValueError(f"Invalid bias value on line {line_number}.") from exc
     flush_couplings()
@@ -217,10 +225,12 @@ def load_params(
 
     bias = torch.from_numpy(h)
     couplings = torch.from_numpy(J)
-    return {
+    params = {
         "bias": bias.to(device=device, dtype=dtype),
         "coupling_matrix": couplings.to(device=device, dtype=dtype),
     }
+    validate_finite_parameters(params)
+    return params
     
     
 def load_params_old(

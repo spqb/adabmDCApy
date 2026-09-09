@@ -12,6 +12,7 @@ nav:
   - High-level Python API: high_level_api.md
   - Quicklist: quicklist.md
   - Script arguments: script_arguments.md
+  - Release verification: release_checks.md
   - Python APIs:
       - Overview: api/README.md
       - Fasta utils: api/adabmDCA.fasta.md

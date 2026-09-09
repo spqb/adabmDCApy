@@ -11,6 +11,7 @@ from pathlib import Path
 import numpy as np
 import torch
 
+from adabmDCA._validation import validate_integer, validate_seed
 from adabmDCA.api.exceptions import (
     ConvergenceError,
     InputValidationError,
@@ -65,10 +66,9 @@ def estimate_entropy(
         "zero_sweeps": zero_sweeps,
         "max_theta_iterations": max_theta_iterations,
     }.items():
-        if value < 1:
-            raise InputValidationError(f"{name} must be positive.")
-    if n_steps < 2:
-        raise InputValidationError("n_steps must be at least 2 for trapezoidal integration.")
+        validate_integer(name, value)
+    validate_integer("n_steps", n_steps, minimum=2)
+    validate_seed(seed)
     if not math.isfinite(theta_max) or theta_max <= 0:
         raise InputValidationError("theta_max must be positive.")
     if not 0.0 < target_fraction < 1.0:

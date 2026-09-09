@@ -12,7 +12,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Protocol
 
-from adabmDCA.api.exceptions import InputValidationError
+from adabmDCA._validation import validate_integer
 
 HISTORY_KEYS = (
     "Epochs",
@@ -56,11 +56,8 @@ class TrainingLimits:
             ("max_gradient_steps", self.max_gradient_steps),
             ("max_structure_steps", self.max_structure_steps),
         ):
-            if value is not None and value < 1:
-                raise InputValidationError(
-                    f"{name} must be positive when provided.",
-                    details={"name": name, "value": value},
-                )
+            if value is not None:
+                validate_integer(name, value)
 
 
 @dataclass

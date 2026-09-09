@@ -2,9 +2,14 @@ name: Test adabmDCA
 
 on:
   push:
-    branches: [develop, main]
+    branches: [develop, main, agent-api]
+    tags: ['v*']
   pull_request:
-    branches: [main]
+    branches: [main, develop, agent-api]
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   test:
@@ -23,13 +28,13 @@ jobs:
     - name: 📦 Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -e .
+        python -m pip install -e . --group dev
 
     - name: 📂 Create test output directory
       run: mkdir -p test_outputs
 
     - name: 🧪 Run Python API and CLI unit tests
-      run: python -m unittest discover -s tests -v
+      run: python -m pytest -q --junitxml=test_outputs/pytest.xml
 
     # Train bmDCA model (quick test with target=0.2)
     - name: 🧬 Train bmDCA model

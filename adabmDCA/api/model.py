@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 
 import torch
 
+from adabmDCA._validation import validate_finite_parameters
 from adabmDCA.api.exceptions import AdabmDCAError, InputValidationError, ModelLoadError
 from adabmDCA.api.results import ModelMetadata
 from adabmDCA.api.runtime import resolve_runtime
@@ -17,7 +18,12 @@ from adabmDCA.io import load_params
 if TYPE_CHECKING:
     from collections.abc import Iterable
 
-    from adabmDCA.api.results import ContactMapResult, EnergyResult, MutationScanResult, SamplingResult
+    from adabmDCA.api.results import (
+        ContactMapResult,
+        EnergyResult,
+        MutationScanResult,
+        SamplingResult,
+    )
 
 
 def _package_version() -> str | None:
@@ -45,11 +51,17 @@ class DCAModel:
             raise InputValidationError("Model parameters must contain 'bias' and 'coupling_matrix'.")
         bias = params["bias"]
         couplings = params["coupling_matrix"]
+        if not isinstance(bias, torch.Tensor) or not isinstance(couplings, torch.Tensor):
+            raise InputValidationError("Model parameters must be tensors.")
         if bias.ndim != 2 or couplings.shape != (*bias.shape, *bias.shape):
             raise InputValidationError(
                 "Model parameter shapes are inconsistent.",
                 details={"bias_shape": tuple(bias.shape), "coupling_shape": tuple(couplings.shape)},
             )
+        try:
+            validate_finite_parameters(params)
+        except ValueError as exc:
+            raise InputValidationError(str(exc)) from exc
         try:
             tokens = get_tokens(alphabet)
         except (TypeError, ValueError) as exc:

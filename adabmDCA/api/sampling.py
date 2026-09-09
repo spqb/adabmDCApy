@@ -8,6 +8,7 @@ from pathlib import Path
 
 import torch
 
+from adabmDCA._validation import validate_integer, validate_seed
 from adabmDCA.api.exceptions import InputValidationError, OperationCancelledError
 from adabmDCA.api.model import DCAModel, load_model
 from adabmDCA.api.results import SamplingProgress, SamplingResult
@@ -78,20 +79,17 @@ def sample_sequences(
     ``mixing_multiplier`` times the estimated mixing time. Otherwise,
     generation runs for exactly ``n_sweeps``.
     """
-    if n_sequences < 1:
-        raise InputValidationError("n_sequences must be at least 1.")
-    if n_sweeps < 0:
-        raise InputValidationError("n_sweeps cannot be negative.")
+    validate_integer("n_sequences", n_sequences)
+    validate_integer("n_sweeps", n_sweeps, minimum=0)
+    validate_integer("mixing_multiplier", mixing_multiplier)
+    validate_integer("n_measure", n_measure)
+    validate_seed(seed)
     if reference_fasta is not None and n_sweeps < 1:
         raise InputValidationError("n_sweeps must be at least 1 when estimating mixing time.")
     if sampler not in {"gibbs", "metropolis"}:
         raise InputValidationError("sampler must be either 'gibbs' or 'metropolis'.")
     if not math.isfinite(beta) or beta <= 0:
         raise InputValidationError("beta must be greater than zero.")
-    if mixing_multiplier < 1:
-        raise InputValidationError("mixing_multiplier must be at least 1.")
-    if n_measure < 1:
-        raise InputValidationError("n_measure must be at least 1.")
     if pseudocount is not None and not 0.0 <= pseudocount <= 1.0:
         raise InputValidationError("pseudocount must be between 0 and 1.")
     if not 0.0 < clustering_seqid <= 1.0:

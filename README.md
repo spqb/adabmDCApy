@@ -80,7 +80,7 @@ handling.
 
 ## License
 
-This package is open-sourced under the MIT License.
+This package is open-sourced under the [Apache License 2.0](LICENSE).
 
 ## Citation
 

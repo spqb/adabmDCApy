@@ -6,6 +6,7 @@ import math
 from dataclasses import asdict, dataclass
 from typing import Any
 
+from adabmDCA._validation import validate_integer, validate_seed
 from adabmDCA.api.exceptions import InputValidationError
 from adabmDCA.training_control import TrainingLimits
 
@@ -121,6 +122,8 @@ class TrainingConfig:
         if self.checkpoint_interval is not None:
             self._positive("checkpoint_interval", self.checkpoint_interval)
         self._positive("inner_gradient_steps", self.inner_gradient_steps)
+        self._positive("activation_steps", self.activation_steps)
+        validate_seed(self.seed, error_type=ConfigurationError)
 
         if self.model_type != "edgeDCA" and self.learning_rate <= 0.0:
             raise ConfigurationError("learning_rate must be positive.")
@@ -139,7 +142,6 @@ class TrainingConfig:
         if not 0.0 < self.edge_logz_chain_fraction < 1.0:
             raise ConfigurationError("edge_logz_chain_fraction must be larger than 0 and smaller than 1.")
         if self.model_type == "eaDCA":
-            self._positive("activation_steps", self.activation_steps)
             if not 0.0 < self.activation_fraction <= 1.0:
                 raise ConfigurationError("activation_fraction must be larger than 0 and at most 1.")
         if self.model_type == "edDCA":
@@ -150,8 +152,7 @@ class TrainingConfig:
 
     @staticmethod
     def _positive(name: str, value: int) -> None:
-        if value < 1:
-            raise ConfigurationError(f"{name} must be positive.")
+        validate_integer(name, value, error_type=ConfigurationError)
 
     @property
     def limits(self) -> TrainingLimits:

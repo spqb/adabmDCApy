@@ -5,6 +5,7 @@ from __future__ import annotations
 import numpy as np
 import torch
 
+from adabmDCA._validation import validate_integer, validate_seed
 from adabmDCA.alignment import Alignment
 from adabmDCA.api.exceptions import ConvergenceError, InputValidationError
 from adabmDCA.api.results import ProfileSplitResult
@@ -28,14 +29,11 @@ def split_alignment(
     device: str = "auto",
 ) -> ProfileSplitResult:
     """Split an alignment and retain the best Cobalt partition."""
-    if attempts < 1:
-        raise InputValidationError("attempts must be positive.")
+    validate_integer("attempts", attempts)
+    validate_seed(seed)
     for name, value in {"max_train": max_train, "max_test": max_test}.items():
-        if value is not None and value < 1:
-            raise InputValidationError(
-                f"{name} must be positive when provided.",
-                details={"name": name, "value": value},
-            )
+        if value is not None:
+            validate_integer(name, value)
     for name, threshold in {"t1": t1, "t2": t2, "t3": t3}.items():
         if not 0.0 <= threshold <= 1.0:
             raise InputValidationError(f"{name} must be between 0 and 1.")
