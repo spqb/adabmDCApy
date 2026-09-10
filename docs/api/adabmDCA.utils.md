@@ -10,7 +10,7 @@
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/utils.py#L117"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/utils.py#L118"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `init_parameters`
 
@@ -36,7 +36,7 @@ Initialize the parameters of the DCA model. The bias terms are initialized from 
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/utils.py#L138"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/utils.py#L139"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `init_chains`
 
@@ -73,7 +73,7 @@ Initialize the Markov chains of the DCA model. If 'fi' is provided, the chains a
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/utils.py#L168"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/utils.py#L169"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `get_mask_save`
 
@@ -96,6 +96,32 @@ Returns the mask to save the upper-triangular part of the coupling matrix.
 **Returns:**
  
  - <b>`torch.Tensor`</b>:  Mask. 
+
+
+---
+
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/utils.py#L187"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+
+## <kbd>function</kbd> `systematic_resampling`
+
+```python
+systematic_resampling(chains: Tensor, weights: Tensor) → Tensor
+```
+
+Performs the systematic resampling of the chains according to their relative weight. 
+
+
+
+**Args:**
+ 
+ - <b>`chains`</b> (torch.Tensor):  Chains. 
+ - <b>`weights`</b> (torch.Tensor):  Weights of the chains. 
+
+
+
+**Returns:**
+ 
+ - <b>`torch.Tensor`</b>:  Resampled chains. 
 
 
 ---
@@ -141,7 +167,7 @@ Returns the device where to store the tensors.
 
 **Args:**
  
- - <b>`device`</b> (str): Device to use. `auto` prefers CUDA, then MPS, then CPU. Explicit values include `cpu`, `cuda`, and `mps`.
+ - <b>`device`</b> (str):  Device to use. ``auto`` prefers CUDA, then MPS, then CPU.  Explicit values include ``cpu``, ``cuda`` and ``mps``. 
  - <b>`message`</b> (bool, optional):  Print the device. Defaults to True. 
 
 
@@ -153,7 +179,7 @@ Returns the device where to store the tensors.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/utils.py#L259"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/utils.py#L269"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `get_dtype`
 
@@ -178,7 +204,7 @@ Returns the data type of the tensors.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/utils.py#L276"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/utils.py#L286"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `parse_log_file`
 
@@ -203,7 +229,7 @@ Parse a DCA training log file.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/utils.py#L7"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/utils.py#L8"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `Timer`
 Track recent ``(time, pearson)`` points and predict when a target Pearson is reached. 
@@ -214,7 +240,7 @@ The prediction assumes a power-law relation in log-space:
 
 Fitting starts only after ``burnout`` updates have been observed and once at least ``min_points`` buffered points are available. 
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/utils.py#L18"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/utils.py#L19"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `__init__`
 
@@ -236,7 +262,7 @@ __init__(
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/utils.py#L64"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/utils.py#L65"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `predict`
 
@@ -254,7 +280,7 @@ Predict the total training time needed to reach the configured target Pearson.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/utils.py#L46"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/utils.py#L47"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `update`
 

@@ -10,7 +10,7 @@
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/resampling.py#L7"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/resampling.py#L9"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `compute_mixing_time`
 
@@ -18,10 +18,10 @@
 compute_mixing_time(
     sampler: Callable[, Tensor],
     data: Tensor,
-    params: Dict[str, Tensor],
+    params: dict[str, Tensor],
     n_max_sweeps: int,
     beta: float
-) → Dict[str, List[Union[float, int]]]
+) → dict[str, list[float | int]]
 ```
 
 Computes the mixing time using the t and t/2 method. The sampling will halt when the mixing time is reached or the limit of `n_max_sweeps` sweeps is reached. 

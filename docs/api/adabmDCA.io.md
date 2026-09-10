@@ -10,7 +10,7 @@
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/io.py#L18"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/io.py#L16"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `load_chains`
 
@@ -69,7 +69,7 @@ Saves the chains in a fasta file.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/io.py#L89"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/io.py#L96"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `load_params`
 
@@ -82,9 +82,9 @@ load_params(
 ) → Dict[str, Tensor]
 ```
 
-Import parameters from the established `J`/`h` text format. The parser uses
-bounded-memory streaming and accepts historical files containing either one
-or both coupling triangles.
+Import parameters from the established ``J``/``h`` text format. 
+
+The file is parsed in two streaming passes so memory use is bounded by the final tensors and a small coupling chunk. Files containing one or both coupling triangles are supported. 
 
 
 
@@ -106,7 +106,7 @@ or both coupling triangles.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/io.py#L180"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/io.py#L236"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `load_params_old`
 
@@ -141,13 +141,9 @@ Import the parameters of the model from a file.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/io.py#L260"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/io.py#L316"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `save_params`
-
-Parameters are written in the established plain-text `J`/`h` format. Coupling
-records use the canonical `i < j` triangle and are streamed in bounded chunks.
-This remains the parameter format produced by training checkpoints.
 
 ```python
 save_params(
@@ -158,7 +154,9 @@ save_params(
 ) → None
 ```
 
-Saves the parameters of the model in a file. 
+Save parameters in the established ``J``/``h`` text format. 
+
+Couplings are streamed in bounded chunks using the canonical ``i < j`` triangle. A supplied symmetric mask is collapsed onto that triangle. 
 
 
 
@@ -174,7 +172,7 @@ Saves the parameters of the model in a file.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/io.py#L317"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/io.py#L398"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `load_params_oldformat`
 
@@ -207,7 +205,7 @@ Import the parameters of the model from a file. Assumes the old DCA format.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/io.py#L364"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/io.py#L445"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `save_params_oldformat`
 

@@ -15,7 +15,7 @@
 ## <kbd>function</kbd> `sampling_profile`
 
 ```python
-sampling_profile(params: Dict[str, Tensor], nsamples: int, beta: float) → Tensor
+sampling_profile(params: dict[str, Tensor], nsamples: int, beta: float) → Tensor
 ```
 
 Samples from the profile model defined by the local biases only. 
@@ -45,7 +45,7 @@ Samples from the profile model defined by the local biases only.
 ```python
 gibbs_step_uniform_sites(
     chains: Tensor,
-    params: Dict[str, Tensor],
+    params: dict[str, Tensor],
     beta: float = 1.0
 ) → Tensor
 ```
@@ -78,7 +78,7 @@ Performs a single mutation using the Gibbs sampler. In this version, the mutatio
 ```python
 gibbs_step_independent_sites(
     chains: Tensor,
-    params: Dict[str, Tensor],
+    params: dict[str, Tensor],
     beta: float = 1.0
 ) → Tensor
 ```
@@ -111,7 +111,7 @@ Performs a single mutation using the Gibbs sampler. This version selects differe
 ```python
 gibbs_sampling(
     chains: Tensor,
-    params: Dict[str, Tensor],
+    params: dict[str, Tensor],
     nsweeps: int,
     beta: float = 1.0
 ) → Tensor
@@ -146,7 +146,7 @@ Gibbs sampling. Attempts L * nsweeps mutations to each sequence in 'chains'.
 ```python
 metropolis_step_uniform_sites(
     chains: Tensor,
-    params: Dict[str, Tensor],
+    params: dict[str, Tensor],
     beta: float = 1.0
 ) → Tensor
 ```
@@ -179,7 +179,7 @@ Performs a single mutation using the Metropolis sampler. In this version, the mu
 ```python
 metropolis_step_independent_sites(
     chains: Tensor,
-    params: Dict[str, Tensor],
+    params: dict[str, Tensor],
     beta: float = 1.0
 ) → Tensor
 ```
@@ -212,7 +212,7 @@ Performs a single mutation using the Metropolis sampler. This version selects di
 ```python
 metropolis_sampling(
     chains: Tensor,
-    params: Dict[str, Tensor],
+    params: dict[str, Tensor],
     nsweeps: int,
     beta: float = 1.0
 ) → Tensor
@@ -267,6 +267,58 @@ Returns the sampling function corresponding to the chosen method.
 **Returns:**
  
  - <b>`Callable`</b>:  Sampling function. 
+
+
+---
+
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling.py#L255"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+
+## <kbd>function</kbd> `prepare_sampler`
+
+```python
+prepare_sampler(sampling_method: str, device: device) → Callable
+```
+
+Select a fused CUDA sampler, or the scripted sampler without Triton. 
+
+
+---
+
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling.py#L289"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+
+## <kbd>function</kbd> `prepare_fixed_model_sampler`
+
+```python
+prepare_fixed_model_sampler(
+    sampling_method: str,
+    device: device,
+    dtype: str,
+    params: dict[str, Tensor]
+) → tuple[Callable, dict[str, Tensor]]
+```
+
+Prepare a sampler and parameters for a model that will not be updated. 
+
+BF16 mode keeps biases, chains, statistics, and energy calculations in float32. Only the fixed coupling matrix is rounded to BF16, once, before sampling. This is the inference counterpart of :func:`prepare_training_sampler`, where the coupling copy must instead be refreshed after every parameter update. 
+
+
+---
+
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling.py#L314"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+
+## <kbd>function</kbd> `prepare_training_sampler`
+
+```python
+prepare_training_sampler(
+    sampling_method: str,
+    device: device,
+    dtype: str = 'float32'
+) → Callable
+```
+
+Prepare sampling for training with optional BF16 coupling storage. 
+
+In bfloat16 mode, parameters, chains and statistics outside the sampler stay float32. A fresh BF16 coupling copy is made after each parameter update; biases and all field/acceptance arithmetic remain float32. The rounded coupling matrix approximates the master model, so trajectories can change. 
 
 
 

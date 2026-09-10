@@ -10,6 +10,19 @@
 
 ---
 
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/cobalt.py#L7"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+
+## <kbd>function</kbd> `has_neighbours`
+
+```python
+has_neighbours(seq: Tensor, db: Tensor, threshold: float) → bool
+```
+
+Check if a sequence 'seq' has neighbours in the database 'db', that is, sequences that have pairwise sequence identity greater than 'threshold'. 
+
+
+---
+
 <a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/cobalt.py#L19"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `split_train_test`
@@ -19,8 +32,8 @@ split_train_test(
     headers: ndarray,
     X: Tensor,
     seqid_th: float,
-    rnd_gen: Optional[Generator] = None
-) → Tuple[ndarray, Tensor, ndarray, Tensor]
+    rnd_gen: Generator | None = None
+) → tuple[ndarray, Tensor, ndarray, Tensor]
 ```
 
 Splits X into two sets, T and S, such that no sequence in S has more than 'seqid_th' fraction of its residues identical to any sequence in T. 
@@ -42,7 +55,7 @@ Splits X into two sets, T and S, such that no sequence in S has more than 'seqid
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/cobalt.py#L74"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/cobalt.py#L75"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `prune_redundant_sequences`
 
@@ -51,8 +64,8 @@ prune_redundant_sequences(
     headers: ndarray,
     X: Tensor,
     seqid_th: float,
-    rnd_gen: Optional[Generator] = None
-) → Tuple[ndarray, Tensor]
+    rnd_gen: Generator | None = None
+) → tuple[ndarray, Tensor]
 ```
 
 Prunes sequences from X such that no sequence has more than 'seqid_th' fraction of its residues identical to any other sequence in the set. 
@@ -74,7 +87,7 @@ Prunes sequences from X such that no sequence has more than 'seqid_th' fraction 
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/cobalt.py#L106"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/cobalt.py#L107"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `run_cobalt`
 
@@ -85,10 +98,10 @@ run_cobalt(
     t1: float,
     t2: float,
     t3: float,
-    max_train: Optional[int] = None,
-    max_test: Optional[int] = None,
-    rnd_gen: Optional[Generator] = None
-) → Tuple[ndarray, Tensor, ndarray, Tensor]
+    max_train: int | None = None,
+    max_test: int | None = None,
+    rnd_gen: Generator | None = None
+) → tuple[ndarray, Tensor, ndarray, Tensor]
 ```
 
 Runs the Cobalt algorithm to split the input MSA into training and test sets. 

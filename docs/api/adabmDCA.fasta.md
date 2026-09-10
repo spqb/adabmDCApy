@@ -7,40 +7,10 @@
 
 
 
-**Global Variables**
----------------
-- **TOKENS_PROTEIN**
-- **TOKENS_RNA**
-- **TOKENS_DNA**
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/fasta.py#L14"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
-
-## <kbd>function</kbd> `get_tokens`
-
-```python
-get_tokens(alphabet: str) → str
-```
-
-Converts a known alphabet into the corresponding tokens, otherwise returns the custom alphabet. 
-
-
-
-**Args:**
- 
- - <b>`alphabet`</b> (str):  Alphabet to be used for the encoding. It can be either "protein", "rna", "dna" or a custom string of tokens. 
-
-
-
-**Returns:**
- 
- - <b>`str`</b>:  Tokens of the alphabet. 
-
-
----
-
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/fasta.py#L35"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/fasta.py#L11"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `encode_sequence`
 
@@ -66,7 +36,7 @@ Encodes a sequence or a list of sequences into a numeric format.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/fasta.py#L65"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/fasta.py#L41"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `decode_sequence`
 
@@ -98,12 +68,9 @@ Takes a numeric sequence or list of seqences in input an returns the correspondi
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/fasta.py#L122"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/fasta.py#L98"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `import_from_fasta`
-
-> **Deprecated:** use `adabmDCA.read_alignment` for parsing or
-> `adabmDCA.load_alignment` for validated filtering and provenance.
 
 ```python
 import_from_fasta(
@@ -115,7 +82,11 @@ import_from_fasta(
 )
 ```
 
-Import sequences from a fasta or compressed fasta (.fas.gz) file. The following operations are performed: 
+Import sequences from a FASTA file using the legacy array interface. 
+
+.. deprecated:: 0.7.8  Use :func:`adabmDCA.read_alignment` for parsing or  :func:`adabmDCA.load_alignment` for validated filtering and provenance. 
+
+The following operations are performed: 
 - If 'tokens' is provided, encodes the sequences in numeric format. 
 - If 'filter_sequences' is True, removes the sequences whose tokens are not present in the alphabet. 
 - If 'remove_duplicates' is True, removes the duplicated sequences. 
@@ -147,12 +118,9 @@ Import sequences from a fasta or compressed fasta (.fas.gz) file. The following 
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/fasta.py#L217"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/fasta.py#L190"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `write_fasta`
-
-> **Deprecated:** use `Alignment.write_fasta` / `adabmDCA.write_alignment`,
-> or a high-level result object's `to_fasta` / `save_bundle` method.
 
 ```python
 write_fasta(
@@ -164,7 +132,9 @@ write_fasta(
 ) → None
 ```
 
-Generate a fasta file with the input sequences. 
+Generate a FASTA file using the legacy array interface. 
+
+.. deprecated:: 0.7.8  Construct an :class:`adabmDCA.Alignment` and call  :func:`adabmDCA.write_alignment`, or use a high-level result object's  ``to_fasta``/``save_bundle`` method. 
 
 
 
@@ -179,7 +149,7 @@ Generate a fasta file with the input sequences.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/fasta.py#L283"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/fasta.py#L272"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `compute_weights`
 
@@ -212,7 +182,7 @@ Computes the weight to be assigned to each sequence 's' in 'data' as 1 / n_clust
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/fasta.py#L315"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/fasta.py#L304"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `validate_alphabet`
 

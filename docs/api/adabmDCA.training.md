@@ -7,10 +7,49 @@
 
 
 
+**Global Variables**
+---------------
+- **DEFAULT_INNER_GRADIENT_STEPS**
+- **EDGE_EMPIRICAL_PSEUDOCOUNT**
+- **EDGE_LOGZ_CHAIN_FRACTION**
+- **SLOPE_TOLERANCE**
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training.py#L70"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training.py#L38"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+
+## <kbd>function</kbd> `compute_gradient`
+
+```python
+compute_gradient(
+    fi: Tensor,
+    fij: Tensor,
+    pi: Tensor,
+    pij: Tensor
+) → dict[str, Tensor]
+```
+
+Computes the gradient of the log-likelihood of the model using PyTorch. 
+
+
+
+**Args:**
+ 
+ - <b>`fi`</b> (torch.Tensor):  Single-point frequencies of the data. 
+ - <b>`fij`</b> (torch.Tensor):  Target two-points frequencies. 
+ - <b>`pi`</b> (torch.Tensor):  Single-point marginals of the model. 
+ - <b>`pij`</b> (torch.Tensor):  Two-points marginals of the model. 
+
+
+
+**Returns:**
+ 
+ - <b>`Dict[str, torch.Tensor]`</b>:  Gradient. 
+
+
+---
+
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training.py#L63"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `update_params`
 
@@ -20,11 +59,11 @@ update_params(
     fij: Tensor,
     pi: Tensor,
     pij: Tensor,
-    params: Dict[str, Tensor],
+    params: dict[str, Tensor],
     mask: Tensor,
     lr: float,
     l2_reg: float = 0.0
-) → Dict[str, Tensor]
+) → dict[str, Tensor]
 ```
 
 Updates the parameters of the model. 
@@ -51,7 +90,7 @@ Updates the parameters of the model.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training.py#L112"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training.py#L105"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `update_params_edge_activation`
 
@@ -59,9 +98,9 @@ Updates the parameters of the model.
 update_params_edge_activation(
     fij: Tensor,
     pij: Tensor,
-    params: Dict[str, Tensor],
+    params: dict[str, Tensor],
     mask: Tensor
-) → Tuple[Tuple[int, int], Tensor, Dict[str, Tensor]]
+) → tuple[tuple[int, int], Tensor, dict[str, Tensor]]
 ```
 
 Updates the mask and the coupling parameters using the edge-activation algorithm. 
@@ -86,32 +125,30 @@ Updates the mask and the coupling parameters using the edge-activation algorithm
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training.py#L146"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training.py#L143"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `train_graph`
 
 ```python
 train_graph(
-    sampler: Callable,
+    sampler: Callable[, Tensor],
     chains: Tensor,
     mask: Tensor,
     fi_target: Tensor,
     fij_target: Tensor,
-    params: Dict[str, Tensor],
+    params: dict[str, Tensor],
     nsweeps: int,
     lr: float,
     max_epochs: int,
     target_pearson: float,
-    fi_val: Optional[Tensor] = None,
-    fij_val: Optional[Tensor] = None,
-    checkpoint: Optional[Checkpoint] = None,
+    fi_val: Tensor | None = None,
+    fij_val: Tensor | None = None,
     check_slope: bool = False,
-    log_weights: Optional[Tensor] = None,
-    progress_bar: bool = True,
+    log_weights: Tensor | None = None,
     l2_reg: float = 0.0,
-    *args,
-    **kwargs
-) → Tuple[Tensor, Dict[str, Tensor], Tensor, Dict[str, List[float]]]
+    controller: TrainingController | None = None,
+    slope_tolerance: float = 0.1
+) → tuple[Tensor, dict[str, Tensor], Tensor, dict[str, list[Any]]]
 ```
 
 Trains the model on a given graph until the target Pearson correlation is reached or the maximum number of epochs is exceeded. 
@@ -132,10 +169,8 @@ Trains the model on a given graph until the target Pearson correlation is reache
  - <b>`target_pearson`</b> (float):  Target Pearson coefficient. 
  - <b>`fi_val`</b> (Optional[torch.Tensor], optional):  Single-point frequencies of the validation data. Defaults to None. 
  - <b>`fij_val`</b> (Optional[torch.Tensor], optional):  Two-point frequencies of the validation data. Defaults to None. 
- - <b>`checkpoint`</b> (Optional[Checkpoint], optional):  Checkpoint class to be used for saving the model. Defaults to None. 
  - <b>`check_slope`</b> (bool, optional):  Whether to take into account the slope for the convergence criterion or not. Defaults to False. 
  - <b>`log_weights`</b> (Optional[torch.Tensor], optional):  Log-weights used for the online computation of the log-likelihood. Defaults to None. 
- - <b>`progress_bar`</b> (bool, optional):  Whether to display a progress bar or not. Defaults to True. 
  - <b>`l2_reg`</b> (float, optional):  L2 regularization coefficient. Defaults to 0.0. 
 
 
@@ -147,16 +182,16 @@ Trains the model on a given graph until the target Pearson correlation is reache
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training.py#L345"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training.py#L305"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `train_eaDCA`
 
 ```python
 train_eaDCA(
-    sampler: Callable,
+    sampler: Callable[, Tensor],
     fi_target: Tensor,
     fij_target: Tensor,
-    params: Dict[str, Tensor],
+    params: dict[str, Tensor],
     mask: Tensor,
     chains: Tensor,
     log_weights: Tensor,
@@ -167,13 +202,12 @@ train_eaDCA(
     lr: float,
     factivate: float,
     gsteps: int,
-    fi_val: Optional[Tensor] = None,
-    fij_val: Optional[Tensor] = None,
-    checkpoint: Optional[Checkpoint] = None,
+    fi_val: Tensor | None = None,
+    fij_val: Tensor | None = None,
     l2_reg: float = 0.0,
-    *args,
-    **kwargs
-) → Tuple[Tensor, Dict[str, Tensor], Tensor, Dict[str, List[float]]]
+    controller: TrainingController | None = None,
+    max_gradient_steps: int | None = None
+) → tuple[Tensor, dict[str, Tensor], Tensor, dict[str, list[Any]]]
 ```
 
 Fits an eaDCA model on the training data and saves the results in a file. 
@@ -198,7 +232,6 @@ Fits an eaDCA model on the training data and saves the results in a file.
  - <b>`gsteps`</b> (int):  Number of gradient updates to be performed on a given graph. 
  - <b>`fi_val`</b> (Optional[torch.Tensor], optional):  Single-point frequencies of the validation data. Defaults to None. 
  - <b>`fij_val`</b> (Optional[torch.Tensor], optional):  Two-point frequencies of the validation data. Defaults to None. 
- - <b>`checkpoint`</b> (Optional[Checkpoint], optional):  Checkpoint class to be used to save the model. Defaults to None. 
  - <b>`l2_reg`</b> (float, optional):  L2 regularization coefficient. Defaults to 0.0. 
 
 
@@ -210,31 +243,32 @@ Fits an eaDCA model on the training data and saves the results in a file.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training.py#L588"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training.py#L497"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `train_edDCA`
 
 ```python
 train_edDCA(
-    sampler: Callable,
+    sampler: Callable[, Tensor],
     chains: Tensor,
     log_weights: Tensor,
     fi_target: Tensor,
     fij_target: Tensor,
-    params: Dict[str, Tensor],
+    params: dict[str, Tensor],
     mask: Tensor,
     lr: float,
     nsweeps: int,
     target_pearson: float,
     target_density: float,
     drate: float,
-    checkpoint: Optional[Checkpoint] = None,
-    fi_val: Optional[Tensor] = None,
-    fij_val: Optional[Tensor] = None,
+    fi_val: Tensor | None = None,
+    fij_val: Tensor | None = None,
     l2_reg: float = 0.0,
-    *args,
-    **kwargs
-) → Tuple[Tensor, Dict[str, Tensor], Tensor, Dict[str, List[float]]]
+    max_epochs: int = 10000,
+    controller: TrainingController | None = None,
+    max_gradient_steps: int | None = None,
+    inner_gradient_steps: int = 10000
+) → tuple[Tensor, dict[str, Tensor], Tensor, dict[str, list[Any]]]
 ```
 
 Fits an edDCA model on the training data and saves the results in a file. 
@@ -255,7 +289,6 @@ Fits an edDCA model on the training data and saves the results in a file.
  - <b>`target_pearson`</b> (float):  Pearson correlation coefficient on the two-points statistics to be reached. 
  - <b>`target_density`</b> (float):  Target density of the coupling matrix. 
  - <b>`drate`</b> (float):  Percentage of active couplings to be pruned at each decimation step. 
- - <b>`checkpoint`</b> (Optional[Checkpoint], optional):  Checkpoint class to be used to save the model. Defaults to None. 
  - <b>`fi_val`</b> (Optional[torch.Tensor], optional):  Single-point frequencies of the validation data. Defaults to None. 
  - <b>`fij_val`</b> (Optional[torch.Tensor], optional):  Two-point frequencies of the validation data. Defaults to None. 
  - <b>`l2_reg`</b> (float, optional):  L2 regularization coefficient. Defaults to 0.0. 
@@ -269,30 +302,30 @@ Fits an edDCA model on the training data and saves the results in a file.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training.py#L876"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training.py#L738"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `train_edgeDCA`
 
 ```python
 train_edgeDCA(
-    sampler: Callable,
+    sampler: Callable[, Tensor],
     fi_target: Tensor,
     fij_target: Tensor,
     fi_pseudocounted: Tensor,
     fij_pseudocounted: Tensor,
-    params: Dict[str, Tensor],
+    params: dict[str, Tensor],
     mask: Tensor,
     chains: Tensor,
     target_pearson: float,
     nsweeps: int,
     max_epochs: int,
     pseudo_count: float,
-    fi_val: Optional[Tensor] = None,
-    fij_val: Optional[Tensor] = None,
-    checkpoint: Optional[Checkpoint] = None,
-    *args,
-    **kwargs
-) → Tuple[Tensor, Dict[str, Tensor], Tensor, Dict[str, List[float]]]
+    fi_val: Tensor | None = None,
+    fij_val: Tensor | None = None,
+    controller: TrainingController | None = None,
+    empirical_pseudocount: float = 1e-06,
+    logz_chain_fraction: float = 0.2
+) → tuple[Tensor, dict[str, Tensor], Tensor, dict[str, list[Any]]]
 ```
 
 Fits an edge activation DCA model (edgeDCA) on the training data and saves the results in a file. 
@@ -315,7 +348,6 @@ Fits an edge activation DCA model (edgeDCA) on the training data and saves the r
  - <b>`pseudo_count`</b> (float):  Pseudo count for the single and two points statistics. Acts as a regularization. 
  - <b>`fi_val`</b> (Optional[torch.Tensor], optional):  Single-point frequencies of the validation data. Defaults to None. 
  - <b>`fij_val`</b> (Optional[torch.Tensor], optional):  Two-point frequencies of the validation data. Defaults to None. 
- - <b>`checkpoint`</b> (Optional[Checkpoint], optional):  Checkpoint class to be used to save the model. Defaults to None. 
 
 
 

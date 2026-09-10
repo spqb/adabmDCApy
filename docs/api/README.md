@@ -2,13 +2,9 @@
 
 # API Overview
 
-For notebook-oriented workflows, start with the
-[high-level Python API](../high_level_api.md). The module pages below document
-the lower-level numerical, data, and file-format primitives.
-
 ## Modules
 
-- [`adabmDCA.checkpoint`](./adabmDCA.checkpoint.md#module-adabmdcacheckpoint)
+- [`adabmDCA.checkpoint`](./adabmDCA.checkpoint.md#module-adabmdcacheckpoint): Training checkpoints and the versioned human-readable training log.
 - [`adabmDCA.cobalt`](./adabmDCA.cobalt.md#module-adabmdcacobalt)
 - [`adabmDCA.dataset`](./adabmDCA.dataset.md#module-adabmdcadataset)
 - [`adabmDCA.dca`](./adabmDCA.dca.md#module-adabmdcadca)
@@ -26,12 +22,13 @@ the lower-level numerical, data, and file-format primitives.
 
 ## Classes
 
-- [`checkpoint.Checkpoint`](./adabmDCA.checkpoint.md#class-checkpoint): Helper class to save the model's parameters and chains at regular intervals during training and to log the
+- [`checkpoint.Checkpoint`](./adabmDCA.checkpoint.md#class-checkpoint): Save model state and write a version-2 training log.
 - [`dataset.DatasetDCA`](./adabmDCA.dataset.md#class-datasetdca): Dataset class for handling multi-sequence alignments data.
 - [`utils.Timer`](./adabmDCA.utils.md#class-timer): Track recent ``(time, pearson)`` points and predict when a target Pearson is reached.
 
 ## Functions
 
+- [`cobalt.has_neighbours`](./adabmDCA.cobalt.md#function-has_neighbours): Check if a sequence 'seq' has neighbours in the database 'db', that is, sequences
 - [`cobalt.prune_redundant_sequences`](./adabmDCA.cobalt.md#function-prune_redundant_sequences): Prunes sequences from X such that no sequence has more than 'seqid_th' fraction of its residues identical to any other sequence in the set.
 - [`cobalt.run_cobalt`](./adabmDCA.cobalt.md#function-run_cobalt): Runs the Cobalt algorithm to split the input MSA into training and test sets.
 - [`cobalt.split_train_test`](./adabmDCA.cobalt.md#function-split_train_test): Splits X into two sets, T and S, such that no sequence in S has more than
@@ -43,23 +40,29 @@ the lower-level numerical, data, and file-format primitives.
 - [`fasta.compute_weights`](./adabmDCA.fasta.md#function-compute_weights): Computes the weight to be assigned to each sequence 's' in 'data' as 1 / n_clust, where 'n_clust' is the number of sequences
 - [`fasta.decode_sequence`](./adabmDCA.fasta.md#function-decode_sequence): Takes a numeric sequence or list of seqences in input an returns the corresponding string encoding.
 - [`fasta.encode_sequence`](./adabmDCA.fasta.md#function-encode_sequence): Encodes a sequence or a list of sequences into a numeric format.
-- [`fasta.get_tokens`](./adabmDCA.fasta.md#function-get_tokens): Converts a known alphabet into the corresponding tokens, otherwise returns the custom alphabet.
-- [`fasta.import_from_fasta`](./adabmDCA.fasta.md#function-import_from_fasta): Deprecated compatibility interface. Prefer `read_alignment` or `load_alignment`.
+- [`fasta.import_from_fasta`](./adabmDCA.fasta.md#function-import_from_fasta): Import sequences from a FASTA file using the legacy array interface.
 - [`fasta.validate_alphabet`](./adabmDCA.fasta.md#function-validate_alphabet): Validates that all characters in the sequences are present in the provided alphabet.
-- [`fasta.write_fasta`](./adabmDCA.fasta.md#function-write_fasta): Deprecated compatibility interface. Prefer `Alignment.write_fasta`, `write_alignment`, or result-owned serializers.
+- [`fasta.write_fasta`](./adabmDCA.fasta.md#function-write_fasta): Generate a FASTA file using the legacy array interface.
 - [`functional.one_hot`](./adabmDCA.functional.md#function-one_hot): A fast one-hot encoding function faster than the PyTorch one working with torch.int32 and returning a float Tensor.
+- [`graph.activate_graph_elements`](./adabmDCA.graph.md#function-activate_graph_elements): Updates the interaction graph by activating a maximum of nactivate couplings.
+- [`graph.compute_Dkl_decimation`](./adabmDCA.graph.md#function-compute_dkl_decimation): Computes the Kullback-Leibler divergence matrix between the initial distribution and the same 
+- [`graph.compute_Dkl_edge_activation`](./adabmDCA.graph.md#function-compute_dkl_edge_activation): Computes the Kullback-Leibler divergence matrix of all the possible edges.
+- [`graph.compute_Dkl_element_activation`](./adabmDCA.graph.md#function-compute_dkl_element_activation): Computes the Kullback-Leibler divergence matrix of all the possible couplings.
+- [`graph.compute_density`](./adabmDCA.graph.md#function-compute_density): Computes the density of active couplings in the coupling matrix.
+- [`graph.compute_sym_Dkl`](./adabmDCA.graph.md#function-compute_sym_dkl): Computes the symmetric Kullback-Leibler divergence matrix between the initial distribution and the same 
 - [`graph.decimate_graph`](./adabmDCA.graph.md#function-decimate_graph): Performs one decimation step and updates the parameters and mask.
 - [`graph.update_mask_decimation`](./adabmDCA.graph.md#function-update_mask_decimation): Updates the mask by removing the n_remove couplings with the smallest Dkl.
 - [`graph.update_mask_element_activation`](./adabmDCA.graph.md#function-update_mask_element_activation): Updates the mask by activating the nactivate couplings with the largest Dkl.
 - [`io.load_chains`](./adabmDCA.io.md#function-load_chains): Loads the sequences from a fasta file and returns the one-hot encoded version.
-- [`io.load_params`](./adabmDCA.io.md#function-load_params): Import the parameters of the model from a text file.
+- [`io.load_params`](./adabmDCA.io.md#function-load_params): Import parameters from the established ``J``/``h`` text format.
 - [`io.load_params_old`](./adabmDCA.io.md#function-load_params_old): Import the parameters of the model from a file.
 - [`io.load_params_oldformat`](./adabmDCA.io.md#function-load_params_oldformat): Import the parameters of the model from a file. Assumes the old DCA format.
 - [`io.save_chains`](./adabmDCA.io.md#function-save_chains): Saves the chains in a fasta file.
-- [`io.save_params`](./adabmDCA.io.md#function-save_params): Saves the parameters of the model in a file.
+- [`io.save_params`](./adabmDCA.io.md#function-save_params): Save parameters in the established ``J``/``h`` text format.
 - [`io.save_params_oldformat`](./adabmDCA.io.md#function-save_params_oldformat): Saves the parameters of the model in a file. Assumes the old DCA format.
-- [`plot.plot_PCA`](./adabmDCA.plot.md#function-plot_pca): Compares principal-component projections with aligned marginal histograms and optional explained-variance labels.
-- [`plot.plot_autocorrelation`](./adabmDCA.plot.md#function-plot_autocorrelation): Plots same-chain and independent-chain sequence identity with optional uncertainty bands.
+- [`plot.plot_PCA`](./adabmDCA.plot.md#function-plot_pca): Makes the scatter plot of the components (pc1, pc2) of the input data and shows the histograms of the components.
+- [`plot.plot_autocorrelation`](./adabmDCA.plot.md#function-plot_autocorrelation): Plots the time-autocorrelation curve of the sequence identity and the generated and data sequence identities.
+- [`plot.plot_cij_scatter`](./adabmDCA.plot.md#function-plot_cij_scatter): Plot reference versus generated connected two-site correlations.
 - [`plot.plot_contact_map`](./adabmDCA.plot.md#function-plot_contact_map): Plots the contact map.
 - [`plot.plot_pearson_sampling`](./adabmDCA.plot.md#function-plot_pearson_sampling): Plots the Pearson correlation coefficient over sampling time.
 - [`plot.plot_scatter_correlations`](./adabmDCA.plot.md#function-plot_scatter_correlations): Plots the scatter plot of the data and generated Cij and Cijk values.
@@ -71,6 +74,9 @@ the lower-level numerical, data, and file-format primitives.
 - [`sampling.metropolis_sampling`](./adabmDCA.sampling.md#function-metropolis_sampling): Metropolis sampling. Attempts L * nsweeps mutations to each sequence in 'chains'.
 - [`sampling.metropolis_step_independent_sites`](./adabmDCA.sampling.md#function-metropolis_step_independent_sites): Performs a single mutation using the Metropolis sampler. This version selects different random sites for each chain. It is
 - [`sampling.metropolis_step_uniform_sites`](./adabmDCA.sampling.md#function-metropolis_step_uniform_sites): Performs a single mutation using the Metropolis sampler. In this version, the mutation is attempted at the same sites for all chains.
+- [`sampling.prepare_fixed_model_sampler`](./adabmDCA.sampling.md#function-prepare_fixed_model_sampler): Prepare a sampler and parameters for a model that will not be updated.
+- [`sampling.prepare_sampler`](./adabmDCA.sampling.md#function-prepare_sampler): Select a fused CUDA sampler, or the scripted sampler without Triton.
+- [`sampling.prepare_training_sampler`](./adabmDCA.sampling.md#function-prepare_training_sampler): Prepare sampling for training with optional BF16 coupling storage.
 - [`sampling.sampling_profile`](./adabmDCA.sampling.md#function-sampling_profile): Samples from the profile model defined by the local biases only.
 - [`statmech.compute_energy`](./adabmDCA.statmech.md#function-compute_energy): Compute the DCA energy for a batch of sequences.
 - [`statmech.compute_entropy`](./adabmDCA.statmech.md#function-compute_entropy): Compute the entropy of the DCA model.
@@ -86,6 +92,7 @@ the lower-level numerical, data, and file-format primitives.
 - [`stats.get_freq_single_point`](./adabmDCA.stats.md#function-get_freq_single_point): Computes the single point frequencies of the input MSA.
 - [`stats.get_freq_three_points`](./adabmDCA.stats.md#function-get_freq_three_points): Computes the 3-body connected correlation statistics of the input MSAs.
 - [`stats.get_freq_two_points`](./adabmDCA.stats.md#function-get_freq_two_points): Computes the 2-points statistics of the input MSA.
+- [`training.compute_gradient`](./adabmDCA.training.md#function-compute_gradient): Computes the gradient of the log-likelihood of the model using PyTorch.
 - [`training.train_eaDCA`](./adabmDCA.training.md#function-train_eadca): Fits an eaDCA model on the training data and saves the results in a file.
 - [`training.train_edDCA`](./adabmDCA.training.md#function-train_eddca): Fits an edDCA model on the training data and saves the results in a file.
 - [`training.train_edgeDCA`](./adabmDCA.training.md#function-train_edgedca): Fits an edge activation DCA model (edgeDCA) on the training data and saves the results in a file.
@@ -99,6 +106,7 @@ the lower-level numerical, data, and file-format primitives.
 - [`utils.init_parameters`](./adabmDCA.utils.md#function-init_parameters): Initialize the parameters of the DCA model. The bias terms are initialized
 - [`utils.parse_log_file`](./adabmDCA.utils.md#function-parse_log_file): Parse a DCA training log file.
 - [`utils.resample_sequences`](./adabmDCA.utils.md#function-resample_sequences): Extracts nextract sequences from data with replacement according to the weights.
+- [`utils.systematic_resampling`](./adabmDCA.utils.md#function-systematic_resampling): Performs the systematic resampling of the chains according to their relative weight.
 
 
 ---

@@ -3,108 +3,120 @@
 <a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/checkpoint.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 # <kbd>module</kbd> `adabmDCA.checkpoint`
+Training checkpoints and the versioned human-readable training log. 
 
-
-
-
+**Global Variables**
+---------------
+- **DEFAULT_CHECKPOINT_INTERVAL**
+- **LOG_FORMAT_VERSION**
+- **HISTORY_KEYS**
+- **LOG_COLUMNS**
 
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/checkpoint.py#L7"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/checkpoint.py#L54"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `Checkpoint`
-Helper class to save the model's parameters and chains at regular intervals during training and to log the progress of the training. 
+Save model state and write a version-2 training log. 
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/checkpoint.py#L11"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/checkpoint.py#L57"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `__init__`
 
 ```python
-__init__(file_paths: dict, tokens: str, args: dict, use_wandb: bool = False)
+__init__(
+    file_paths: 'dict[str, str]',
+    tokens: 'str',
+    metadata: 'Mapping[str, Any]',
+    use_wandb: 'bool' = False,
+    config: 'TrainingConfig | None' = None
+) → None
 ```
 
-Initializes the Checkpoint class. 
 
 
 
-**Args:**
- 
- - <b>`file_paths`</b> (dict):  Dictionary containing the paths of the files to be saved. 
- - <b>`tokens`</b> (str):  Alphabet to be used for encoding the sequences. 
- - <b>`args`</b> (dict):  Dictionary containing the arguments of the training. 
- - <b>`use_wandb`</b> (bool, optional):  Whether to use Weights & Biases for logging. Defaults to False. 
 
 
 
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/checkpoint.py#L105"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/checkpoint.py#L96"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+
+### <kbd>method</kbd> `begin_stage`
+
+```python
+begin_stage(stage: 'str', metadata: 'dict[str, Any]') → None
+```
+
+Record a phase boundary and its progress-table header. 
+
+---
+
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/checkpoint.py#L139"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `check`
 
 ```python
-check(updates: int) → bool
+check(updates: 'int') → bool
 ```
 
-Checks if a checkpoint has been reached. 
-
-
-
-**Args:**
- 
- - <b>`updates`</b> (int):  Number of gradient updates performed. 
-
-
-
-**Returns:**
- 
- - <b>`bool`</b>:  Whether a checkpoint has been reached. 
+Return whether this update requires a persisted checkpoint. 
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/checkpoint.py#L80"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/checkpoint.py#L128"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+
+### <kbd>method</kbd> `finish`
+
+```python
+finish(status: 'str', summary: 'Mapping[str, Any]') → None
+```
+
+Append exactly one terminal status section. 
+
+---
+
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/checkpoint.py#L106"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `log`
 
 ```python
-log(record: Dict[str, Any]) → None
+log(record: 'dict[str, Any]') → None
 ```
 
-Adds a key-value pair to the log dictionary 
-
-
-
-**Args:**
- 
- - <b>`record`</b> (Dict[str, Any]):  Key-value pairs to be added to the log dictionary. 
+Write a record without lifecycle counters for direct callers. 
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/checkpoint.py#L120"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/checkpoint.py#L110"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+
+### <kbd>method</kbd> `log_with_context`
+
+```python
+log_with_context(record: 'dict[str, Any]', counters: 'Any | None') → None
+```
+
+Write one metrics record with stage and lifecycle counters. 
+
+---
+
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/checkpoint.py#L143"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `save`
 
 ```python
 save(
-    params: Dict[str, Tensor],
-    mask: Tensor,
-    chains: Tensor,
-    log_weights: Tensor
+    params: 'dict[str, Tensor]',
+    mask: 'Tensor',
+    chains: 'Tensor',
+    log_weights: 'Tensor'
 ) → None
 ```
 
-Saves the chains and the parameters of the model. 
-
-
-
-**Args:**
- 
- - <b>`params`</b> (Dict[str, torch.Tensor]):  Parameters of the model. 
- - <b>`mask`</b> (torch.Tensor):  Mask of the model's coupling matrix representing the interaction graph. 
- - <b>`chains`</b> (torch.Tensor):  Chains. 
- - <b>`log_weights`</b> (torch.Tensor):  Log of the chain weights. Used for AIS. 
+Save parameters and chains. 
 
 
 
