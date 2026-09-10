@@ -1,0 +1,2388 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../applications/">
+      
+      
+        <link rel="next" href="../quicklist/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>High-level Python API - adabmDCApy</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#high-level-python-api" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="adabmDCApy" class="md-header__button md-logo" aria-label="adabmDCApy" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            adabmDCApy
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              High-level Python API
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="adabmDCApy" class="md-nav__button md-logo" aria-label="adabmDCApy" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    adabmDCApy
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../preprocessing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Input data and preprocessing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../alignment_preprocessing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Alignment utilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../training/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Training
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../thermodynamic_integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Thermodynamic integration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../applications/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Applications
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    High-level Python API
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    High-level Python API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#load-and-reuse-a-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Load and reuse a model
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#score-sequences" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Score sequences
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#contacts-and-mutation-scanning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Contacts and mutation scanning
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#generate-sequences" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generate sequences
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#train-a-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Train a model
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#input-loading" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Input loading
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#output-serialization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output serialization
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#additional-workflow-apis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Additional workflow APIs
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#structured-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Structured errors
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#compatibility-and-versioning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Compatibility and versioning
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../quicklist/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quicklist
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../script_arguments/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Script arguments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../release_checks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release verification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12" >
+        
+          
+          <label class="md-nav__link" for="__nav_12" id="__nav_12_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python APIs
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_12_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_12">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Python APIs
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/symbols/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Generated symbol index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_12_3" id="__nav_12_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    High-level workflows
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_12_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_12_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    High-level workflows
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/adabmDCA.api.model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Models
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/adabmDCA.api.training/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Training
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/adabmDCA.api.sampling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sampling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/adabmDCA.api.scoring/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sequence scoring
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/adabmDCA.api.contacts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contact prediction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/adabmDCA.api.mutations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mutation scanning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/adabmDCA.api.entropy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Entropy estimation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/adabmDCA.api.reintegration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reintegration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/adabmDCA.api.splitting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Alignment splitting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/adabmDCA.api.results/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Result objects
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/adabmDCA.api.exceptions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Errors
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/adabmDCA.api.input_loading/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Training input loading
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/adabmDCA.api.serialization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Serialization helpers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_12_4" id="__nav_12_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Core data APIs
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_12_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_12_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Core data APIs
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/adabmDCA.alphabet/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Alphabets
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/adabmDCA.alignment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Alignment objects and I/O
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/adabmDCA.input_loading/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Validated input loading
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/adabmDCA.preprocessing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Alignment preprocessing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/adabmDCA.training_config/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Training configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/adabmDCA.training_control/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Training control
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_12_5" id="__nav_12_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Numerical and low-level APIs
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_12_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_12_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Numerical and low-level APIs
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/adabmDCA.checkpoint/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Checkpoints and logs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/adabmDCA.fasta/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Fasta utils
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/adabmDCA.stats/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Compute statistics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/adabmDCA.dca/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DCA utils
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/adabmDCA.graph/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Graph operations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/adabmDCA.io/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Import and export
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/adabmDCA.sampling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sampling functions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/adabmDCA.sampling_triton/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Triton sampling kernels
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/adabmDCA.resampling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mixing-time estimation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/adabmDCA.utils/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Utilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/adabmDCA.dataset/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dataset class
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/adabmDCA.statmech/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Statistical mechanics functions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/adabmDCA.cobalt/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Train/test split
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/adabmDCA.training/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Training functions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/adabmDCA.functional/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Special functions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/adabmDCA.plot/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Helper functions for plotting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#load-and-reuse-a-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Load and reuse a model
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#score-sequences" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Score sequences
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#contacts-and-mutation-scanning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Contacts and mutation scanning
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#generate-sequences" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generate sequences
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#train-a-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Train a model
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#input-loading" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Input loading
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#output-serialization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output serialization
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#additional-workflow-apis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Additional workflow APIs
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#structured-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Structured errors
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#compatibility-and-versioning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Compatibility and versioning
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="high-level-python-api">High-level Python API</h1>
+<p>The high-level API exposes the same scientific workflows as the CLI while
+remaining convenient in notebooks and regular Python applications. The CLI is
+implemented as an adapter over these operations.</p>
+<h2 id="load-and-reuse-a-model">Load and reuse a model</h2>
+<pre><code class="language-python">from adabmDCA import load_model
+
+model = load_model(
+    &quot;DCA_model/params.dat&quot;,
+    alphabet=&quot;protein&quot;,
+    device=&quot;auto&quot;,
+)
+
+print(model.metadata.to_dict())
+</code></pre>
+<p><code>device="auto"</code> selects an available accelerator and falls back to CPU.
+Loading once avoids repeating the alphabet, device, and dtype configuration.
+Unlike the CLI, model-loading APIs require a resolved alphabet because a
+parameter file alone may not identify ambiguous nucleotide alphabets. Pass
+<code>protein</code>, <code>dna</code>, <code>rna</code>, or the exact custom token string.</p>
+<h2 id="score-sequences">Score sequences</h2>
+<p>For a compact NumPy result:</p>
+<pre><code class="language-python">energies = model.compute_energies([
+    &quot;ACDEFGHIK&quot;,
+    &quot;ACDEYGHIK&quot;,
+])
+</code></pre>
+<p>For sequences, names, metadata, warnings, and DataFrame conversion:</p>
+<pre><code class="language-python">result = model.score_sequences([&quot;ACDEFGHIK&quot;, &quot;ACDEYGHIK&quot;])
+display(result.to_dataframe())
+</code></pre>
+<p>FASTA files can be scored without loading a model object explicitly:</p>
+<pre><code class="language-python">from adabmDCA import score_sequences
+
+result = score_sequences(
+    model=&quot;DCA_model/params.dat&quot;,
+    fasta_path=&quot;sequences.fasta&quot;,
+    alphabet=&quot;protein&quot;,
+)
+result.to_fasta(&quot;scored_sequences.fasta&quot;)
+</code></pre>
+<p>The historical low-level tensor operation remains available:</p>
+<pre><code class="language-python">from adabmDCA import compute_energy
+
+energies_tensor = compute_energy(one_hot_sequences, params)
+</code></pre>
+<h2 id="contacts-and-mutation-scanning">Contacts and mutation scanning</h2>
+<pre><code class="language-python">contact_scores = model.compute_contact_map()
+
+scan = model.scan_mutations(&quot;ACDEFGHIK&quot;, name=&quot;wild_type&quot;)
+display(scan.to_dataframe())
+scan.to_fasta(&quot;wild_type_DMS.fasta&quot;)
+</code></pre>
+<p>Mutation results contain both the historical zero-based position and a
+<code>position_1based</code> field for biological reporting.</p>
+<h2 id="generate-sequences">Generate sequences</h2>
+<pre><code class="language-python">sequences = model.sample(
+    100,
+    n_sweeps=1_000,
+    sampler=&quot;metropolis&quot;,
+    seed=42,
+)
+</code></pre>
+<p>Use the structured operation for energies, diagnostics, progress events, and
+cancellation:</p>
+<pre><code class="language-python">from adabmDCA import sample_sequences
+
+result = sample_sequences(
+    model=model,
+    n_sequences=100,
+    n_sweeps=1_000,
+    reference_fasta=&quot;alignment.fasta&quot;,
+    collect_diagnostics=True,
+    seed=42,
+    progress=lambda event: print(event.completed, event.total),
+)
+
+display(result.to_dataframe())
+artifacts = result.save_bundle(&quot;samples&quot;, label=&quot;family&quot;)
+plots = result.save_diagnostic_plots(&quot;samples&quot;, label=&quot;family&quot;)
+</code></pre>
+<p>The plot serializer writes autocorrelation curves with uncertainty bands,
+sampling Pearson correlation, a reference-versus-generated connected-
+correlation scatter plot with fitted slope, and PC1–PC2 and PC3–PC4 projections
+with marginal histograms. <code>reference_fasta</code> is required to collect these
+diagnostics. When it is supplied, <code>n_sweeps</code> bounds mixing-time estimation and
+generation runs for <code>mixing_multiplier</code> times the estimated mixing time.</p>
+<p>With <code>dtype="bfloat16"</code>, sampling uses a BF16 copy of the fixed coupling
+matrix while model parameters, chains, diagnostics, and reported energies stay
+in FP32. The result records the requested precision in
+<code>result.sampling_dtype</code>. This mode requires an Ampere-or-newer NVIDIA GPU and
+Triton; use the default <code>float32</code> elsewhere.</p>
+<h2 id="train-a-model">Train a model</h2>
+<p>Training can run entirely in memory:</p>
+<pre><code class="language-python">from adabmDCA import train_model
+
+training = train_model(
+    &quot;alignment.fasta&quot;,
+    model_type=&quot;bmDCA&quot;,
+    alphabet=&quot;protein&quot;,
+    n_chains=1_000,
+    max_epochs=5_000,
+    device=&quot;auto&quot;,
+    seed=42,
+)
+
+model = training.model
+display(training.history_dataframe())
+print(training.stop_reason, training.converged)
+print(training.gradient_steps, training.structure_steps, training.sweeps)
+</code></pre>
+<p><code>max_epochs</code> remains a compatibility limit: it counts gradient steps for
+<code>bmDCA</code> and graph-structure steps for sparse models. Nested <code>eaDCA</code> and
+<code>edDCA</code> runs can set independent global budgets with
+<code>max_gradient_steps=</code> and <code>max_structure_steps=</code>. Progress events expose the
+same counters in addition to the legacy <code>epoch</code> field.</p>
+<p>Use <code>on_initialized=</code> to inspect the resolved setup before numerical training
+starts. The callback receives a <code>TrainingInitialization</code> containing training
+and validation dimensions, filtering counts, <code>M_eff</code>, actual chain count,
+effective pseudocount, device, and dtype. The same object is retained on
+<code>TrainingResult.initialization</code> and included in its JSON representation.</p>
+<p>Use <code>checkpoint_interval=200</code> to change periodic parameter/chain saves from
+the default of 100 steps. A final checkpoint is saved when training finishes,
+including runs shorter than the interval. Saving requires <code>output_dir</code>.</p>
+<p>For reproducible applications, collect training values in the immutable,
+validated configuration object:</p>
+<pre><code class="language-python">from adabmDCA import TrainingConfig, train_model
+
+config = TrainingConfig(
+    model_type=&quot;eaDCA&quot;,
+    n_chains=2_000,
+    max_structure_steps=100,
+    max_gradient_steps=5_000,
+    checkpoint_interval=5,
+)
+training = train_model(&quot;alignment.fasta&quot;, config=config)
+</code></pre>
+<p>When <code>config=</code> is provided it is authoritative for training values; path,
+output, progress, and cancellation arguments remain on <code>train_model()</code>. The
+configuration also exposes model-aware <code>limits</code>,
+<code>resolved_checkpoint_interval</code>, and <code>resolve_pseudocount(effective_size)</code>.</p>
+<h2 id="input-loading">Input loading</h2>
+<p>High-level alignment arguments accept either a path or an in-memory
+<code>Alignment</code>. FASTA, gzip-compressed FASTA, and Stockholm paths pass through
+the same parser and validation policy:</p>
+<pre><code class="language-python">from adabmDCA import Alignment, TrainingConfig, train_model
+
+alignment = Alignment(
+    names=(&quot;sequence_1&quot;, &quot;sequence_2&quot;),
+    sequences=(&quot;ACDE-&quot;, &quot;ACD--&quot;),
+)
+training = train_model(alignment, config=TrainingConfig(n_chains=1_000))
+print(training.input_report)
+</code></pre>
+<p><code>AlignmentLoadConfig</code> controls invalid-sequence handling, deduplication,
+expected length, format selection, and gap normalization. <code>LoadedAlignment</code>
+reports retained, invalid, and duplicate indices. Sequence weights can be a
+path, sequence, NumPy array, or tensor and are aligned using those retained
+indices.</p>
+<p>The command-line workflows default to <code>--alphabet auto</code>, which detects only
+the standard DNA, RNA, and protein alphabets. DNA wins ambiguous nucleotide
+matches. The high-level API keeps alphabet selection explicit: pass a standard
+name or a custom token string to <code>TrainingConfig</code>, <code>AlignmentLoadConfig</code>, and
+model-loading functions.</p>
+<p><code>DatasetDCA.from_alignment()</code> and <code>DatasetDCA.from_loaded_alignment()</code> build
+the tensor dataset without constructor-owned file parsing. <code>DatasetDCA</code> remains
+the internal tensor/statistics layer used by the high-level workflows; the
+legacy <code>DatasetDCA(path_data=...)</code> constructor and <code>DatasetDCA.from_path()</code>
+alias are deprecated compatibility wrappers.</p>
+<p>The array-oriented <code>import_from_fasta()</code> and <code>write_fasta()</code> helpers are also
+deprecated. Use <code>read_alignment()</code> or <code>load_alignment()</code> for input,
+<code>Alignment.write_fasta()</code> or <code>write_alignment()</code> for ordinary alignment
+output, and result-owned <code>to_fasta()</code>/<code>save_bundle()</code> methods for high-level
+workflow outputs.</p>
+<h2 id="output-serialization">Output serialization</h2>
+<p>High-level result objects own their serialization. JSON outputs use a stable
+envelope with <code>schema_version</code>, <code>result_type</code>, and <code>data</code>; NumPy values,
+tensors, paths, dataclasses, and non-finite floating-point values are converted
+to strict JSON safely.</p>
+<pre><code class="language-python">scores = model.score_sequences([&quot;ACDEFGHIK&quot;])
+scores.to_json(&quot;outputs/scores.json&quot;)
+scores.to_csv(&quot;outputs/scores.csv&quot;)
+scores.to_fasta(&quot;outputs/scores.fasta&quot;)
+
+# Infer the serializer from the suffix.
+scores.save(&quot;outputs/scores.json&quot;)
+</code></pre>
+<p>Composite results expose <code>save_bundle()</code>. Bundles use predictable filenames,
+create their parent directories, write files atomically, and return a mapping
+of artifact names to paths:</p>
+<pre><code class="language-python">artifacts = result.save_bundle(&quot;outputs&quot;, label=&quot;experiment_1&quot;)
+print(artifacts[&quot;summary&quot;])
+</code></pre>
+<p>Contact maps include labelled CSV, NumPy <code>.npy</code>, JSON metadata, and the
+historical headerless matrix. Sampling bundles include FASTA, sequence CSV,
+JSON metadata, and diagnostic histories. Training bundles contain a portable
+summary and normalized history without duplicating model and chain tensors in
+JSON. Serialization failures raise <code>OutputSerializationError</code>.</p>
+<p>The CLI uses these same methods; output formatting is therefore identical in
+notebooks, Python services, and terminal commands.</p>
+<h2 id="additional-workflow-apis">Additional workflow APIs</h2>
+<p>Specialized front-end workflows are also callable without constructing command
+line arguments:</p>
+<pre><code class="language-python">from adabmDCA import estimate_entropy, reintegrate_model, split_alignment
+
+split = split_alignment(&quot;family.fasta&quot;, attempts=10, seed=4)
+split.save_bundle(&quot;profile/family&quot;)
+
+reintegrated = reintegrate_model(
+    &quot;natural.fasta&quot;,
+    &quot;tested.fasta&quot;,
+    &quot;adjustments.dat&quot;,
+    config=config,
+    output_dir=&quot;reintegrated_model&quot;,
+)
+
+entropy = estimate_entropy(
+    model=&quot;params.dat&quot;,
+    natural_alignment=&quot;family.fasta&quot;,
+    target_alignment=&quot;target.fasta&quot;,
+    n_steps=100,
+    progress=lambda event: print(event.stage, event.completed, event.total),
+)
+</code></pre>
+<p>Entropy estimation supports cancellation and bounds the adaptive <code>theta_max</code>
+search with <code>max_theta_iterations</code>, avoiding an unbounded front-end loop.</p>
+<p>Set <code>output_dir</code> to retain parameters, chains, weights, and the historical
+training log:</p>
+<pre><code class="language-python">training = train_model(
+    &quot;alignment.fasta&quot;,
+    output_dir=&quot;DCA_model&quot;,
+    label=&quot;family_name&quot;,
+)
+print(training.artifacts)
+</code></pre>
+<p>Training checkpoints continue to write parameters in the interoperable
+plain-text <code>J</code>/<code>h</code> format (<code>params.dat</code> or <code>&lt;label&gt;_params.dat</code>). The text
+reader and writer use bounded-memory streaming; no binary format is required
+to load or resume a trained model.</p>
+<p>Long-running clients can supply <code>progress</code> and <code>is_cancelled</code> callbacks. A
+future MCP or web service can use these hooks to implement background jobs
+without adding server concerns to the scientific package.</p>
+<p>The <code>adabmDCA train</code> command uses the same progress callback to render an
+interactive terminal bar. Pass <code>--no-progress</code> when machine-readable or quiet
+terminal output is preferred.</p>
+<h2 id="structured-errors">Structured errors</h2>
+<p>High-level operations raise exceptions derived from <code>AdabmDCAError</code>:</p>
+<pre><code class="language-python">from adabmDCA import AdabmDCAError
+
+try:
+    model.compute_energies([&quot;INVALID&quot;])
+except AdabmDCAError as error:
+    print(error.to_dict())
+</code></pre>
+<p>The dictionary contains a stable error code, a process-oriented <code>exit_code</code>, a
+human-readable message, and structured details suitable for notebooks, CLIs,
+and tool adapters. Exit code 2 denotes invalid usage or incompatible inputs,
+1 denotes loading, serialization, computation, or convergence failure, and
+130 denotes cancellation.</p>
+<p>Expected errors from external parsers and serializers retain their original
+exception through Python exception chaining (<code>error.__cause__</code>). Unexpected
+programming exceptions are deliberately not converted into application
+errors, so bugs keep their traceback instead of being mislabeled as bad user
+input.</p>
+<p>The top-level CLI renders these structured errors consistently on standard
+error and returns the exception's declared exit code. Unexpected programming
+errors are not swallowed, so they retain their traceback.</p>
+<h2 id="compatibility-and-versioning">Compatibility and versioning</h2>
+<p>The existing low-level tensor APIs remain backward-compatible. High-level
+model metadata includes a <code>schema_version</code> so external adapters can validate
+the result contract independently of the package release number. Additive
+high-level fields may be introduced in minor releases; removing or changing a
+documented field requires a deprecation period and a major schema-version
+change.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["content.code.annotate", "content.tabs.link"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>
