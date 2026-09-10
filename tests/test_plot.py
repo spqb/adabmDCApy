@@ -7,7 +7,7 @@ import numpy as np
 import pytest
 from matplotlib.collections import FillBetweenPolyCollection
 
-from adabmDCA.plot import plot_autocorrelation, plot_cij_scatter
+from adabmDCA.plot import plot_autocorrelation, plot_cij_scatter, plot_PCA
 
 
 def test_autocorrelation_renders_both_standard_deviation_bands():
@@ -42,4 +42,17 @@ def test_cij_scatter_shows_linear_fit_and_slope():
     assert "1.500" in annotation
     assert axis.get_title() == "Final pairwise correlations"
     assert axis.get_xlim() == pytest.approx(axis.get_ylim())
+    plt.close(figure)
+
+
+def test_pca_marginals_handle_nearly_constant_components():
+    figure = plt.figure()
+    reference = np.zeros((8, 4))
+    generated = np.zeros((8, 4))
+    reference[:, 3] = np.linspace(0.0, 1e-15, len(reference))
+    generated[:, 3] = np.linspace(2e-16, 8e-16, len(generated))
+
+    plot_PCA(figure, reference, pc1=2, pc2=3, data2=generated)
+
+    assert len(figure.axes) == 3
     plt.close(figure)

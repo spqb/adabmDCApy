@@ -80,7 +80,11 @@ def _plot_hist(
     if data2 is not None:
         values.append(data2[:, pc])
     finite_values = np.concatenate([value[np.isfinite(value)] for value in values])
-    bins = np.histogram_bin_edges(finite_values, bins="auto") if finite_values.size else 10
+    if finite_values.size:
+        num_bins = int(np.clip(np.ceil(np.sqrt(finite_values.size)), 5, 40))
+        bins = np.histogram_bin_edges(finite_values, bins=num_bins)
+    else:
+        bins = 10
     ax.hist(
         data1[:, pc], bins=bins, color=color1, histtype="stepfilled", alpha=0.18,
         density=True, orientation=orientation, linewidth=0,
