@@ -24,20 +24,20 @@ load_chains(
 ) → Tuple[Tensor, ]
 ```
 
-Loads the sequences from a fasta file and returns the one-hot encoded version. If the sequences are weighted, the log-weights are also returned. If the sequences are not weighted, the log-weights are set to 0. 
+Loads the sequences from a fasta file and returns the one-hot encoded version. If the sequences are weighted, the log-weights are also returned. If the sequences are not weighted, the log-weights are set to 0.
 
 
 
 **Args:**
- 
- - <b>`fname`</b> (str):  Path to the file containing the sequences. 
- - <b>`tokens`</b> (str):  "protein", "dna", "rna" or another string with the alphabet to be used. 
- - <b>`load_weights`</b> (bool, optional):  If True, the log-weights are loaded and returned. Defaults to False. 
- - <b>`device`</b> (torch.device, optional):  Device where to store the sequences. Defaults to "cpu". 
- - <b>`dtype`</b> (torch.dtype, optional):  Data type of the sequences. Defaults to torch.float32 
 
-Return: 
- - <b>`Tuple[torch.Tensor, ...]`</b>:  One-hot encoded sequences and log-weights if load_weights is True. 
+ - <b>`fname`</b> (str):  Path to the file containing the sequences.
+ - <b>`tokens`</b> (str):  "protein", "dna", "rna" or another string with the alphabet to be used.
+ - <b>`load_weights`</b> (bool, optional):  If True, the log-weights are loaded and returned. Defaults to False.
+ - <b>`device`</b> (torch.device, optional):  Device where to store the sequences. Defaults to "cpu".
+ - <b>`dtype`</b> (torch.dtype, optional):  Data type of the sequences. Defaults to torch.float32
+
+Return:
+ - <b>`Tuple[torch.Tensor, ...]`</b>:  One-hot encoded sequences and log-weights if load_weights is True.
 
 
 ---
@@ -55,16 +55,16 @@ save_chains(
 ) → None
 ```
 
-Saves the chains in a fasta file. 
+Saves the chains in a fasta file.
 
 
 
 **Args:**
- 
- - <b>`fname`</b> (str):  Path to the file where to save the chains. 
- - <b>`chains`</b> (Union[list, np.ndarray, torch.Tensor]):  Iterable with sequences in string, categorical or one-hot encoded format. 
- - <b>`tokens`</b> (str):  "protein", "dna", "rna" or another string with the alphabet to be used. 
- - <b>`log_weights`</b> (Union[torch.Tensor, np.ndarray, None], optional):  Log-weights of the chains. Defaults to None. 
+
+ - <b>`fname`</b> (str):  Path to the file where to save the chains.
+ - <b>`chains`</b> (Union[list, np.ndarray, torch.Tensor]):  Iterable with sequences in string, categorical or one-hot encoded format.
+ - <b>`tokens`</b> (str):  "protein", "dna", "rna" or another string with the alphabet to be used.
+ - <b>`log_weights`</b> (Union[torch.Tensor, np.ndarray, None], optional):  Log-weights of the chains. Defaults to None.
 
 
 ---
@@ -82,26 +82,26 @@ load_params(
 ) → Dict[str, Tensor]
 ```
 
-Import parameters from the established ``J``/``h`` text format. 
+Import parameters from the established ``J``/``h`` text format.
 
-The file is parsed in two streaming passes so memory use is bounded by the final tensors and a small coupling chunk. Files containing one or both coupling triangles are supported. 
+The file is parsed in two streaming passes so memory use is bounded by the final tensors and a small coupling chunk. Files containing one or both coupling triangles are supported.
 
 
 
 **Args:**
- 
- - <b>`fname`</b> (str):  Path of the file that stores the parameters. 
- - <b>`tokens`</b> (str):  "protein", "dna", "rna" or another string with a compatible alphabet to be used. 
- - <b>`device`</b> (torch.device):  Device where to store the parameters. 
- - <b>`dtype`</b> (torch.dtype):  Data type of the parameters. Defaults to torch.float32. 
+
+ - <b>`fname`</b> (str):  Path of the file that stores the parameters.
+ - <b>`tokens`</b> (str):  "protein", "dna", "rna" or another string with a compatible alphabet to be used.
+ - <b>`device`</b> (torch.device):  Device where to store the parameters.
+ - <b>`dtype`</b> (torch.dtype):  Data type of the parameters. Defaults to torch.float32.
 
 
 
 **Returns:**
- 
- - <b>`Dict[str, torch.Tensor]`</b>:  Parameters of the model. 
-        - "bias": Tensor of shape (L, q) - local biases. 
-        - "coupling_matrix": Tensor of shape (L, q, L, q) - coupling matrix. 
+
+ - <b>`Dict[str, torch.Tensor]`</b>:  Parameters of the model.
+        - "bias": Tensor of shape (L, q) - local biases.
+        - "coupling_matrix": Tensor of shape (L, q, L, q) - coupling matrix.
 
 
 ---
@@ -119,24 +119,24 @@ load_params_old(
 ) → Dict[str, Tensor]
 ```
 
-Import the parameters of the model from a file. 
+Import the parameters of the model from a file.
 
 
 
 **Args:**
- 
- - <b>`fname`</b> (str):  Path of the file that stores the parameters. 
- - <b>`tokens`</b> (str):  "protein", "dna", "rna" or another string with a compatible alphabet to be used. 
- - <b>`device`</b> (torch.device):  Device where to store the parameters. 
- - <b>`dtype`</b> (torch.dtype):  Data type of the parameters. Defaults to torch.float32. 
+
+ - <b>`fname`</b> (str):  Path of the file that stores the parameters.
+ - <b>`tokens`</b> (str):  "protein", "dna", "rna" or another string with a compatible alphabet to be used.
+ - <b>`device`</b> (torch.device):  Device where to store the parameters.
+ - <b>`dtype`</b> (torch.dtype):  Data type of the parameters. Defaults to torch.float32.
 
 
 
 **Returns:**
- 
- - <b>`Dict[str, torch.Tensor]`</b>:  Parameters of the model. 
-        - "bias": Tensor of shape (L, q) - local biases. 
-        - "coupling_matrix": Tensor of shape (L, q, L, q) - coupling matrix. 
+
+ - <b>`Dict[str, torch.Tensor]`</b>:  Parameters of the model.
+        - "bias": Tensor of shape (L, q) - local biases.
+        - "coupling_matrix": Tensor of shape (L, q, L, q) - coupling matrix.
 
 
 ---
@@ -154,20 +154,20 @@ save_params(
 ) → None
 ```
 
-Save parameters in the established ``J``/``h`` text format. 
+Save parameters in the established ``J``/``h`` text format.
 
-Couplings are streamed in bounded chunks using the canonical ``i < j`` triangle. A supplied symmetric mask is collapsed onto that triangle. 
+Couplings are streamed in bounded chunks using the canonical ``i < j`` triangle. A supplied symmetric mask is collapsed onto that triangle.
 
 
 
 **Args:**
- 
- - <b>`fname`</b> (str):  Path to the file where to save the parameters. 
- - <b>`params`</b> (Dict[str, torch.Tensor]):  Parameters of the model. 
-        - "bias": Tensor of shape (L, q) - local biases. 
-        - "coupling_matrix": Tensor of shape (L, q, L, q) - coupling matrix. 
- - <b>`tokens`</b> (str):  "protein", "dna", "rna" or another string with a compatible alphabet to be used. 
- - <b>`mask`</b> (Optional[torch.Tensor]):  Tensor of shape (L, q, L, q) - Mask of the coupling matrix that determines which are the non-zero entries.  If None, the lower-triangular part of the coupling matrix is masked. Defaults to None. 
+
+ - <b>`fname`</b> (str):  Path to the file where to save the parameters.
+ - <b>`params`</b> (Dict[str, torch.Tensor]):  Parameters of the model.
+        - "bias": Tensor of shape (L, q) - local biases.
+        - "coupling_matrix": Tensor of shape (L, q, L, q) - coupling matrix.
+ - <b>`tokens`</b> (str):  "protein", "dna", "rna" or another string with a compatible alphabet to be used.
+ - <b>`mask`</b> (Optional[torch.Tensor]):  Tensor of shape (L, q, L, q) - Mask of the coupling matrix that determines which are the non-zero entries.  If None, the lower-triangular part of the coupling matrix is masked. Defaults to None.
 
 
 ---
@@ -184,23 +184,23 @@ load_params_oldformat(
 ) → Dict[str, Tensor]
 ```
 
-Import the parameters of the model from a file. Assumes the old DCA format. 
+Import the parameters of the model from a file. Assumes the old DCA format.
 
 
 
 **Args:**
- 
- - <b>`fname`</b> (str):  Path of the file that stores the parameters. 
- - <b>`device`</b> (torch.device):  Device where to store the parameters. 
- - <b>`dtype`</b> (torch.dtype):  Data type of the parameters. Defaults to torch.float32. 
+
+ - <b>`fname`</b> (str):  Path of the file that stores the parameters.
+ - <b>`device`</b> (torch.device):  Device where to store the parameters.
+ - <b>`dtype`</b> (torch.dtype):  Data type of the parameters. Defaults to torch.float32.
 
 
 
 **Returns:**
- 
- - <b>`Dict[str, torch.Tensor]`</b>:  Parameters of the model. 
-        - "bias": Tensor of shape (L, q) - local biases. 
-        - "coupling_matrix": Tensor of shape (L, q, L, q) - coupling matrix. 
+
+ - <b>`Dict[str, torch.Tensor]`</b>:  Parameters of the model.
+        - "bias": Tensor of shape (L, q) - local biases.
+        - "coupling_matrix": Tensor of shape (L, q, L, q) - coupling matrix.
 
 
 ---
@@ -217,17 +217,17 @@ save_params_oldformat(
 ) → None
 ```
 
-Saves the parameters of the model in a file. Assumes the old DCA format. 
+Saves the parameters of the model in a file. Assumes the old DCA format.
 
 
 
 **Args:**
- 
- - <b>`fname`</b> (str):  Path to the file where to save the parameters. 
- - <b>`params`</b> (Dict[str, torch.Tensor]):  Parameters of the model. 
-        - "bias": Tensor of shape (L, q) - local biases. 
-        - "coupling_matrix": Tensor of shape (L, q, L, q) - coupling matrix. 
- - <b>`mask`</b> (Optional[torch.Tensor]):  Tensor of shape (L, q, L, q) - Mask of the coupling matrix that determines which are the non-zero entries.  If None, the lower-triangular part of the coupling matrix is masked. Defaults to None. 
+
+ - <b>`fname`</b> (str):  Path to the file where to save the parameters.
+ - <b>`params`</b> (Dict[str, torch.Tensor]):  Parameters of the model.
+        - "bias": Tensor of shape (L, q) - local biases.
+        - "coupling_matrix": Tensor of shape (L, q, L, q) - coupling matrix.
+ - <b>`mask`</b> (Optional[torch.Tensor]):  Tensor of shape (L, q, L, q) - Mask of the coupling matrix that determines which are the non-zero entries.  If None, the lower-triangular part of the coupling matrix is masked. Defaults to None.
 
 
 

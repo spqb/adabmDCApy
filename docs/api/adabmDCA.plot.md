@@ -28,26 +28,26 @@ plot_PCA(
 ) → Figure
 ```
 
-Makes the scatter plot of the components (pc1, pc2) of the input data and shows the histograms of the components. 
+Makes the scatter plot of the components (pc1, pc2) of the input data and shows the histograms of the components.
 
 
 
 **Args:**
- 
- - <b>`fig`</b> (Figure):  Figure to plot the data. 
- - <b>`data1`</b> (np.ndarray):  Data to plot. 
- - <b>`pc1`</b> (int, optional):  First principal direction. Defaults to 0. 
- - <b>`pc2`</b> (int, optional):  Second principal direction. Defaults to 1. 
- - <b>`data2`</b> (Optional[np.ndarray], optional):  Data to be superimposed to data1. Defaults to None. 
- - <b>`labels`</b> (Union[List[str], str], optional):  Labels to put in the legend. Defaults to "Data". 
- - <b>`colors`</b> (Union[List[str], str], optional):  Colors to be used. Defaults to "black". 
- - <b>`title`</b> (Optional[str], optional):  Title of the plot. Defaults to None. 
+
+ - <b>`fig`</b> (Figure):  Figure to plot the data.
+ - <b>`data1`</b> (np.ndarray):  Data to plot.
+ - <b>`pc1`</b> (int, optional):  First principal direction. Defaults to 0.
+ - <b>`pc2`</b> (int, optional):  Second principal direction. Defaults to 1.
+ - <b>`data2`</b> (Optional[np.ndarray], optional):  Data to be superimposed to data1. Defaults to None.
+ - <b>`labels`</b> (Union[List[str], str], optional):  Labels to put in the legend. Defaults to "Data".
+ - <b>`colors`</b> (Union[List[str], str], optional):  Colors to be used. Defaults to "black".
+ - <b>`title`</b> (Optional[str], optional):  Title of the plot. Defaults to None.
 
 
 
 **Returns:**
- 
- - <b>`Figure`</b>:  Updated figure. 
+
+ - <b>`Figure`</b>:  Updated figure.
 
 
 ---
@@ -65,22 +65,22 @@ plot_pearson_sampling(
 ) → Axes
 ```
 
-Plots the Pearson correlation coefficient over sampling time. 
+Plots the Pearson correlation coefficient over sampling time.
 
 
 
 **Args:**
- 
- - <b>`ax`</b> (Axes):  Axes to plot the data. 
- - <b>`checkpoints`</b> (np.ndarray):  Checkpoints of the sampling. 
- - <b>`pearsons`</b> (np.ndarray):  Pearson correlation coefficients at different checkpoints. 
- - <b>`pearson_training`</b> (Optional[float], optional):  Pearson correlation coefficient obtained during training. Defaults to None. 
+
+ - <b>`ax`</b> (Axes):  Axes to plot the data.
+ - <b>`checkpoints`</b> (np.ndarray):  Checkpoints of the sampling.
+ - <b>`pearsons`</b> (np.ndarray):  Pearson correlation coefficients at different checkpoints.
+ - <b>`pearson_training`</b> (Optional[float], optional):  Pearson correlation coefficient obtained during training. Defaults to None.
 
 
 
 **Returns:**
- 
- - <b>`Axes`</b>:  Updated axes. 
+
+ - <b>`Axes`</b>:  Updated axes.
 
 
 ---
@@ -101,25 +101,25 @@ plot_autocorrelation(
 ) → Axes
 ```
 
-Plots the time-autocorrelation curve of the sequence identity and the generated and data sequence identities. 
+Plots the time-autocorrelation curve of the sequence identity and the generated and data sequence identities.
 
 
 
 **Args:**
- 
- - <b>`ax`</b> (Axes):  Axes to plot the data. 
- - <b>`checkpoints`</b> (np.ndarray):  Checkpoints of the sampling. 
- - <b>`autocorr`</b> (np.ndarray):  Time-autocorrelation of the sequence identity. 
- - <b>`gen_seqid`</b> (float or np.ndarray):  Independent-chain sequence identity, either as a level or a curve. 
- - <b>`data_seqid`</b> (float, optional):  Reference-data sequence identity level. 
- - <b>`autocorr_std`</b> (np.ndarray, optional):  Uncertainty of the autocorrelation curve. 
- - <b>`independent_std`</b> (np.ndarray, optional):  Uncertainty of the independent-chain curve. 
+
+ - <b>`ax`</b> (Axes):  Axes to plot the data.
+ - <b>`checkpoints`</b> (np.ndarray):  Checkpoints of the sampling.
+ - <b>`autocorr`</b> (np.ndarray):  Time-autocorrelation of the sequence identity.
+ - <b>`gen_seqid`</b> (float or np.ndarray):  Independent-chain sequence identity, either as a level or a curve.
+ - <b>`data_seqid`</b> (float, optional):  Reference-data sequence identity level.
+ - <b>`autocorr_std`</b> (np.ndarray, optional):  Uncertainty of the autocorrelation curve.
+ - <b>`independent_std`</b> (np.ndarray, optional):  Uncertainty of the independent-chain curve.
 
 
 
 **Returns:**
- 
- - <b>`Axes`</b>:  Updated axes. 
+
+ - <b>`Axes`</b>:  Updated axes.
 
 
 ---
@@ -137,7 +137,7 @@ plot_cij_scatter(
 ) → Axes
 ```
 
-Plot reference versus generated connected two-site correlations. 
+Plot reference versus generated connected two-site correlations.
 
 
 ---
@@ -158,25 +158,25 @@ plot_scatter_correlations(
 ) → tuple[Axes, Axes]
 ```
 
-Plots the scatter plot of the data and generated Cij and Cijk values. 
+Plots the scatter plot of the data and generated Cij and Cijk values.
 
 
 
 **Args:**
- 
- - <b>`ax`</b> (Tuple[Axes, Axes]):  Tuple of 2 Axes to plot the data. 
- - <b>`Cij_data`</b> (np.ndarray):  Data Cij values. 
- - <b>`Cij_gen`</b> (np.ndarray):  Generated Cij values. 
- - <b>`Cijk_data`</b> (np.ndarray):  Data Cijk values. 
- - <b>`Cijk_gen`</b> (np.ndarray):  Generated Cijk values. 
- - <b>`pearson_Cij`</b> (float):  Pearson correlation coefficient of Cij. 
- - <b>`pearson_Cijk`</b> (float):  Pearson correlation coefficient of Cijk. 
+
+ - <b>`ax`</b> (Tuple[Axes, Axes]):  Tuple of 2 Axes to plot the data.
+ - <b>`Cij_data`</b> (np.ndarray):  Data Cij values.
+ - <b>`Cij_gen`</b> (np.ndarray):  Generated Cij values.
+ - <b>`Cijk_data`</b> (np.ndarray):  Data Cijk values.
+ - <b>`Cijk_gen`</b> (np.ndarray):  Generated Cijk values.
+ - <b>`pearson_Cij`</b> (float):  Pearson correlation coefficient of Cij.
+ - <b>`pearson_Cijk`</b> (float):  Pearson correlation coefficient of Cijk.
 
 
 
 **Returns:**
- 
- - <b>`Tuple[Axes, Axes]`</b>:  Updated axes. 
+
+ - <b>`Tuple[Axes, Axes]`</b>:  Updated axes.
 
 
 ---
@@ -189,21 +189,21 @@ Plots the scatter plot of the data and generated Cij and Cijk values.
 plot_contact_map(ax: Axes, cm: ndarray, title: str | None = None) → Axes
 ```
 
-Plots the contact map. 
+Plots the contact map.
 
 
 
 **Args:**
- 
- - <b>`ax`</b> (Axes):  Axes to plot the contact map. 
- - <b>`cm`</b> (np.ndarray):  Contact map to plot. 
- - <b>`title`</b> (Optional[str], optional):  Title of the plot. Defaults to None. 
+
+ - <b>`ax`</b> (Axes):  Axes to plot the contact map.
+ - <b>`cm`</b> (np.ndarray):  Contact map to plot.
+ - <b>`title`</b> (Optional[str], optional):  Title of the plot. Defaults to None.
 
 
 
 **Returns:**
- 
- - <b>`Axes`</b>:  Updated axes. 
+
+ - <b>`Axes`</b>:  Updated axes.
 
 
 

@@ -18,22 +18,22 @@
 sampling_profile(params: dict[str, Tensor], nsamples: int, beta: float) → Tensor
 ```
 
-Samples from the profile model defined by the local biases only. 
+Samples from the profile model defined by the local biases only.
 
 
 
 **Args:**
- 
- - <b>`params`</b> (Dict[str, torch.Tensor]):  Parameters of the model. 
-        - "bias": Tensor of shape (L, q) - local biases. 
- - <b>`nsamples`</b> (int):  Number of samples to generate. 
- - <b>`beta`</b> (float):  Inverse temperature. 
+
+ - <b>`params`</b> (Dict[str, torch.Tensor]):  Parameters of the model.
+        - "bias": Tensor of shape (L, q) - local biases.
+ - <b>`nsamples`</b> (int):  Number of samples to generate.
+ - <b>`beta`</b> (float):  Inverse temperature.
 
 
 
 **Returns:**
- 
- - <b>`torch.Tensor`</b>:  Sampled one-hot encoded sequences of shape (nsamples, L, q). 
+
+ - <b>`torch.Tensor`</b>:  Sampled one-hot encoded sequences of shape (nsamples, L, q).
 
 
 ---
@@ -50,23 +50,23 @@ gibbs_step_uniform_sites(
 ) → Tensor
 ```
 
-Performs a single mutation using the Gibbs sampler. In this version, the mutation is attempted at the same sites for all chains. 
+Performs a single mutation using the Gibbs sampler. In this version, the mutation is attempted at the same sites for all chains.
 
 
 
 **Args:**
- 
- - <b>`chains`</b> (torch.Tensor):  One-hot encoded sequences of shape (batch_size, L, q). 
- - <b>`params`</b> (Dict[str, torch.Tensor]):  Parameters of the model. 
-        - "bias": Tensor of shape (L, q) - local biases. 
-        - "coupling_matrix": Tensor of shape (L, q, L, q) - coupling matrix. 
- - <b>`beta`</b> (float, optional):  Inverse temperature. Defaults to 1.0. 
+
+ - <b>`chains`</b> (torch.Tensor):  One-hot encoded sequences of shape (batch_size, L, q).
+ - <b>`params`</b> (Dict[str, torch.Tensor]):  Parameters of the model.
+        - "bias": Tensor of shape (L, q) - local biases.
+        - "coupling_matrix": Tensor of shape (L, q, L, q) - coupling matrix.
+ - <b>`beta`</b> (float, optional):  Inverse temperature. Defaults to 1.0.
 
 
 
 **Returns:**
- 
- - <b>`torch.Tensor`</b>:  Updated chains. 
+
+ - <b>`torch.Tensor`</b>:  Updated chains.
 
 
 ---
@@ -83,23 +83,23 @@ gibbs_step_independent_sites(
 ) → Tensor
 ```
 
-Performs a single mutation using the Gibbs sampler. This version selects different random sites for each chain. It is less efficient than the 'gibbs_step_uniform_sites' function, but it is more suitable for mutating starting from the same wild-type sequence since mutations are independent across chains. 
+Performs a single mutation using the Gibbs sampler. This version selects different random sites for each chain. It is less efficient than the 'gibbs_step_uniform_sites' function, but it is more suitable for mutating starting from the same wild-type sequence since mutations are independent across chains.
 
 
 
 **Args:**
- 
- - <b>`chains`</b> (torch.Tensor):  One-hot encoded sequences of shape (batch_size, L, q). 
- - <b>`params`</b> (Dict[str, torch.Tensor]):  Parameters of the model. 
-        - "bias": Tensor of shape (L, q) - local biases. 
-        - "coupling_matrix": Tensor of shape (L, q, L, q) - coupling matrix. 
- - <b>`beta`</b> (float, optional):  Inverse temperature. Defaults to 1.0. 
+
+ - <b>`chains`</b> (torch.Tensor):  One-hot encoded sequences of shape (batch_size, L, q).
+ - <b>`params`</b> (Dict[str, torch.Tensor]):  Parameters of the model.
+        - "bias": Tensor of shape (L, q) - local biases.
+        - "coupling_matrix": Tensor of shape (L, q, L, q) - coupling matrix.
+ - <b>`beta`</b> (float, optional):  Inverse temperature. Defaults to 1.0.
 
 
 
 **Returns:**
- 
- - <b>`torch.Tensor`</b>:  Updated chains. 
+
+ - <b>`torch.Tensor`</b>:  Updated chains.
 
 
 ---
@@ -117,24 +117,24 @@ gibbs_sampling(
 ) → Tensor
 ```
 
-Gibbs sampling. Attempts L * nsweeps mutations to each sequence in 'chains'. 
+Gibbs sampling. Attempts L * nsweeps mutations to each sequence in 'chains'.
 
 
 
 **Args:**
- 
- - <b>`chains`</b> (torch.Tensor):  Initial one-hot encoded samples of size (batch_size, L, q). 
- - <b>`params`</b> (Dict[str, torch.Tensor]):  Parameters of the model. 
-        - "bias": Tensor of shape (L, q) - local biases. 
-        - "coupling_matrix": Tensor of shape (L, q, L, q) - coupling matrix. 
- - <b>`nsweeps`</b> (int):  Number of sweeps, where one sweep corresponds to attempting L mutations. 
- - <b>`beta`</b> (float, optional):  Inverse temperature. Defaults to 1.0. 
+
+ - <b>`chains`</b> (torch.Tensor):  Initial one-hot encoded samples of size (batch_size, L, q).
+ - <b>`params`</b> (Dict[str, torch.Tensor]):  Parameters of the model.
+        - "bias": Tensor of shape (L, q) - local biases.
+        - "coupling_matrix": Tensor of shape (L, q, L, q) - coupling matrix.
+ - <b>`nsweeps`</b> (int):  Number of sweeps, where one sweep corresponds to attempting L mutations.
+ - <b>`beta`</b> (float, optional):  Inverse temperature. Defaults to 1.0.
 
 
 
 **Returns:**
- 
- - <b>`torch.Tensor`</b>:  Updated chains. 
+
+ - <b>`torch.Tensor`</b>:  Updated chains.
 
 
 ---
@@ -151,23 +151,23 @@ metropolis_step_uniform_sites(
 ) → Tensor
 ```
 
-Performs a single mutation using the Metropolis sampler. In this version, the mutation is attempted at the same sites for all chains. 
+Performs a single mutation using the Metropolis sampler. In this version, the mutation is attempted at the same sites for all chains.
 
 
 
 **Args:**
- 
- - <b>`chains`</b> (torch.Tensor):  One-hot encoded sequences of shape (batch_size, L, q). 
- - <b>`params`</b> (Dict[str, torch.Tensor]):  Parameters of the model. 
-        - "bias": Tensor of shape (L, q) - local biases. 
-        - "coupling_matrix": Tensor of shape (L, q, L, q) - coupling matrix. 
- - <b>`beta`</b> (float, optional):  Inverse temperature. Defaults to 1.0. 
+
+ - <b>`chains`</b> (torch.Tensor):  One-hot encoded sequences of shape (batch_size, L, q).
+ - <b>`params`</b> (Dict[str, torch.Tensor]):  Parameters of the model.
+        - "bias": Tensor of shape (L, q) - local biases.
+        - "coupling_matrix": Tensor of shape (L, q, L, q) - coupling matrix.
+ - <b>`beta`</b> (float, optional):  Inverse temperature. Defaults to 1.0.
 
 
 
 **Returns:**
- 
- - <b>`torch.Tensor`</b>:  Updated chains. 
+
+ - <b>`torch.Tensor`</b>:  Updated chains.
 
 
 ---
@@ -184,23 +184,23 @@ metropolis_step_independent_sites(
 ) → Tensor
 ```
 
-Performs a single mutation using the Metropolis sampler. This version selects different random sites for each chain. It is less efficient than the 'metropolis_step_uniform_sites' function, but it is more suitable for mutating starting from the same wild-type sequence since mutations are independent across chains. 
+Performs a single mutation using the Metropolis sampler. This version selects different random sites for each chain. It is less efficient than the 'metropolis_step_uniform_sites' function, but it is more suitable for mutating starting from the same wild-type sequence since mutations are independent across chains.
 
 
 
 **Args:**
- 
- - <b>`chains`</b> (torch.Tensor):  One-hot encoded sequences of shape (batch_size, L, q). 
- - <b>`params`</b> (Dict[str, torch.Tensor]):  Parameters of the model. 
-        - "bias": Tensor of shape (L, q) - local biases. 
-        - "coupling_matrix": Tensor of shape (L, q, L, q) - coupling matrix. 
- - <b>`beta`</b> (float, optional):  Inverse temperature. Defaults to 1.0. 
+
+ - <b>`chains`</b> (torch.Tensor):  One-hot encoded sequences of shape (batch_size, L, q).
+ - <b>`params`</b> (Dict[str, torch.Tensor]):  Parameters of the model.
+        - "bias": Tensor of shape (L, q) - local biases.
+        - "coupling_matrix": Tensor of shape (L, q, L, q) - coupling matrix.
+ - <b>`beta`</b> (float, optional):  Inverse temperature. Defaults to 1.0.
 
 
 
 **Returns:**
- 
- - <b>`torch.Tensor`</b>:  Updated chains. 
+
+ - <b>`torch.Tensor`</b>:  Updated chains.
 
 
 ---
@@ -218,24 +218,24 @@ metropolis_sampling(
 ) → Tensor
 ```
 
-Metropolis sampling. Attempts L * nsweeps mutations to each sequence in 'chains'. 
+Metropolis sampling. Attempts L * nsweeps mutations to each sequence in 'chains'.
 
 
 
 **Args:**
- 
- - <b>`chains`</b> (torch.Tensor):  One-hot encoded sequences of shape (batch_size, L, q). 
- - <b>`params`</b> (Dict[str, torch.Tensor]):  Parameters of the model. 
-        - "bias": Tensor of shape (L, q) - local biases. 
-        - "coupling_matrix": Tensor of shape (L, q, L, q) - coupling matrix. 
- - <b>`nsweeps`</b> (int):  Number of sweeps to be performed, where one sweep corresponds to attempting L mutations. 
- - <b>`beta`</b> (float, optional):  Inverse temperature. Defaults to 1.0. 
+
+ - <b>`chains`</b> (torch.Tensor):  One-hot encoded sequences of shape (batch_size, L, q).
+ - <b>`params`</b> (Dict[str, torch.Tensor]):  Parameters of the model.
+        - "bias": Tensor of shape (L, q) - local biases.
+        - "coupling_matrix": Tensor of shape (L, q, L, q) - coupling matrix.
+ - <b>`nsweeps`</b> (int):  Number of sweeps to be performed, where one sweep corresponds to attempting L mutations.
+ - <b>`beta`</b> (float, optional):  Inverse temperature. Defaults to 1.0.
 
 
 
 **Returns:**
- 
- - <b>`torch.Tensor`</b>:  Updated chains. 
+
+ - <b>`torch.Tensor`</b>:  Updated chains.
 
 
 ---
@@ -248,25 +248,25 @@ Metropolis sampling. Attempts L * nsweeps mutations to each sequence in 'chains'
 get_sampler(sampling_method: str) → Callable
 ```
 
-Returns the sampling function corresponding to the chosen method. 
+Returns the sampling function corresponding to the chosen method.
 
 
 
 **Args:**
- 
- - <b>`sampling_method`</b> (str):  String indicating the sampling method. Choose between 'metropolis' and 'gibbs'. 
+
+ - <b>`sampling_method`</b> (str):  String indicating the sampling method. Choose between 'metropolis' and 'gibbs'.
 
 
 
 **Raises:**
- 
- - <b>`KeyError`</b>:  Unknown sampling method. 
+
+ - <b>`KeyError`</b>:  Unknown sampling method.
 
 
 
 **Returns:**
- 
- - <b>`Callable`</b>:  Sampling function. 
+
+ - <b>`Callable`</b>:  Sampling function.
 
 
 ---
@@ -279,7 +279,7 @@ Returns the sampling function corresponding to the chosen method.
 prepare_sampler(sampling_method: str, device: device) → Callable
 ```
 
-Select a fused CUDA sampler, or the scripted sampler without Triton. 
+Select a fused CUDA sampler, or the scripted sampler without Triton.
 
 
 ---
@@ -297,9 +297,9 @@ prepare_fixed_model_sampler(
 ) → tuple[Callable, dict[str, Tensor]]
 ```
 
-Prepare a sampler and parameters for a model that will not be updated. 
+Prepare a sampler and parameters for a model that will not be updated.
 
-BF16 mode keeps biases, chains, statistics, and energy calculations in float32. Only the fixed coupling matrix is rounded to BF16, once, before sampling. This is the inference counterpart of :func:`prepare_training_sampler`, where the coupling copy must instead be refreshed after every parameter update. 
+BF16 mode keeps biases, chains, statistics, and energy calculations in float32. Only the fixed coupling matrix is rounded to BF16, once, before sampling. This is the inference counterpart of :func:`prepare_training_sampler`, where the coupling copy must instead be refreshed after every parameter update.
 
 
 ---
@@ -316,9 +316,9 @@ prepare_training_sampler(
 ) → Callable
 ```
 
-Prepare sampling for training with optional BF16 coupling storage. 
+Prepare sampling for training with optional BF16 coupling storage.
 
-In bfloat16 mode, parameters, chains and statistics outside the sampler stay float32. A fresh BF16 coupling copy is made after each parameter update; biases and all field/acceptance arithmetic remain float32. The rounded coupling matrix approximates the master model, so trajectories can change. 
+In bfloat16 mode, parameters, chains and statistics outside the sampler stay float32. A fresh BF16 coupling copy is made after each parameter update; biases and all field/acceptance arithmetic remain float32. The rounded coupling matrix approximates the master model, so trajectories can change.
 
 
 

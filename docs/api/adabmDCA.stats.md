@@ -22,25 +22,25 @@ get_freq_single_point(
 ) → Tensor
 ```
 
-Computes the single point frequencies of the input MSA. 
+Computes the single point frequencies of the input MSA.
 
 **Args:**
- 
- - <b>`data`</b> (torch.Tensor):  One-hot encoded data array. 
- - <b>`weights`</b> (Optional[torch.Tensor], optional):  Weights of the sequences. 
- - <b>`pseudo_count`</b> (float, optional):  Pseudo count to be added to the frequencies. Defaults to 0.0. 
+
+ - <b>`data`</b> (torch.Tensor):  One-hot encoded data array.
+ - <b>`weights`</b> (Optional[torch.Tensor], optional):  Weights of the sequences.
+ - <b>`pseudo_count`</b> (float, optional):  Pseudo count to be added to the frequencies. Defaults to 0.0.
 
 
 
 **Raises:**
- 
- - <b>`ValueError`</b>:  If the input data is not a 3D tensor. 
+
+ - <b>`ValueError`</b>:  If the input data is not a 3D tensor.
 
 
 
 **Returns:**
- 
- - <b>`torch.Tensor`</b>:  Single point frequencies. 
+
+ - <b>`torch.Tensor`</b>:  Single point frequencies.
 
 
 ---
@@ -57,27 +57,27 @@ get_freq_two_points(
 ) → Tensor
 ```
 
-Computes the 2-points statistics of the input MSA. 
+Computes the 2-points statistics of the input MSA.
 
 
 
 **Args:**
- 
- - <b>`data`</b> (torch.Tensor):  One-hot encoded data array. 
- - <b>`weights`</b> (Optional[torch.Tensor], optional):  Array of weights to assign to the sequences of shape. 
- - <b>`pseudo_count`</b> (float, optional):  Pseudo count for the single and two points statistics. Acts as a regularization. Defaults to 0.0. 
+
+ - <b>`data`</b> (torch.Tensor):  One-hot encoded data array.
+ - <b>`weights`</b> (Optional[torch.Tensor], optional):  Array of weights to assign to the sequences of shape.
+ - <b>`pseudo_count`</b> (float, optional):  Pseudo count for the single and two points statistics. Acts as a regularization. Defaults to 0.0.
 
 
 
 **Raises:**
- 
- - <b>`ValueError`</b>:  If the input data is not a 3D tensor. 
+
+ - <b>`ValueError`</b>:  If the input data is not a 3D tensor.
 
 
 
 **Returns:**
- 
- - <b>`torch.Tensor`</b>:  Matrix of two-point frequencies of shape (L, q, L, q). 
+
+ - <b>`torch.Tensor`</b>:  Matrix of two-point frequencies of shape (L, q, L, q).
 
 
 ---
@@ -94,21 +94,21 @@ generate_unique_triplets(
 ) → Tensor
 ```
 
-Generates a set of unique triplets of positions. Used to compute the 3-points statistics. 
+Generates a set of unique triplets of positions. Used to compute the 3-points statistics.
 
 
 
 **Args:**
- 
- - <b>`L`</b> (int):  Length of the sequences. 
- - <b>`ntriplets`</b> (int):  Number of triplets to be generated. 
- - <b>`device`</b> (torch.device, optional):  Device to perform computations on. Defaults to "cpu". 
+
+ - <b>`L`</b> (int):  Length of the sequences.
+ - <b>`ntriplets`</b> (int):  Number of triplets to be generated.
+ - <b>`device`</b> (torch.device, optional):  Device to perform computations on. Defaults to "cpu".
 
 
 
 **Returns:**
- 
- - <b>`torch.Tensor`</b>:  Tensor of shape (ntriplets, 3) containing the indices of the triplets. 
+
+ - <b>`torch.Tensor`</b>:  Tensor of shape (ntriplets, 3) containing the indices of the triplets.
 
 
 ---
@@ -128,24 +128,24 @@ get_freq_three_points(
 ) → Tuple[Tensor, Tensor]
 ```
 
-Computes the 3-body connected correlation statistics of the input MSAs. 
+Computes the 3-body connected correlation statistics of the input MSAs.
 
 
 
 **Args:**
- 
- - <b>`nat`</b> (torch.Tensor):  Input MSA representing natural data in one-hot encoding. 
- - <b>`gen`</b> (torch.Tensor):  Input MSA representing generated data in one-hot encoding. 
- - <b>`ntriplets`</b> (int):  Number of triplets to test. Defaults to 10000. 
- - <b>`triplets`</b> (Optional[torch.Tensor], optional):  Predefined triplets to use for the computation. Defaults to None. 
- - <b>`weights`</b> (Optional[torch.Tensor], optional):  Importance weights for the natural sequences. Defaults to None. 
- - <b>`device`</b> (torch.device, optional):  Device to perform computations on. Defaults to "cpu". 
+
+ - <b>`nat`</b> (torch.Tensor):  Input MSA representing natural data in one-hot encoding.
+ - <b>`gen`</b> (torch.Tensor):  Input MSA representing generated data in one-hot encoding.
+ - <b>`ntriplets`</b> (int):  Number of triplets to test. Defaults to 10000.
+ - <b>`triplets`</b> (Optional[torch.Tensor], optional):  Predefined triplets to use for the computation. Defaults to None.
+ - <b>`weights`</b> (Optional[torch.Tensor], optional):  Importance weights for the natural sequences. Defaults to None.
+ - <b>`device`</b> (torch.device, optional):  Device to perform computations on. Defaults to "cpu".
 
 
 
 **Returns:**
- 
- - <b>`Tuple[torch.Tensor, torch.Tensor]`</b>:  Natural and generated 3-points connected correlation for ntriplets randomly extracted triplets. 
+
+ - <b>`Tuple[torch.Tensor, torch.Tensor]`</b>:  Natural and generated 3-points connected correlation for ntriplets randomly extracted triplets.
 
 
 ---
@@ -162,21 +162,21 @@ get_covariance_matrix(
 ) → Tensor
 ```
 
-Computes the weighted covariance matrix of the input multi sequence alignment. 
+Computes the weighted covariance matrix of the input multi sequence alignment.
 
 
 
 **Args:**
- 
- - <b>`data`</b> (torch.Tensor):  Input MSA in one-hot variables. 
- - <b>`weights`</b> (torch.Tensor | None, optional):  Importance weights of the sequences. 
- - <b>`pseudo_count`</b> (float, optional):  Pseudo count. Defaults to 0.0. 
+
+ - <b>`data`</b> (torch.Tensor):  Input MSA in one-hot variables.
+ - <b>`weights`</b> (torch.Tensor | None, optional):  Importance weights of the sequences.
+ - <b>`pseudo_count`</b> (float, optional):  Pseudo count. Defaults to 0.0.
 
 
 
 **Returns:**
- 
- - <b>`torch.Tensor`</b>:  Covariance matrix. 
+
+ - <b>`torch.Tensor`</b>:  Covariance matrix.
 
 
 ---
@@ -195,23 +195,23 @@ extract_Cij_from_freq(
 ) → Tuple[Tensor, Tensor]
 ```
 
-Extracts the lower triangular part of the covariance matrices of the natural data and generated data starting from the frequencies. 
+Extracts the lower triangular part of the covariance matrices of the natural data and generated data starting from the frequencies.
 
 
 
 **Args:**
- 
- - <b>`fij`</b> (torch.Tensor):  Two-point frequencies of the natural data. 
- - <b>`pij`</b> (torch.Tensor):  Two-point frequencies of the generated data. 
- - <b>`fi`</b> (torch.Tensor):  Single-point frequencies of the natural data. 
- - <b>`pi`</b> (torch.Tensor):  Single-point frequencies of the generated data. 
- - <b>`mask`</b> (Optional[torch.Tensor], optional):  Mask for comparing just a subset of the couplings. Defaults to None. 
+
+ - <b>`fij`</b> (torch.Tensor):  Two-point frequencies of the natural data.
+ - <b>`pij`</b> (torch.Tensor):  Two-point frequencies of the generated data.
+ - <b>`fi`</b> (torch.Tensor):  Single-point frequencies of the natural data.
+ - <b>`pi`</b> (torch.Tensor):  Single-point frequencies of the generated data.
+ - <b>`mask`</b> (Optional[torch.Tensor], optional):  Mask for comparing just a subset of the couplings. Defaults to None.
 
 
 
 **Returns:**
- 
- - <b>`Tuple[torch.Tensor, torch.Tensor]`</b>:  Extracted covariance matrix entries of the natural data and generated data. 
+
+ - <b>`Tuple[torch.Tensor, torch.Tensor]`</b>:  Extracted covariance matrix entries of the natural data and generated data.
 
 
 ---
@@ -230,23 +230,23 @@ extract_Cij_from_seqs(
 ) → Tuple[Tensor, Tensor]
 ```
 
-Extracts the lower triangular part of the covariance matrices of the natural data and generated data starting from the sequences. 
+Extracts the lower triangular part of the covariance matrices of the natural data and generated data starting from the sequences.
 
 
 
 **Args:**
- 
- - <b>`data`</b> (torch.Tensor):  Natural data sequences. 
- - <b>`chains`</b> (torch.Tensor):  Generated data sequences. 
- - <b>`weights`</b> (torch.Tensor | None, optional):  Weights of the sequences. Defaults to None. 
- - <b>`pseudo_count`</b> (float, optional):  Pseudo count for the single and two points statistics. Acts as a regularization. Defaults to 0.0. 
- - <b>`mask`</b> (torch.Tensor | None, optional):  Mask for comparing just a subset of the couplings. Defaults to None. 
+
+ - <b>`data`</b> (torch.Tensor):  Natural data sequences.
+ - <b>`chains`</b> (torch.Tensor):  Generated data sequences.
+ - <b>`weights`</b> (torch.Tensor | None, optional):  Weights of the sequences. Defaults to None.
+ - <b>`pseudo_count`</b> (float, optional):  Pseudo count for the single and two points statistics. Acts as a regularization. Defaults to 0.0.
+ - <b>`mask`</b> (torch.Tensor | None, optional):  Mask for comparing just a subset of the couplings. Defaults to None.
 
 
 
 **Returns:**
- 
- - <b>`Tuple[torch.Tensor, torch.Tensor]`</b>:  Two-point frequencies of the natural data and generated data. 
+
+ - <b>`Tuple[torch.Tensor, torch.Tensor]`</b>:  Two-point frequencies of the natural data and generated data.
 
 
 ---
@@ -265,23 +265,23 @@ get_correlation_two_points(
 ) → Tuple[float, float]
 ```
 
-Computes the Pearson coefficient and the slope between the two-point frequencies of data and chains. 
+Computes the Pearson coefficient and the slope between the two-point frequencies of data and chains.
 
 
 
 **Args:**
- 
- - <b>`fij`</b> (torch.Tensor):  Two-point frequencies of the natural data. 
- - <b>`pij`</b> (torch.Tensor):  Two-point frequencies of the generated data. 
- - <b>`fi`</b> (torch.Tensor):  Single-point frequencies of the natural data. 
- - <b>`pi`</b> (torch.Tensor):  Single-point frequencies of the generated data. 
- - <b>`mask`</b> (Optional[torch.Tensor], optional):  Mask to select the couplings to use for the correlation coefficient. Defaults to None.  
+
+ - <b>`fij`</b> (torch.Tensor):  Two-point frequencies of the natural data.
+ - <b>`pij`</b> (torch.Tensor):  Two-point frequencies of the generated data.
+ - <b>`fi`</b> (torch.Tensor):  Single-point frequencies of the natural data.
+ - <b>`pi`</b> (torch.Tensor):  Single-point frequencies of the generated data.
+ - <b>`mask`</b> (Optional[torch.Tensor], optional):  Mask to select the couplings to use for the correlation coefficient. Defaults to None.
 
 
 
 **Returns:**
- 
- - <b>`Tuple[float, float]`</b>:  Pearson correlation coefficient of the two-sites statistics and slope of the interpolating line. 
+
+ - <b>`Tuple[float, float]`</b>:  Pearson correlation coefficient of the two-sites statistics and slope of the interpolating line.
 
 
 

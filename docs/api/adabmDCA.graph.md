@@ -18,19 +18,19 @@
 compute_density(mask: Tensor) → float
 ```
 
-Computes the density of active couplings in the coupling matrix. 
+Computes the density of active couplings in the coupling matrix.
 
 
 
 **Args:**
- 
- - <b>`mask`</b> (torch.Tensor):  Mask. 
+
+ - <b>`mask`</b> (torch.Tensor):  Mask.
 
 
 
 **Returns:**
- 
- - <b>`float`</b>:  Density. 
+
+ - <b>`float`</b>:  Density.
 
 
 ---
@@ -43,20 +43,20 @@ Computes the density of active couplings in the coupling matrix.
 compute_Dkl_element_activation(fij: Tensor, pij: Tensor) → Tensor
 ```
 
-Computes the Kullback-Leibler divergence matrix of all the possible couplings. 
+Computes the Kullback-Leibler divergence matrix of all the possible couplings.
 
 
 
 **Args:**
- 
- - <b>`fij`</b> (torch.Tensor):  Two-point frequences of the dataset. 
- - <b>`pij`</b> (torch.Tensor):  Two-point marginals of the model. 
+
+ - <b>`fij`</b> (torch.Tensor):  Two-point frequences of the dataset.
+ - <b>`pij`</b> (torch.Tensor):  Two-point marginals of the model.
 
 
 
 **Returns:**
- 
- - <b>`torch.Tensor`</b>:  Kullback-Leibler divergence matrix. 
+
+ - <b>`torch.Tensor`</b>:  Kullback-Leibler divergence matrix.
 
 
 ---
@@ -73,21 +73,21 @@ update_mask_element_activation(
 ) → Tensor
 ```
 
-Updates the mask by activating the nactivate couplings with the largest Dkl. 
+Updates the mask by activating the nactivate couplings with the largest Dkl.
 
 
 
 **Args:**
- 
- - <b>`Dkl`</b> (torch.Tensor):  Kullback-Leibler divergence matrix. 
- - <b>`mask`</b> (torch.Tensor):  Mask. 
- - <b>`nactivate`</b> (int):  Number of couplings to be activated at each graph update. 
+
+ - <b>`Dkl`</b> (torch.Tensor):  Kullback-Leibler divergence matrix.
+ - <b>`mask`</b> (torch.Tensor):  Mask.
+ - <b>`nactivate`</b> (int):  Number of couplings to be activated at each graph update.
 
 
 
 **Returns:**
- 
- - <b>`torch.Tensor`</b>:  Updated mask. 
+
+ - <b>`torch.Tensor`</b>:  Updated mask.
 
 
 ---
@@ -105,22 +105,22 @@ activate_graph_elements(
 ) → Tensor
 ```
 
-Updates the interaction graph by activating a maximum of nactivate couplings. 
+Updates the interaction graph by activating a maximum of nactivate couplings.
 
 
 
 **Args:**
- 
- - <b>`mask`</b> (torch.Tensor):  Mask. 
- - <b>`fij`</b> (torch.Tensor):  Two-point frequencies of the dataset. 
- - <b>`pij`</b> (torch.Tensor):  Two-point marginals of the model. 
- - <b>`nactivate`</b> (int):  Number of couplings to activate. 
+
+ - <b>`mask`</b> (torch.Tensor):  Mask.
+ - <b>`fij`</b> (torch.Tensor):  Two-point frequencies of the dataset.
+ - <b>`pij`</b> (torch.Tensor):  Two-point marginals of the model.
+ - <b>`nactivate`</b> (int):  Number of couplings to activate.
 
 
 
 **Returns:**
- 
- - <b>`torch.Tensor`</b>:  Updated mask. 
+
+ - <b>`torch.Tensor`</b>:  Updated mask.
 
 
 ---
@@ -133,20 +133,20 @@ Updates the interaction graph by activating a maximum of nactivate couplings.
 compute_Dkl_edge_activation(fij: Tensor, pij: Tensor) → Tensor
 ```
 
-Computes the Kullback-Leibler divergence matrix of all the possible edges. 
+Computes the Kullback-Leibler divergence matrix of all the possible edges.
 
 
 
 **Args:**
- 
- - <b>`fij`</b> (torch.Tensor):  Two-point frequences of the dataset. 
- - <b>`pij`</b> (torch.Tensor):  Two-point marginals of the model. 
+
+ - <b>`fij`</b> (torch.Tensor):  Two-point frequences of the dataset.
+ - <b>`pij`</b> (torch.Tensor):  Two-point marginals of the model.
 
 
 
 **Returns:**
- 
- - <b>`torch.Tensor`</b>:  Kullback-Leibler divergence matrix. 
+
+ - <b>`torch.Tensor`</b>:  Kullback-Leibler divergence matrix.
 
 
 ---
@@ -159,20 +159,20 @@ Computes the Kullback-Leibler divergence matrix of all the possible edges.
 compute_sym_Dkl(params: Dict[str, Tensor], pij: Tensor) → Tensor
 ```
 
-Computes the symmetric Kullback-Leibler divergence matrix between the initial distribution and the same  distribution once removing one coupling J_ij(a, b). 
+Computes the symmetric Kullback-Leibler divergence matrix between the initial distribution and the same  distribution once removing one coupling J_ij(a, b).
 
 
 
 **Args:**
- 
- - <b>`params`</b> (Dict[str, torch.Tensor]):  Parameters of the model. 
- - <b>`pij`</b> (torch.Tensor):  Two-point marginal probability distribution. 
+
+ - <b>`params`</b> (Dict[str, torch.Tensor]):  Parameters of the model.
+ - <b>`pij`</b> (torch.Tensor):  Two-point marginal probability distribution.
 
 
 
 **Returns:**
- 
- - <b>`torch.Tensor`</b>:  Kullback-Leibler divergence matrix. 
+
+ - <b>`torch.Tensor`</b>:  Kullback-Leibler divergence matrix.
 
 
 ---
@@ -185,20 +185,20 @@ Computes the symmetric Kullback-Leibler divergence matrix between the initial di
 compute_Dkl_decimation(params: Dict[str, Tensor], pij: Tensor) → Tensor
 ```
 
-Computes the Kullback-Leibler divergence matrix between the initial distribution and the same  distribution once removing one coupling J_ij(a, b). 
+Computes the Kullback-Leibler divergence matrix between the initial distribution and the same  distribution once removing one coupling J_ij(a, b).
 
 
 
 **Args:**
- 
- - <b>`params`</b> (Dict[str, torch.Tensor]):  Parameters of the model. 
- - <b>`pij`</b> (torch.Tensor):  Two-point marginal probability distribution. 
+
+ - <b>`params`</b> (Dict[str, torch.Tensor]):  Parameters of the model.
+ - <b>`pij`</b> (torch.Tensor):  Two-point marginal probability distribution.
 
 
 
 **Returns:**
- 
- - <b>`torch.Tensor`</b>:  Kullback-Leibler divergence matrix. 
+
+ - <b>`torch.Tensor`</b>:  Kullback-Leibler divergence matrix.
 
 
 ---
@@ -211,21 +211,21 @@ Computes the Kullback-Leibler divergence matrix between the initial distribution
 update_mask_decimation(mask: Tensor, Dkl: Tensor, drate: float) → Tensor
 ```
 
-Updates the mask by removing the n_remove couplings with the smallest Dkl. 
+Updates the mask by removing the n_remove couplings with the smallest Dkl.
 
 
 
 **Args:**
- 
- - <b>`mask`</b> (torch.Tensor):  Mask. 
- - <b>`Dkl`</b> (torch.Tensor):  Kullback-Leibler divergence matrix. 
- - <b>`drate`</b> (float):  Percentage of active couplings to be pruned at each decimation step. 
+
+ - <b>`mask`</b> (torch.Tensor):  Mask.
+ - <b>`Dkl`</b> (torch.Tensor):  Kullback-Leibler divergence matrix.
+ - <b>`drate`</b> (float):  Percentage of active couplings to be pruned at each decimation step.
 
 
 
 **Returns:**
- 
- - <b>`torch.Tensor`</b>:  Updated mask. 
+
+ - <b>`torch.Tensor`</b>:  Updated mask.
 
 
 ---
@@ -243,22 +243,22 @@ decimate_graph(
 ) → Tuple[Dict[str, Tensor], Tensor]
 ```
 
-Performs one decimation step and updates the parameters and mask. 
+Performs one decimation step and updates the parameters and mask.
 
 
 
 **Args:**
- 
- - <b>`pij`</b> (torch.Tensor):  Two-point marginal probability distribution. 
- - <b>`params`</b> (Dict[str, torch.Tensor]):  Parameters of the model. 
- - <b>`mask`</b> (torch.Tensor):  Mask. 
- - <b>`drate`</b> (float):  Percentage of active couplings to be pruned at each decimation step. 
+
+ - <b>`pij`</b> (torch.Tensor):  Two-point marginal probability distribution.
+ - <b>`params`</b> (Dict[str, torch.Tensor]):  Parameters of the model.
+ - <b>`mask`</b> (torch.Tensor):  Mask.
+ - <b>`drate`</b> (float):  Percentage of active couplings to be pruned at each decimation step.
 
 
 
 **Returns:**
- 
- - <b>`Tuple[Dict[str, torch.Tensor], torch.Tensor]`</b>:  Updated parameters and mask. 
+
+ - <b>`Tuple[Dict[str, torch.Tensor], torch.Tensor]`</b>:  Updated parameters and mask.
 
 
 

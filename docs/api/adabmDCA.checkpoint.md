@@ -3,7 +3,7 @@
 <a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/checkpoint.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 # <kbd>module</kbd> `adabmDCA.checkpoint`
-Training checkpoints and the versioned human-readable training log. 
+Training checkpoints and the versioned human-readable training log.
 
 **Global Variables**
 ---------------
@@ -18,7 +18,7 @@ Training checkpoints and the versioned human-readable training log.
 <a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/checkpoint.py#L54"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `Checkpoint`
-Save model state and write a version-2 training log. 
+Save model state and write a version-2 training log.
 
 <a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/checkpoint.py#L57"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
@@ -51,7 +51,7 @@ __init__(
 begin_stage(stage: 'str', metadata: 'dict[str, Any]') → None
 ```
 
-Record a phase boundary and its progress-table header. 
+Record a phase boundary and its progress-table header.
 
 ---
 
@@ -63,7 +63,7 @@ Record a phase boundary and its progress-table header.
 check(updates: 'int') → bool
 ```
 
-Return whether this update requires a persisted checkpoint. 
+Return whether this update requires a persisted checkpoint.
 
 ---
 
@@ -75,7 +75,7 @@ Return whether this update requires a persisted checkpoint.
 finish(status: 'str', summary: 'Mapping[str, Any]') → None
 ```
 
-Append exactly one terminal status section. 
+Append exactly one terminal status section.
 
 ---
 
@@ -87,7 +87,7 @@ Append exactly one terminal status section.
 log(record: 'dict[str, Any]') → None
 ```
 
-Write a record without lifecycle counters for direct callers. 
+Write a record without lifecycle counters for direct callers.
 
 ---
 
@@ -99,7 +99,7 @@ Write a record without lifecycle counters for direct callers.
 log_with_context(record: 'dict[str, Any]', counters: 'Any | None') → None
 ```
 
-Write one metrics record with stage and lifecycle counters. 
+Write one metrics record with stage and lifecycle counters.
 
 ---
 
@@ -116,7 +116,7 @@ save(
 ) → None
 ```
 
-Save parameters and chains. 
+Save parameters and chains.
 
 
 

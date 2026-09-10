@@ -31,16 +31,36 @@ jobs:
 
     - name: 🗑️ Clean existing API docs
       run: |
-        rm -f docs/api/*.md
+        find docs/api -maxdepth 1 -type f -name '*.md' ! -name 'index.md' -delete
         echo "Removed existing API documentation files"
 
     - name: 📝 Generate API documentation with lazydocs
       run: |
-        # Generate documentation for main modules (excluding scripts)
+        # Keep this list aligned with the public modules exposed by adabmDCA.
+        # Command-line adapters and private implementation modules are excluded.
         lazydocs \
           --output-path docs/api \
-          --overview-file README.md \
+          --overview-file symbols.md \
           --src-base-url "https://github.com/spqb/adabmDCApy/blob/main/" \
+          adabmDCA.alphabet \
+          adabmDCA.alignment \
+          adabmDCA.input_loading \
+          adabmDCA.preprocessing \
+          adabmDCA.training_config \
+          adabmDCA.training_control \
+          adabmDCA.api.contacts \
+          adabmDCA.api.entropy \
+          adabmDCA.api.exceptions \
+          adabmDCA.api.input_loading \
+          adabmDCA.api.model \
+          adabmDCA.api.mutations \
+          adabmDCA.api.reintegration \
+          adabmDCA.api.results \
+          adabmDCA.api.sampling \
+          adabmDCA.api.scoring \
+          adabmDCA.api.serialization \
+          adabmDCA.api.splitting \
+          adabmDCA.api.training \
           adabmDCA.checkpoint \
           adabmDCA.cobalt \
           adabmDCA.dataset \
@@ -52,12 +72,46 @@ jobs:
           adabmDCA.plot \
           adabmDCA.resampling \
           adabmDCA.sampling \
+          adabmDCA.sampling_triton \
           adabmDCA.statmech \
           adabmDCA.stats \
           adabmDCA.training \
-          adabmDCA.utils \
+          adabmDCA.utils
+
+        sed -i 's/Overview: symbols.md/Overview: index.md/' docs/api/.pages
+        python - <<'PY'
+        from pathlib import Path
+
+        for path in Path("docs/api").glob("*.md"):
+            content = path.read_text(encoding="utf-8")
+            normalized = "\n".join(line.rstrip() for line in content.splitlines()) + "\n"
+            path.write_text(normalized, encoding="utf-8")
+        PY
         
-        echo "API documentation generated successfully (scripts excluded)"
+        echo "API documentation generated successfully (CLI adapters excluded)"
+
+    - name: 🔎 Verify public API coverage
+      run: |
+        python - <<'PY'
+        from pathlib import Path
+
+        import adabmDCA
+        import adabmDCA.api
+
+        exports = {**adabmDCA._EXPORTS, **adabmDCA.api._EXPORTS}
+        missing = []
+        for symbol, module in sorted(exports.items()):
+            page = Path("docs/api") / f"{module}.md"
+            if not page.exists():
+                missing.append(f"{symbol}: missing {page}")
+                continue
+            content = page.read_text(encoding="utf-8")
+            if f"`{symbol}`" not in content and f"**{symbol}**" not in content:
+                missing.append(f"{symbol}: absent from {page}")
+        if missing:
+            raise SystemExit("Public API documentation is incomplete:\n" + "\n".join(missing))
+        print(f"Verified documentation for {len(exports)} public exports")
+        PY
 
     - name: 📋 List generated files
       run: |

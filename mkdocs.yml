@@ -14,22 +14,46 @@ nav:
   - Script arguments: script_arguments.md
   - Release verification: release_checks.md
   - Python APIs:
-      - Overview: api/README.md
-      - Checkpoints and logs: api/adabmDCA.checkpoint.md
-      - Fasta utils: api/adabmDCA.fasta.md
-      - Compute statistics: api/adabmDCA.stats.md
-      - DCA utils: api/adabmDCA.dca.md
-      - Graph operations: api/adabmDCA.graph.md
-      - Import and export: api/adabmDCA.io.md
-      - Sampling functions: api/adabmDCA.sampling.md
-      - Mixing-time estimation: api/adabmDCA.resampling.md
-      - Utilities: api/adabmDCA.utils.md
-      - Dataset class: api/adabmDCA.dataset.md
-      - Statistical mechanics functions: api/adabmDCA.statmech.md
-      - Train/test split: api/adabmDCA.cobalt.md
-      - Training functions: api/adabmDCA.training.md
-      - Special functions: api/adabmDCA.functional.md
-      - Helper functions for plotting: api/adabmDCA.plot.md
+      - Overview: api/index.md
+      - Generated symbol index: api/symbols.md
+      - High-level workflows:
+          - Models: api/adabmDCA.api.model.md
+          - Training: api/adabmDCA.api.training.md
+          - Sampling: api/adabmDCA.api.sampling.md
+          - Sequence scoring: api/adabmDCA.api.scoring.md
+          - Contact prediction: api/adabmDCA.api.contacts.md
+          - Mutation scanning: api/adabmDCA.api.mutations.md
+          - Entropy estimation: api/adabmDCA.api.entropy.md
+          - Reintegration: api/adabmDCA.api.reintegration.md
+          - Alignment splitting: api/adabmDCA.api.splitting.md
+          - Result objects: api/adabmDCA.api.results.md
+          - Errors: api/adabmDCA.api.exceptions.md
+          - Training input loading: api/adabmDCA.api.input_loading.md
+          - Serialization helpers: api/adabmDCA.api.serialization.md
+      - Core data APIs:
+          - Alphabets: api/adabmDCA.alphabet.md
+          - Alignment objects and I/O: api/adabmDCA.alignment.md
+          - Validated input loading: api/adabmDCA.input_loading.md
+          - Alignment preprocessing: api/adabmDCA.preprocessing.md
+          - Training configuration: api/adabmDCA.training_config.md
+          - Training control: api/adabmDCA.training_control.md
+      - Numerical and low-level APIs:
+          - Checkpoints and logs: api/adabmDCA.checkpoint.md
+          - Fasta utils: api/adabmDCA.fasta.md
+          - Compute statistics: api/adabmDCA.stats.md
+          - DCA utils: api/adabmDCA.dca.md
+          - Graph operations: api/adabmDCA.graph.md
+          - Import and export: api/adabmDCA.io.md
+          - Sampling functions: api/adabmDCA.sampling.md
+          - Triton sampling kernels: api/adabmDCA.sampling_triton.md
+          - Mixing-time estimation: api/adabmDCA.resampling.md
+          - Utilities: api/adabmDCA.utils.md
+          - Dataset class: api/adabmDCA.dataset.md
+          - Statistical mechanics functions: api/adabmDCA.statmech.md
+          - Train/test split: api/adabmDCA.cobalt.md
+          - Training functions: api/adabmDCA.training.md
+          - Special functions: api/adabmDCA.functional.md
+          - Helper functions for plotting: api/adabmDCA.plot.md
 
 theme: 
   name: material

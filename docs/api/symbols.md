@@ -1,0 +1,223 @@
+<!-- markdownlint-disable -->
+
+# API Overview
+
+## Modules
+
+- [`adabmDCA.alphabet`](./adabmDCA.alphabet.md#module-adabmdcaalphabet): Alphabet definitions shared by lightweight and tensor-based APIs.
+- [`adabmDCA.alignment`](./adabmDCA.alignment.md#module-adabmdcaalignment): Alignment containers and FASTA/Stockholm input-output helpers.
+- [`adabmDCA.input_loading`](./adabmDCA.input_loading.md#module-adabmdcainput_loading): Shared, side-effect-free loading of alignments and sequence weights.
+- [`adabmDCA.preprocessing`](./adabmDCA.preprocessing.md#module-adabmdcapreprocessing): Pure and file-oriented multiple-sequence-alignment preprocessing.
+- [`adabmDCA.training_config`](./adabmDCA.training_config.md#module-adabmdcatraining_config): Canonical configuration values and validation for DCA training.
+- [`adabmDCA.training_control`](./adabmDCA.training_control.md#module-adabmdcatraining_control): Shared lifecycle primitives for DCA training routines.
+- [`adabmDCA.api.contacts`](./adabmDCA.api.contacts.md#module-adabmdcaapicontacts): High-level contact-prediction operations.
+- [`adabmDCA.api.entropy`](./adabmDCA.api.entropy.md#module-adabmdcaapientropy): High-level thermodynamic-integration entropy estimation.
+- [`adabmDCA.api.exceptions`](./adabmDCA.api.exceptions.md#module-adabmdcaapiexceptions): Structured exceptions exposed by the high-level adabmDCA API.
+- [`adabmDCA.api.input_loading`](./adabmDCA.api.input_loading.md#module-adabmdcaapiinput_loading): Aggregate input loading for high-level workflows.
+- [`adabmDCA.api.model`](./adabmDCA.api.model.md#module-adabmdcaapimodel): Notebook-friendly DCA model object.
+- [`adabmDCA.api.mutations`](./adabmDCA.api.mutations.md#module-adabmdcaapimutations): High-level mutation-scanning operations.
+- [`adabmDCA.api.reintegration`](./adabmDCA.api.reintegration.md#module-adabmdcaapireintegration): High-level orchestration for experimental sequence reintegration.
+- [`adabmDCA.api.results`](./adabmDCA.api.results.md#module-adabmdcaapiresults): Result objects returned by the high-level adabmDCA API.
+- [`adabmDCA.api.sampling`](./adabmDCA.api.sampling.md#module-adabmdcaapisampling): High-level sequence-generation operations.
+- [`adabmDCA.api.scoring`](./adabmDCA.api.scoring.md#module-adabmdcaapiscoring): High-level sequence-energy operations.
+- [`adabmDCA.api.serialization`](./adabmDCA.api.serialization.md#module-adabmdcaapiserialization): Portable and atomic serialization helpers for high-level API results.
+- [`adabmDCA.api.splitting`](./adabmDCA.api.splitting.md#module-adabmdcaapisplitting): High-level API for profile-model alignment splitting.
+- [`adabmDCA.api.training`](./adabmDCA.api.training.md#module-adabmdcaapitraining): High-level DCA training workflow.
+- [`adabmDCA.checkpoint`](./adabmDCA.checkpoint.md#module-adabmdcacheckpoint): Training checkpoints and the versioned human-readable training log.
+- [`adabmDCA.cobalt`](./adabmDCA.cobalt.md#module-adabmdcacobalt)
+- [`adabmDCA.dataset`](./adabmDCA.dataset.md#module-adabmdcadataset)
+- [`adabmDCA.dca`](./adabmDCA.dca.md#module-adabmdcadca)
+- [`adabmDCA.fasta`](./adabmDCA.fasta.md#module-adabmdcafasta)
+- [`adabmDCA.functional`](./adabmDCA.functional.md#module-adabmdcafunctional)
+- [`adabmDCA.graph`](./adabmDCA.graph.md#module-adabmdcagraph)
+- [`adabmDCA.io`](./adabmDCA.io.md#module-adabmdcaio)
+- [`adabmDCA.plot`](./adabmDCA.plot.md#module-adabmdcaplot)
+- [`adabmDCA.resampling`](./adabmDCA.resampling.md#module-adabmdcaresampling)
+- [`adabmDCA.sampling`](./adabmDCA.sampling.md#module-adabmdcasampling)
+- [`adabmDCA.sampling_triton`](./adabmDCA.sampling_triton.md#module-adabmdcasampling_triton): Optional Triton kernels for categorical GPU sampling.
+- [`adabmDCA.statmech`](./adabmDCA.statmech.md#module-adabmdcastatmech)
+- [`adabmDCA.stats`](./adabmDCA.stats.md#module-adabmdcastats)
+- [`adabmDCA.training`](./adabmDCA.training.md#module-adabmdcatraining)
+- [`adabmDCA.utils`](./adabmDCA.utils.md#module-adabmdcautils)
+
+## Classes
+
+- [`alignment.Alignment`](./adabmDCA.alignment.md#class-alignment): An immutable multiple-sequence alignment.
+- [`alignment.AlignmentConversionResult`](./adabmDCA.alignment.md#class-alignmentconversionresult): Result of reading and converting an alignment file.
+- [`input_loading.AlignmentLoadConfig`](./adabmDCA.input_loading.md#class-alignmentloadconfig): Policy applied after parsing an alignment.
+- [`input_loading.LoadedAlignment`](./adabmDCA.input_loading.md#class-loadedalignment): Validated alignment plus provenance of filtering transformations.
+- [`preprocessing.AlignmentFilterResult`](./adabmDCA.preprocessing.md#class-alignmentfilterresult): Filtered alignment plus masks and per-sequence gap fractions.
+- [`preprocessing.AlignmentProcessingConfig`](./adabmDCA.preprocessing.md#class-alignmentprocessingconfig): Explicit transformations applied by :func:`preprocess_alignment`.
+- [`preprocessing.AlignmentProcessingReport`](./adabmDCA.preprocessing.md#class-alignmentprocessingreport): Auditable summary of an alignment-processing operation.
+- [`preprocessing.AlignmentProcessingResult`](./adabmDCA.preprocessing.md#class-alignmentprocessingresult): Processed alignment, provenance mask, report, and optional output.
+- [`training_config.ConfigurationError`](./adabmDCA.training_config.md#class-configurationerror): Raised when a training configuration is internally inconsistent.
+- [`training_config.TrainingConfig`](./adabmDCA.training_config.md#class-trainingconfig): Validated, transport-neutral configuration for one training run.
+- [`training_control.CheckpointStore`](./adabmDCA.training_control.md#class-checkpointstore): Persistence interface used by the training controller.
+- [`training_control.StopReason`](./adabmDCA.training_control.md#class-stopreason): Reason why a training strategy stopped.
+- [`training_control.TrainingCancelled`](./adabmDCA.training_control.md#class-trainingcancelled): Internal cancellation signal raised by the shared controller.
+- [`training_control.TrainingController`](./adabmDCA.training_control.md#class-trainingcontroller): Coordinate one training run without owning its numerical updates.
+- [`training_control.TrainingCounters`](./adabmDCA.training_control.md#class-trainingcounters): Monotonic counters shared by all training strategies.
+- [`training_control.TrainingLimits`](./adabmDCA.training_control.md#class-traininglimits): Independent budgets for numerical and graph-structure updates.
+- [`training_control.TrainingMetrics`](./adabmDCA.training_control.md#class-trainingmetrics): Common metrics emitted after a meaningful training step.
+- [`exceptions.AdabmDCAError`](./adabmDCA.api.exceptions.md#class-adabmdcaerror): Base class for recoverable errors raised by the application API.
+- [`exceptions.AlignmentError`](./adabmDCA.api.exceptions.md#class-alignmenterror): Base class for alignment input and processing errors.
+- [`exceptions.AlignmentFormatError`](./adabmDCA.api.exceptions.md#class-alignmentformaterror): Raised when an alignment format cannot be detected or parsed.
+- [`exceptions.AlignmentLengthError`](./adabmDCA.api.exceptions.md#class-alignmentlengtherror): Raised when sequences do not share a common aligned length.
+- [`exceptions.AlignmentLoadError`](./adabmDCA.api.exceptions.md#class-alignmentloaderror): Raised when an alignment resource cannot be opened or decoded.
+- [`exceptions.ChainLoadError`](./adabmDCA.api.exceptions.md#class-chainloaderror): Raised when an initial chain state cannot be loaded or validated.
+- [`exceptions.ComputationError`](./adabmDCA.api.exceptions.md#class-computationerror): Raised when a valid scientific operation cannot be completed.
+- [`exceptions.ConvergenceError`](./adabmDCA.api.exceptions.md#class-convergenceerror): Raised when an iterative operation exhausts its convergence budget.
+- [`exceptions.InputLoadError`](./adabmDCA.api.exceptions.md#class-inputloaderror): Raised when an input resource cannot be read or decoded.
+- [`exceptions.InputValidationError`](./adabmDCA.api.exceptions.md#class-inputvalidationerror): Raised when a high-level API input is invalid.
+- [`exceptions.ModelCompatibilityError`](./adabmDCA.api.exceptions.md#class-modelcompatibilityerror): Raised when data are incompatible with a DCA model.
+- [`exceptions.ModelLoadError`](./adabmDCA.api.exceptions.md#class-modelloaderror): Raised when model parameters cannot be loaded.
+- [`exceptions.OperationCancelledError`](./adabmDCA.api.exceptions.md#class-operationcancellederror): Raised when a caller-provided cancellation hook stops an operation.
+- [`exceptions.OutputSerializationError`](./adabmDCA.api.exceptions.md#class-outputserializationerror): Raised when a result cannot be serialized to the requested output.
+- [`exceptions.WeightLoadError`](./adabmDCA.api.exceptions.md#class-weightloaderror): Raised when sequence weights cannot be loaded or aligned.
+- [`input_loading.TrainingInputs`](./adabmDCA.api.input_loading.md#class-traininginputs): Fully loaded and cross-validated inputs for model training.
+- [`model.DCAModel`](./adabmDCA.api.model.md#class-dcamodel): Loaded DCA parameters with convenient analysis methods.
+- [`results.ContactMapResult`](./adabmDCA.api.results.md#class-contactmapresult): Contact scores computed from a model or alignment.
+- [`results.EnergyResult`](./adabmDCA.api.results.md#class-energyresult): Energies and associated sequence/model metadata.
+- [`results.ModelMetadata`](./adabmDCA.api.results.md#class-modelmetadata): Portable description of a loaded DCA model.
+- [`results.MutationRecord`](./adabmDCA.api.results.md#class-mutationrecord): One single-residue mutation and its DCA score.
+- [`results.MutationScanResult`](./adabmDCA.api.results.md#class-mutationscanresult): Single-mutant scores for a wild-type sequence.
+- [`results.ProfileSplitResult`](./adabmDCA.api.results.md#class-profilesplitresult): Training/test alignment split produced by the Cobalt algorithm.
+- [`results.ReintegrationResult`](./adabmDCA.api.results.md#class-reintegrationresult): Prepared reintegration dataset and its completed training result.
+- [`results.SamplingProgress`](./adabmDCA.api.results.md#class-samplingprogress): Progress event emitted during sequence generation.
+- [`results.SamplingResult`](./adabmDCA.api.results.md#class-samplingresult): Generated sequences, energies, and sampling diagnostics.
+- [`results.ThermodynamicIntegrationProgress`](./adabmDCA.api.results.md#class-thermodynamicintegrationprogress): One progress event from thermodynamic integration.
+- [`results.ThermodynamicIntegrationResult`](./adabmDCA.api.results.md#class-thermodynamicintegrationresult): Entropy estimate and integration trajectory.
+- [`results.TrainingDatasetSummary`](./adabmDCA.api.results.md#class-trainingdatasetsummary): Dimensions, filtering outcomes, and statistical size of one MSA.
+- [`results.TrainingInitialization`](./adabmDCA.api.results.md#class-traininginitialization): Resolved training setup emitted after inputs are loaded and weighted.
+- [`results.TrainingProgress`](./adabmDCA.api.results.md#class-trainingprogress): One metrics update emitted by a training routine.
+- [`results.TrainingResult`](./adabmDCA.api.results.md#class-trainingresult): Trained model and the state required to inspect or resume it.
+- [`checkpoint.Checkpoint`](./adabmDCA.checkpoint.md#class-checkpoint): Save model state and write a version-2 training log.
+- [`dataset.DatasetDCA`](./adabmDCA.dataset.md#class-datasetdca): Dataset class for handling multi-sequence alignments data.
+- [`utils.Timer`](./adabmDCA.utils.md#class-timer): Track recent ``(time, pearson)`` points and predict when a target Pearson is reached.
+
+## Functions
+
+- [`alphabet.detect_alphabet`](./adabmDCA.alphabet.md#function-detect_alphabet): Select the smallest compatible standard alphabet (DNA wins ties).
+- [`alphabet.get_tokens`](./adabmDCA.alphabet.md#function-get_tokens): Return built-in tokens or an explicitly supplied custom alphabet.
+- [`alignment.convert_alignment`](./adabmDCA.alignment.md#function-convert_alignment): Convert a FASTA or Stockholm alignment to canonical aligned FASTA.
+- [`alignment.convert_stockholm_to_fasta`](./adabmDCA.alignment.md#function-convert_stockholm_to_fasta): Convert one Stockholm alignment to FASTA.
+- [`alignment.detect_alignment_format`](./adabmDCA.alignment.md#function-detect_alignment_format): Detect FASTA or Stockholm from the first meaningful input line.
+- [`alignment.normalize_gap_symbols`](./adabmDCA.alignment.md#function-normalize_gap_symbols): Replace one alignment gap symbol with another.
+- [`alignment.read_alignment`](./adabmDCA.alignment.md#function-read_alignment): Read one aligned FASTA or Stockholm alignment.
+- [`alignment.write_alignment`](./adabmDCA.alignment.md#function-write_alignment): Write an alignment. FASTA is currently the supported output format.
+- [`input_loading.load_alignment`](./adabmDCA.input_loading.md#function-load_alignment): Parse, validate, filter, and deduplicate one alignment.
+- [`input_loading.load_sequence_weights`](./adabmDCA.input_loading.md#function-load_sequence_weights): Load or calculate weights and align them with retained sequences.
+- [`preprocessing.filter_gap_fraction`](./adabmDCA.preprocessing.md#function-filter_gap_fraction): Remove sequences whose gap fraction is greater than the threshold.
+- [`preprocessing.preprocess_alignment`](./adabmDCA.preprocessing.md#function-preprocess_alignment): Read, explicitly transform, optionally validate, and write an MSA.
+- [`preprocessing.remove_insertions`](./adabmDCA.preprocessing.md#function-remove_insertions): Remove dots and lowercase insertion residues from every sequence.
+- [`contacts.compute_contact_map`](./adabmDCA.api.contacts.md#function-compute_contact_map): Notebook-friendly shortcut returning only the contact-score matrix.
+- [`contacts.predict_contacts`](./adabmDCA.api.contacts.md#function-predict_contacts): Compute APC-corrected contact scores from a model or an alignment.
+- [`entropy.estimate_entropy`](./adabmDCA.api.entropy.md#function-estimate_entropy): Estimate model entropy with bounded, observable thermodynamic integration.
+- [`input_loading.load_training_inputs`](./adabmDCA.api.input_loading.md#function-load_training_inputs): Load all training resources and validate their shared dimensions.
+- [`model.inspect_model`](./adabmDCA.api.model.md#function-inspect_model): Return portable metadata for an in-memory or saved model.
+- [`model.load_model`](./adabmDCA.api.model.md#function-load_model): Load DCA parameters into a reusable :class:`DCAModel`.
+- [`mutations.scan_mutations`](./adabmDCA.api.mutations.md#function-scan_mutations): Score all single-residue substitutions of ``wild_type``.
+- [`reintegration.reintegrate_model`](./adabmDCA.api.reintegration.md#function-reintegrate_model): Merge natural and experimentally adjusted sequences, then train directly.
+- [`sampling.generate_sequences`](./adabmDCA.api.sampling.md#function-generate_sequences): Notebook-friendly shortcut returning only generated sequences.
+- [`sampling.sample_sequences`](./adabmDCA.api.sampling.md#function-sample_sequences): Generate sequences from a DCA model.
+- [`scoring.compute_energies`](./adabmDCA.api.scoring.md#function-compute_energies): Notebook-friendly shortcut returning only the energy vector.
+- [`scoring.score_sequences`](./adabmDCA.api.scoring.md#function-score_sequences): Compute DCA energies and return a structured result.
+- [`serialization.resolve_format`](./adabmDCA.api.serialization.md#function-resolve_format): Resolve an explicit format or infer it from a filename suffix.
+- [`serialization.result_document`](./adabmDCA.api.serialization.md#function-result_document): Wrap result data in a stable, versioned document envelope.
+- [`serialization.to_jsonable`](./adabmDCA.api.serialization.md#function-to_jsonable): Recursively convert scientific Python values to strict JSON values.
+- [`serialization.write_dataframe`](./adabmDCA.api.serialization.md#function-write_dataframe): Write a pandas-compatible dataframe atomically.
+- [`serialization.write_json`](./adabmDCA.api.serialization.md#function-write_json): Write strict UTF-8 JSON atomically.
+- [`serialization.write_numpy`](./adabmDCA.api.serialization.md#function-write_numpy): Write a NumPy array atomically without altering the requested suffix.
+- [`serialization.write_numpy_text`](./adabmDCA.api.serialization.md#function-write_numpy_text): Write a NumPy array as an atomic text artifact.
+- [`serialization.write_text`](./adabmDCA.api.serialization.md#function-write_text): Write UTF-8 text atomically.
+- [`splitting.split_alignment`](./adabmDCA.api.splitting.md#function-split_alignment): Split an alignment and retain the best Cobalt partition.
+- [`training.train_model`](./adabmDCA.api.training.md#function-train_model): Train a DCA model from a FASTA alignment.
+- [`cobalt.has_neighbours`](./adabmDCA.cobalt.md#function-has_neighbours): Check if a sequence 'seq' has neighbours in the database 'db', that is, sequences
+- [`cobalt.prune_redundant_sequences`](./adabmDCA.cobalt.md#function-prune_redundant_sequences): Prunes sequences from X such that no sequence has more than 'seqid_th' fraction of its residues identical to any other sequence in the set.
+- [`cobalt.run_cobalt`](./adabmDCA.cobalt.md#function-run_cobalt): Runs the Cobalt algorithm to split the input MSA into training and test sets.
+- [`cobalt.split_train_test`](./adabmDCA.cobalt.md#function-split_train_test): Splits X into two sets, T and S, such that no sequence in S has more than
+- [`dca.get_contact_map`](./adabmDCA.dca.md#function-get_contact_map): Computes the contact map from the model coupling matrix.
+- [`dca.get_mf_contact_map`](./adabmDCA.dca.md#function-get_mf_contact_map): Computes the contact map using the mean-field DCA approximation from the data.
+- [`dca.get_seqid`](./adabmDCA.dca.md#function-get_seqid): Returns a tensor containing the sequence identities between two sets of one-hot encoded sequences.
+- [`dca.get_seqid_stats`](./adabmDCA.dca.md#function-get_seqid_stats): - If s2 is provided, computes the mean and the standard deviation of the mean sequence identity between two sets of one-hot encoded sequences.
+- [`dca.set_zerosum_gauge`](./adabmDCA.dca.md#function-set_zerosum_gauge): Sets the zero-sum gauge on the coupling matrix.
+- [`fasta.compute_weights`](./adabmDCA.fasta.md#function-compute_weights): Computes the weight to be assigned to each sequence 's' in 'data' as 1 / n_clust, where 'n_clust' is the number of sequences
+- [`fasta.decode_sequence`](./adabmDCA.fasta.md#function-decode_sequence): Takes a numeric sequence or list of seqences in input an returns the corresponding string encoding.
+- [`fasta.encode_sequence`](./adabmDCA.fasta.md#function-encode_sequence): Encodes a sequence or a list of sequences into a numeric format.
+- [`fasta.import_from_fasta`](./adabmDCA.fasta.md#function-import_from_fasta): Import sequences from a FASTA file using the legacy array interface.
+- [`fasta.validate_alphabet`](./adabmDCA.fasta.md#function-validate_alphabet): Validates that all characters in the sequences are present in the provided alphabet.
+- [`fasta.write_fasta`](./adabmDCA.fasta.md#function-write_fasta): Generate a FASTA file using the legacy array interface.
+- [`functional.one_hot`](./adabmDCA.functional.md#function-one_hot): A fast one-hot encoding function faster than the PyTorch one working with torch.int32 and returning a float Tensor.
+- [`graph.activate_graph_elements`](./adabmDCA.graph.md#function-activate_graph_elements): Updates the interaction graph by activating a maximum of nactivate couplings.
+- [`graph.compute_Dkl_decimation`](./adabmDCA.graph.md#function-compute_dkl_decimation): Computes the Kullback-Leibler divergence matrix between the initial distribution and the same
+- [`graph.compute_Dkl_edge_activation`](./adabmDCA.graph.md#function-compute_dkl_edge_activation): Computes the Kullback-Leibler divergence matrix of all the possible edges.
+- [`graph.compute_Dkl_element_activation`](./adabmDCA.graph.md#function-compute_dkl_element_activation): Computes the Kullback-Leibler divergence matrix of all the possible couplings.
+- [`graph.compute_density`](./adabmDCA.graph.md#function-compute_density): Computes the density of active couplings in the coupling matrix.
+- [`graph.compute_sym_Dkl`](./adabmDCA.graph.md#function-compute_sym_dkl): Computes the symmetric Kullback-Leibler divergence matrix between the initial distribution and the same
+- [`graph.decimate_graph`](./adabmDCA.graph.md#function-decimate_graph): Performs one decimation step and updates the parameters and mask.
+- [`graph.update_mask_decimation`](./adabmDCA.graph.md#function-update_mask_decimation): Updates the mask by removing the n_remove couplings with the smallest Dkl.
+- [`graph.update_mask_element_activation`](./adabmDCA.graph.md#function-update_mask_element_activation): Updates the mask by activating the nactivate couplings with the largest Dkl.
+- [`io.load_chains`](./adabmDCA.io.md#function-load_chains): Loads the sequences from a fasta file and returns the one-hot encoded version.
+- [`io.load_params`](./adabmDCA.io.md#function-load_params): Import parameters from the established ``J``/``h`` text format.
+- [`io.load_params_old`](./adabmDCA.io.md#function-load_params_old): Import the parameters of the model from a file.
+- [`io.load_params_oldformat`](./adabmDCA.io.md#function-load_params_oldformat): Import the parameters of the model from a file. Assumes the old DCA format.
+- [`io.save_chains`](./adabmDCA.io.md#function-save_chains): Saves the chains in a fasta file.
+- [`io.save_params`](./adabmDCA.io.md#function-save_params): Save parameters in the established ``J``/``h`` text format.
+- [`io.save_params_oldformat`](./adabmDCA.io.md#function-save_params_oldformat): Saves the parameters of the model in a file. Assumes the old DCA format.
+- [`plot.plot_PCA`](./adabmDCA.plot.md#function-plot_pca): Makes the scatter plot of the components (pc1, pc2) of the input data and shows the histograms of the components.
+- [`plot.plot_autocorrelation`](./adabmDCA.plot.md#function-plot_autocorrelation): Plots the time-autocorrelation curve of the sequence identity and the generated and data sequence identities.
+- [`plot.plot_cij_scatter`](./adabmDCA.plot.md#function-plot_cij_scatter): Plot reference versus generated connected two-site correlations.
+- [`plot.plot_contact_map`](./adabmDCA.plot.md#function-plot_contact_map): Plots the contact map.
+- [`plot.plot_pearson_sampling`](./adabmDCA.plot.md#function-plot_pearson_sampling): Plots the Pearson correlation coefficient over sampling time.
+- [`plot.plot_scatter_correlations`](./adabmDCA.plot.md#function-plot_scatter_correlations): Plots the scatter plot of the data and generated Cij and Cijk values.
+- [`resampling.compute_mixing_time`](./adabmDCA.resampling.md#function-compute_mixing_time): Computes the mixing time using the t and t/2 method. The sampling will halt when the mixing time is reached or
+- [`sampling.get_sampler`](./adabmDCA.sampling.md#function-get_sampler): Returns the sampling function corresponding to the chosen method.
+- [`sampling.gibbs_sampling`](./adabmDCA.sampling.md#function-gibbs_sampling): Gibbs sampling. Attempts L * nsweeps mutations to each sequence in 'chains'.
+- [`sampling.gibbs_step_independent_sites`](./adabmDCA.sampling.md#function-gibbs_step_independent_sites): Performs a single mutation using the Gibbs sampler. This version selects different random sites for each chain. It is
+- [`sampling.gibbs_step_uniform_sites`](./adabmDCA.sampling.md#function-gibbs_step_uniform_sites): Performs a single mutation using the Gibbs sampler. In this version, the mutation is attempted at the same sites for all chains.
+- [`sampling.metropolis_sampling`](./adabmDCA.sampling.md#function-metropolis_sampling): Metropolis sampling. Attempts L * nsweeps mutations to each sequence in 'chains'.
+- [`sampling.metropolis_step_independent_sites`](./adabmDCA.sampling.md#function-metropolis_step_independent_sites): Performs a single mutation using the Metropolis sampler. This version selects different random sites for each chain. It is
+- [`sampling.metropolis_step_uniform_sites`](./adabmDCA.sampling.md#function-metropolis_step_uniform_sites): Performs a single mutation using the Metropolis sampler. In this version, the mutation is attempted at the same sites for all chains.
+- [`sampling.prepare_fixed_model_sampler`](./adabmDCA.sampling.md#function-prepare_fixed_model_sampler): Prepare a sampler and parameters for a model that will not be updated.
+- [`sampling.prepare_sampler`](./adabmDCA.sampling.md#function-prepare_sampler): Select a fused CUDA sampler, or the scripted sampler without Triton.
+- [`sampling.prepare_training_sampler`](./adabmDCA.sampling.md#function-prepare_training_sampler): Prepare sampling for training with optional BF16 coupling storage.
+- [`sampling.sampling_profile`](./adabmDCA.sampling.md#function-sampling_profile): Samples from the profile model defined by the local biases only.
+- [`sampling_triton.gibbs_sampling_triton`](./adabmDCA.sampling_triton.md#function-gibbs_sampling_triton): Run Gibbs updates, keeping each chain in registers across short chunks.
+- [`sampling_triton.gibbs_step_independent_sites_triton`](./adabmDCA.sampling_triton.md#function-gibbs_step_independent_sites_triton): Apply one fused Gibbs update at an independently drawn site per chain.
+- [`sampling_triton.is_triton_available`](./adabmDCA.sampling_triton.md#function-is_triton_available): Return whether Triton was imported successfully.
+- [`sampling_triton.metropolis_sampling_triton`](./adabmDCA.sampling_triton.md#function-metropolis_sampling_triton): Run Metropolis updates with ``steps_per_launch`` updates per kernel.
+- [`sampling_triton.metropolis_step_independent_sites_triton`](./adabmDCA.sampling_triton.md#function-metropolis_step_independent_sites_triton): Apply one fused Metropolis update at an independently drawn site per chain.
+- [`statmech.compute_energy`](./adabmDCA.statmech.md#function-compute_energy): Compute the DCA energy for a batch of sequences.
+- [`statmech.compute_entropy`](./adabmDCA.statmech.md#function-compute_entropy): Compute the entropy of the DCA model.
+- [`statmech.compute_logZ_exact`](./adabmDCA.statmech.md#function-compute_logz_exact): Compute the log-partition function of the model.
+- [`statmech.compute_log_likelihood`](./adabmDCA.statmech.md#function-compute_log_likelihood): Compute the log-likelihood per residue of the model.
+- [`statmech.enumerate_states`](./adabmDCA.statmech.md#function-enumerate_states): Enumerate all possible states of a system of L sites and q states.
+- [`statmech.iterate_tap`](./adabmDCA.statmech.md#function-iterate_tap): Iterates the TAP equations until convergence.
+- [`stats.extract_Cij_from_freq`](./adabmDCA.stats.md#function-extract_cij_from_freq): Extracts the lower triangular part of the covariance matrices of the natural data and generated data starting from the frequencies.
+- [`stats.extract_Cij_from_seqs`](./adabmDCA.stats.md#function-extract_cij_from_seqs): Extracts the lower triangular part of the covariance matrices of the natural data and generated data starting from the sequences.
+- [`stats.generate_unique_triplets`](./adabmDCA.stats.md#function-generate_unique_triplets): Generates a set of unique triplets of positions. Used to compute the 3-points statistics.
+- [`stats.get_correlation_two_points`](./adabmDCA.stats.md#function-get_correlation_two_points): Computes the Pearson coefficient and the slope between the two-point frequencies of data and chains.
+- [`stats.get_covariance_matrix`](./adabmDCA.stats.md#function-get_covariance_matrix): Computes the weighted covariance matrix of the input multi sequence alignment.
+- [`stats.get_freq_single_point`](./adabmDCA.stats.md#function-get_freq_single_point): Computes the single point frequencies of the input MSA.
+- [`stats.get_freq_three_points`](./adabmDCA.stats.md#function-get_freq_three_points): Computes the 3-body connected correlation statistics of the input MSAs.
+- [`stats.get_freq_two_points`](./adabmDCA.stats.md#function-get_freq_two_points): Computes the 2-points statistics of the input MSA.
+- [`training.compute_gradient`](./adabmDCA.training.md#function-compute_gradient): Computes the gradient of the log-likelihood of the model using PyTorch.
+- [`training.train_eaDCA`](./adabmDCA.training.md#function-train_eadca): Fits an eaDCA model on the training data and saves the results in a file.
+- [`training.train_edDCA`](./adabmDCA.training.md#function-train_eddca): Fits an edDCA model on the training data and saves the results in a file.
+- [`training.train_edgeDCA`](./adabmDCA.training.md#function-train_edgedca): Fits an edge activation DCA model (edgeDCA) on the training data and saves the results in a file.
+- [`training.train_graph`](./adabmDCA.training.md#function-train_graph): Trains the model on a given graph until the target Pearson correlation is reached or the maximum number of epochs is exceeded.
+- [`training.update_params`](./adabmDCA.training.md#function-update_params): Updates the parameters of the model.
+- [`training.update_params_edge_activation`](./adabmDCA.training.md#function-update_params_edge_activation): Updates the mask and the coupling parameters using the edge-activation algorithm.
+- [`utils.get_device`](./adabmDCA.utils.md#function-get_device): Returns the device where to store the tensors.
+- [`utils.get_dtype`](./adabmDCA.utils.md#function-get_dtype): Returns the data type of the tensors.
+- [`utils.get_mask_save`](./adabmDCA.utils.md#function-get_mask_save): Returns the mask to save the upper-triangular part of the coupling matrix.
+- [`utils.init_chains`](./adabmDCA.utils.md#function-init_chains): Initialize the Markov chains of the DCA model. If 'fi' is provided, the chains are sampled from the
+- [`utils.init_parameters`](./adabmDCA.utils.md#function-init_parameters): Initialize the parameters of the DCA model. The bias terms are initialized
+- [`utils.parse_log_file`](./adabmDCA.utils.md#function-parse_log_file): Parse a DCA training log file.
+- [`utils.resample_sequences`](./adabmDCA.utils.md#function-resample_sequences): Extracts nextract sequences from data with replacement according to the weights.
+- [`utils.systematic_resampling`](./adabmDCA.utils.md#function-systematic_resampling): Performs the systematic resampling of the chains according to their relative weight.
+
+
+---
+
+_This file was automatically generated via [lazydocs](https://github.com/ml-tooling/lazydocs)._

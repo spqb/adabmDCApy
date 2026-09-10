@@ -18,23 +18,23 @@
 get_seqid(s1: Tensor, s2: Optional[Tensor] = None) → Tensor
 ```
 
-Returns a tensor containing the sequence identities between two sets of one-hot encoded sequences. 
-- If s2 is provided, computes the sequence identity between the corresponding sequences in s1 and s2. 
-- If s2 is a single sequence (L, q), it computes the sequence identities between the dataset s1 and s2. 
-- If s2 is none, computes the sequence identity between s1 and a permutation of s1. 
+Returns a tensor containing the sequence identities between two sets of one-hot encoded sequences.
+- If s2 is provided, computes the sequence identity between the corresponding sequences in s1 and s2.
+- If s2 is a single sequence (L, q), it computes the sequence identities between the dataset s1 and s2.
+- If s2 is none, computes the sequence identity between s1 and a permutation of s1.
 
 
 
 **Args:**
- 
- - <b>`s1`</b> (torch.Tensor):  One-hot encoded sequence dataset 1 of shape (batch_size, L, q) or (L, q). 
- - <b>`s2`</b> (Optional[torch.Tensor]):  One-hot encoded sequence dataset 2 of shape (batch_size, L, q) or (L, q). Defaults to None. 
+
+ - <b>`s1`</b> (torch.Tensor):  One-hot encoded sequence dataset 1 of shape (batch_size, L, q) or (L, q).
+ - <b>`s2`</b> (Optional[torch.Tensor]):  One-hot encoded sequence dataset 2 of shape (batch_size, L, q) or (L, q). Defaults to None.
 
 
 
 **Returns:**
- 
- - <b>`torch.Tensor`</b>:  Tensor of sequence identities. 
+
+ - <b>`torch.Tensor`</b>:  Tensor of sequence identities.
 
 
 ---
@@ -48,21 +48,21 @@ get_seqid_stats(s1: Tensor, s2: Optional[Tensor] = None) → Tuple[Tensor, Tenso
 ```
 
 
-- If s2 is provided, computes the mean and the standard deviation of the mean sequence identity between two sets of one-hot encoded sequences. 
-- If s2 is a single sequence (L, q), it computes the mean and the standard deviation of the mean sequence identity between the dataset s1 and s2. 
-- If s2 is none, computes the mean and the standard deviation of the mean of the sequence identity between s1 and a permutation of s1. 
+- If s2 is provided, computes the mean and the standard deviation of the mean sequence identity between two sets of one-hot encoded sequences.
+- If s2 is a single sequence (L, q), it computes the mean and the standard deviation of the mean sequence identity between the dataset s1 and s2.
+- If s2 is none, computes the mean and the standard deviation of the mean of the sequence identity between s1 and a permutation of s1.
 
 
 
 **Args:**
- 
- - <b>`s1`</b> (torch.Tensor):  One-hot encoded sequence dataset 1 of shape (batch_size, L, q) or (L, q). 
- - <b>`s2`</b> (Optional[torch.Tensor]):  One-hot encoded sequence dataset 2 of shape (batch_size, L, q) or (L, q). Defaults to None. 
+
+ - <b>`s1`</b> (torch.Tensor):  One-hot encoded sequence dataset 1 of shape (batch_size, L, q) or (L, q).
+ - <b>`s2`</b> (Optional[torch.Tensor]):  One-hot encoded sequence dataset 2 of shape (batch_size, L, q) or (L, q). Defaults to None.
 
 
 
 **Returns:**
- Tuple[torch.Tensor, torch.Tensor]:  (torch.Tensor) Mean sequence identity  (torch.Tensor) Standard deviation of the mean sequence identity. 
+ Tuple[torch.Tensor, torch.Tensor]:  (torch.Tensor) Mean sequence identity  (torch.Tensor) Standard deviation of the mean sequence identity.
 
 
 ---
@@ -75,21 +75,21 @@ get_seqid_stats(s1: Tensor, s2: Optional[Tensor] = None) → Tuple[Tensor, Tenso
 set_zerosum_gauge(params: Dict[str, Tensor]) → Dict[str, Tensor]
 ```
 
-Sets the zero-sum gauge on the coupling matrix. 
+Sets the zero-sum gauge on the coupling matrix.
 
 
 
 **Args:**
- 
- - <b>`params`</b> (Dict[str, torch.Tensor]):  Parameters of the model. 
+
+ - <b>`params`</b> (Dict[str, torch.Tensor]):  Parameters of the model.
 
 
 
 **Returns:**
- 
- - <b>`Dict[str, torch.Tensor]`</b>:  New dictionary with modified coupling matrix. 
- - <b>`"bias"`</b>:  torch.Tensor of shape (L, q) 
- - <b>`"coupling_matrix"`</b>:  torch.Tensor of shape (L, q, L, q) 
+
+ - <b>`Dict[str, torch.Tensor]`</b>:  New dictionary with modified coupling matrix.
+ - <b>`"bias"`</b>:  torch.Tensor of shape (L, q)
+ - <b>`"coupling_matrix"`</b>:  torch.Tensor of shape (L, q, L, q)
 
 
 ---
@@ -102,22 +102,22 @@ Sets the zero-sum gauge on the coupling matrix.
 get_contact_map(params: Dict[str, Tensor], tokens: str) → ndarray
 ```
 
-Computes the contact map from the model coupling matrix. 
+Computes the contact map from the model coupling matrix.
 
 
 
 **Args:**
- 
- - <b>`params`</b> (Dict[str, torch.Tensor]):  Model parameters. Should contain: 
-        - "coupling_matrix": torch.Tensor of shape (L, q, L, q) 
-        - "bias": torch.Tensor of shape (L, q) 
- - <b>`tokens`</b> (str):  Alphabet to be used. 
+
+ - <b>`params`</b> (Dict[str, torch.Tensor]):  Model parameters. Should contain:
+        - "coupling_matrix": torch.Tensor of shape (L, q, L, q)
+        - "bias": torch.Tensor of shape (L, q)
+ - <b>`tokens`</b> (str):  Alphabet to be used.
 
 
 
 **Returns:**
- 
- - <b>`np.ndarray`</b>:  Contact map. 
+
+ - <b>`np.ndarray`</b>:  Contact map.
 
 
 ---
@@ -135,22 +135,22 @@ get_mf_contact_map(
 ) → ndarray
 ```
 
-Computes the contact map using the mean-field DCA approximation from the data. 
+Computes the contact map using the mean-field DCA approximation from the data.
 
 
 
 **Args:**
- 
- - <b>`data`</b> (torch.Tensor):  Input one-hot data tensor. 
- - <b>`tokens`</b> (str):  Alphabet to be used. 
- - <b>`weights`</b> (Optional[torch.Tensor]):  Weights for the data points. Defaults to None. 
- - <b>`pseudo_count`</b> (float):  Pseudocount used to regularize the empirical frequencies. Defaults to 0.5. 
+
+ - <b>`data`</b> (torch.Tensor):  Input one-hot data tensor.
+ - <b>`tokens`</b> (str):  Alphabet to be used.
+ - <b>`weights`</b> (Optional[torch.Tensor]):  Weights for the data points. Defaults to None.
+ - <b>`pseudo_count`</b> (float):  Pseudocount used to regularize the empirical frequencies. Defaults to 0.5.
 
 
 
 **Returns:**
- 
- - <b>`np.ndarray`</b>:  Contact map. 
+
+ - <b>`np.ndarray`</b>:  Contact map.
 
 
 

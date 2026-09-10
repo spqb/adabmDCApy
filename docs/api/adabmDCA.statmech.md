@@ -18,24 +18,24 @@
 compute_energy(x: Tensor, params: Dict[str, Tensor]) → Tensor
 ```
 
-Compute the DCA energy for a batch of sequences. 
+Compute the DCA energy for a batch of sequences.
 
 
 
 **Args:**
- 
- - <b>`x`</b> (torch.Tensor):  Tensor of shape (batch_size, L, q) - batch of one-hot encoded sequences. 
- - <b>`params`</b> (Dict[str, torch.Tensor]):  Parameters of the model. 
-        - "bias": Tensor of shape (L, q) - local biases. 
-        - "coupling_matrix": Tensor of shape (L, q, L, q) - coupling matrix. 
+
+ - <b>`x`</b> (torch.Tensor):  Tensor of shape (batch_size, L, q) - batch of one-hot encoded sequences.
+ - <b>`params`</b> (Dict[str, torch.Tensor]):  Parameters of the model.
+        - "bias": Tensor of shape (L, q) - local biases.
+        - "coupling_matrix": Tensor of shape (L, q, L, q) - coupling matrix.
 
 
 
 
 
 **Returns:**
- 
- - <b>`torch.Tensor`</b>:  Tensor of shape (batch_size,) - DCA energy for each sequence in the batch. 
+
+ - <b>`torch.Tensor`</b>:  Tensor of shape (batch_size,) - DCA energy for each sequence in the batch.
 
 
 ---
@@ -53,22 +53,22 @@ compute_log_likelihood(
 ) → float
 ```
 
-Compute the log-likelihood per residue of the model. 
+Compute the log-likelihood per residue of the model.
 
 
 
 **Args:**
- 
- - <b>`fi`</b> (torch.Tensor):  Single-site frequencies of the data. 
- - <b>`fij`</b> (torch.Tensor):  Two-site frequencies of the data. 
- - <b>`params`</b> (Dict[str, torch.Tensor]):  Parameters of the model. 
- - <b>`logZ`</b> (float):  Log-partition function of the model. 
+
+ - <b>`fi`</b> (torch.Tensor):  Single-site frequencies of the data.
+ - <b>`fij`</b> (torch.Tensor):  Two-site frequencies of the data.
+ - <b>`params`</b> (Dict[str, torch.Tensor]):  Parameters of the model.
+ - <b>`logZ`</b> (float):  Log-partition function of the model.
 
 
 
 **Returns:**
- 
- - <b>`float`</b>:  Log-likelihood per residue of the model. 
+
+ - <b>`float`</b>:  Log-likelihood per residue of the model.
 
 
 ---
@@ -81,21 +81,21 @@ Compute the log-likelihood per residue of the model.
 enumerate_states(L: int, q: int, device: device = device(type='cpu')) → Tensor
 ```
 
-Enumerate all possible states of a system of L sites and q states. 
+Enumerate all possible states of a system of L sites and q states.
 
 
 
 **Args:**
- 
- - <b>`L`</b> (int):  Number of sites. 
- - <b>`q`</b> (int):  Number of states. 
- - <b>`device`</b> (torch.device, optional):  Device to store the states. Defaults to "cpu". 
+
+ - <b>`L`</b> (int):  Number of sites.
+ - <b>`q`</b> (int):  Number of states.
+ - <b>`device`</b> (torch.device, optional):  Device to store the states. Defaults to "cpu".
 
 
 
 **Returns:**
- 
- - <b>`torch.Tensor`</b>:  All possible states. 
+
+ - <b>`torch.Tensor`</b>:  All possible states.
 
 
 ---
@@ -108,20 +108,20 @@ Enumerate all possible states of a system of L sites and q states.
 compute_logZ_exact(all_states: Tensor, params: Dict[str, Tensor]) → float
 ```
 
-Compute the log-partition function of the model. 
+Compute the log-partition function of the model.
 
 
 
 **Args:**
- 
- - <b>`all_states`</b> (torch.Tensor):  All possible states of the system. 
- - <b>`params`</b> (Dict[str, torch.Tensor]):  Parameters of the model. 
+
+ - <b>`all_states`</b> (torch.Tensor):  All possible states of the system.
+ - <b>`params`</b> (Dict[str, torch.Tensor]):  Parameters of the model.
 
 
 
 **Returns:**
- 
- - <b>`float`</b>:  Log-partition function of the model. 
+
+ - <b>`float`</b>:  Log-partition function of the model.
 
 
 ---
@@ -134,21 +134,21 @@ Compute the log-partition function of the model.
 compute_entropy(chains: Tensor, params: Dict[str, Tensor], logZ: float) → float
 ```
 
-Compute the entropy of the DCA model. 
+Compute the entropy of the DCA model.
 
 
 
 **Args:**
- 
- - <b>`chains`</b> (torch.Tensor):  Chains that are supposed to be an equilibrium realization of the model. 
- - <b>`params`</b> (Dict[str, torch.Tensor]):  Parameters of the model. 
- - <b>`logZ`</b> (float):  Log-partition function of the model. 
+
+ - <b>`chains`</b> (torch.Tensor):  Chains that are supposed to be an equilibrium realization of the model.
+ - <b>`params`</b> (Dict[str, torch.Tensor]):  Parameters of the model.
+ - <b>`logZ`</b> (float):  Log-partition function of the model.
 
 
 
 **Returns:**
- 
- - <b>`float`</b>:  Entropy of the model. 
+
+ - <b>`float`</b>:  Entropy of the model.
 
 
 ---
@@ -166,22 +166,22 @@ iterate_tap(
 ) → Tensor
 ```
 
-Iterates the TAP equations until convergence. 
+Iterates the TAP equations until convergence.
 
 
 
 **Args:**
- 
- - <b>`mag`</b> (torch.Tensor):  Initial magnetizations. 
- - <b>`params`</b> (Dict[str, torch.Tensor]):  Parameters of the model. 
- - <b>`max_iter`</b> (int, optional):  Maximum number of iterations. Defaults to 500. 
- - <b>`epsilon`</b> (float, optional):  Convergence threshold. Defaults to 1e-4. 
+
+ - <b>`mag`</b> (torch.Tensor):  Initial magnetizations.
+ - <b>`params`</b> (Dict[str, torch.Tensor]):  Parameters of the model.
+ - <b>`max_iter`</b> (int, optional):  Maximum number of iterations. Defaults to 500.
+ - <b>`epsilon`</b> (float, optional):  Convergence threshold. Defaults to 1e-4.
 
 
 
 **Returns:**
- 
- - <b>`torch.Tensor`</b>:  Fixed point magnetizations of the TAP equations. 
+
+ - <b>`torch.Tensor`</b>:  Fixed point magnetizations of the TAP equations.
 
 
 
