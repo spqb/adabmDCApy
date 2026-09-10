@@ -10,6 +10,7 @@ from typing import Any
 import numpy as np
 
 from adabmDCA.alignment import Alignment
+from adabmDCA.api.exceptions import OutputSerializationError
 from adabmDCA.api.serialization import (
     resolve_format,
     result_document,
@@ -334,6 +335,12 @@ class SamplingResult:
     mixing_history: dict[str, Sequence[float]] = field(default_factory=dict)
     sampling_history: dict[str, Sequence[float]] = field(default_factory=dict)
     warnings: tuple[str, ...] = ()
+    sampling_dtype: str = "float32"
+    cij_reference: np.ndarray | None = field(default=None, repr=False, compare=False)
+    cij_generated: np.ndarray | None = field(default=None, repr=False, compare=False)
+    pca_reference: np.ndarray | None = field(default=None, repr=False, compare=False)
+    pca_generated: np.ndarray | None = field(default=None, repr=False, compare=False)
+    pca_explained_variance_ratio: np.ndarray | None = field(default=None, repr=False, compare=False)
 
     def to_dict(self) -> dict[str, Any]:
         return result_document(
@@ -345,6 +352,7 @@ class SamplingResult:
                 "sampler": self.sampler,
                 "beta": self.beta,
                 "seed": self.seed,
+                "sampling_dtype": self.sampling_dtype,
                 "model": self.model.to_dict(),
                 "mixing_history": self.mixing_history,
                 "sampling_history": self.sampling_history,
@@ -403,6 +411,85 @@ class SamplingResult:
         }
         return artifacts
 
+    def save_diagnostic_plots(self, directory: str | Path, *, label: str | None = None) -> dict[str, Path]:
+        """Save mixing, correlation, and PCA diagnostics as PNG files."""
+        required_mixing = {"t_half", "seqid_t", "std_seqid_t", "seqid_t_t_half", "std_seqid_t_t_half"}
+        required_sampling = {"nsweeps", "pearson"}
+        if not required_mixing.issubset(self.mixing_history) or not required_sampling.issubset(
+            self.sampling_history
+        ):
+            raise OutputSerializationError("Sampling plots require mixing and sampling histories.")
+        if self.cij_reference is None or self.cij_generated is None:
+            raise OutputSerializationError(
+                "Cij plot data were not collected; call sample_sequences with collect_diagnostics=True."
+            )
+        if self.pca_reference is None or self.pca_generated is None or self.pca_explained_variance_ratio is None:
+            raise OutputSerializationError(
+                "PCA plot data were not collected; call sample_sequences with collect_diagnostics=True."
+            )
+
+        import matplotlib.pyplot as plt
+
+        from adabmDCA.plot import plot_autocorrelation, plot_cij_scatter, plot_PCA, plot_pearson_sampling
+
+        folder = Path(directory)
+        folder.mkdir(parents=True, exist_ok=True)
+        prefix = f"{label}_" if label else ""
+        paths = {
+            "autocorrelation_plot": folder / f"{prefix}autocorrelation.png",
+            "pearson_plot": folder / f"{prefix}pearson_sampling.png",
+            "cij_scatter_plot": folder / f"{prefix}cij_scatter.png",
+            "pca_1_2_plot": folder / f"{prefix}pca_1_2.png",
+            "pca_3_4_plot": folder / f"{prefix}pca_3_4.png",
+        }
+        plot_dpi = 192
+
+        figure, axis = plt.subplots(dpi=plot_dpi, figsize=(7, 5))
+        plot_autocorrelation(
+            axis,
+            np.asarray(self.mixing_history["t_half"]),
+            np.asarray(self.mixing_history["seqid_t_t_half"]),
+            np.asarray(self.mixing_history["seqid_t"]),
+            autocorr_std=np.asarray(self.mixing_history["std_seqid_t_t_half"]),
+            independent_std=np.asarray(self.mixing_history["std_seqid_t"]),
+        )
+        figure.tight_layout()
+        figure.savefig(paths["autocorrelation_plot"], dpi=plot_dpi)
+        plt.close(figure)
+
+        figure, axis = plt.subplots(dpi=plot_dpi, figsize=(7, 5))
+        plot_pearson_sampling(
+            axis,
+            np.asarray(self.sampling_history["nsweeps"]),
+            np.asarray(self.sampling_history["pearson"]),
+        )
+        figure.tight_layout()
+        figure.savefig(paths["pearson_plot"], dpi=plot_dpi)
+        plt.close(figure)
+
+        figure, axis = plt.subplots(dpi=plot_dpi, figsize=(6, 6))
+        plot_cij_scatter(axis, self.cij_reference, self.cij_generated)
+        figure.tight_layout()
+        figure.savefig(paths["cij_scatter_plot"], dpi=plot_dpi)
+        plt.close(figure)
+
+        for pc1, pc2, path_key in ((0, 1, "pca_1_2_plot"), (2, 3, "pca_3_4_plot")):
+            figure = plt.figure(dpi=plot_dpi, figsize=(7, 6.5))
+            plot_PCA(
+                figure,
+                self.pca_reference,
+                pc1=pc1,
+                pc2=pc2,
+                data2=self.pca_generated,
+                labels=["Natural", "Generated"],
+                colors=["#31688E", "#E76F51"],
+                title=f"Natural and generated sequences: PC{pc1 + 1} vs PC{pc2 + 1}",
+                explained_variance_ratio=self.pca_explained_variance_ratio,
+            )
+            figure.savefig(paths[path_key], dpi=plot_dpi, facecolor="white", bbox_inches="tight")
+            plt.close(figure)
+        return paths
+
 
 @dataclass(frozen=True)
 class TrainingProgress:
@@ -414,6 +501,33 @@ class TrainingProgress:
     gradient_steps: int = 0
     structure_steps: int = 0
     sweeps: int = 0
+
+
+@dataclass(frozen=True)
+class TrainingDatasetSummary:
+    """Dimensions, filtering outcomes, and statistical size of one MSA."""
+
+    source: str | None
+    original_sequences: int
+    retained_sequences: int
+    removed_invalid: int
+    removed_duplicates: int
+    sequence_length: int
+    num_states: int
+    effective_sequences: float
+
+
+@dataclass(frozen=True)
+class TrainingInitialization:
+    """Resolved training setup emitted after inputs are loaded and weighted."""
+
+    training: TrainingDatasetSummary
+    validation: TrainingDatasetSummary | None
+    device: str
+    dtype: str
+    n_chains: int
+    effective_pseudocount: float
+    config: TrainingConfig
 
 
 @dataclass(frozen=True)
@@ -436,6 +550,7 @@ class TrainingResult:
     sweeps: int = 0
     config: TrainingConfig | None = None
     input_report: dict[str, Any] = field(default_factory=dict)
+    initialization: TrainingInitialization | None = None
 
     def history_dataframe(self):
         """Return the training history as a pandas DataFrame."""
@@ -462,6 +577,7 @@ class TrainingResult:
                 "sweeps": self.sweeps,
                 "config": self.config,
                 "input_report": self.input_report,
+                "initialization": self.initialization,
                 "final_metrics": self.final_metrics,
             },
         )

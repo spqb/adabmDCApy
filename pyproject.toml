@@ -46,7 +46,10 @@ docs = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/spqb/adabmDCA"
+Homepage = "https://spqb.github.io/adabmDCApy/"
+Documentation = "https://spqb.github.io/adabmDCApy/"
+Repository = "https://github.com/spqb/adabmDCApy"
+Issues = "https://github.com/spqb/adabmDCApy/issues"
 
 [project.scripts]
 adabmDCA = "adabmDCA.cli:main"

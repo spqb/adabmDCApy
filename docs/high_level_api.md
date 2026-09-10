@@ -20,6 +20,9 @@ print(model.metadata.to_dict())
 
 `device="auto"` selects an available accelerator and falls back to CPU.
 Loading once avoids repeating the alphabet, device, and dtype configuration.
+Unlike the CLI, model-loading APIs require a resolved alphabet because a
+parameter file alone may not identify ambiguous nucleotide alphabets. Pass
+`protein`, `dna`, `rna`, or the exact custom token string.
 
 ## Score sequences
 
@@ -94,13 +97,29 @@ result = sample_sequences(
     model=model,
     n_sequences=100,
     n_sweeps=1_000,
+    reference_fasta="alignment.fasta",
+    collect_diagnostics=True,
     seed=42,
     progress=lambda event: print(event.completed, event.total),
 )
 
 display(result.to_dataframe())
-result.to_fasta("samples.fasta")
+artifacts = result.save_bundle("samples", label="family")
+plots = result.save_diagnostic_plots("samples", label="family")
 ```
+
+The plot serializer writes autocorrelation curves with uncertainty bands,
+sampling Pearson correlation, a reference-versus-generated connected-
+correlation scatter plot with fitted slope, and PC1–PC2 and PC3–PC4 projections
+with marginal histograms. `reference_fasta` is required to collect these
+diagnostics. When it is supplied, `n_sweeps` bounds mixing-time estimation and
+generation runs for `mixing_multiplier` times the estimated mixing time.
+
+With `dtype="bfloat16"`, sampling uses a BF16 copy of the fixed coupling
+matrix while model parameters, chains, diagnostics, and reported energies stay
+in FP32. The result records the requested precision in
+`result.sampling_dtype`. This mode requires an Ampere-or-newer NVIDIA GPU and
+Triton; use the default `float32` elsewhere.
 
 ## Train a model
 
@@ -130,6 +149,12 @@ print(training.gradient_steps, training.structure_steps, training.sweeps)
 `edDCA` runs can set independent global budgets with
 `max_gradient_steps=` and `max_structure_steps=`. Progress events expose the
 same counters in addition to the legacy `epoch` field.
+
+Use `on_initialized=` to inspect the resolved setup before numerical training
+starts. The callback receives a `TrainingInitialization` containing training
+and validation dimensions, filtering counts, `M_eff`, actual chain count,
+effective pseudocount, device, and dtype. The same object is retained on
+`TrainingResult.initialization` and included in its JSON representation.
 
 Use `checkpoint_interval=200` to change periodic parameter/chain saves from
 the default of 100 steps. A final checkpoint is saved when training finishes,
@@ -178,6 +203,12 @@ expected length, format selection, and gap normalization. `LoadedAlignment`
 reports retained, invalid, and duplicate indices. Sequence weights can be a
 path, sequence, NumPy array, or tensor and are aligned using those retained
 indices.
+
+The command-line workflows default to `--alphabet auto`, which detects only
+the standard DNA, RNA, and protein alphabets. DNA wins ambiguous nucleotide
+matches. The high-level API keeps alphabet selection explicit: pass a standard
+name or a custom token string to `TrainingConfig`, `AlignmentLoadConfig`, and
+model-loading functions.
 
 `DatasetDCA.from_alignment()` and `DatasetDCA.from_loaded_alignment()` build
 the tensor dataset without constructor-owned file parsing. `DatasetDCA` remains

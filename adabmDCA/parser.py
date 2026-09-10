@@ -3,7 +3,6 @@ import argparse
 from adabmDCA.training_config import (
     DEFAULT_ACTIVATION_FRACTION,
     DEFAULT_ACTIVATION_STEPS,
-    DEFAULT_ALPHABET,
     DEFAULT_CHECKPOINT_INTERVAL,
     DEFAULT_CLUSTERING_SEQID,
     DEFAULT_DECIMATION_RATE,
@@ -75,8 +74,8 @@ def add_args_dca(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     dca_args.add_argument(
         "--alphabet",
         type=str,
-        default=DEFAULT_ALPHABET,
-        help="(Defaults to 'protein'). Type of encoding for the sequences. Choose among ['protein', 'rna', 'dna'] or a user-defined string of tokens.",
+        default="auto",
+        help="(Defaults to auto). Detect protein, dna, or rna; otherwise specify a custom string of tokens. DNA wins ambiguous nucleotide matches.",
     )
     dca_args.add_argument("--lr", type=float, default=DEFAULT_LEARNING_RATE, help="(Defaults to 0.01). Learning rate.")
     dca_args.add_argument(
@@ -240,8 +239,8 @@ def add_args_energies(parser: argparse.ArgumentParser) -> argparse.ArgumentParse
     parser.add_argument(
         "--alphabet",
         type=str,
-        default="protein",
-        help="(Defaults to 'protein'). Type of encoding for the sequences. Choose among ['protein', 'rna', 'dna'] or a user-defined string of tokens.",
+        default="auto",
+        help="(Defaults to auto). Detect protein, dna, or rna; otherwise specify a custom string of tokens. DNA wins ambiguous nucleotide matches.",
     )
     parser.add_argument(
         "--device",
@@ -280,8 +279,8 @@ def add_args_contacts(parser: argparse.ArgumentParser) -> argparse.ArgumentParse
     parser.add_argument(
         "--alphabet",
         type=str,
-        default="protein",
-        help="(Defaults to 'protein'). Type of encoding for the sequences. Choose among ['protein', 'rna', 'dna'] or a user-defined string of tokens.",
+        default="auto",
+        help="(Defaults to auto). Detect protein, dna, or rna; otherwise specify a custom string of tokens. DNA wins ambiguous nucleotide matches.",
     )
     parser.add_argument(
         "--pseudocount",
@@ -319,8 +318,8 @@ def add_args_dms(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     parser.add_argument(
         "--alphabet",
         type=str,
-        default="protein",
-        help="(Defaults to 'protein'). Type of encoding for the sequences. Choose among ['protein', 'rna', 'dna'] or a user-defined string of tokens.",
+        default="auto",
+        help="(Defaults to auto). Detect protein, dna, or rna; otherwise specify a custom string of tokens. DNA wins ambiguous nucleotide matches.",
     )
     parser.add_argument(
         "--device",
@@ -373,8 +372,8 @@ def add_args_sample(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     parser.add_argument(
         "--alphabet",
         type=str,
-        default="protein",
-        help="(Defaults to 'protein'). Type of encoding for the sequences. Choose among ['protein', 'rna', 'dna'] or a user-defined string of tokens.",
+        default="auto",
+        help="(Defaults to auto). Detect protein, dna, or rna; otherwise specify a custom string of tokens. DNA wins ambiguous nucleotide matches.",
     )
     parser.add_argument(
         "--sampler",
@@ -401,7 +400,24 @@ def add_args_sample(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         default="auto",
         help="(Defaults to 'auto'). Device to use: CUDA if available, otherwise MPS, otherwise CPU.",
     )
-    parser.add_argument("--dtype", type=str, default="float32", help="(Defaults to 'float32'). Data type to be used.")
+    parser.add_argument(
+        "--dtype",
+        type=str,
+        default="float32",
+        choices=("float32", "float64", "bfloat16"),
+        help=(
+            "(Defaults to 'float32'). Sampling precision. bfloat16 stores sampling couplings in BF16 "
+            "while retaining FP32 model state and requires an Ampere-or-newer CUDA GPU with Triton."
+        ),
+    )
+    parser.add_argument(
+        "--plot",
+        action="store_true",
+        help=(
+            "Save autocorrelation, sampling-Pearson, final Cij scatter, and natural-versus-generated PCA plots. "
+            "Requires a reference alignment supplied with --data."
+        ),
+    )
 
     parser = add_args_reweighting(parser)
 
@@ -463,8 +479,8 @@ def add_args_tdint(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     parser.add_argument(
         "--alphabet",
         type=str,
-        default="protein",
-        help="(Defaults to 'protein'). Type of encoding for the sequences. Choose among ['protein', 'rna', 'dna'] or a user-defined string of tokens.",
+        default="auto",
+        help="(Defaults to auto). Detect protein, dna, or rna; otherwise specify a custom string of tokens. DNA wins ambiguous nucleotide matches.",
     )
     parser.add_argument(
         "--nepochs", type=int, default=50000, help="(Defaults to 50000). Maximum number of epochs allowed."
@@ -539,8 +555,8 @@ def add_args_profmark(parser: argparse.ArgumentParser) -> argparse.ArgumentParse
     parser.add_argument(
         "--alphabet",
         type=str,
-        default="protein",
-        help="(Defaults to 'protein') Alphabet to use for encoding the sequences. Choose among 'protein', 'rna', 'dna' or a user-defined alphabet.",
+        default="auto",
+        help="(Defaults to auto). Detect protein, dna, or rna; otherwise specify a custom string of tokens. DNA wins ambiguous nucleotide matches.",
     )
     parser.add_argument("--seed", type=int, default=0, help="(Defaults to 0) Random seed for reproducibility.")
     parser.add_argument(

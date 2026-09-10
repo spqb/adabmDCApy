@@ -11,7 +11,12 @@ import torch
 from adabmDCA.api.exceptions import InputValidationError, OperationCancelledError
 from adabmDCA.api.input_loading import load_training_inputs
 from adabmDCA.api.model import DCAModel
-from adabmDCA.api.results import TrainingProgress, TrainingResult
+from adabmDCA.api.results import (
+    TrainingDatasetSummary,
+    TrainingInitialization,
+    TrainingProgress,
+    TrainingResult,
+)
 from adabmDCA.api.runtime import resolve_runtime
 from adabmDCA.checkpoint import Checkpoint
 from adabmDCA.fasta import get_tokens
@@ -48,6 +53,7 @@ from adabmDCA.training_control import (
 from adabmDCA.utils import init_chains, init_parameters
 
 ProgressCallback = Callable[[TrainingProgress], None]
+InitializationCallback = Callable[[TrainingInitialization], None]
 CancellationHook = Callable[[], bool]
 
 
@@ -74,6 +80,43 @@ def _progress_observer(progress: ProgressCallback | None):
         )
 
     return notify
+
+
+def _dataset_summary(dataset, loaded_alignment) -> TrainingDatasetSummary:
+    report = loaded_alignment.to_dict()
+    return TrainingDatasetSummary(
+        source=report["source"],
+        original_sequences=int(report["original_sequences"]),
+        retained_sequences=int(report["retained_sequences"]),
+        removed_invalid=len(report["dropped_indices"]),
+        removed_duplicates=len(report["duplicate_indices"]),
+        sequence_length=int(report["sequence_length"]),
+        num_states=dataset.get_num_states(),
+        effective_sequences=float(dataset.get_effective_size()),
+    )
+
+
+def _finish_log(checkpoint, status: str, controller, history, *, error: BaseException | None = None) -> None:
+    if checkpoint is None:
+        return
+    finish = getattr(checkpoint, "finish", None)
+    if finish is None:
+        return
+    final = {key: values[-1] for key, values in history.items() if values}
+    summary = {
+        "stop_reason": None if controller.stop_reason is None else controller.stop_reason.value,
+        "converged": controller.stop_reason in {StopReason.TARGET_PEARSON, StopReason.TARGET_DENSITY},
+        "gradient_steps": controller.counters.gradient_steps,
+        "structure_steps": controller.counters.structure_steps,
+        "sweeps": controller.counters.sweeps,
+        "elapsed_seconds": final.get("Time"),
+        "final_pearson": final.get("Pearson"),
+        "final_validation_pearson": final.get("Pearson_val"),
+        "final_density": final.get("Density"),
+    }
+    if error is not None:
+        summary["error"] = f"{type(error).__name__}: {error}"
+    finish(status, summary)
 
 
 def train_model(
@@ -111,6 +154,7 @@ def train_model(
     use_wandb: bool = False,
     allow_signed_weights: bool = False,
     progress: ProgressCallback | None = None,
+    on_initialized: InitializationCallback | None = None,
     is_cancelled: CancellationHook | None = None,
 ) -> TrainingResult:
     """Train a DCA model from a FASTA alignment.
@@ -120,6 +164,9 @@ def train_model(
     notebook workflow.
     ``checkpoint_interval`` controls periodic parameter/chain saves (default
     100 steps). The final state is also saved when training finishes.
+    ``on_initialized`` is called once after input filtering and sequence
+    weighting, before numerical training begins. Its event contains resolved
+    dimensions, effective sample sizes, runtime, and optimization settings.
 
     ``dtype='bfloat16'`` uses BF16 coupling copies for CUDA/Triton sampling,
     with float32 master parameters, statistics, chains and saved models.
@@ -208,7 +255,7 @@ def train_model(
     else:
         fi_val = fij_val = None
 
-    effective_size = float(dataset.get_effective_size())
+    effective_size = dataset.get_effective_size()
     effective_pseudocount = training_config.resolve_pseudocount(effective_size)
 
     dataset.shuffle()
@@ -255,6 +302,22 @@ def train_model(
         )
         log_weights = torch.zeros(n_chains, device=resolved_device, dtype=resolved_dtype)
 
+    initialization = TrainingInitialization(
+        training=_dataset_summary(dataset, loaded_inputs.training_alignment),
+        validation=(
+            None
+            if validation is None or loaded_inputs.validation_alignment is None
+            else _dataset_summary(validation, loaded_inputs.validation_alignment)
+        ),
+        device=str(resolved_device),
+        dtype=str(resolved_dtype).removeprefix("torch."),
+        n_chains=int(n_chains),
+        effective_pseudocount=float(effective_pseudocount),
+        config=training_config,
+    )
+    if on_initialized is not None:
+        on_initialized(initialization)
+
     artifacts: dict[str, Path] = {}
     checkpoint = None
     if output_dir is not None:
@@ -266,29 +329,43 @@ def train_model(
             "params": str(folder / (f"{label}_params.dat" if label else "params.dat")),
             "chains": str(folder / (f"{label}_chains.fasta" if label else "chains.fasta")),
         }
-        checkpoint_metadata = {
-            **training_config.as_dict(),
-            "label": label,
-            "model": model_type,
-            "data": str(loaded_inputs.training_alignment.alignment.source or "<memory>"),
-            "val": (
-                None
-                if loaded_inputs.validation_alignment is None
-                else str(loaded_inputs.validation_alignment.alignment.source or "<memory>")
-            ),
-            "alphabet": alphabet,
+        from adabmDCA import __version__
+
+        limits = training_config.limits
+        optimization = {
             "sampler": sampler,
-            "nchains": n_chains,
-            "nsweeps": n_sweeps,
-            "lr": learning_rate,
-            "dtype": dtype,
-            "target": target_pearson,
-            "gsteps": activation_steps,
-            "factivate": activation_fraction,
-            "seed": seed,
-            "nepochs": max_epochs,
-            "pseudocount": effective_pseudocount,
+            "chains": n_chains,
+            "sweeps_per_step": n_sweeps,
+            "target_pearson": target_pearson,
+            "max_gradient_steps": limits.max_gradient_steps,
+            "max_structure_steps": limits.max_structure_steps,
             "checkpoint_interval": training_config.resolved_checkpoint_interval,
+            "effective_pseudocount": effective_pseudocount,
+            "clustering_seqid": clustering_seqid,
+            "no_reweighting": no_reweighting,
+        }
+        if model_type != "edgeDCA":
+            optimization.update(learning_rate=learning_rate, l2_regularization=l2_regularization)
+        if model_type == "eaDCA":
+            optimization.update(activation_steps=activation_steps, activation_fraction=activation_fraction)
+        elif model_type == "edDCA":
+            optimization.update(target_density=target_density, decimation_rate=decimation_rate)
+        elif model_type == "edgeDCA":
+            optimization.update(
+                empirical_pseudocount=training_config.edge_empirical_pseudocount,
+                logz_chain_fraction=training_config.edge_logz_chain_fraction,
+            )
+        checkpoint_metadata = {
+            "run": {
+                "label": label or "adabmDCA",
+                "model": model_type,
+                "package_version": __version__,
+                "seed": seed,
+            },
+            "training data": initialization.training.__dict__,
+            "validation data": None if initialization.validation is None else initialization.validation.__dict__,
+            "runtime": {"device": initialization.device, "dtype": initialization.dtype},
+            "optimization": optimization,
         }
         checkpoint = Checkpoint(
             file_paths,
@@ -398,7 +475,16 @@ def train_model(
                 logz_chain_fraction=training_config.edge_logz_chain_fraction,
             )
     except TrainingCancelled as exc:
+        _finish_log(checkpoint, "cancelled", controller, controller.history, error=exc)
         raise OperationCancelledError(str(exc)) from exc
+    except KeyboardInterrupt as exc:
+        _finish_log(checkpoint, "interrupted", controller, controller.history, error=exc)
+        raise
+    except Exception as exc:
+        _finish_log(checkpoint, "failed", controller, controller.history, error=exc)
+        raise
+
+    _finish_log(checkpoint, "completed", controller, history)
 
     trained = DCAModel(params, alphabet=alphabet, source=artifacts.get("params"))
     return TrainingResult(
@@ -421,4 +507,5 @@ def train_model(
         sweeps=controller.counters.sweeps,
         config=training_config,
         input_report=loaded_inputs.training_alignment.to_dict(),
+        initialization=initialization,
     )

@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Script to plot training metrics from DCA log files.
 
@@ -13,7 +12,7 @@ from adabmDCA.training_config import DEFAULT_TARGET_PEARSON
 
 
 def parse_training_log(log_path: str):
-    """Parse a DCA training log file for plotting."""
+    """Parse a version-2 DCA training log file for plotting."""
     import numpy as np
 
     metadata = {}
@@ -29,51 +28,56 @@ def parse_training_log(log_path: str):
         "Entropy": [],
         "Density": [],
         "Time": [],
+        "Stage": [],
+        "Gradient_steps": [],
+        "Structure_steps": [],
+        "Sweeps": [],
     }
-
-    with open(log_path, "r") as f:
-        lines = f.readlines()
-
-    i = 0
-    while i < len(lines) and lines[i].strip():
-        line = lines[i].strip()
-        if ":" in line:
-            key, value = line.split(":", 1)
-            metadata[key.strip()] = value.strip()
-            i += 1
-        else:
-            break
-
+    aliases = {
+        "Step": "Epochs",
+        "Grad_steps": "Gradient_steps",
+        "Struct_steps": "Structure_steps",
+        "Chain_ESS_frac": "ESS",
+        "Elapsed_s": "Time",
+    }
+    section = "header"
     header = []
-    while i < len(lines):
-        if lines[i].strip().startswith("Epochs"):
-            header = lines[i].strip().split()
-            i += 1
-            break
-        i += 1
+    with open(log_path, "r", encoding="utf-8") as handle:
+        for raw_line in handle:
+            line = raw_line.strip()
+            if not line or line == "adabmDCA training log":
+                continue
+            if line.startswith("[") and line.endswith("]"):
+                section = line[1:-1].strip().lower()
+                header = []
+                continue
+            if line.startswith("Step "):
+                header = line.split()
+                continue
+            if header:
+                values = line.split()
+                if len(values) != len(header):
+                    continue
+                try:
+                    float(values[0])
+                except ValueError:
+                    continue
+                for label, value in zip(header, values, strict=True):
+                    key = aliases.get(label, label)
+                    if key == "Stage":
+                        data[key].append(value)
+                    elif key in data:
+                        data[key].append(float(value))
+                continue
+            if ":" in line:
+                key, value = (part.strip() for part in line.split(":", 1))
+                qualified = key if section == "header" else f"{section}.{key}"
+                metadata[qualified] = value
 
-    while i < len(lines):
-        line = lines[i].strip()
-        if not line:
-            i += 1
-            continue
-
-        if not line[0].isdigit() and "." not in line.split()[0]:
-            i += 1
-            continue
-
-        try:
-            values = line.split()
-            if len(values) >= len(header):
-                for j, key in enumerate(header):
-                    if key in data:
-                        data[key].append(float(values[j]))
-        except (ValueError, IndexError):
-            pass
-
-        i += 1
-
-    parsed_data = {key: np.array(values) for key, values in data.items()}
+    parsed_data = {
+        key: np.asarray(values, dtype=object if key == "Stage" else float)
+        for key, values in data.items()
+    }
     return metadata, parsed_data
 
 
@@ -88,116 +92,148 @@ def create_plots(metadata, data, output_dir):
     import matplotlib.pyplot as plt
     import numpy as np
 
+    from adabmDCA.plot import (
+        _DIAGNOSTIC_BLUE,
+        _DIAGNOSTIC_CORAL,
+        _DIAGNOSTIC_TEAL,
+        _DIAGNOSTIC_TEXT,
+        _style_diagnostic_axis,
+    )
+
     os.makedirs(output_dir, exist_ok=True)
 
     # Get the target Pearson value from metadata
-    target_pearson = float(metadata.get("target Pearson Cij", DEFAULT_TARGET_PEARSON))
+    target_pearson = float(metadata.get("optimization.target_pearson", DEFAULT_TARGET_PEARSON))
 
     # Get base name for output files
-    label = metadata.get("label", "training")
+    label = metadata.get("run.label", "training")
 
-    # Set style
-    plt.rcParams["figure.dpi"] = 150
-    plt.rcParams["font.size"] = 10
-    plt.rcParams["axes.labelsize"] = 11
-    plt.rcParams["axes.titlesize"] = 12
-    plt.rcParams["legend.fontsize"] = 9
+    plot_dpi = 192
+
+    def style_axis(ax, title):
+        _style_diagnostic_axis(ax)
+        ax.set_title(title, color=_DIAGNOSTIC_TEXT, pad=10)
+        ax.set_xlabel("Training step")
+
+    def plot_series(ax, x, y, *, label, color, marker="o"):
+        ax.plot(
+            x,
+            y,
+            marker=marker,
+            linewidth=1.8,
+            markersize=4,
+            markerfacecolor="white",
+            markeredgewidth=1.2,
+            color=color,
+            label=label,
+            zorder=2,
+        )
+
+    def save_figure(fig, filename):
+        fig.tight_layout()
+        fig.savefig(os.path.join(output_dir, filename), dpi=plot_dpi, facecolor="white")
+        plt.close(fig)
 
     # 1. Pearson vs Epochs
-    fig, ax = plt.subplots(figsize=(8, 5))
-    ax.plot(data["Epochs"], data["Pearson"], "o-", linewidth=2, markersize=3, label="Pearson train", color="blue")
+    fig, ax = plt.subplots(figsize=(8, 5), dpi=plot_dpi)
+    style_axis(ax, f"Pearson correlation - {label}")
+    plot_series(ax, data["Epochs"], data["Pearson"], label="Training", color=_DIAGNOSTIC_BLUE)
     if len(data["Pearson_val"]) > 0 and not np.all(np.isnan(data["Pearson_val"])):
-        # Filter out NaN values for plotting
         mask = ~np.isnan(data["Pearson_val"])
         if np.any(mask):
-            ax.plot(
+            plot_series(
+                ax,
                 data["Epochs"][mask],
                 data["Pearson_val"][mask],
-                "s-",
-                linewidth=2,
-                markersize=3,
-                label="Pearson validation",
-                color="orange",
+                label="Validation",
+                color=_DIAGNOSTIC_CORAL,
+                marker="s",
             )
-    ax.axhline(y=target_pearson, color="r", linestyle="--", linewidth=2, label=f"Target ({target_pearson:.2f})")
-    ax.set_xlabel("Epochs")
-    ax.set_ylabel("Pearson Correlation")
-    ax.set_title(f"Pearson Correlation vs Epochs - {label}")
-    ax.grid(True, alpha=0.3)
-    ax.legend()
-    plt.tight_layout()
-    plt.savefig(os.path.join(output_dir, f"{label}_pearson.png"))
-    plt.close()
+    ax.axhline(
+        y=target_pearson,
+        color=_DIAGNOSTIC_TEAL,
+        linestyle="--",
+        linewidth=1.5,
+        label=f"Target ({target_pearson:.2f})",
+        zorder=1,
+    )
+    ax.set_ylabel("Pearson correlation")
+    ax.legend(frameon=False, loc="best")
+    save_figure(fig, f"{label}_pearson.png")
 
     # 2. Slope vs Epochs
-    fig, ax = plt.subplots(figsize=(8, 5))
-    ax.plot(data["Epochs"], data["Slope"], "o-", linewidth=2, markersize=3, color="green", label="Slope train")
+    fig, ax = plt.subplots(figsize=(8, 5), dpi=plot_dpi)
+    style_axis(ax, f"Correlation slope - {label}")
+    plot_series(ax, data["Epochs"], data["Slope"], label="Training", color=_DIAGNOSTIC_BLUE)
     if len(data["Slope_val"]) > 0 and not np.all(np.isnan(data["Slope_val"])):
-        # Filter out NaN values for plotting
         mask = ~np.isnan(data["Slope_val"])
         if np.any(mask):
-            ax.plot(
+            plot_series(
+                ax,
                 data["Epochs"][mask],
                 data["Slope_val"][mask],
-                "s-",
-                linewidth=2,
-                markersize=3,
-                color="brown",
-                label="Slope validation",
+                color=_DIAGNOSTIC_CORAL,
+                label="Validation",
+                marker="s",
             )
-            ax.legend()
-    ax.set_xlabel("Epochs")
+    ax.axhline(1.0, color="#7A7F85", linestyle="--", linewidth=1.2, label="Ideal slope", zorder=1)
     ax.set_ylabel("Slope")
-    ax.set_title(f"Slope vs Epochs - {label}")
-    ax.grid(True, alpha=0.3)
-    plt.tight_layout()
-    plt.savefig(os.path.join(output_dir, f"{label}_slope.png"))
-    plt.close()
+    ax.legend(frameon=False, loc="best")
+    save_figure(fig, f"{label}_slope.png")
 
     # 3. Log-likelihood per residue vs Epochs (train and validation if available)
-    fig, ax = plt.subplots(figsize=(8, 5))
-    ax.plot(data["Epochs"], data["LL_train"], "o-", linewidth=2, markersize=3, label="Train", color="blue")
+    fig, ax = plt.subplots(figsize=(8, 5), dpi=plot_dpi)
+    style_axis(ax, f"Log-likelihood per residue - {label}")
+    plot_series(ax, data["Epochs"], data["LL_train"], label="Training", color=_DIAGNOSTIC_BLUE)
 
     # Check if validation data is available and not all NaN
     if len(data["LL_val"]) > 0 and not np.all(np.isnan(data["LL_val"])):
-        # Filter out NaN values for plotting
         mask = ~np.isnan(data["LL_val"])
         if np.any(mask):
-            ax.plot(
+            plot_series(
+                ax,
                 data["Epochs"][mask],
                 data["LL_val"][mask],
-                "s-",
-                linewidth=2,
-                markersize=3,
                 label="Validation",
-                color="orange",
+                color=_DIAGNOSTIC_CORAL,
+                marker="s",
             )
 
-    ax.set_xlabel("Epochs")
-    ax.set_ylabel("Log-Likelihood per residue")
-    ax.set_title(f"Log-Likelihood per residue vs Epochs - {label}")
-    ax.grid(True, alpha=0.3)
-    ax.legend()
-    plt.tight_layout()
-    plt.savefig(os.path.join(output_dir, f"{label}_loglikelihood.png"))
-    plt.close()
+    ax.set_ylabel("Log-likelihood per residue")
+    ax.legend(frameon=False, loc="best")
+    save_figure(fig, f"{label}_loglikelihood.png")
 
     # 4. Entropy vs Epochs
-    fig, ax = plt.subplots(figsize=(8, 5))
-    ax.plot(data["Epochs"], data["Entropy"], "o-", linewidth=2, markersize=3, color="purple")
-    ax.set_xlabel("Epochs")
+    fig, ax = plt.subplots(figsize=(8, 5), dpi=plot_dpi)
+    style_axis(ax, f"Model entropy - {label}")
+    plot_series(ax, data["Epochs"], data["Entropy"], label="Entropy", color=_DIAGNOSTIC_TEAL)
     ax.set_ylabel("Entropy")
-    ax.set_title(f"Entropy vs Epochs - {label}")
-    ax.grid(True, alpha=0.3)
-    plt.tight_layout()
-    plt.savefig(os.path.join(output_dir, f"{label}_entropy.png"))
-    plt.close()
+    ax.legend(frameon=False, loc="best")
+    save_figure(fig, f"{label}_entropy.png")
+
+    # 5. Sparse-model density and normalized chain ESS
+    fig, ax = plt.subplots(figsize=(8, 5), dpi=plot_dpi)
+    style_axis(ax, f"Training diagnostics - {label}")
+    plot_series(ax, data["Epochs"], data["Density"], label="Graph density", color=_DIAGNOSTIC_TEAL)
+    plot_series(
+        ax,
+        data["Epochs"],
+        data["ESS"],
+        label="Chain ESS fraction",
+        color=_DIAGNOSTIC_BLUE,
+        marker="s",
+    )
+    ax.set_ylabel("Fraction")
+    ax.set_ylim(-0.02, 1.02)
+    ax.legend(frameon=False, loc="best")
+    save_figure(fig, f"{label}_diagnostics.png")
 
     print(f"\nPlots saved to: {output_dir}")
     print(f"  • {label}_pearson.png")
     print(f"  • {label}_slope.png")
     print(f"  • {label}_loglikelihood.png")
     print(f"  • {label}_entropy.png")
+    print(f"  • {label}_diagnostics.png")
 
 
 def create_parser():
@@ -237,11 +273,17 @@ def main():
     # Parse the log file
     metadata, data = parse_training_log(args.log_file)
 
-    print(f"\nMetadata:")
-    print(f"  Model: {metadata.get('model', 'N/A')}")
-    print(f"  Label: {metadata.get('label', 'N/A')}")
-    print(f"  Target Pearson: {metadata.get('target Pearson Cij', 'N/A')}")
+    print("\nMetadata:")
+    print(f"  Model: {metadata.get('run.model', 'N/A')}")
+    print(f"  Label: {metadata.get('run.label', 'N/A')}")
+    print(f"  Sequences: {metadata.get('training data.retained_sequences', 'N/A')}")
+    print(f"  Sequence length: {metadata.get('training data.sequence_length', 'N/A')}")
+    print(f"  Effective sequences: {metadata.get('training data.effective_sequences', 'N/A')}")
+    print(f"  Target Pearson: {metadata.get('optimization.target_pearson', 'N/A')}")
     print(f"\nData points: {len(data['Epochs'])}")
+
+    if not len(data["Epochs"]):
+        parser.error("The log contains no version-2 training records.")
 
     # Create plots
     create_plots(metadata, data, output_dir)

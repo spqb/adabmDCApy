@@ -1,6 +1,6 @@
 from importlib import import_module
 
-__version__ = "0.8.0"
+__version__ = "1.0.0"
 
 _EXPORTS = {
     "Alignment": "adabmDCA.alignment",
@@ -35,6 +35,8 @@ _EXPORTS = {
     "StopReason": "adabmDCA.training_control",
     "TrainingLimits": "adabmDCA.training_control",
     "TrainingCounters": "adabmDCA.training_control",
+    "TrainingDatasetSummary": "adabmDCA.api.results",
+    "TrainingInitialization": "adabmDCA.api.results",
     "TrainingConfig": "adabmDCA.training_config",
     "ConfigurationError": "adabmDCA.training_config",
     "AlignmentLoadConfig": "adabmDCA.input_loading",

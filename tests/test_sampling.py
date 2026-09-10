@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import patch
 
 import torch
 
@@ -52,6 +53,39 @@ class SamplingTests(unittest.TestCase):
         sampler = prepare_sampler("metropolis", torch.device("cpu"))
         result = sampler(self.chains, self.params, 1, 1.0)
         self.assertEqual(result.shape, self.chains.shape)
+
+    def test_mixing_progress_closes_before_not_reached_message(self):
+        from adabmDCA.resampling import compute_mixing_time
+
+        events = []
+
+        class ProgressBar:
+            def set_description(self, description):
+                events.append(("description", description))
+
+            def update(self, amount):
+                events.append(("update", amount))
+
+            def close(self):
+                events.append(("close", None))
+
+        def record_message(message):
+            events.append(("print", message))
+
+        with (
+            patch("adabmDCA.resampling.tqdm", return_value=ProgressBar()),
+            patch("builtins.print", side_effect=record_message),
+        ):
+            compute_mixing_time(
+                sampler=lambda **kwargs: kwargs["chains"],
+                data=self.chains[:4],
+                params=self.params,
+                n_max_sweeps=1,
+                beta=1.0,
+            )
+
+        self.assertEqual(events[-2][0], "close")
+        self.assertEqual(events[-1], ("print", "Mixing time not reached within 0 sweeps."))
 
 
 @unittest.skipUnless(torch.cuda.is_available(), "CUDA is required for Triton sampling tests")

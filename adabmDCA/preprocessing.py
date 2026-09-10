@@ -11,7 +11,7 @@ from adabmDCA.alignment import (
     normalize_gap_symbols,
     read_alignment,
 )
-from adabmDCA.alphabet import get_tokens
+from adabmDCA.alphabet import detect_alphabet, get_tokens
 from adabmDCA.api.exceptions import InputValidationError
 from adabmDCA.api.serialization import RESULT_SCHEMA_VERSION, write_json
 
@@ -129,7 +129,7 @@ def filter_gap_fraction(
 
 
 def _validate_alphabet(alignment: Alignment, alphabet: str) -> None:
-    tokens = get_tokens(alphabet)
+    tokens = get_tokens(detect_alphabet(alignment.sequences) if alphabet == "auto" else alphabet)
     unexpected = sorted(set("".join(alignment.sequences)) - set(tokens))
     if unexpected:
         raise InputValidationError(

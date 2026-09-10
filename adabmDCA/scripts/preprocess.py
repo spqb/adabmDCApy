@@ -41,8 +41,8 @@ def create_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--alphabet",
-        default=None,
-        help="Optionally validate against protein, RNA, DNA, or custom tokens.",
+        default="auto",
+        help="Detect protein, dna, or rna (default: auto), or specify custom tokens.",
     )
     parser.add_argument(
         "--gap-token",

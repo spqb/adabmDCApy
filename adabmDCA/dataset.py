@@ -186,13 +186,13 @@ class DatasetDCA(Dataset):
         """
         return len(self.tokens)
 
-    def get_effective_size(self) -> int:
+    def get_effective_size(self) -> float:
         """Returns the effective size (Meff) of the dataset.
 
         Returns:
-            int: Effective size of the dataset.
+            float: Sum of the sequence weights.
         """
-        return int(self.weights.sum())
+        return float(self.weights.sum().item())
 
     def shuffle(self) -> None:
         """Shuffles the dataset."""

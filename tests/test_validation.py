@@ -123,3 +123,4 @@ def test_sampling_still_allows_zero_sweeps():
     result = model.sample_sequences(2, n_sweeps=0)
     assert len(result.sequences) == 2
     assert result.num_sweeps == 0
+    assert result.sampling_dtype == "float32"

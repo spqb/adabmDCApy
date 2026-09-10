@@ -51,6 +51,8 @@ _EXPORTS = {
     "SamplingProgress": "adabmDCA.api.results",
     "SamplingResult": "adabmDCA.api.results",
     "TrainingProgress": "adabmDCA.api.results",
+    "TrainingDatasetSummary": "adabmDCA.api.results",
+    "TrainingInitialization": "adabmDCA.api.results",
     "TrainingResult": "adabmDCA.api.results",
     "ProfileSplitResult": "adabmDCA.api.results",
     "ReintegrationResult": "adabmDCA.api.results",

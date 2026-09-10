@@ -14,6 +14,9 @@ def create_parser() -> argparse.ArgumentParser:
 
 def run(args):
     """Execute contact prediction from parsed CLI arguments and return its result."""
+    from adabmDCA.scripts._frontend import resolve_alphabet
+
+    resolve_alphabet(args)
     from adabmDCA.api.contacts import predict_contacts
 
     options = {"alphabet": args.alphabet, "device": args.device, "dtype": args.dtype}
@@ -38,6 +41,9 @@ def _save_plot(result, path: Path) -> Path:
 
 def main(args=None) -> int:
     args = create_parser().parse_args() if args is None else args
+    from adabmDCA.scripts._frontend import resolve_alphabet
+
+    resolve_alphabet(args)
 
     from adabmDCA.scripts._frontend import print_completion, print_configuration, print_header
 

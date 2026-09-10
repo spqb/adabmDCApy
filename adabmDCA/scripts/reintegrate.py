@@ -43,6 +43,9 @@ def _config_from_args(args):
 
 def run(args, *, progress=None):
     """Execute reintegration from parsed CLI arguments and return its result."""
+    from adabmDCA.scripts._frontend import resolve_alphabet
+
+    resolve_alphabet(args)
     from adabmDCA.api.reintegration import reintegrate_model
 
     return reintegrate_model(
@@ -62,6 +65,9 @@ def run(args, *, progress=None):
 
 def main(args=None) -> int:
     args = create_parser().parse_args() if args is None else args
+    from adabmDCA.scripts._frontend import resolve_alphabet
+
+    resolve_alphabet(args)
 
     from adabmDCA.scripts._frontend import print_completion, print_configuration, print_header
     from adabmDCA.scripts.train import _TrainingProgressRenderer
@@ -75,16 +81,23 @@ def main(args=None) -> int:
             "lambda": args.lambda_,
             "output": args.output,
             "model": args.model,
+            "sampler": args.sampler,
             "alphabet": args.alphabet,
             "device": args.device,
+            "dtype": args.dtype,
         }
     )
     renderer = (
         None
         if args.no_progress
         else _TrainingProgressRenderer(
+            model_type=args.model,
             target_pearson=args.target,
-            max_epochs=args.nepochs,
+            max_steps=(
+                args.max_gradient_steps or args.nepochs
+                if args.model == "bmDCA"
+                else args.max_structure_steps or args.nepochs
+            ),
         )
     )
     try:

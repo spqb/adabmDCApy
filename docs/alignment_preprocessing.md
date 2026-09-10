@@ -84,7 +84,7 @@ result = preprocess_alignment(
     remove_insertions=True,
     max_gap_fraction=0.20,
     remove_duplicates=True,
-    alphabet="protein",
+    alphabet="auto",
 )
 
 print(result.report.to_dict())
@@ -107,7 +107,7 @@ config = AlignmentProcessingConfig(
     remove_insertions=True,
     max_gap_fraction=0.20,
     remove_duplicates=True,
-    alphabet="rna",
+    alphabet="rna",  # Explicitly resolve an ambiguous nucleotide alignment.
 )
 result = preprocess_alignment("family.sto", config=config)
 ```
@@ -120,7 +120,7 @@ adabmDCA preprocess family.sto \
     --remove-insertions \
     --max-gap-fraction 0.20 \
     --remove-duplicates \
-    --alphabet protein \
+    --alphabet auto \
     --report family_clean.json
 ```
 
@@ -128,3 +128,7 @@ Omit the transformation flags to perform format conversion only. Output FASTA
 always uses `-`, never `.`, for retained alignment gaps. The input format is
 detected from content by default and can be set explicitly with
 `--input-format fasta` or `--input-format stockholm`.
+
+`alphabet="auto"` and `--alphabet auto` infer only the standard DNA, RNA, or
+protein alphabets after preprocessing transformations have run. Supply an
+explicit token string when the processed alignment uses a custom alphabet.

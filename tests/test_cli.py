@@ -118,6 +118,68 @@ class CliTests(unittest.TestCase):
         self.assertEqual(result.returncode, 2)
         self.assertIn("invalid choice", result.stderr)
 
+    def test_sample_help_and_parser_accept_bfloat16(self):
+        result = run_cli("sample", "--help")
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("bfloat16", result.stdout)
+        self.assertIn("--plot", result.stdout)
+
+    def test_sample_plot_option_writes_all_diagnostics(self):
+        import torch
+
+        from adabmDCA.io import save_params
+
+        with TemporaryDirectory() as directory:
+            workspace = Path(directory)
+            model = workspace / "params.dat"
+            reference = workspace / "reference.fasta"
+            output = workspace / "samples"
+            params = {
+                "bias": torch.zeros(2, 3),
+                "coupling_matrix": torch.zeros(2, 3, 2, 3),
+            }
+            save_params(str(model), params, tokens="AB-")
+            reference.write_text(
+                ">s1\nAA\n>s2\nAB\n>s3\nA-\n>s4\nBA\n>s5\nBB\n>s6\nB-\n>s7\n-A\n>s8\n-B\n",
+                encoding="utf-8",
+            )
+
+            completed = run_cli(
+                "sample",
+                "--path_params",
+                str(model),
+                "--data",
+                str(reference),
+                "--output",
+                str(output),
+                "--ngen",
+                "8",
+                "--nmeasure",
+                "8",
+                "--nmix",
+                "1",
+                "--max_nsweeps",
+                "2",
+                "--alphabet",
+                "AB-",
+                "--device",
+                "cpu",
+                "--no_reweighting",
+                "--plot",
+            )
+
+            self.assertEqual(completed.returncode, 0, completed.stderr)
+            self.assertIn("Generating sequences", completed.stderr)
+            for filename in (
+                "autocorrelation.png",
+                "pearson_sampling.png",
+                "cij_scatter.png",
+                "pca_1_2.png",
+                "pca_3_4.png",
+            ):
+                self.assertTrue((output / filename).is_file(), filename)
+
     def test_train_help_documents_edge_dca_pseudocount_default(self):
         result = run_cli("train", "--help")
 
@@ -181,6 +243,47 @@ class CliTests(unittest.TestCase):
         self.assertIn("Pearson", result.stderr)
         self.assertIn("/0.9900", result.stderr)
         self.assertIn("Optimization | Step 1/1", result.stderr)
+
+    def test_reintegrate_accepts_progress_renderer_by_default(self):
+        with TemporaryDirectory() as directory:
+            workspace = Path(directory)
+            natural = workspace / "natural.fasta"
+            experimental = workspace / "experimental.fasta"
+            adjustments = workspace / "adjustments.txt"
+            natural.write_text(
+                ">n1\nAA\n>n2\nAB\n>n3\nBA\n>n4\nBB\n",
+                encoding="utf-8",
+            )
+            experimental.write_text(">e1\nA-\n>e2\nB-\n", encoding="utf-8")
+            adjustments.write_text("-1\n1\n", encoding="utf-8")
+
+            result = run_cli(
+                "reintegrate",
+                "--data",
+                str(natural),
+                "--reint",
+                str(experimental),
+                "--adj",
+                str(adjustments),
+                "--output",
+                str(workspace / "model"),
+                "--alphabet",
+                "AB-",
+                "--nchains",
+                "8",
+                "--nsweeps",
+                "1",
+                "--nepochs",
+                "1",
+                "--target",
+                "0.99",
+                "--device",
+                "cpu",
+                "--no_reweighting",
+            )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("Reintegrated training completed successfully.", result.stdout)
 
     def test_train_no_progress_keeps_transient_output_quiet(self):
         with TemporaryDirectory() as directory:

@@ -15,11 +15,14 @@ nav:
   - Release verification: release_checks.md
   - Python APIs:
       - Overview: api/README.md
+      - Checkpoints and logs: api/adabmDCA.checkpoint.md
       - Fasta utils: api/adabmDCA.fasta.md
       - Compute statistics: api/adabmDCA.stats.md
       - DCA utils: api/adabmDCA.dca.md
+      - Graph operations: api/adabmDCA.graph.md
       - Import and export: api/adabmDCA.io.md
       - Sampling functions: api/adabmDCA.sampling.md
+      - Mixing-time estimation: api/adabmDCA.resampling.md
       - Utilities: api/adabmDCA.utils.md
       - Dataset class: api/adabmDCA.dataset.md
       - Statistical mechanics functions: api/adabmDCA.statmech.md

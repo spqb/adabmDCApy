@@ -152,7 +152,9 @@ def test_cli_forwards_checkpoint_interval():
 
     from adabmDCA.scripts.train import create_parser, run
 
-    args = create_parser().parse_args(["-d", "alignment.fasta", "--checkpoint-interval", "7"])
+    args = create_parser().parse_args(
+        ["-d", "alignment.fasta", "--checkpoint-interval", "7", "--alphabet", "protein"]
+    )
     with patch("adabmDCA.api.training.train_model") as train:
         run(args)
     assert train.call_args.kwargs["checkpoint_interval"] == 7

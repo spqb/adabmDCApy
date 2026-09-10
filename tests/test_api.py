@@ -83,6 +83,13 @@ class HighLevelApiTests(unittest.TestCase):
 
         self.assertEqual(first, second)
 
+    def test_sampling_progress_starts_before_the_first_sweep(self):
+        events = []
+
+        self.model.sample_sequences(4, n_sweeps=2, seed=7, progress=events.append)
+
+        self.assertEqual([(event.completed, event.total) for event in events], [(0, 2), (1, 2), (2, 2)])
+
     def test_sampling_supports_cancellation(self):
         from adabmDCA import OperationCancelledError, sample_sequences
 
@@ -93,6 +100,45 @@ class HighLevelApiTests(unittest.TestCase):
                 n_sweeps=2,
                 is_cancelled=lambda: True,
             )
+
+    def test_bfloat16_sampling_rejects_cpu_with_structured_error(self):
+        from adabmDCA import InputValidationError, sample_sequences
+
+        with self.assertRaisesRegex(InputValidationError, "CUDA and Triton"):
+            sample_sequences(
+                model=self.model,
+                n_sequences=2,
+                n_sweeps=1,
+                dtype="bfloat16",
+            )
+
+    def test_sampling_plot_data_requires_a_reference_alignment(self):
+        from adabmDCA import InputValidationError, sample_sequences
+
+        with self.assertRaisesRegex(InputValidationError, "reference_fasta is required"):
+            sample_sequences(
+                model=self.model,
+                n_sequences=2,
+                n_sweeps=1,
+                collect_diagnostics=True,
+            )
+
+    def test_pca_scores_share_the_natural_basis_and_pad_missing_components(self):
+        import torch
+
+        from adabmDCA.api.sampling import _compute_pca_scores
+
+        reference = torch.nn.functional.one_hot(torch.tensor([[0, 0], [0, 1], [1, 1]]), num_classes=3).float()
+        generated = torch.nn.functional.one_hot(torch.tensor([[1, 0], [1, 1]]), num_classes=3).float()
+
+        reference_scores, generated_scores, explained = _compute_pca_scores(reference, generated)
+
+        self.assertEqual(reference_scores.shape, (3, 4))
+        self.assertEqual(generated_scores.shape, (2, 4))
+        torch.testing.assert_close(reference_scores.mean(dim=0), torch.zeros(4), atol=1e-6, rtol=0)
+        torch.testing.assert_close(reference_scores[:, 2:], torch.zeros(3, 2))
+        torch.testing.assert_close(generated_scores[:, 2:], torch.zeros(2, 2))
+        self.assertLessEqual(float(explained.sum()), 1.0 + 1e-6)
 
     def test_training_returns_reusable_in_memory_model(self):
         from adabmDCA import train_model
@@ -246,7 +292,8 @@ class HighLevelApiTests(unittest.TestCase):
         self.assertEqual(result.model.tokens, "AB-")
         self.assertEqual(result.gradient_steps, 1)
         self.assertIs(result.config, config)
-        self.assertIn("checkpoint interval:", log_text)
+        self.assertIn("format_version: 2", log_text)
+        self.assertIn("checkpoint_interval:    1", log_text)
 
     def test_training_accepts_an_in_memory_alignment_and_weights(self):
         from adabmDCA import Alignment, TrainingConfig, train_model

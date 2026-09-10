@@ -20,9 +20,10 @@ from adabmDCA.input_loading import (
     WeightInput,
 )
 from adabmDCA.resampling import compute_mixing_time
-from adabmDCA.sampling import prepare_sampler
+from adabmDCA.sampling import prepare_fixed_model_sampler
 from adabmDCA.statmech import compute_energy
 from adabmDCA.stats import (
+    extract_Cij_from_freq,
     get_correlation_two_points,
     get_freq_single_point,
     get_freq_two_points,
@@ -51,6 +52,42 @@ def _check_cancelled(hook: CancellationHook | None) -> None:
         raise OperationCancelledError("Sequence generation was cancelled by the caller.")
 
 
+def _compute_pca_scores(
+    reference: torch.Tensor,
+    generated: torch.Tensor,
+    *,
+    n_components: int = 4,
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    """Fit PCA on natural sequences and project both datasets into that basis."""
+    reference_flat = reference.reshape(reference.shape[0], -1).float()
+    generated_flat = generated.reshape(generated.shape[0], -1).float()
+    mean = reference_flat.mean(dim=0, keepdim=True)
+    centered_reference = reference_flat - mean
+    available = min(n_components, max(reference_flat.shape[0] - 1, 0), reference_flat.shape[1])
+    reference_scores = torch.zeros(
+        (reference_flat.shape[0], n_components), device=reference.device, dtype=reference_flat.dtype
+    )
+    generated_scores = torch.zeros(
+        (generated_flat.shape[0], n_components), device=generated.device, dtype=generated_flat.dtype
+    )
+    explained_variance_ratio = torch.zeros(n_components, device=reference.device, dtype=reference_flat.dtype)
+    if available == 0:
+        return reference_scores, generated_scores, explained_variance_ratio
+
+    _, singular_values, components = torch.pca_lowrank(
+        centered_reference,
+        q=available,
+        center=False,
+        niter=4,
+    )
+    reference_scores[:, :available] = centered_reference @ components
+    generated_scores[:, :available] = (generated_flat - mean) @ components
+    total_variance = centered_reference.square().sum()
+    if total_variance > 0:
+        explained_variance_ratio[:available] = singular_values.square() / total_variance
+    return reference_scores, generated_scores, explained_variance_ratio
+
+
 def sample_sequences(
     *,
     model: DCAModel | str | Path,
@@ -69,6 +106,7 @@ def sample_sequences(
     alphabet: str = "protein",
     device: str = "auto",
     dtype: str = "float32",
+    collect_diagnostics: bool = False,
     progress: ProgressCallback | None = None,
     is_cancelled: CancellationHook | None = None,
 ) -> SamplingResult:
@@ -84,10 +122,14 @@ def sample_sequences(
     validate_integer("mixing_multiplier", mixing_multiplier)
     validate_integer("n_measure", n_measure)
     validate_seed(seed)
-    if reference_fasta is not None and n_sweeps < 1:
-        raise InputValidationError("n_sweeps must be at least 1 when estimating mixing time.")
+    if reference_fasta is not None and n_sweeps < 2:
+        raise InputValidationError("n_sweeps must be at least 2 when estimating mixing time.")
+    if collect_diagnostics and reference_fasta is None:
+        raise InputValidationError("reference_fasta is required when collect_diagnostics=True.")
     if sampler not in {"gibbs", "metropolis"}:
         raise InputValidationError("sampler must be either 'gibbs' or 'metropolis'.")
+    if dtype not in {"float32", "float64", "bfloat16"}:
+        raise InputValidationError("dtype must be one of 'float32', 'float64', or 'bfloat16'.")
     if not math.isfinite(beta) or beta <= 0:
         raise InputValidationError("beta must be greater than zero.")
     if pseudocount is not None and not 0.0 <= pseudocount <= 1.0:
@@ -96,12 +138,25 @@ def sample_sequences(
         raise InputValidationError("clustering_seqid must be greater than 0 and at most 1.")
     _check_cancelled(is_cancelled)
 
-    loaded = model if isinstance(model, DCAModel) else load_model(model, alphabet=alphabet, device=device, dtype=dtype)
+    model_dtype = "float32" if dtype == "bfloat16" else dtype
+    loaded = (
+        model
+        if isinstance(model, DCAModel)
+        else load_model(model, alphabet=alphabet, device=device, dtype=model_dtype)
+    )
     torch.manual_seed(seed)
     if loaded.params["bias"].device.type == "cuda":
         torch.cuda.manual_seed_all(seed)
 
-    sampling_function = prepare_sampler(sampler, loaded.params["bias"].device)
+    try:
+        sampling_function, sampling_params = prepare_fixed_model_sampler(
+            sampler,
+            loaded.params["bias"].device,
+            dtype,
+            loaded.params,
+        )
+    except ValueError as exc:
+        raise InputValidationError(str(exc)) from exc
     metadata = loaded.metadata
     samples = init_chains(
         num_chains=n_sequences,
@@ -112,6 +167,8 @@ def sample_sequences(
     )
     mixing_history: dict[str, list[float]] = {}
     sampling_history: dict[str, list[float]] = {}
+    cij_reference = cij_generated = None
+    pca_reference = pca_generated = pca_explained_variance_ratio = None
 
     if reference_fasta is not None:
         dataset = DatasetDCA.from_alignment(
@@ -137,7 +194,7 @@ def sample_sequences(
         raw_mixing = compute_mixing_time(
             sampler=sampling_function,
             data=reference,
-            params=loaded.params,
+            params=sampling_params,
             n_max_sweeps=n_sweeps,
             beta=beta,
         )
@@ -150,11 +207,13 @@ def sample_sequences(
         total_sweeps = n_sweeps
         fi = fij = None
 
+    if total_sweeps > 0:
+        _notify(progress, stage="sampling", completed=0, total=total_sweeps)
     for sweep in range(total_sweeps):
         _check_cancelled(is_cancelled)
         samples = sampling_function(
             chains=samples,
-            params=loaded.params,
+            params=sampling_params,
             nsweeps=1,
             beta=beta,
         )
@@ -163,7 +222,7 @@ def sample_sequences(
             pi = get_freq_single_point(data=samples, weights=None, pseudo_count=0.0)
             pij = get_freq_two_points(data=samples, weights=None, pseudo_count=0.0)
             pearson, slope = get_correlation_two_points(fi=fi, pi=pi, fij=fij, pij=pij)
-            sampling_history["nsweeps"].append(sweep)
+            sampling_history["nsweeps"].append(sweep + 1)
             sampling_history["pearson"].append(float(pearson))
             sampling_history["slope"].append(float(slope))
         _notify(
@@ -175,6 +234,22 @@ def sample_sequences(
             slope=None if slope is None else float(slope),
         )
 
+    if collect_diagnostics:
+        pi = get_freq_single_point(data=samples, weights=None, pseudo_count=0.0)
+        pij = get_freq_two_points(data=samples, weights=None, pseudo_count=0.0)
+        cij_reference_tensor, cij_generated_tensor = extract_Cij_from_freq(
+            fij=fij,
+            pij=pij,
+            fi=fi,
+            pi=pi,
+        )
+        cij_reference = cij_reference_tensor.detach().cpu().numpy()
+        cij_generated = cij_generated_tensor.detach().cpu().numpy()
+        reference_scores, generated_scores, explained_variance_ratio = _compute_pca_scores(reference, samples)
+        pca_reference = reference_scores.detach().cpu().numpy()
+        pca_generated = generated_scores.detach().cpu().numpy()
+        pca_explained_variance_ratio = explained_variance_ratio.detach().cpu().numpy()
+
     energies = compute_energy(samples, params=loaded.params).detach().cpu().numpy()
     decoded = decode_sequence(samples.detach().cpu().numpy(), loaded.tokens)
     return SamplingResult(
@@ -184,9 +259,15 @@ def sample_sequences(
         sampler=sampler,
         beta=beta,
         seed=seed,
+        sampling_dtype=dtype,
         model=metadata,
         mixing_history=mixing_history,
         sampling_history=sampling_history,
+        cij_reference=cij_reference,
+        cij_generated=cij_generated,
+        pca_reference=pca_reference,
+        pca_generated=pca_generated,
+        pca_explained_variance_ratio=pca_explained_variance_ratio,
     )
 
 

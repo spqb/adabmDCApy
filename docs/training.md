@@ -1,6 +1,30 @@
 # <span id="bmdca">Training DCA models</span>
 
-All versions of **adabmDCA** — Python, Julia, and C++ — expose the same command-line interface through the `adabmDCA` command.
+The Python, Julia, and C++ implementations use the same general command shape.
+This guide documents the Python implementation; run
+`adabmDCA train --help` for the exact options in an installed release.
+
+## Training output and logs
+
+After the input alignment has been validated and weighted, the command prints
+the resolved configuration together with the number of retained sequences
+(`M`), sequence length (`L`), alphabet size (`q`), and effective number of
+sequences (`M_eff`). Validation-alignment statistics are included when a
+validation input is supplied.
+
+When an output directory is configured, training writes a version-2 text log.
+Its `RUN`, `TRAINING DATA`, `VALIDATION DATA`, `RUNTIME`, and `OPTIMIZATION`
+sections capture the resolved setup. Each training stage has a progress table,
+and the final `END` section records whether the run completed, failed, was
+cancelled, or was interrupted. `Chain_ESS_frac` in the progress table is the
+normalized effective sample size of the model chains; it is distinct from the
+alignment-level `M_eff`.
+
+The log can be plotted with:
+
+```bash
+adabmDCA plot-training-log path/to/model.log
+```
 
 To see the complete list of training options:
 
@@ -91,7 +115,8 @@ Saved models remain FP32 and work with the existing sampling, scoring and
 resume workflows. `result.config.dtype` records `bfloat16`, while
 `result.model.metadata.dtype` reports the actual master dtype, `float32`.
 Use `--dtype bfloat16` again when resuming to retain mixed-precision sampling.
-Other commands' `--dtype` options continue to accept float32/float64.
+The `sample` command also accepts `--dtype bfloat16` for fixed-model sampling;
+its parameters, chains, diagnostics, and reported energies remain FP32.
 
 Rounding couplings slightly changes the sampled model and can change the
 training trajectory. This mode is optional; compare convergence and final
@@ -112,7 +137,7 @@ During training, adabmDCA maintains three output files:
 
 - **`<label>_chains.fasta`** – State of the Markov chains
 
-- **`<label>_adabmDCA.log`** – Log file updated throughout training
+- **`<label>.log`** – Versioned training log updated throughout training
 
 Parameters and chains are saved every **100 training steps** by default for
 all models. Set a positive interval with `--checkpoint-interval`, for example:
@@ -163,9 +188,12 @@ Options:
 
 ## Choosing the Alphabet
 
-Default alphabet: **protein**.
+The command-line default is **`auto`**. It detects standard DNA, RNA, or
+protein data after normalizing alignment gaps. DNA wins ambiguous nucleotide
+matches, so an alignment containing only `A`, `C`, and `G` is classified as
+DNA.
 
-Specify alternatives:
+Specify an alphabet when detection is ambiguous or the tokens are custom:
 
 - RNA → `--alphabet rna`
 - DNA → `--alphabet dna`

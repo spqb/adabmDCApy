@@ -13,6 +13,9 @@ def create_parser() -> argparse.ArgumentParser:
 
 def run(args):
     """Execute scoring from parsed CLI arguments and return its result."""
+    from adabmDCA.scripts._frontend import resolve_alphabet
+
+    resolve_alphabet(args)
     from adabmDCA.api.scoring import score_sequences
 
     return score_sequences(
@@ -27,6 +30,9 @@ def run(args):
 
 def main(args=None) -> int:
     args = create_parser().parse_args() if args is None else args
+    from adabmDCA.scripts._frontend import resolve_alphabet
+
+    resolve_alphabet(args)
 
     from adabmDCA.scripts._frontend import input_stem, print_completion, print_configuration, print_header
 

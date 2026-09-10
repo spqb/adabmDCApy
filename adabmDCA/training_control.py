@@ -188,7 +188,11 @@ class TrainingController:
         for key in HISTORY_KEYS:
             self.history[key].append(record[key])
         if self.checkpoint is not None:
-            self.checkpoint.log(record)
+            log_with_context = getattr(self.checkpoint, "log_with_context", None)
+            if log_with_context is None:
+                self.checkpoint.log(record)
+            else:
+                log_with_context(record, self.counters)
             if snapshot is not None and self.checkpoint.check(epoch):
                 self.checkpoint.save(**dict(snapshot))
         if self.observer is not None:

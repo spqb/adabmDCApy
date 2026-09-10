@@ -2,8 +2,8 @@
 
 Before publishing a release, require successful **Test adabmDCA** and **GPU
 release gate** workflow runs for the exact release commit. Both workflows run
-on pushes to `main`, `develop`, and `agent-api`, on `v*` tags, and manually.
-CPU tests also run for pull requests targeting these branches.
+on pushes to the maintained release branches, on `v*` tags, and manually.
+CPU tests also run for pull requests targeting those branches.
 
 The CPU workflow installs the declared development dependencies and uses
 pytest to discover both unittest classes and pytest functions. Its artifacts

@@ -27,16 +27,20 @@ class _SamplingProgressRenderer:
                 ascii="-#",
                 bar_format="  {desc}: [{bar}] {n}/{total} sweeps [{elapsed}]",
             )
-            self._bar.set_description("Sampling")
+            self._bar.set_description("Generating sequences")
         self._bar.update(event.completed - self._bar.n)
 
     def close(self) -> None:
         if self._bar is not None:
             self._bar.close()
+            self._bar = None
 
 
 def run(args, *, progress=None):
     """Execute sampling from parsed CLI arguments and return its result."""
+    from adabmDCA.scripts._frontend import resolve_alphabet
+
+    resolve_alphabet(args)
     from adabmDCA.api.sampling import sample_sequences
 
     return sample_sequences(
@@ -56,12 +60,16 @@ def run(args, *, progress=None):
         alphabet=args.alphabet,
         device=args.device,
         dtype=args.dtype,
+        collect_diagnostics=args.plot,
         progress=progress,
     )
 
 
 def main(args=None) -> int:
     args = create_parser().parse_args() if args is None else args
+    from adabmDCA.scripts._frontend import resolve_alphabet
+
+    resolve_alphabet(args)
 
     from adabmDCA.scripts._frontend import print_completion, print_configuration, print_header
 
@@ -74,10 +82,12 @@ def main(args=None) -> int:
             "label": args.label,
             "sequences": args.ngen,
             "sampler": args.sampler,
+            "alphabet": args.alphabet,
             "beta": args.beta,
             "seed": args.seed,
             "device": args.device,
             "dtype": args.dtype,
+            "plots": args.plot,
         }
     )
     renderer = _SamplingProgressRenderer()
@@ -86,6 +96,8 @@ def main(args=None) -> int:
     finally:
         renderer.close()
     artifacts = result.save_bundle(args.output, label=args.label)
+    if args.plot:
+        artifacts.update(result.save_diagnostic_plots(args.output, label=args.label))
     print_completion(
         "Sampling completed successfully.",
         metrics={

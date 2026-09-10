@@ -6,12 +6,12 @@ from unittest.mock import patch
 import pytest
 import torch
 
-from adabmDCA import train_model
+from adabmDCA import DCAModel, sample_sequences, train_model
+from adabmDCA import sampling_triton as kernels
 from adabmDCA.alignment import Alignment
 from adabmDCA.api.exceptions import InputValidationError
-from adabmDCA.parser import add_args_train
-from adabmDCA.sampling import prepare_training_sampler
-from adabmDCA import sampling_triton as kernels
+from adabmDCA.parser import add_args_sample, add_args_train
+from adabmDCA.sampling import prepare_fixed_model_sampler, prepare_training_sampler
 from adabmDCA.training_config import TrainingConfig
 
 CUDA_BF16 = torch.cuda.is_available() and kernels.is_triton_available() and torch.cuda.get_device_capability()[0] >= 8
@@ -34,6 +34,30 @@ def test_config_cli_and_unsupported_device():
     assert "bfloat16" in parser.format_help()
     with pytest.raises(InputValidationError, match="CUDA and Triton"):
         train_model(alignment(), dtype="bfloat16", device="cpu", alphabet="ABC")
+
+    sample_parser = add_args_sample(argparse.ArgumentParser())
+    assert sample_parser.parse_args(
+        [
+            "--path_params",
+            "model.dat",
+            "--output",
+            "samples",
+            "--ngen",
+            "2",
+            "--dtype",
+            "bfloat16",
+        ]
+    ).dtype == "bfloat16"
+    with pytest.raises(InputValidationError, match="CUDA and Triton"):
+        sample_sequences(
+            model=DCAModel(
+                {"bias": torch.zeros(2, 3), "coupling_matrix": torch.zeros(2, 3, 2, 3)},
+                alphabet="ABC",
+            ),
+            n_sequences=2,
+            n_sweeps=1,
+            dtype="bfloat16",
+        )
 
 
 @gpu
@@ -99,8 +123,40 @@ def test_master_params_unchanged_and_quantization_refreshed(sampler):
         torch.manual_seed(11)
         actual = mixed(chains, params, 2)
         torch.testing.assert_close(actual, expected, rtol=0, atol=0)
-        for key in params:
-            torch.testing.assert_close(params[key], originals[key], rtol=0, atol=0)
+        for key, value in params.items():
+            torch.testing.assert_close(value, originals[key], rtol=0, atol=0)
+
+
+@gpu
+@pytest.mark.parametrize("sampler", ["gibbs", "metropolis"])
+def test_fixed_model_sampling_quantizes_couplings_once_and_keeps_fp32_state(sampler):
+    torch.manual_seed(53)
+    params = {
+        "bias": torch.randn(7, 3, device="cuda"),
+        "coupling_matrix": torch.randn(7, 3, 7, 3, device="cuda") * 0.1,
+    }
+    originals = {key: value.clone() for key, value in params.items()}
+    _sampling_fn, sampling_params = prepare_fixed_model_sampler(
+        sampler, torch.device("cuda"), "bfloat16", params
+    )
+
+    assert sampling_params["bias"] is params["bias"]
+    assert sampling_params["coupling_matrix"].dtype == torch.bfloat16
+    assert sampling_params["coupling_matrix"].data_ptr() != params["coupling_matrix"].data_ptr()
+    for key, value in params.items():
+        torch.testing.assert_close(value, originals[key], rtol=0, atol=0)
+
+    result = sample_sequences(
+        model=DCAModel(params, alphabet="ABC"),
+        n_sequences=8,
+        n_sweeps=2,
+        sampler=sampler,
+        dtype="bfloat16",
+        seed=5,
+    )
+    assert result.sampling_dtype == "bfloat16"
+    assert result.model.dtype == "float32"
+    assert result.energies.dtype.name == "float32"
 
 
 @gpu

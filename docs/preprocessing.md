@@ -2,9 +2,13 @@
 
 ### Input Format
 
-`adabmDCA 2.0` takes as input a **multiple sequence alignment (MSA)** in [FASTA format](https://en.wikipedia.org/wiki/Multiple_sequence_alignment), typically of aligned protein or RNA/DNA sequences (see [Fig. 1](#fig-fasta)).
+`adabmDCA 2.0` takes a **multiple sequence alignment (MSA)** containing aligned
+protein, RNA, or DNA sequences. The Python implementation accepts FASTA,
+gzip-compressed FASTA, and Stockholm input; its preprocessing command writes
+canonical FASTA output (see [Fig. 1](#fig-fasta)).
 
-The tool supports three built-in alphabets and also allows **custom alphabets**, as long as they match the MSA content.
+The CLI detects the three standard alphabets automatically and also accepts an
+explicit **custom alphabet** when the MSA contains nonstandard symbols.
 
 | Type     | Alphabet Symbols |
 |----------|------------------|
@@ -14,7 +18,13 @@ The tool supports three built-in alphabets and also allows **custom alphabets**,
 
 *Note: line breaks within sequences are supported.*
 
-<span id="fig-fasta">___Figure 1__: Example of a fasta file containg the MSA._</span>
+Automatic detection selects the smallest compatible standard alphabet in the
+order DNA, RNA, protein. Data containing only symbols shared by DNA and RNA,
+such as `A`, `C`, and `G`, is therefore classified as DNA. Use
+`--alphabet rna` to resolve such an alignment as RNA, or pass the exact token
+string for a custom alphabet.
+
+<span id="fig-fasta">___Figure 1__: Example of a FASTA file containing an MSA._</span>
 ![Example FASTA](images/example_fasta_2.png)
 
 ---

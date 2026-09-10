@@ -58,8 +58,8 @@ the lower-level numerical, data, and file-format primitives.
 - [`io.save_chains`](./adabmDCA.io.md#function-save_chains): Saves the chains in a fasta file.
 - [`io.save_params`](./adabmDCA.io.md#function-save_params): Saves the parameters of the model in a file.
 - [`io.save_params_oldformat`](./adabmDCA.io.md#function-save_params_oldformat): Saves the parameters of the model in a file. Assumes the old DCA format.
-- [`plot.plot_PCA`](./adabmDCA.plot.md#function-plot_pca): Makes the scatter plot of the components (pc1, pc2) of the input data and shows the histograms of the components.
-- [`plot.plot_autocorrelation`](./adabmDCA.plot.md#function-plot_autocorrelation): Plots the time-autocorrelation curve of the sequence identity and the generated and data sequence identities.
+- [`plot.plot_PCA`](./adabmDCA.plot.md#function-plot_pca): Compares principal-component projections with aligned marginal histograms and optional explained-variance labels.
+- [`plot.plot_autocorrelation`](./adabmDCA.plot.md#function-plot_autocorrelation): Plots same-chain and independent-chain sequence identity with optional uncertainty bands.
 - [`plot.plot_contact_map`](./adabmDCA.plot.md#function-plot_contact_map): Plots the contact map.
 - [`plot.plot_pearson_sampling`](./adabmDCA.plot.md#function-plot_pearson_sampling): Plots the Pearson correlation coefficient over sampling time.
 - [`plot.plot_scatter_correlations`](./adabmDCA.plot.md#function-plot_scatter_correlations): Plots the scatter plot of the data and generated Cij and Cijk values.

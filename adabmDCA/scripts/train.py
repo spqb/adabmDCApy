@@ -20,21 +20,23 @@ class _TrainingProgressRenderer:
     """Render structured training events for an interactive terminal."""
 
     def __init__(self, *, model_type: str, target_pearson: float, max_steps: int) -> None:
-        from tqdm import tqdm
-
         self._tracks_gradients = model_type == "bmDCA"
         self._target_pearson = target_pearson
         self._max_steps = max_steps
+        self._bar = None
+
+    def _start(self) -> None:
+        if self._bar is not None:
+            return
+        from tqdm import tqdm
+
         self._bar = tqdm(
-            total=target_pearson,
-            colour="red",
-            dynamic_ncols=True,
-            leave=False,
-            ascii="-#",
+            total=self._target_pearson, colour="red", dynamic_ncols=True, leave=False, ascii="-#",
             bar_format="  {desc} [{bar}] Pearson {n:.4f}/{total:.4f} [{elapsed}]",
         )
 
     def __call__(self, event: TrainingProgress) -> None:
+        self._start()
         completed = event.gradient_steps if self._tracks_gradients else event.structure_steps
         pearson = event.metrics.get("Pearson", 0.0)
         stage = event.stage.replace("_", " ").title()
@@ -51,11 +53,49 @@ class _TrainingProgressRenderer:
         self._bar.refresh()
 
     def close(self) -> None:
-        self._bar.close()
+        if self._bar is not None:
+            self._bar.close()
 
 
-def run(args: argparse.Namespace, *, progress: Any = None):
+def _print_initialization(args: argparse.Namespace, initialized) -> None:
+    """Print requested options together with resolved input statistics."""
+    from adabmDCA.scripts._frontend import print_configuration
+
+    training = initialized.training
+    validation = initialized.validation
+    limits = initialized.config.limits
+    values = {
+        "input": training.source or "<memory>",
+        "validation": None if validation is None else validation.source or "<memory>",
+        "output": args.output,
+        "model": initialized.config.model_type,
+        "sampler": initialized.config.sampler,
+        "alphabet": initialized.config.alphabet,
+        "training sequences": training.retained_sequences,
+        "sequence length": training.sequence_length,
+        "alphabet states": training.num_states,
+        "effective sequences (M_eff)": f"{training.effective_sequences:.6g}",
+        "invalid sequences removed": training.removed_invalid,
+        "duplicates removed": training.removed_duplicates,
+        "validation sequences": None if validation is None else validation.retained_sequences,
+        "validation effective sequences": None if validation is None else f"{validation.effective_sequences:.6g}",
+        "target Pearson": initialized.config.target_pearson,
+        "number of chains": initialized.n_chains,
+        "sweeps per step": initialized.config.n_sweeps,
+        "maximum gradient steps": limits.max_gradient_steps,
+        "maximum structure steps": limits.max_structure_steps,
+        "effective pseudocount": f"{initialized.effective_pseudocount:.6g}",
+        "device": initialized.device,
+        "dtype": initialized.dtype,
+    }
+    print_configuration(values)
+
+
+def run(args: argparse.Namespace, *, progress: Any = None, on_initialized: Any = None):
     """Execute training from parsed CLI arguments and return its result."""
+    from adabmDCA.scripts._frontend import resolve_alphabet
+
+    resolve_alphabet(args)
     from adabmDCA.api.training import train_model
 
     return train_model(
@@ -90,31 +130,19 @@ def run(args: argparse.Namespace, *, progress: Any = None):
         dtype=args.dtype,
         use_wandb=args.wandb,
         progress=progress,
+        on_initialized=on_initialized,
     )
 
 
 def main(args: argparse.Namespace | None = None) -> int:
     args = create_parser().parse_args() if args is None else args
+    from adabmDCA.scripts._frontend import resolve_alphabet
 
-    from adabmDCA.scripts._frontend import print_completion, print_configuration, print_header
+    resolve_alphabet(args)
+
+    from adabmDCA.scripts._frontend import print_completion, print_header
 
     print_header(f"Training {args.model} model")
-    print_configuration(
-        {
-            "input": args.data,
-            "validation": args.val,
-            "output": args.output,
-            "model": args.model,
-            "sampler": args.sampler,
-            "alphabet": args.alphabet,
-            "max epochs": args.nepochs,
-            "checkpoint interval": args.checkpoint_interval,
-            "target Pearson": args.target,
-            "number of chains": args.nchains,
-            "device": args.device,
-            "dtype": args.dtype,
-        }
-    )
     renderer = (
         None
         if args.no_progress
@@ -129,7 +157,7 @@ def main(args: argparse.Namespace | None = None) -> int:
         )
     )
     try:
-        result = run(args, progress=renderer)
+        result = run(args, progress=renderer, on_initialized=lambda info: _print_initialization(args, info))
     finally:
         if renderer is not None:
             renderer.close()
@@ -139,9 +167,6 @@ def main(args: argparse.Namespace | None = None) -> int:
     print_completion(
         "Training completed successfully.",
         metrics={
-            "sequence length": result.model.metadata.length,
-            "sequences": result.num_sequences,
-            "effective sequences": result.effective_sequences,
             "stop reason": result.stop_reason,
             "gradient steps": result.gradient_steps,
             "structure steps": result.structure_steps,

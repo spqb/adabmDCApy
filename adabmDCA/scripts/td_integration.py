@@ -37,6 +37,9 @@ class _EntropyProgressRenderer:
 
 def run(args, *, progress=None):
     """Execute entropy estimation from parsed CLI arguments and return its result."""
+    from adabmDCA.scripts._frontend import resolve_alphabet
+
+    resolve_alphabet(args)
     from adabmDCA.api.entropy import estimate_entropy
 
     return estimate_entropy(
@@ -63,6 +66,9 @@ def run(args, *, progress=None):
 
 def main(args=None) -> int:
     args = create_parser().parse_args() if args is None else args
+    from adabmDCA.scripts._frontend import resolve_alphabet
+
+    resolve_alphabet(args)
 
     from adabmDCA.scripts._frontend import print_completion, print_configuration, print_header
 
