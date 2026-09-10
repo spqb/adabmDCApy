@@ -1,11 +1,11 @@
-from typing import Dict, Callable
+from collections.abc import Callable
 
 import torch
 from torch.nn.functional import one_hot
 
 
 def sampling_profile(
-    params: Dict[str, torch.Tensor],
+    params: dict[str, torch.Tensor],
     nsamples: int,
     beta: float,
 ) -> torch.Tensor:
@@ -32,7 +32,7 @@ def sampling_profile(
 
 def gibbs_step_uniform_sites(
     chains: torch.Tensor,
-    params: Dict[str, torch.Tensor],
+    params: dict[str, torch.Tensor],
     beta: float = 1.0,
 ) -> torch.Tensor:
     """Performs a single mutation using the Gibbs sampler. In this version, the mutation is attempted at the same sites for all chains.
@@ -61,7 +61,7 @@ def gibbs_step_uniform_sites(
 
 def gibbs_step_independent_sites(
     chains: torch.Tensor,
-    params: Dict[str, torch.Tensor],
+    params: dict[str, torch.Tensor],
     beta: float = 1.0,
 ) -> torch.Tensor:
     """Performs a single mutation using the Gibbs sampler. This version selects different random sites for each chain. It is
@@ -98,7 +98,7 @@ def gibbs_step_independent_sites(
 
 def gibbs_sampling(
     chains: torch.Tensor,
-    params: Dict[str, torch.Tensor],
+    params: dict[str, torch.Tensor],
     nsweeps: int,
     beta: float = 1.0,
 ) -> torch.Tensor:
@@ -118,7 +118,7 @@ def gibbs_sampling(
     L = params["bias"].shape[0]
     chains_mutate = chains.clone() # avoids to modify the chains inplace
     num_steps = nsweeps * L
-    for _ in torch.arange(num_steps):
+    for _ in range(num_steps):
         chains_mutate = gibbs_step_uniform_sites(chains_mutate, params, beta)
 
     return chains_mutate
@@ -126,7 +126,7 @@ def gibbs_sampling(
 
 def metropolis_step_uniform_sites(
     chains: torch.Tensor,
-    params: Dict[str, torch.Tensor],
+    params: dict[str, torch.Tensor],
     beta: float = 1.0,
 ) -> torch.Tensor:
     """Performs a single mutation using the Metropolis sampler. In this version, the mutation is attempted at the same sites for all chains.
@@ -164,7 +164,7 @@ def metropolis_step_uniform_sites(
 
 def metropolis_step_independent_sites(
     chains: torch.Tensor,
-    params: Dict[str, torch.Tensor],
+    params: dict[str, torch.Tensor],
     beta: float = 1.0,
 ) -> torch.Tensor:
     """Performs a single mutation using the Metropolis sampler. This version selects different random sites for each chain. It is
@@ -206,7 +206,7 @@ def metropolis_step_independent_sites(
 
 def metropolis_sampling(
     chains: torch.Tensor,
-    params: Dict[str, torch.Tensor],
+    params: dict[str, torch.Tensor],
     nsweeps: int,
     beta: float = 1.0,
 ) -> torch.Tensor:
@@ -226,7 +226,7 @@ def metropolis_sampling(
     L = params["bias"].shape[0]
     chains_mutate = chains.clone() # avoids to modify the chains inplace
     num_steps = nsweeps * L
-    for _ in torch.arange(num_steps):
+    for _ in range(num_steps):
         chains_mutate = metropolis_step_uniform_sites(chains_mutate, params, beta)
 
     return chains_mutate
@@ -250,3 +250,94 @@ def get_sampler(sampling_method: str) -> Callable:
         return metropolis_sampling
     else:
         raise KeyError("Unknown sampling method. Choose between 'metropolis' and 'gibbs'.")
+
+
+def prepare_sampler(sampling_method: str, device: torch.device) -> Callable:
+    """Select a fused CUDA sampler, or the scripted sampler without Triton."""
+    sampler = get_sampler(sampling_method)
+    scripted_sampler = torch.jit.script(sampler)
+    if device.type == "cuda":
+        try:
+            from adabmDCA.sampling_triton import (
+                gibbs_sampling_triton,
+                is_triton_available,
+                metropolis_sampling_triton,
+            )
+
+            if is_triton_available():
+                if sampling_method == "metropolis":
+                    return metropolis_sampling_triton
+
+                # The former N*L threshold described the old strided gather
+                # kernel. Contiguous candidate loads also win above it.
+                return gibbs_sampling_triton
+        except ImportError:
+            pass
+    return scripted_sampler
+
+
+def _validate_bfloat16_sampling(device: torch.device) -> None:
+    """Validate the CUDA features required by the BF16 Triton samplers."""
+    from adabmDCA.sampling_triton import is_triton_available
+
+    if device.type != "cuda" or not torch.cuda.is_available() or not is_triton_available():
+        raise ValueError("bfloat16 sampling requires CUDA and Triton")
+    if torch.cuda.get_device_capability(device)[0] < 8:
+        raise ValueError("bfloat16 sampling requires an NVIDIA Ampere or newer GPU")
+
+
+def prepare_fixed_model_sampler(
+    sampling_method: str,
+    device: torch.device,
+    dtype: str,
+    params: dict[str, torch.Tensor],
+) -> tuple[Callable, dict[str, torch.Tensor]]:
+    """Prepare a sampler and parameters for a model that will not be updated.
+
+    BF16 mode keeps biases, chains, statistics, and energy calculations in
+    float32. Only the fixed coupling matrix is rounded to BF16, once, before
+    sampling. This is the inference counterpart of
+    :func:`prepare_training_sampler`, where the coupling copy must instead be
+    refreshed after every parameter update.
+    """
+    sampler = prepare_sampler(sampling_method, device)
+    if dtype != "bfloat16":
+        return sampler, params
+    _validate_bfloat16_sampling(device)
+    if any(value.dtype != torch.float32 for value in params.values()):
+        raise ValueError("bfloat16 sampling requires float32 master parameters")
+    sampling_params = dict(params)
+    sampling_params["coupling_matrix"] = params["coupling_matrix"].to(torch.bfloat16)
+    return sampler, sampling_params
+
+
+def prepare_training_sampler(sampling_method: str, device: torch.device, dtype: str = "float32") -> Callable:
+    """Prepare sampling for training with optional BF16 coupling storage.
+
+    In bfloat16 mode, parameters, chains and statistics outside the sampler stay
+    float32. A fresh BF16 coupling copy is made after each parameter update;
+    biases and all field/acceptance arithmetic remain float32. The rounded
+    coupling matrix approximates the master model, so trajectories can change.
+    """
+    if dtype != "bfloat16":
+        return prepare_sampler(sampling_method, device)
+    try:
+        _validate_bfloat16_sampling(device)
+    except ValueError as exc:
+        raise ValueError(str(exc).replace("sampling", "training", 1)) from exc
+    sampler = prepare_sampler(sampling_method, device)
+
+    def mixed_precision_sampler(
+        chains: torch.Tensor,
+        params: dict[str, torch.Tensor],
+        nsweeps: int,
+        beta: float = 1.0,
+    ) -> torch.Tensor:
+        if chains.dtype != torch.float32 or any(value.dtype != torch.float32 for value in params.values()):
+            raise ValueError("bfloat16 training requires float32 master parameters and chains")
+        if nsweeps == 0 or chains.shape[0] == 0:
+            return chains.clone()
+        # Gibbs fuses conversion with transposition into a single BF16 copy.
+        return sampler(chains, params, nsweeps, beta, coupling_dtype=torch.bfloat16)
+
+    return mixed_precision_sampler

@@ -35,8 +35,21 @@ dependencies = [
     "seaborn>=0.12.2",
 ]
 
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "ruff>=0.9",
+]
+docs = [
+    "mkdocs>=1.6",
+    "mkdocs-material>=9.5",
+]
+
 [project.urls]
-Homepage = "https://github.com/spqb/adabmDCA"
+Homepage = "https://spqb.github.io/adabmDCApy/"
+Documentation = "https://spqb.github.io/adabmDCApy/"
+Repository = "https://github.com/spqb/adabmDCApy"
+Issues = "https://github.com/spqb/adabmDCApy/issues"
 
 [project.scripts]
 adabmDCA = "adabmDCA.cli:main"
@@ -49,3 +62,7 @@ version = { attr = "adabmDCA.__version__" }
 
 [tool.setuptools]
 include-package-data = true
+
+[tool.ruff]
+target-version = "py310"
+line-length = 120

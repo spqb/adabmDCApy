@@ -10,6 +10,12 @@ adabmDCA entropy \
   -o <output_folder>
 ```
 
+The target file (`-t` / `--path_targetseq`) may contain multiple sequences.
+Entropy estimation uses the first valid sequence in input order and emits a
+warning if additional valid sequences are present, including duplicates.
+Sequences with invalid alphabet symbols are dropped; an input with no valid
+sequences still raises an error.
+
 ## Biased Model
 
 Starting from the trained model with energy \(E_0(x)\), the script defines a one-parameter family of models
@@ -84,11 +90,19 @@ S =
 
 ## Output
 
-The command writes a log file named `<label>.log` in the output folder. By default, `label` is `entropy`, so the file is:
+The command writes three files named from `<label>`. The default label is
+`entropy`:
 
 ```text
 <output_folder>/entropy.log
+<output_folder>/entropy.csv
+<output_folder>/entropy.json
 ```
+
+The log is a compact text trajectory, the CSV contains the same integration
+history in tabular form, and the JSON summary includes the final entropy, free
+energy, selected `theta_max`, observed target fraction, model metadata, and
+history.
 
 Each row reports:
 

@@ -1,7 +1,8 @@
 from collections import deque
 from typing import Deque, Dict, Optional, Tuple
-import torch
+
 import numpy as np
+import torch
 
 
 class Timer:
@@ -183,7 +184,6 @@ def get_mask_save(L: int, q: int, device: torch.device) -> torch.Tensor:
     return mask_save
 
 
-@torch.jit.script
 def systematic_resampling(
     chains: torch.Tensor,
     weights: torch.Tensor,
@@ -236,15 +236,25 @@ def get_device(device: str, message: bool = True) -> torch.device:
     """Returns the device where to store the tensors.
     
     Args:
-        device (str): Device to be used. Possible values are 'cpu', 'cuda', 'mps'.
+        device (str): Device to use. ``auto`` prefers CUDA, then MPS, then CPU.
+            Explicit values include ``cpu``, ``cuda`` and ``mps``.
         message (bool, optional): Print the device. Defaults to True.
         
     Returns:
         torch.device: Device.
     """
+    device = str(device).lower()
+    if device == "auto":
+        if torch.cuda.is_available():
+            device = "cuda"
+        elif hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
+            device = "mps"
+        else:
+            device = "cpu"
+
     if "mps" in device:
         if message:
-            print(f"Running on M chip GPU, Metal Performance Shaders (MPS)")
+            print("Running on M chip GPU, Metal Performance Shaders (MPS)")
         return torch.device(device)
     if "cuda" in device and torch.cuda.is_available():
         if message:
@@ -282,68 +292,6 @@ def parse_log_file(log_path: str) -> Tuple[Dict[str, str], Dict[str, np.ndarray]
     Returns:
         Tuple[Dict[str, str], Dict[str, np.ndarray]]: Dictionary containing metadata and training data.
     """
-    metadata = {}
-    data = {
-        'Epochs': [],
-        'Pearson': [],
-        'Slope': [],
-        'LL_train': [],
-        'LL_val': [],
-        'Pearson_val': [],
-        'Slope_val': [],
-        'ESS': [],
-        'Entropy': [],
-        'Density': [],
-        'Time': []
-    }
-    
-    with open(log_path, 'r') as f:
-        lines = f.readlines()
-    
-    # Parse metadata
-    i = 0
-    while i < len(lines) and lines[i].strip():
-        line = lines[i].strip()
-        if ':' in line:
-            key, value = line.split(':', 1)
-            metadata[key.strip()] = value.strip()
-            i += 1
-        else:
-            break
-    
-    # Find the header line
-    while i < len(lines):
-        if lines[i].strip().startswith('Epochs'):
-            header = lines[i].strip().split()
-            i += 1
-            break
-        i += 1
-    
-    # Parse data lines
-    while i < len(lines):
-        line = lines[i].strip()
-        if not line:
-            i += 1
-            continue
-        
-        # Check if this is a new section (e.g., "Decimation")
-        if not line[0].isdigit() and '.' not in line.split()[0]:
-            # Skip section headers
-            i += 1
-            continue
-            
-        try:
-            values = line.split()
-            if len(values) >= len(header):
-                for j, key in enumerate(header):
-                    if key in data:
-                        data[key].append(float(values[j]))
-        except (ValueError, IndexError):
-            pass
-        
-        i += 1
-    
-    # Convert lists to numpy arrays
-    parsed_data = {key: np.array(values) for key, values in data.items()}
-    
-    return metadata, parsed_data
+    from adabmDCA.plot_training_log import parse_training_log
+
+    return parse_training_log(log_path)

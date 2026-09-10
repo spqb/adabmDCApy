@@ -163,9 +163,11 @@ cython_debug/
 
 example_models/
 doc/_build
-notebooks/
+notebooks/*
+!notebooks/adabmDCA-notebook.ipynb
 Pipfile
 Pipfile.lock
 wandb/
 models/
 plots/
+output/

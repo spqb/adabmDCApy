@@ -2,7 +2,6 @@ from typing import Dict, Tuple
 import torch
 
 
-@torch.jit.script
 def compute_density(mask: torch.Tensor) -> float:
     """Computes the density of active couplings in the coupling matrix.
 
@@ -20,7 +19,6 @@ def compute_density(mask: torch.Tensor) -> float:
 
 # Element-wise activation functions
 
-@torch.jit.script
 def compute_Dkl_element_activation(
     fij: torch.Tensor,
     pij: torch.Tensor,
@@ -68,7 +66,6 @@ def update_mask_element_activation(
     return mask
 
 
-@torch.jit.script
 def activate_graph_elements(
     mask: torch.Tensor,
     fij: torch.Tensor,
@@ -94,7 +91,6 @@ def activate_graph_elements(
 
 # Edge-wise activation functions
 
-@torch.jit.script
 def compute_Dkl_edge_activation(
     fij: torch.Tensor,
     pij: torch.Tensor,
@@ -119,7 +115,6 @@ def compute_Dkl_edge_activation(
 
 # Graph decimation functions
 
-@torch.jit.script
 def compute_sym_Dkl(
     params: Dict[str, torch.Tensor],
     pij: torch.Tensor,
@@ -144,7 +139,6 @@ def compute_sym_Dkl(
     return Dkl
 
 
-@torch.jit.script
 def compute_Dkl_decimation(
     params: Dict[str, torch.Tensor],
     pij: torch.Tensor,

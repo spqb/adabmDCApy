@@ -1,136 +1,157 @@
-from typing import Dict, Any
+"""Training checkpoints and the versioned human-readable training log."""
+
+from __future__ import annotations
+
+from collections.abc import Mapping
+from datetime import datetime, timezone
+from typing import Any
+
 import torch
 import wandb
+
 from adabmDCA.io import save_chains, save_params
+from adabmDCA.training_config import DEFAULT_CHECKPOINT_INTERVAL, TrainingConfig
+
+LOG_FORMAT_VERSION = 2
+HISTORY_KEYS = (
+    "Epochs", "Pearson", "Slope", "LL_train", "LL_val", "Pearson_val",
+    "Slope_val", "ESS", "Entropy", "Density", "Time",
+)
+LOG_COLUMNS = (
+    ("Epochs", "Step", 8),
+    ("Stage", "Stage", 14),
+    ("Gradient_steps", "Grad_steps", 12),
+    ("Structure_steps", "Struct_steps", 13),
+    ("Sweeps", "Sweeps", 12),
+    ("Pearson", "Pearson", 11),
+    ("Slope", "Slope", 11),
+    ("LL_train", "LL_train", 12),
+    ("LL_val", "LL_val", 12),
+    ("Pearson_val", "Pearson_val", 13),
+    ("Slope_val", "Slope_val", 12),
+    ("ESS", "Chain_ESS_frac", 15),
+    ("Entropy", "Entropy", 12),
+    ("Density", "Density", 12),
+    ("Time", "Elapsed_s", 12),
+)
+
+
+def _display(value: Any) -> str:
+    if value is None:
+        return "N/A"
+    if isinstance(value, float):
+        return f"{value:.10g}"
+    return str(value)
+
+
+def _cell(value: Any, width: int) -> str:
+    if isinstance(value, torch.Tensor):
+        value = value.item()
+    rendered = f"{value:.6g}" if isinstance(value, float) else str(value)
+    return f"{rendered:<{width}}"
 
 
 class Checkpoint:
-    """Helper class to save the model's parameters and chains at regular intervals during training and to log the
-    progress of the training.
-    """
+    """Save model state and write a version-2 training log."""
+
     def __init__(
         self,
-        file_paths: dict,
+        file_paths: dict[str, str],
         tokens: str,
-        args: dict,
+        metadata: Mapping[str, Any],
         use_wandb: bool = False,
-    ):
-        """Initializes the Checkpoint class.
-
-        Args:
-            file_paths (dict): Dictionary containing the paths of the files to be saved.
-            tokens (str): Alphabet to be used for encoding the sequences.
-            args (dict): Dictionary containing the arguments of the training.
-            use_wandb (bool, optional): Whether to use Weights & Biases for logging. Defaults to False.
-        """
-            
+        config: TrainingConfig | None = None,
+    ) -> None:
         self.file_paths = file_paths
         self.tokens = tokens
-        
+        self.config = config
+        self.checkpt_interval = (
+            config.resolved_checkpoint_interval
+            if config is not None
+            else int(metadata.get("checkpoint_interval", DEFAULT_CHECKPOINT_INTERVAL))
+        )
+        limits = config.limits if config is not None else None
+        self.max_epochs = None if limits is None else (
+            limits.max_gradient_steps if config.model_type == "bmDCA" else limits.max_structure_steps
+        )
+        self.logs = {key: 0 if key == "Epochs" else 0.0 for key in HISTORY_KEYS}
+        self._stage = "optimization"
+        self._finished = False
         self.wandb = use_wandb
         if self.wandb:
-            wandb.init(project="adabmDCA", config=args)
-    
-        self.max_epochs = args["nepochs"]
-        self.checkpt_interval = 50
-        
-        self.logs = {
-            "Epochs": 0,
-            "Pearson": 0.0,
-            "Slope": 0.0,
-            "LL_train": 0.0,
-            "LL_val": 0.0,
-            "Pearson_val": 0.0,
-            "Slope_val": 0.0,
-            "ESS": 0.0,
-            "Entropy": 0.0,
-            "Density": 0.0,
-            "Time": 0.0,
-        }
-        
-        template = "{0:<20} {1:<50}\n"  
-        with open(file_paths["log"], "w") as f:
-            if args["label"] is not None:
-                f.write(template.format("label:", args["label"]))
-            else:
-                f.write(template.format("label:", "N/A"))
-            
-            f.write(template.format("model:", str(args["model"])))
-            f.write(template.format("input MSA:", str(args["data"])))
-            if args.get("val") is not None:
-                f.write(template.format("validation MSA:", str(args["val"])))
-            f.write(template.format("alphabet:", args["alphabet"]))
-            f.write(template.format("sampler:", args["sampler"]))
-            f.write(template.format("nchains:", args["nchains"]))
-            f.write(template.format("nsweeps:", args["nsweeps"]))
-            f.write(template.format("lr:", args["lr"]))
-            f.write(template.format("pseudo count:", args["pseudocount"]))
-            f.write(template.format("data type:", args["dtype"]))
-            f.write(template.format("target Pearson Cij:", args["target"]))
-            if args["model"] == "eaDCA":
-                f.write(template.format("gsteps:", args["gsteps"]))
-                f.write(template.format("factivate:", args["factivate"]))
-            f.write(template.format("random seed:", args["seed"]))
-            f.write("\n")
-            # write the header of the log file
-            header_string = " ".join([f"{key:<15}" for key in self.logs.keys()])
-            f.write(header_string + "\n")
-        
-        
-    def log(
-        self,
-        record: Dict[str, Any],
-    ) -> None:
-        """Adds a key-value pair to the log dictionary
+            wandb.init(project="adabmDCA", config=dict(metadata))
 
-        Args:
-            record (Dict[str, Any]): Key-value pairs to be added to the log dictionary.
-        """
+        with open(file_paths["log"], "w", encoding="utf-8") as handle:
+            handle.write("adabmDCA training log\n")
+            handle.write(f"format_version: {LOG_FORMAT_VERSION}\n")
+            handle.write(f"created_utc: {datetime.now(timezone.utc).isoformat()}\n")
+            for section, values in metadata.items():
+                if not isinstance(values, Mapping) or not values:
+                    continue
+                handle.write(f"\n[{section.upper()}]\n")
+                width = max(len(str(name)) for name in values) + 1
+                for name, value in values.items():
+                    handle.write(f"{name + ':':<{width + 1}} {_display(value)}\n")
+
+    def begin_stage(self, stage: str, metadata: dict[str, Any]) -> None:
+        """Record a phase boundary and its progress-table header."""
+        self._stage = stage
+        with open(self.file_paths["log"], "a", encoding="utf-8") as handle:
+            handle.write(f"\n[STAGE {stage.upper()}]\n")
+            for name, value in metadata.items():
+                handle.write(f"{name}: {_display(value)}\n")
+            handle.write("\n")
+            handle.write(" ".join(f"{label:<{width}}" for _, label, width in LOG_COLUMNS).rstrip() + "\n")
+
+    def log(self, record: dict[str, Any]) -> None:
+        """Write a record without lifecycle counters for direct callers."""
+        self.log_with_context(record, None)
+
+    def log_with_context(self, record: dict[str, Any], counters: Any | None) -> None:
+        """Write one metrics record with stage and lifecycle counters."""
         for key, value in record.items():
-            if key not in self.logs.keys():
+            if key not in self.logs:
                 raise ValueError(f"Key {key} not recognized.")
-        
-            if isinstance(value, torch.Tensor):
-                self.logs[key] = value.item()
-            else:
-                self.logs[key] = value
-                
+            self.logs[key] = value.item() if isinstance(value, torch.Tensor) else value
+        row = {
+            **self.logs,
+            "Stage": self._stage,
+            "Gradient_steps": 0 if counters is None else counters.gradient_steps,
+            "Structure_steps": 0 if counters is None else counters.structure_steps,
+            "Sweeps": 0 if counters is None else counters.sweeps,
+        }
         if self.wandb:
-            wandb.log(self.logs)        
-        out_string = " ".join([f"{value:<15.3f}" if isinstance(value, float) else f"{value:<15}" for value in self.logs.values()])
-        with open(self.file_paths["log"], "a") as f:
-            f.write(out_string + "\n")
-    
-    
-    def check(
-        self,
-        updates: int,
-    ) -> bool:
-        """Checks if a checkpoint has been reached.
-        
-        Args:
-            updates (int): Number of gradient updates performed.
+            wandb.log(row)
+        with open(self.file_paths["log"], "a", encoding="utf-8") as handle:
+            handle.write(" ".join(_cell(row[key], width) for key, _, width in LOG_COLUMNS).rstrip() + "\n")
 
-        Returns:
-            bool: Whether a checkpoint has been reached.
-        """
+    def finish(self, status: str, summary: Mapping[str, Any]) -> None:
+        """Append exactly one terminal status section."""
+        if self._finished:
+            return
+        with open(self.file_paths["log"], "a", encoding="utf-8") as handle:
+            handle.write("\n[END]\n")
+            handle.write(f"status: {status}\n")
+            for name, value in summary.items():
+                handle.write(f"{name}: {_display(value)}\n")
+        self._finished = True
+
+    def check(self, updates: int) -> bool:
+        """Return whether this update requires a persisted checkpoint."""
         return (updates % self.checkpt_interval == 0) or (updates == self.max_epochs)
-        
-        
+
     def save(
         self,
-        params: Dict[str, torch.Tensor],
+        params: dict[str, torch.Tensor],
         mask: torch.Tensor,
         chains: torch.Tensor,
         log_weights: torch.Tensor,
     ) -> None:
-        """Saves the chains and the parameters of the model.
-
-        Args:
-            params (Dict[str, torch.Tensor]): Parameters of the model.
-            mask (torch.Tensor): Mask of the model's coupling matrix representing the interaction graph.
-            chains (torch.Tensor): Chains.
-            log_weights (torch.Tensor): Log of the chain weights. Used for AIS.
-        """            
+        """Save parameters and chains."""
         save_params(fname=self.file_paths["params"], params=params, mask=mask, tokens=self.tokens)
-        save_chains(fname=self.file_paths["chains"], chains=chains.argmax(dim=-1), tokens=self.tokens, log_weights=log_weights)
+        save_chains(
+            fname=self.file_paths["chains"],
+            chains=chains.argmax(dim=-1),
+            tokens=self.tokens,
+            log_weights=log_weights,
+        )

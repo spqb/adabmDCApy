@@ -10,30 +10,63 @@ Follow the instructions below based on your preferred environment.
 
 ---
 
-## Python (GPU-oriented)
+## Python
 
-### Option 1: Install from PyPI (Recommended)
+### Option 1: Install from PyPI with uv (recommended)
 
-```{bash}
-pip install adabmDCA
+```bash
+uv add adabmDCA
 ```
 
-Fastest way to get started. This installs the latest stable release.
+This adds the latest stable release to the current Python project. To install
+only the command-line application in an isolated environment, use:
 
-### Option 2: Install from GitHub
+```bash
+uv tool install adabmDCA
+adabmDCA --help
+```
 
-Clone the repository and install the package locally:
+The equivalent pip command remains supported:
 
-```{bash}
+```bash
+python -m pip install adabmDCA
+```
+
+### Option 2: Install from GitHub with uv
+
+Clone the repository and synchronize its locked environment:
+
+```bash
 git clone https://github.com/spqb/adabmDCApy.git
 cd adabmDCApy
-pip install .
+uv sync --locked
+uv run adabmDCA --help
 ```
 
-GitHub repo: [adabmDCApy](https://github.com/spqb/adabmDCApy.git)
+The default `dev` dependency group includes the test and lint tools. To install
+the documentation dependencies too, run:
 
-!!! info
-    This version of the code assumes the user to be provided with a GPU. If this is not the case, we provide a [Colab notebook](https://colab.research.google.com/drive/1l5e1W8pk4cB92JAlBElLzpkEk6Hdjk7B?usp=sharing) that can be used with GPU hardware acceleration provided by Google.
+```bash
+uv sync --locked --group docs
+uv run --group docs mkdocs serve
+```
+
+For an editable installation without project synchronization:
+
+```bash
+uv venv
+uv pip install -e .
+```
+
+GitHub repository: [adabmDCApy](https://github.com/spqb/adabmDCApy)
+
+The Python package runs on CUDA, Apple Metal, and CPU. CUDA is recommended for
+large training and sampling workloads. `--device auto` selects CUDA when
+available, then Apple Metal, and finally CPU. BF16 sampling requires an NVIDIA
+Ampere-or-newer GPU and Triton; the default FP32 mode has no such requirement.
+
+The [Colab tutorial notebook](https://colab.research.google.com/drive/1uMY1mIlurutquw87FcfX8Rmqfzsyk74Z?usp=sharing)
+can run in Colab or from a local checkout.
 
 ---
 
@@ -43,7 +76,7 @@ Make sure you’ve installed [Julia](https://julialang.org/downloads/). Then cho
 
 ### Option 1: Automatic Setup via Shell
 
-```{bash}
+```bash
 # Download main scripts
 wget -O adabmDCA.sh https://raw.githubusercontent.com/spqb/adabmDCA.jl/refs/heads/main/adabmDCA.sh
 wget -O execute.jl https://raw.githubusercontent.com/spqb/adabmDCA.jl/refs/heads/main/execute.jl
@@ -81,19 +114,19 @@ A minimal setup with no external dependencies beyond `make`.
 ### Installation Steps
 
 1. Clone the repository:
-```{bash}
+```bash
 git clone https://github.com/spqb/adabmDCAc.git
 cd adabmDCAc/src
 make
 ```
 
 2. Return to the root folder and make the main script executable:
-```{bash}
+```bash
 chmod +x adabmDCA.sh
 ```
 
 3. Verify installation and available options:
-```{bash}
+```bash
 ./adabmDCA --help
 ```
 
@@ -102,4 +135,6 @@ GitHub repo: [adabmDCAc](https://github.com/spqb/adabmDCAc.git)
 ---
 
 !!! tip
-    All implementations share a consistent command-line interface. You can switch between them based on your hardware and performance needs without learning new syntax.
+    The implementations share the same general command shape, although some
+    runtime and workflow options are implementation-specific. Check the
+    installed program's `--help` output when switching languages.

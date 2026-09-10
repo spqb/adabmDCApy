@@ -1,6 +1,30 @@
 # <span id="bmdca">Training DCA models</span>
 
-All versions of **adabmDCA** — Python, Julia, and C++ — expose the same command-line interface through the `adabmDCA` command.
+The Python, Julia, and C++ implementations use the same general command shape.
+This guide documents the Python implementation; run
+`adabmDCA train --help` for the exact options in an installed release.
+
+## Training output and logs
+
+After the input alignment has been validated and weighted, the command prints
+the resolved configuration together with the number of retained sequences
+(`M`), sequence length (`L`), alphabet size (`q`), and effective number of
+sequences (`M_eff`). Validation-alignment statistics are included when a
+validation input is supplied.
+
+When an output directory is configured, training writes a version-2 text log.
+Its `RUN`, `TRAINING DATA`, `VALIDATION DATA`, `RUNTIME`, and `OPTIMIZATION`
+sections capture the resolved setup. Each training stage has a progress table,
+and the final `END` section records whether the run completed, failed, was
+cancelled, or was interrupted. `Chain_ESS_frac` in the progress table is the
+normalized effective sample size of the model chains; it is distinct from the
+alignment-level `M_eff`.
+
+The log can be plotted with:
+
+```bash
+adabmDCA plot-training-log path/to/model.log
+```
 
 To see the complete list of training options:
 
@@ -29,6 +53,32 @@ $ adabmDCA train -m <model> -d <fasta_file> -o <output_folder> -l <label>
 
 Training stops when the **Pearson correlation** between model and empirical connected correlations reaches the target value (default: `0.95`).
 
+Training reports gradient and graph-structure work separately. A gradient step
+updates model parameters; a structure step activates or decimates graph
+elements. For backward compatibility, `--nepochs` limits gradient steps for
+`bmDCA` and structure steps for `eaDCA`, `edDCA`, and `edgeDCA`. Use the
+unambiguous limits when controlling nested sparse-model training:
+
+```bash
+--max-gradient-steps 5000 --max-structure-steps 100
+```
+
+The final summary reports the stop reason and both counters, so reaching a
+budget is distinguishable from reaching the Pearson or density target.
+
+Python callers can use `TrainingConfig` as the canonical source of defaults
+and validation. It also makes advanced runtime values explicit, including
+checkpoint cadence, edDCA's inner gradient budget, convergence slope
+tolerance, and edgeDCA's empirical-frequency and log-partition estimation
+settings. The CLI and high-level API obtain their defaults from this same
+configuration module.
+
+Training inputs may be FASTA, compressed FASTA, Stockholm, or an in-memory
+`Alignment`. Invalid sequences are dropped and duplicate sequences are
+removed using an explicit retained-index mapping; supplied weights may refer
+to either the original or retained alignment. The returned
+`TrainingResult.input_report` records every filtering decision.
+
 - Early training is fast (e.g., Pearson ≈ 0.9 after ~100 iterations).  
 - Approaching higher values takes significantly longer (power‑law decay).
 
@@ -37,6 +87,43 @@ For a quick coarse model, set:
 ```
 --target 0.9
 ```
+
+---
+
+## Optional bfloat16 sampling during training
+
+The Python implementation supports mixed-precision training on NVIDIA Ampere
+or newer CUDA GPUs with Triton installed:
+
+```bash
+adabmDCA train -m bmDCA -d alignment.fasta -o model --device cuda --dtype bfloat16
+```
+
+In Python, use `train_model(..., device="cuda", dtype="bfloat16")` or
+`TrainingConfig(device="cuda", dtype="bfloat16")`. Both Gibbs and Metropolis
+support this mode for all four training algorithms. The default remains
+`float32`; `float64` is also unchanged.
+
+`bfloat16` is a mixed-precision training mode: fresh BF16 coupling copies are
+used inside sampling, while biases, master parameters, chains, frequency
+estimates, parameter updates and AIS/energy calculations remain FP32. The
+kernels convert loaded couplings to FP32 before arithmetic, and uniform random
+numbers remain FP32. Gibbs combines quantization and transposition in one
+copy. Nothing is cached across parameter updates.
+
+Saved models remain FP32 and work with the existing sampling, scoring and
+resume workflows. `result.config.dtype` records `bfloat16`, while
+`result.model.metadata.dtype` reports the actual master dtype, `float32`.
+Use `--dtype bfloat16` again when resuming to retain mixed-precision sampling.
+The `sample` command also accepts `--dtype bfloat16` for fixed-model sampling;
+its parameters, chains, diagnostics, and reported energies remain FP32.
+
+Rounding couplings slightly changes the sampled model and can change the
+training trajectory. This mode is optional; compare convergence and final
+statistics for your data. It reduces sampling coupling bandwidth, but does
+not halve total training memory or accelerate FP32 statistics and energy
+calculations. Overall speedups depend on the workload. CPU and pre-Ampere
+GPUs reject this mode with an explicit error.
 
 ---
 
@@ -50,11 +137,21 @@ During training, adabmDCA maintains three output files:
 
 - **`<label>_chains.fasta`** – State of the Markov chains
 
-- **`<label>_adabmDCA.log`** – Log file updated throughout training
+- **`<label>.log`** – Versioned training log updated throughout training
 
-**Update intervals:**
-- `bmDCA`: every 50 updates  
-- `eaDCA`, `edDCA`, `edgeDCA`: every 10 updates  
+Parameters and chains are saved every **100 training steps** by default for
+all models. Set a positive interval with `--checkpoint-interval`, for example:
+
+```bash
+adabmDCA train -d alignment.fasta -o model --checkpoint-interval 200
+```
+
+In Python, use `train_model(..., checkpoint_interval=200)` or
+`TrainingConfig(checkpoint_interval=200)`. Checkpoints follow the training
+stage's step counter (gradient updates during optimization, graph updates
+during activation/decimation). Final states and explicit phase-boundary
+snapshots are saved regardless of the interval. Metrics are still logged
+every step.
 
 ---
 
@@ -91,9 +188,12 @@ Options:
 
 ## Choosing the Alphabet
 
-Default alphabet: **protein**.
+The command-line default is **`auto`**. It detects standard DNA, RNA, or
+protein data after normalizing alignment gaps. DNA wins ambiguous nucleotide
+matches, so an alignment containing only `A`, `C`, and `G` is classified as
+DNA.
 
-Specify alternatives:
+Specify an alphabet when detection is ambiguous or the tokens are custom:
 
 - RNA → `--alphabet rna`
 - DNA → `--alphabet dna`

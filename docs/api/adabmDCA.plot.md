@@ -21,9 +21,10 @@ plot_PCA(
     pc1: int = 0,
     pc2: int = 1,
     data2: Optional[ndarray] = None,
-    labels: Union[List[str], str] = 'Data',
-    colors: Union[List[str], str] = 'black',
-    title: Optional[str] = None
+    labels: Union[List[str], str] = 'Natural',
+    colors: Union[List[str], str] = '#31688E',
+    title: Optional[str] = None,
+    explained_variance_ratio: Optional[ndarray] = None
 ) → Figure
 ```
 
@@ -38,9 +39,10 @@ Makes the scatter plot of the components (pc1, pc2) of the input data and shows 
  - <b>`pc1`</b> (int, optional):  First principal direction. Defaults to 0. 
  - <b>`pc2`</b> (int, optional):  Second principal direction. Defaults to 1. 
  - <b>`data2`</b> (Optional[np.ndarray], optional):  Data to be superimposed to data1. Defaults to None. 
- - <b>`labels`</b> (Union[List[str], str], optional):  Labels to put in the legend. Defaults to "Data". 
- - <b>`colors`</b> (Union[List[str], str], optional):  Colors to be used. Defaults to "black". 
- - <b>`title`</b> (Optional[str], optional):  Title of the plot. Defaults to None. 
+ - <b>`labels`</b> (Union[List[str], str], optional):  Labels to put in the legend. Defaults to "Natural".
+ - <b>`colors`</b> (Union[List[str], str], optional):  Colors to be used. Defaults to the diagnostic blue.
+ - <b>`title`</b> (Optional[str], optional):  Title of the plot. Defaults to None.
+ - <b>`explained_variance_ratio`</b> (Optional[np.ndarray], optional):  Fractions of variance used to annotate component axes. Defaults to None.
 
 
 
@@ -93,8 +95,11 @@ plot_autocorrelation(
     ax: Axes,
     checkpoints: ndarray,
     autocorr: ndarray,
-    gen_seqid: float,
-    data_seqid: float
+    gen_seqid: Union[float, ndarray],
+    data_seqid: Optional[float] = None,
+    *,
+    autocorr_std: Optional[ndarray] = None,
+    independent_std: Optional[ndarray] = None
 ) → Axes
 ```
 
@@ -107,8 +112,10 @@ Plots the time-autocorrelation curve of the sequence identity and the generated 
  - <b>`ax`</b> (Axes):  Axes to plot the data. 
  - <b>`checkpoints`</b> (np.ndarray):  Checkpoints of the sampling. 
  - <b>`autocorr`</b> (np.ndarray):  Time-autocorrelation of the sequence identity. 
- - <b>`gen_seqid`</b> (float):  Sequence identity of the generated data. 
- - <b>`data_seqid`</b> (float):  Sequence identity of the data. 
+ - <b>`gen_seqid`</b> (float or np.ndarray):  Independent-chain sequence identity, as a level or curve.
+ - <b>`data_seqid`</b> (float, optional):  Reference-data sequence identity level. Defaults to None.
+ - <b>`autocorr_std`</b> (np.ndarray, optional):  Standard deviation of the autocorrelation curve. Defaults to None.
+ - <b>`independent_std`</b> (np.ndarray, optional):  Standard deviation of the independent-chain curve. Defaults to None.
 
 
 

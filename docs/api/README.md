@@ -2,6 +2,10 @@
 
 # API Overview
 
+For notebook-oriented workflows, start with the
+[high-level Python API](../high_level_api.md). The module pages below document
+the lower-level numerical, data, and file-format primitives.
+
 ## Modules
 
 - [`adabmDCA.checkpoint`](./adabmDCA.checkpoint.md#module-adabmdcacheckpoint)
@@ -40,9 +44,9 @@
 - [`fasta.decode_sequence`](./adabmDCA.fasta.md#function-decode_sequence): Takes a numeric sequence or list of seqences in input an returns the corresponding string encoding.
 - [`fasta.encode_sequence`](./adabmDCA.fasta.md#function-encode_sequence): Encodes a sequence or a list of sequences into a numeric format.
 - [`fasta.get_tokens`](./adabmDCA.fasta.md#function-get_tokens): Converts a known alphabet into the corresponding tokens, otherwise returns the custom alphabet.
-- [`fasta.import_from_fasta`](./adabmDCA.fasta.md#function-import_from_fasta): Import sequences from a fasta or compressed fasta (.fas.gz) file. The following operations are performed:
+- [`fasta.import_from_fasta`](./adabmDCA.fasta.md#function-import_from_fasta): Deprecated compatibility interface. Prefer `read_alignment` or `load_alignment`.
 - [`fasta.validate_alphabet`](./adabmDCA.fasta.md#function-validate_alphabet): Validates that all characters in the sequences are present in the provided alphabet.
-- [`fasta.write_fasta`](./adabmDCA.fasta.md#function-write_fasta): Generate a fasta file with the input sequences.
+- [`fasta.write_fasta`](./adabmDCA.fasta.md#function-write_fasta): Deprecated compatibility interface. Prefer `Alignment.write_fasta`, `write_alignment`, or result-owned serializers.
 - [`functional.one_hot`](./adabmDCA.functional.md#function-one_hot): A fast one-hot encoding function faster than the PyTorch one working with torch.int32 and returning a float Tensor.
 - [`graph.decimate_graph`](./adabmDCA.graph.md#function-decimate_graph): Performs one decimation step and updates the parameters and mask.
 - [`graph.update_mask_decimation`](./adabmDCA.graph.md#function-update_mask_decimation): Updates the mask by removing the n_remove couplings with the smallest Dkl.
@@ -54,8 +58,8 @@
 - [`io.save_chains`](./adabmDCA.io.md#function-save_chains): Saves the chains in a fasta file.
 - [`io.save_params`](./adabmDCA.io.md#function-save_params): Saves the parameters of the model in a file.
 - [`io.save_params_oldformat`](./adabmDCA.io.md#function-save_params_oldformat): Saves the parameters of the model in a file. Assumes the old DCA format.
-- [`plot.plot_PCA`](./adabmDCA.plot.md#function-plot_pca): Makes the scatter plot of the components (pc1, pc2) of the input data and shows the histograms of the components.
-- [`plot.plot_autocorrelation`](./adabmDCA.plot.md#function-plot_autocorrelation): Plots the time-autocorrelation curve of the sequence identity and the generated and data sequence identities.
+- [`plot.plot_PCA`](./adabmDCA.plot.md#function-plot_pca): Compares principal-component projections with aligned marginal histograms and optional explained-variance labels.
+- [`plot.plot_autocorrelation`](./adabmDCA.plot.md#function-plot_autocorrelation): Plots same-chain and independent-chain sequence identity with optional uncertainty bands.
 - [`plot.plot_contact_map`](./adabmDCA.plot.md#function-plot_contact_map): Plots the contact map.
 - [`plot.plot_pearson_sampling`](./adabmDCA.plot.md#function-plot_pearson_sampling): Plots the Pearson correlation coefficient over sampling time.
 - [`plot.plot_scatter_correlations`](./adabmDCA.plot.md#function-plot_scatter_correlations): Plots the scatter plot of the data and generated Cij and Cijk values.

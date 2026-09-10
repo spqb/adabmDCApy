@@ -141,7 +141,7 @@ Returns the device where to store the tensors.
 
 **Args:**
  
- - <b>`device`</b> (str):  Device to be used. Possible values are 'cpu', 'cuda', 'mps'. 
+ - <b>`device`</b> (str): Device to use. `auto` prefers CUDA, then MPS, then CPU. Explicit values include `cpu`, `cuda`, and `mps`.
  - <b>`message`</b> (bool, optional):  Print the device. Defaults to True. 
 
 

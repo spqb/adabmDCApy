@@ -3,7 +3,6 @@ from typing import Tuple, Optional
 import torch
 
 
-@torch.jit.script
 def _get_freq_single_point(
     data: torch.Tensor,
     weights: torch.Tensor,
@@ -45,7 +44,6 @@ def get_freq_single_point(
     return _get_freq_single_point(data, norm_weights, pseudo_count)
 
 
-@torch.jit.script
 def _get_freq_two_points(
     data: torch.Tensor,
     weights: torch.Tensor,
@@ -125,7 +123,6 @@ def generate_unique_triplets(
     return selected_triplets
 
 
-@torch.jit.script
 def _get_C_ijk(
     triplet: torch.Tensor,
     data: torch.Tensor,

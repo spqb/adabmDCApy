@@ -1,17 +1,15 @@
-from typing import Dict, Union, Optional, Tuple
-import pandas as pd
-import numpy as np
+import math
+from typing import Dict, Optional, Tuple, Union
 
+import numpy as np
+import pandas as pd
 import torch
 from torch.nn.functional import one_hot
 
-from adabmDCA.fasta import (
-    write_fasta,
-    encode_sequence,
-    import_from_fasta,
-    validate_alphabet,
-    get_tokens,
-)
+from adabmDCA._validation import validate_finite_parameters
+from adabmDCA.alignment import Alignment, read_alignment, write_alignment
+from adabmDCA.alphabet import get_tokens
+from adabmDCA.fasta import decode_sequence, encode_sequence, validate_alphabet
 from adabmDCA.utils import get_mask_save
 
 
@@ -43,7 +41,9 @@ def load_chains(
         else:
             return 0.0
     
-    headers, sequences = import_from_fasta(fasta_name=fname)
+    alignment = read_alignment(fname, format="fasta")
+    headers = np.asarray(alignment.names, dtype=str)
+    sequences = np.asarray(alignment.sequences, dtype=str)
     validate_alphabet(sequences, tokens=tokens)
     encoded_sequences = encode_sequence(sequences, tokens=tokens)
     encoded_sequences = torch.tensor(encoded_sequences, dtype=torch.int64)
@@ -77,12 +77,19 @@ def save_chains(
         headers = [f"chain_{i}|log_weight={log_weights[i]}" for i in range(len(chains))]
     else:
         headers = [f"chain_{i}" for i in range(len(chains))]
-    write_fasta(
-        fname=fname,
-        headers=headers,
-        sequences=chains,
-        remove_gaps=False,
-        tokens=tokens,
+    resolved_tokens = get_tokens(tokens)
+    if isinstance(chains, torch.Tensor):
+        chains = chains.detach().cpu().numpy()
+    decoded = decode_sequence(np.asarray(chains), resolved_tokens)
+    if isinstance(decoded, str):
+        decoded = [decoded]
+    write_alignment(
+        Alignment(
+            names=tuple(headers),
+            sequences=tuple(str(sequence) for sequence in decoded),
+        ),
+        fname,
+        format="fasta",
     )
 
 
@@ -92,7 +99,11 @@ def load_params(
     device: torch.device,
     dtype: torch.dtype = torch.float32,
 ) -> Dict[str, torch.Tensor]:
-    """Import the parameters of the model from a text file.
+    """Import parameters from the established ``J``/``h`` text format.
+
+    The file is parsed in two streaming passes so memory use is bounded by the
+    final tensors and a small coupling chunk. Files containing one or both
+    coupling triangles are supported.
 
     Args:
         fname (str): Path of the file that stores the parameters.
@@ -105,76 +116,121 @@ def load_params(
             - "bias": Tensor of shape (L, q) - local biases.
             - "coupling_matrix": Tensor of shape (L, q, L, q) - coupling matrix.
     """
-    with open(fname, 'r') as f:
-        lines = f.readlines()
-    
-    J_entries = []
-    h_entries = []
-    
-    for line in lines:
-        parts = line.strip().split()
-        if not parts:
-            continue
-        
-        if parts[0] == 'J':
-            # J idx0 idx1 aa0 aa1 value
-            J_entries.append({
-                'idx0': int(parts[1]),
-                'idx1': int(parts[2]),
-                'aa0': parts[3],
-                'aa1': parts[4],
-                'val': float(parts[5])
-            })
-        elif parts[0] == 'h':
-            # h idx aa value
-            h_entries.append({
-                'idx0': int(parts[1]),
-                'aa': parts[2],
-                'val': float(parts[3])
-            })
-    
-    df_J = pd.DataFrame(J_entries)
-    df_h = pd.DataFrame(h_entries)
-    
-    # Convert tokens to numeric encoding
     tokens = get_tokens(tokens)
-    validate_alphabet(df_h["aa"].to_numpy(), tokens=tokens)
     token_to_idx = {token: idx for idx, token in enumerate(tokens)}
-
-    df_J["idx2"] = df_J["aa0"].map(token_to_idx).astype(int)
-    df_J["idx3"] = df_J["aa1"].map(token_to_idx).astype(int)
-    df_h["idx1"] = df_h["aa"].map(token_to_idx).astype(int)
-    
-    h_idx0 = df_h["idx0"].to_numpy(dtype=np.int64)
-    h_idx1 = df_h["idx1"].to_numpy(dtype=np.int64)
-    h_val = df_h["val"].to_numpy(dtype=np.float64)
-    
-    J_idx0 = df_J["idx0"].to_numpy(dtype=np.int64)
-    J_idx1 = df_J["idx1"].to_numpy(dtype=np.int64)
-    J_idx2 = df_J["idx2"].to_numpy(dtype=np.int64)
-    J_idx3 = df_J["idx3"].to_numpy(dtype=np.int64)
-    J_val = df_J["val"].to_numpy(dtype=np.float64)
-    
-    L = max(h_idx0.max(), J_idx0.max(), J_idx1.max()) + 1
     q = len(tokens)
-    
-    h = np.zeros((L, q), dtype=np.float64)
-    h[h_idx0, h_idx1] = h_val
-    
-    J = np.zeros((L, L, q, q), dtype=np.float64)
-    J[J_idx0, J_idx1, J_idx2, J_idx3] = J_val
-    
-    # Symmetrize (since only upper triangular is saved)
-    J = J + J.transpose(1, 0, 3, 2)
-    
-    # Reshape to (L, q, L, q) format
-    J = J.transpose(0, 2, 1, 3)
-    
-    # Convert to torch tensors
-    return {
-        "bias": torch.tensor(h, dtype=dtype, device=device),
-        "coupling_matrix": torch.tensor(J, dtype=dtype, device=device),
+    max_position = -1
+    num_biases = 0
+
+    # First pass: validate the compact text records and determine L without
+    # retaining the file or millions of Python objects in memory.
+    with open(fname, "r", encoding="utf-8") as handle:
+        for line_number, raw_line in enumerate(handle, 1):
+            parts = raw_line.split()
+            if not parts or parts[0].startswith("#"):
+                continue
+            if parts[0] == "J":
+                if len(parts) != 6:
+                    raise ValueError(f"Malformed coupling record on line {line_number}.")
+                idx0, idx1 = int(parts[1]), int(parts[2])
+                if idx0 < 0 or idx1 < 0:
+                    raise ValueError(f"Parameter positions cannot be negative (line {line_number}).")
+                if parts[3] not in token_to_idx or parts[4] not in token_to_idx:
+                    raise ValueError(f"Unknown coupling token on line {line_number}.")
+                max_position = max(max_position, idx0, idx1)
+            elif parts[0] == "h":
+                if len(parts) != 4:
+                    raise ValueError(f"Malformed bias record on line {line_number}.")
+                idx0 = int(parts[1])
+                if idx0 < 0:
+                    raise ValueError(f"Parameter positions cannot be negative (line {line_number}).")
+                if parts[2] not in token_to_idx:
+                    raise ValueError(f"Unknown bias token on line {line_number}.")
+                max_position = max(max_position, idx0)
+                num_biases += 1
+
+    if num_biases == 0 or max_position < 0:
+        raise ValueError("The parameter file contains no bias records.")
+
+    L = max_position + 1
+    numpy_dtype = {
+        torch.float16: np.float16,
+        torch.float32: np.float32,
+        torch.float64: np.float64,
+    }.get(dtype, np.float32)
+    h = np.zeros((L, q), dtype=numpy_dtype)
+    J = np.zeros((L, q, L, q), dtype=numpy_dtype)
+
+    chunk_size = 65_536
+    j_idx0: list[int] = []
+    j_idx1: list[int] = []
+    j_idx2: list[int] = []
+    j_idx3: list[int] = []
+    j_values: list[float] = []
+
+    def flush_couplings() -> None:
+        if not j_values:
+            return
+        J[
+            np.asarray(j_idx0, dtype=np.intp),
+            np.asarray(j_idx2, dtype=np.intp),
+            np.asarray(j_idx1, dtype=np.intp),
+            np.asarray(j_idx3, dtype=np.intp),
+        ] = np.asarray(j_values, dtype=numpy_dtype)
+        j_idx0.clear()
+        j_idx1.clear()
+        j_idx2.clear()
+        j_idx3.clear()
+        j_values.clear()
+
+    # Second pass: populate the final memory layout in bounded chunks.
+    with open(fname, "r", encoding="utf-8") as handle:
+        for line_number, raw_line in enumerate(handle, 1):
+            parts = raw_line.split()
+            if not parts or parts[0].startswith("#"):
+                continue
+            if parts[0] == "J":
+                j_idx0.append(int(parts[1]))
+                j_idx1.append(int(parts[2]))
+                j_idx2.append(token_to_idx[parts[3]])
+                j_idx3.append(token_to_idx[parts[4]])
+                try:
+                    value = float(parts[5])
+                    if not math.isfinite(value):
+                        raise ValueError("Coupling values must be finite.")
+                    j_values.append(value)
+                except ValueError as exc:
+                    raise ValueError(f"Invalid coupling value on line {line_number}.") from exc
+                if len(j_values) >= chunk_size:
+                    flush_couplings()
+            elif parts[0] == "h":
+                try:
+                    value = float(parts[3])
+                    if not math.isfinite(value):
+                        raise ValueError("Bias values must be finite.")
+                    h[int(parts[1]), token_to_idx[parts[2]]] = value
+                except ValueError as exc:
+                    raise ValueError(f"Invalid bias value on line {line_number}.") from exc
+    flush_couplings()
+
+    # Preserve the historical behavior for files containing either one or
+    # both coupling triangles, while using only q×q temporary blocks.
+    for idx0 in range(L):
+        diagonal = J[idx0, :, idx0, :].copy()
+        J[idx0, :, idx0, :] = diagonal + diagonal.T
+        for idx1 in range(idx0 + 1, L):
+            block = J[idx0, :, idx1, :] + J[idx1, :, idx0, :].T
+            J[idx0, :, idx1, :] = block
+            J[idx1, :, idx0, :] = block.T
+
+    bias = torch.from_numpy(h)
+    couplings = torch.from_numpy(J)
+    params = {
+        "bias": bias.to(device=device, dtype=dtype),
+        "coupling_matrix": couplings.to(device=device, dtype=dtype),
     }
+    validate_finite_parameters(params)
+    return params
     
     
 def load_params_old(
@@ -263,7 +319,10 @@ def save_params(
     tokens: str,
     mask: Optional[torch.Tensor] = None,
 ) -> None:
-    """Saves the parameters of the model in a file.
+    """Save parameters in the established ``J``/``h`` text format.
+
+    Couplings are streamed in bounded chunks using the canonical ``i < j``
+    triangle. A supplied symmetric mask is collapsed onto that triangle.
 
     Args:
         fname (str): Path to the file where to save the parameters.
@@ -275,43 +334,65 @@ def save_params(
             If None, the lower-triangular part of the coupling matrix is masked. Defaults to None.
     """
     tokens = get_tokens(tokens)
-    L, q = params["bias"].shape
-    if mask is None:
-        mask = get_mask_save(L, q, device=torch.device("cpu"))
-    mask_np = mask.cpu().numpy()
-    params_np = {k : v.cpu().numpy() for k, v in params.items()}
-    
-    idx0 = np.arange(L * q).reshape(L * q) // q
-    idx1 = np.arange(L * q).reshape(L * q) % q
-    idx1_aa = np.vectorize(lambda n, tokens : tokens[n], excluded=["tokens"])(idx1, tokens).astype(str)
-    df_h = pd.DataFrame(
-        {
-            "param" : np.full(L * q, "h"),
-            "idx0" : idx0,
-            "idx1" : idx1_aa,
-            "idx2" : params_np["bias"].flatten(),
-        }
-    )
+    if "bias" not in params or "coupling_matrix" not in params:
+        raise ValueError("params must contain 'bias' and 'coupling_matrix'.")
+    bias = params["bias"].detach().cpu()
+    couplings = params["coupling_matrix"].detach().cpu()
+    if bias.ndim != 2:
+        raise ValueError("params['bias'] must have shape (L, q).")
+    L, q = bias.shape
+    if len(tokens) != q:
+        raise ValueError(f"The alphabet has {len(tokens)} states but the parameters have {q} states.")
+    if tuple(couplings.shape) != (L, q, L, q):
+        raise ValueError("params['coupling_matrix'] must have shape (L, q, L, q).")
 
+    # NumPy does not expose every torch dtype (notably bfloat16).
+    try:
+        bias_np = bias.numpy()
+        couplings_np = couplings.numpy()
+    except TypeError:
+        bias_np = bias.float().numpy()
+        couplings_np = couplings.float().numpy()
 
-    maskt = mask_np.transpose(0, 2, 1, 3) # Transpose mask and coupling matrix from (L, q, L, q) to (L, L, q, q)
-    Jt = params_np["coupling_matrix"].transpose(0, 2, 1, 3)
-    idx0, idx1, idx2, idx3 = maskt.nonzero()
-    idx2_aa = np.vectorize(lambda n, tokens : tokens[n], excluded=["tokens"])(idx2, tokens).astype(str)
-    idx3_aa = np.vectorize(lambda n, tokens : tokens[n], excluded=["tokens"])(idx3, tokens).astype(str)
-    J_val = Jt[idx0, idx1, idx2, idx3]
-    df_J = pd.DataFrame(
-        {
-            "param" : np.full(len(J_val), "J").tolist(),
-            "idx0" : idx0,
-            "idx1" : idx1,
-            "idx2" : idx2_aa,
-            "idx3" : idx3_aa,
-            "val" : J_val,
-        }
-    )
-    df_J.to_csv(fname, sep=" ", header=False, index=False)
-    df_h.to_csv(fname, sep=" ", header=False, index=False, mode="a")
+    mask_np = None
+    if mask is not None:
+        if tuple(mask.shape) != (L, q, L, q):
+            raise ValueError("mask must have shape (L, q, L, q).")
+        mask_np = mask.detach().to(device="cpu", dtype=torch.bool).numpy()
+
+    state0_all = np.repeat(np.arange(q), q)
+    state1_all = np.tile(np.arange(q), q)
+    buffer: list[str] = []
+    chunk_size = 65_536
+
+    with open(fname, "w", encoding="utf-8", buffering=1024 * 1024) as handle:
+        def flush_lines() -> None:
+            if buffer:
+                handle.write("".join(buffer))
+                buffer.clear()
+
+        # The established format stores only canonical i < j coupling
+        # records. A supplied symmetric mask is collapsed onto that triangle.
+        for idx0 in range(L):
+            for idx1 in range(idx0 + 1, L):
+                if mask_np is None:
+                    state0 = state0_all
+                    state1 = state1_all
+                else:
+                    pair_mask = mask_np[idx0, :, idx1, :] | mask_np[idx1, :, idx0, :].T
+                    state0, state1 = np.nonzero(pair_mask)
+                values = couplings_np[idx0, state0, idx1, state1]
+                for aa0, aa1, value in zip(state0, state1, values):
+                    buffer.append(f"J {idx0} {idx1} {tokens[aa0]} {tokens[aa1]} {value!s}\n")
+                if len(buffer) >= chunk_size:
+                    flush_lines()
+
+        for idx0 in range(L):
+            for state in range(q):
+                buffer.append(f"h {idx0} {tokens[state]} {bias_np[idx0, state]!s}\n")
+                if len(buffer) >= chunk_size:
+                    flush_lines()
+        flush_lines()
     
     
 def load_params_oldformat(

@@ -1,139 +1,72 @@
+"""Command-line adapter for deep mutational scanning."""
+
+from __future__ import annotations
+
 import argparse
 
 from adabmDCA.parser import add_args_dms
-from adabmDCA.scripts._utils import ensure_output_dir, require_file
 
 
-# import command-line input arguments
-def create_parser():
-    parser = argparse.ArgumentParser(description="Generates the Deep Mutational Scanning of a given wild type.")
-    parser = add_args_dms(parser)
-    
-    return parser
+def create_parser() -> argparse.ArgumentParser:
+    return add_args_dms(argparse.ArgumentParser(description="Generate a single-mutant DCA scan."))
 
 
-def main():    
-    # Parse arguments
-    parser = create_parser()
-    args = parser.parse_args()
+def run(args):
+    """Execute a mutation scan from parsed CLI arguments and return its result."""
+    from adabmDCA.scripts._frontend import resolve_alphabet
 
-    import torch
+    resolve_alphabet(args)
+    from adabmDCA.api.mutations import scan_mutations
+    from adabmDCA.input_loading import AlignmentLoadConfig, load_alignment
 
-    from adabmDCA.fasta import decode_sequence, encode_sequence, get_tokens
-    from adabmDCA.functional import one_hot
-    from adabmDCA.io import import_from_fasta, load_params
-    from adabmDCA.statmech import compute_energy
-    from adabmDCA.utils import get_device, get_dtype
-    
-    print("\n" + "="*80)
-    print("  DEEP MUTATIONAL SCANNING (DMS)")
-    print("="*80 + "\n")
-    
-    # Set the device
-    device = get_device(args.device)
-    dtype = get_dtype(args.dtype)
-    
-    # Configuration section
-    print("[CONFIGURATION]")
-    print("-" * 80)
-    template = "  {0:<28} {1:<50}"
-    print(template.format("Wild-type sequence:", args.data))
-    print(template.format("Parameters file:", args.path_params))
-    print(template.format("Output folder:", args.output))
-    print(template.format("Alphabet:", args.alphabet))
-    print(template.format("Device:", str(device)))
-    print(template.format("Data type:", args.dtype))
-    print("-" * 80 + "\n")
-    
-    require_file(args.data, "Data file")
-    require_file(args.path_params, "Parameters file")
-    
-    # import data and parameters
-    print("[DATA LOADING]")
-    print("-" * 80)
-    print(f"  Loading wild-type sequence from: {args.data}")
-    tokens = get_tokens(args.alphabet)
-    names, sequences = import_from_fasta(args.data)
-    wt_name = names[0]
-    # remove non-alphanumeric characters from wt name
-    wt_name = "".join(e for e in wt_name if e.isalnum())
-    wt_seq = torch.tensor(encode_sequence(sequences[0], tokens))
-    L_wt = len(wt_seq)
-    print(f"  ✓ Wild-type loaded: {wt_name}")
-    print(f"    • Length: {L_wt}")
-    
-    print(f"  Loading parameters from: {args.path_params}")
-    params = load_params(args.path_params, tokens=tokens, device=device, dtype=dtype)
-    L, q = params["bias"].shape
-    print(f"  ✓ Parameters loaded (L={L}, q={q})")
-    if L_wt != L:
-        raise ValueError(
-            f"Wild-type sequence length ({L_wt}) does not match model length ({L})."
-        )
-    print("-" * 80 + "\n")
-    
-    # generate DMS
-    print("[MUTANT LIBRARY GENERATION]")
-    print("-" * 80)
-    dms = []
-    site_list = []
-    old_residues = []
-    new_residues = []
-    
-    print(f"  Generating single-point mutant library...")
-    for i in range(L):
-        for a in range(q):
-            if wt_seq[i] != a:
-                seq = wt_seq.clone()
-                seq[i] = a
-                dms.append(seq)
-                site_list.append(i)
-                old_residues.append(tokens[wt_seq[i]])
-                new_residues.append(tokens[a])
-    
-    n_mutants = len(dms)
-    print(f"  ✓ Mutant library generated: {n_mutants} single mutants")
-    print("-" * 80 + "\n")
-    
-    print("[ENERGY COMPUTATION]")
-    print("-" * 80)
-    print(f"  Computing DCA scores for {n_mutants} mutants...")
-    dms = torch.vstack(dms).to(device=device)
-    dms = one_hot(dms, num_classes=q).to(dtype)
-    energies = compute_energy(dms, params)
-    energy_wt = compute_energy(one_hot(wt_seq.view(1, -1).to(device), num_classes=q).to(dtype), params)
-    deltaE = energies - energy_wt
-    print(f"  ✓ DCA scores computed")
-    print(f"    • Wild-type energy: {energy_wt.item():.3f}")
-    print(f"    • ΔE range: [{deltaE.min().item():.3f}, {deltaE.max().item():.3f}]")
-    print(f"    • Mean ΔE: {deltaE.mean().item():.3f}")
-    
-    dms = torch.argmax(dms, -1).cpu().numpy()
-    dms_decoded = decode_sequence(dms, tokens)
-    print("-" * 80 + "\n")
-    
-    print("[OUTPUT]")
-    print("-" * 80)
-    folder = ensure_output_dir(args.output)
-    fname_out = folder / f"{wt_name}_DMS.fasta"
-    
-    print("  Saving DMS results...")
-    with fname_out.open("w") as f:
-        for i, res_old, res_new, e, seq in zip(site_list, old_residues, new_residues, deltaE, dms_decoded):
-            f.write(f">{res_old}{i}{res_new} | DCAscore: {e:.3f}\n")
-            f.write(seq + "\n")
-    print(f"  ✓ Results saved: {fname_out}")
-    print("-" * 80 + "\n")
-    
-    print("=" * 80)
-    print("  DEEP MUTATIONAL SCANNING COMPLETED SUCCESSFULLY")
-    print("=" * 80)
-    print(f"\n  Results saved in: {fname_out}")
-    print(f"    • Wild-type: {wt_name}")
-    print(f"    • Total mutants: {n_mutants}")
-    print(f"    • Sites scanned: {L}")
-    print("\n" + "=" * 80 + "\n")
-    
+    loaded = load_alignment(
+        args.data,
+        config=AlignmentLoadConfig(alphabet=args.alphabet, invalid_sequences="error"),
+    )
+    name = "".join(character for character in loaded.alignment.names[0] if character.isalnum())
+    return scan_mutations(
+        loaded.alignment.sequences[0],
+        model=args.path_params,
+        name=name or "wild_type",
+        alphabet=args.alphabet,
+        device=args.device,
+        dtype=args.dtype,
+    )
+
+
+def main(args=None) -> int:
+    args = create_parser().parse_args() if args is None else args
+    from adabmDCA.scripts._frontend import resolve_alphabet
+
+    resolve_alphabet(args)
+
+    from adabmDCA.scripts._frontend import print_completion, print_configuration, print_header
+
+    print_header("Deep mutational scanning")
+    print_configuration(
+        {
+            "wild type": args.data,
+            "model": args.path_params,
+            "output": args.output,
+            "alphabet": args.alphabet,
+            "device": args.device,
+            "dtype": args.dtype,
+        }
+    )
+    result = run(args)
+    artifacts = result.save_bundle(args.output)
+    print_completion(
+        "Mutation scan completed successfully.",
+        metrics={
+            "wild type": result.name,
+            "mutations": len(result.mutations),
+            "sites": result.model.length,
+            "wild-type energy": f"{result.wild_type_energy:.3f}",
+        },
+        artifacts=artifacts,
+    )
+    return 0
+
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

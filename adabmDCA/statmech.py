@@ -1,6 +1,8 @@
-from typing import Dict
 import itertools
+from typing import Dict
+
 import torch
+
 from adabmDCA.stats import get_freq_two_points
 
 
@@ -58,13 +60,13 @@ def _update_weights_AIS(
 
 
 def _compute_ess(log_weights: torch.Tensor) -> float:
-    """Computes the Effective Sample Size of the chains.
+    """Compute the normalized effective sample-size fraction of the chains.
 
     Args:
         log_weights: log-weights of the chains.
         
     Returns:
-        float: Effective Sample Size (ESS).
+        float: Chain ESS divided by the number of chains, in ``[0, 1]``.
     """
     lwc = log_weights - log_weights.min()
     numerator = torch.square(torch.mean(torch.exp(-lwc))).item()
@@ -73,7 +75,6 @@ def _compute_ess(log_weights: torch.Tensor) -> float:
     return numerator / denominator
 
 
-@torch.jit.script
 def _compute_log_likelihood(
     fi: torch.Tensor,
     fij: torch.Tensor,
@@ -199,7 +200,6 @@ def _get_acceptance_rate(
     return acceptance_rate
 
 
-@torch.jit.script
 def _tap_residue(
     idx: int,
     mag: torch.Tensor,

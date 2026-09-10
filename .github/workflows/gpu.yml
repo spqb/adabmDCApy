@@ -1,0 +1,43 @@
+name: GPU release gate
+
+on:
+  push:
+    branches: [main, develop, agent-api]
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  gpu:
+    # Trusted branch/tag pushes and manual runs only; no fork PR code on this runner.
+    runs-on: [self-hosted, linux, x64, gpu]
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - name: Create isolated test environment
+        run: |
+          python -m venv .venv-gpu
+          .venv-gpu/bin/python -m pip install --upgrade pip
+          .venv-gpu/bin/python -m pip install -e . --group dev
+      - name: Record runtime and hardware
+        run: |
+          mkdir -p test_outputs
+          nvidia-smi > test_outputs/nvidia-smi.txt
+          .venv-gpu/bin/python -m pip freeze > test_outputs/dependencies.txt
+          git rev-parse HEAD > test_outputs/commit.txt
+          .venv-gpu/bin/python -m torch.utils.collect_env > test_outputs/torch-environment.txt
+      - name: Test CUDA, Triton, and mixed precision without skips
+        run: .venv-gpu/bin/python -m pytest -q --require-gpu --junitxml=test_outputs/gpu-pytest.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: gpu-release-evidence
+          path: test_outputs/
+          retention-days: 90

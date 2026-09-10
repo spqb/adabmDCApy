@@ -1,6 +1,8 @@
 # <span id="script_arguments">Script Arguments</span>
  
-In this section we list all the possible command-line arguments for the main routines of `adabmDCA 2.0`.
+These tables summarize the most frequently used command-line arguments for
+`adabmDCA 2.0`. Run `adabmDCA <command> --help` for the complete, authoritative
+option list for the installed release.
 
 ## Train a DCA model
 
@@ -16,18 +18,24 @@ In this section we list all the possible command-line arguments for the main rou
 | `-p, --path_params`      | None         | Path to the file containing the model's parameters. Required for restoring the training. |
 | `-c, --path_chains`      | None         | Path to the FASTA file containing the model's chains. Required for restoring the training. |
 | `-l, --label`           | None         | A label to identify different algorithm runs. It prefixes the output files with this label. |
-| `--alphabet`            | protein      | Type of encoding for the sequences. Choose among `protein`, `rna`, `dna`, or a user-defined string of tokens. |
-| `--lr`                  | 0.05         | Learning rate. Ignored when `--model edgeDCA` is used. |
+| `--alphabet`            | auto         | Detect a standard protein, DNA, or RNA alphabet, or provide a custom token string. |
+| `--lr`                  | 0.01         | Learning rate. Ignored when `--model edgeDCA` is used. |
 | `--nsweeps`             | 10           | Number of sweeps for each gradient estimation. |
-| `--sampler`             | gibbs        | Sampling method to be used. Possible options are `gibbs` and `metropolis`. |
+| `--sampler`             | metropolis   | Sampling method to be used. Possible options are `gibbs` and `metropolis`. |
 | `--nchains`             | 10000        | Number of Markov chains to run in parallel. |
 | `--target`              | 0.95         | Pearson correlation coefficient on the two-sites statistics to be reached. |
-| `--nepochs`             | 50000        | Maximum number of epochs allowed. |
+| `--nepochs`             | 50000        | Compatibility limit: gradient steps for bmDCA, structure steps for sparse models. |
+| `--max-gradient-steps`  | None         | Global limit on parameter-gradient updates, including nested eaDCA/edDCA optimization. |
+| `--max-structure-steps` | None         | Limit on graph activation or decimation steps. |
+| `--checkpoint-interval` | 100         | Save parameters and chains every N training steps. Final states are also saved. |
 | `--pseudocount`        | None         | Pseudo count for the single and two-sites statistics. Acts as a regularization. If `None`, it is set to `0.1` for `edgeDCA` and $1/M_{\mathrm{eff}}$ otherwise. |
+| `--l2_reg`             | 0.0          | L2 regularization coefficient for biases and couplings. |
 | `--seed`               | 0            | Random seed. |
+| `--wandb`              | off          | Log training metrics to Weights & Biases. |
+| `--no-progress`        | off          | Disable the interactive terminal progress bar. |
 | `--nthreads`¹         | 1            | Number of threads used in the Julia multithreaded version. |
-| `--device`¹           | cuda         | Device to be used between cuda (GPU) and CPU. Used in the Python version. |
-| `--dtype`¹            | float32      | Data type to be used between float32 and float64. Used in the Python version. |
+| `--device`¹           | auto         | Select CUDA when available, otherwise MPS, otherwise CPU. |
+| `--dtype`¹            | float32      | Training precision: float32, float64, or bfloat16 (BF16 sampling couplings with FP32 master state; Ampere+ CUDA and Triton required). Used in the Python version. |
 
 ### eaDCA options
 
@@ -56,22 +64,24 @@ For `edgeDCA`, `--pseudocount` acts as an effective learning rate for edge activ
 | Command                   | Default value | Description |
 |---------------------------|--------------|-------------|
 | `-p, --path_params`      | N/A          | Path to the file containing the parameters of the DCA model to sample from. |
-| `-d, --data`             | N/A          | Filename of the dataset MSA. |
+| `-d, --data`             | None         | Reference MSA used to estimate mixing time and sampling convergence. Without it, generation runs for exactly `--max_nsweeps` sweeps. |
 | `-o, --output`           | N/A          | Path to the folder where to save the output. |
-| `--ngen`                 | None         | Number of samples to generate. |
+| `--ngen`                 | N/A          | Required number of samples to generate. |
 | `-l, --label`           | None         | A label to identify different algorithm runs. It prefixes the output files with this label. |
 | `-w, --weights`          | None         | Path to the file containing the weights of the sequences. If `None`, the weights are computed automatically. |
 | `--clustering_seqid`     | 0.8          | Sequence identity threshold to be used for computing the sequence weights. |
 | `--no_reweighting`       | N/A          | If this flag is used, the routine assigns uniform weights to the sequences. |
 | `--nmeasure`            | 10000        | Number of data sequences to use for computing the mixing time. The value min(`nmeasure`, len(data)) is taken. |
 | `--nmix`                | 2            | Number of mixing times used to generate 'ngen' sequences starting from random. |
-| `--max_nsweeps`         | 10000        | Maximum number of sweeps allowed. |
-| `--alphabet`            | protein      | Type of encoding for the sequences. Choose among `protein`, `rna`, `dna`, or a user-defined string of tokens. |
-| `--sampler`             | gibbs        | Sampling method to be used. Possible options are `gibbs` and `metropolis`. |
+| `--max_nsweeps`         | 5000         | Maximum number of sweeps allowed. |
+| `--alphabet`            | auto         | Detect a standard protein, DNA, or RNA alphabet from the reference and parameter symbols, or provide a custom token string. |
+| `--sampler`             | metropolis   | Sampling method to be used. Possible options are `gibbs` and `metropolis`. |
 | `--beta`               | 1.0          | Inverse temperature to be used for the sampling. |
+| `--seed`               | 0            | Random seed for reproducible sequence generation. |
 | `--pseudocount`        | None         | Pseudo count for the single and two-sites statistics. Acts as a regularization. If `None`, it is set to $1/M_{\mathrm{eff}}$. |
-| `--device`¹            | cuda         | Device to be used between cuda (GPU) and CPU. Used in the Python version. |
-| `--dtype`¹             | float32      | Data type to be used between float32 and float64. Used in the Python version. |
+| `--device`¹            | auto         | Select CUDA when available, otherwise MPS, otherwise CPU. |
+| `--dtype`¹             | float32      | Sampling precision: float32, float64, or bfloat16. BF16 stores the fixed coupling matrix in reduced precision while keeping chains, statistics, energies, and model parameters in FP32; it requires an Ampere-or-newer CUDA GPU and Triton. |
+| `--plot`               | off          | Save PNG plots of the mixing autocorrelation, Pearson correlation during sampling, final reference-versus-generated $C_{ij}$, and natural-versus-generated PC1–PC2 and PC3–PC4 projections with marginal histograms. Requires `--data`. |
 
 
 ## Computing DCA energies of a MSA
@@ -81,8 +91,8 @@ For `edgeDCA`, `--pseudocount` acts as an effective learning rate for edge activ
 | `-d, --data`             | N/A          | Filename of the input MSA. |
 | `-p, --path_params`      | N/A          | Path to the file containing the parameters of the DCA model. |
 | `-o, --output`           | N/A          | Path to the folder where to save the output. |
-| `--alphabet`            | protein      | Type of encoding for the sequences. Choose among `protein`, `rna`, `dna`, or a user-defined string of tokens. |
-| `--device`¹            | cuda         | Device to be used between cuda (GPU) and CPU. Used in the Python version. |
+| `--alphabet`            | auto         | Detect a standard alphabet from the data and parameter symbols, or provide a custom token string. |
+| `--device`¹            | auto         | Select CUDA when available, otherwise MPS, otherwise CPU. |
 | `--dtype`¹             | float32      | Data type to be used between float32 and float64. Used in the Python version. |
 
 ## Generate a Deep Mutational Scan (DMS) from a wild type
@@ -92,8 +102,8 @@ For `edgeDCA`, `--pseudocount` acts as an effective learning rate for edge activ
 | `-d, --data`             | N/A          | Filename of the input MSA containing the wild type. If multiple sequences are present, the first one is used. |
 | `-p, --path_params`      | N/A          | Path to the file containing the parameters of the DCA model. |
 | `-o, --output`           | N/A          | Path to the folder where to save the output. |
-| `--alphabet`            | protein      | Type of encoding for the sequences. Choose among `protein`, `rna`, `dna`, or a user-defined string of tokens. |
-| `--device`¹            | cuda         | Device to be used between cuda (GPU) and CPU. Used in the Python version. |
+| `--alphabet`            | auto         | Detect a standard alphabet from the data and parameter symbols, or provide a custom token string. |
+| `--device`¹            | auto         | Select CUDA when available, otherwise MPS, otherwise CPU. |
 | `--dtype`¹             | float32      | Data type to be used between float32 and float64. Used in the Python version. |
 
 
@@ -106,9 +116,23 @@ For `edgeDCA`, `--pseudocount` acts as an effective learning rate for edge activ
 | `-d, --data`             | None         | Path to the data MSA. Used to compute contacts with the mean-field DCA approximation when `--path_params` is not provided. |
 | `-o, --output`           | N/A          | Path to the folder where to save the output. |
 | `-l, --label`           | None         | If provided, adds a label to the output files inside the output folder. |
-| `--alphabet`            | protein      | Type of encoding for the sequences. Choose among `protein`, `rna`, `dna`, or a user-defined string of tokens. |
+| `--alphabet`            | auto         | Detect a standard alphabet from the available alignment and parameter symbols, or provide a custom token string. |
 | `--pseudocount`         | 0.5          | Pseudocount used to regularize empirical frequencies in the mean-field approximation. |
-| `--device`¹            | cuda         | Device to be used between cuda (GPU) and CPU. Used in the Python version. |
+| `--device`¹            | auto         | Select CUDA when available, otherwise MPS, otherwise CPU. |
 | `--dtype`¹             | float32      | Data type to be used between float32 and float64. Used in the Python version. |
 
-¹ Used in specific versions of the software.
+¹ Python-specific runtime option.
+
+Automatic alphabet detection accepts only the standard DNA, RNA, and protein alphabets (including gaps). DNA is preferred over RNA, then protein when multiple alphabets fit; A/C/G-only data therefore selects DNA. Model parameter symbols are also considered when provided. Nonstandard data requires an explicit custom `--alphabet` string. Preprocessing detects the alphabet after its transformations.
+
+## Other workflows
+
+The remaining commands have focused guides and complete built-in help:
+
+| Command | Purpose | Guide |
+|---------|---------|-------|
+| `preprocess` | Convert and clean FASTA or Stockholm alignments. | [Alignment preprocessing](alignment_preprocessing.md) |
+| `entropy` | Estimate free energy and entropy by thermodynamic integration. | [Thermodynamic integration](thermodynamic_integration.md) |
+| `reintegrate` | Train with experimental-feedback adjustments. | [Applications](applications.md#reintegration) |
+| `profmark` | Create profile-aware training/test splits. | [Applications](applications.md#profmark) |
+| `plot-training-log` | Render metrics from a structured training log. | [Training](training.md#training-output-and-logs) |
