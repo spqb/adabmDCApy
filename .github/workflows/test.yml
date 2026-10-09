@@ -36,15 +36,18 @@ jobs:
     - name: 🧪 Run Python API and CLI unit tests
       run: python -m pytest -q --junitxml=test_outputs/pytest.xml
 
-    # Train bmDCA model (quick test with target=0.2)
+    # Train bmDCA model (quick PCD smoke test with target=0.1)
     - name: 🧬 Train bmDCA model
       run: |
         adabmDCA train \
-          --data example_data/RF00379.fasta \
+          --strategy pcd \
+          --data example_data/RF00379/splits/RF00379_train.fasta \
           --output test_outputs/ \
           --model bmDCA \
+          --validation example_data/RF00379/splits/RF00379_validation.fasta \
           --alphabet rna \
           --target 0.1 \
+          --nepochs 5 \
           --nsweeps 1 \
           --nchains 100 \
           --label bmDCA_test \
@@ -54,27 +57,31 @@ jobs:
     - name: 🔗 Predict contacts (from bmDCA parameters)
       run: |
         adabmDCA contacts \
-          --path_params test_outputs/bmDCA_test_params.dat \
+          --path_params test_outputs/bmDCA_test_params.dat.gz \
           --output test_outputs/ \
+          --label bmDCA_test \
           --alphabet rna
     
     # Test contacts prediction using data file (mean-field)
     - name: 🔗 Predict contacts (mean-field from data)
       run: |
         adabmDCA contacts \
-          --data example_data/RF00379.fasta \
+          --data example_data/RF00379/splits/RF00379_train.fasta \
           --output test_outputs/ \
+          --label mean_field_test \
           --alphabet rna
     
     # Test sampling from bmDCA model
     - name: 🎲 Sample from bmDCA model
       run: |
         adabmDCA sample \
-          --path_params test_outputs/bmDCA_test_params.dat \
+          --strategy pcd \
+          --path_params test_outputs/bmDCA_test_params.dat.gz \
           --output test_outputs/ \
           --ngen 100 \
-          --data example_data/RF00379.fasta \
+          --data example_data/RF00379/splits/RF00379_train.fasta \
           --max_nsweeps 2 \
+          --nmeasure 100 \
           --alphabet rna \
           --label sampling_test
     
@@ -82,42 +89,49 @@ jobs:
     - name: ⚡ Compute energies
       run: |
         adabmDCA energies \
-          --data example_data/RF00379.fasta \
-          --path_params test_outputs/bmDCA_test_params.dat \
+          --data example_data/RF00379/splits/RF00379_train.fasta \
+          --path_params test_outputs/bmDCA_test_params.dat.gz \
           --output test_outputs/ \
-          --alphabet rna \
+          --alphabet rna
     
     # Test DMS (Deep Mutational Scanning)
     - name: 🧪 Deep Mutational Scanning
       run: |
-        adabmDCA DMS \
-          --data example_data/RF00379.fasta \
-          --path_params test_outputs/bmDCA_test_params.dat \
+        adabmDCA dms \
+          --data example_data/RF00379/splits/RF00379_train.fasta \
+          --path_params test_outputs/bmDCA_test_params.dat.gz \
           --output test_outputs/ \
-          --alphabet rna \
+          --alphabet rna
     
     # Test thermodynamic integration (entropy computation)
     - name: 🌡️ Thermodynamic Integration (entropy)
       run: |
         adabmDCA entropy \
-          --data example_data/RF00379.fasta \
-          --path_targetseq example_data/RF00379.fasta \
-          --path_params test_outputs/bmDCA_test_params.dat \
+          --strategy pcd \
+          --data example_data/RF00379/splits/RF00379_train.fasta \
+          --path_targetseq example_data/RF00379/splits/RF00379_train.fasta \
+          --path_params test_outputs/bmDCA_test_params.dat.gz \
           --output test_outputs/ \
           --alphabet rna \
           --nchains 100 \
           --nsteps 2 \
+          --nsweeps 1 \
+          --nsweeps_theta 1 \
+          --nsweeps_zero 1 \
           --label entropy_test
     
     # Train eaDCA model
     - name: 🧬 Train eaDCA model
       run: |
         adabmDCA train \
-          --data example_data/RF00379.fasta \
+          --strategy pcd \
+          --data example_data/RF00379/splits/RF00379_train.fasta \
           --output test_outputs/ \
           --model eaDCA \
+          --gsteps 1 \
           --alphabet rna \
           --target 0.1 \
+          --nepochs 5 \
           --nsweeps 1 \
           --nchains 100 \
           --label eaDCA_test \
@@ -127,14 +141,16 @@ jobs:
     - name: 🧬 Train edDCA model (with bmDCA initialization)
       run: |
         adabmDCA train \
-          --data example_data/RF00379.fasta \
+          --strategy pcd \
+          --data example_data/RF00379/splits/RF00379_train.fasta \
           --output test_outputs/ \
           --model edDCA \
           --alphabet rna \
           --target 0.1 \
+          --nepochs 5 \
           --nsweeps 1 \
           --density 0.95 \
-          --path_params test_outputs/bmDCA_test_params.dat \
+          --path_params test_outputs/bmDCA_test_params.dat.gz \
           --path_chains test_outputs/bmDCA_test_chains.fasta \
           --label edDCA_test \
           --seed 42
@@ -143,19 +159,25 @@ jobs:
     - name: ✅ Verify output files
       run: |
         echo "Checking bmDCA outputs..."
-        test -f test_outputs/bmDCA_test_params.dat || (echo "Missing bmDCA params" && exit 1)
+        test -f test_outputs/bmDCA_test_params.dat.gz || (echo "Missing bmDCA params" && exit 1)
         test -f test_outputs/bmDCA_test_chains.fasta || (echo "Missing bmDCA chains" && exit 1)
         test -f test_outputs/bmDCA_test.log || (echo "Missing bmDCA log" && exit 1)
+        test -f test_outputs/bmDCA_test_history.csv || (echo "Missing bmDCA history" && exit 1)
+        test -f test_outputs/bmDCA_test_training.json || (echo "Missing bmDCA summary" && exit 1)
         
         echo "Checking eaDCA outputs..."
-        test -f test_outputs/eaDCA_test_params.dat || (echo "Missing eaDCA params" && exit 1)
+        test -f test_outputs/eaDCA_test_params.dat.gz || (echo "Missing eaDCA params" && exit 1)
         test -f test_outputs/eaDCA_test_chains.fasta || (echo "Missing eaDCA chains" && exit 1)
         test -f test_outputs/eaDCA_test.log || (echo "Missing eaDCA log" && exit 1)
+        test -f test_outputs/eaDCA_test_history.csv || (echo "Missing eaDCA history" && exit 1)
+        test -f test_outputs/eaDCA_test_training.json || (echo "Missing eaDCA summary" && exit 1)
         
         echo "Checking edDCA outputs..."
-        test -f test_outputs/edDCA_test_params.dat || (echo "Missing edDCA params" && exit 1)
+        test -f test_outputs/edDCA_test_params.dat.gz || (echo "Missing edDCA params" && exit 1)
         test -f test_outputs/edDCA_test_chains.fasta || (echo "Missing edDCA chains" && exit 1)
         test -f test_outputs/edDCA_test.log || (echo "Missing edDCA log" && exit 1)
+        test -f test_outputs/edDCA_test_history.csv || (echo "Missing edDCA history" && exit 1)
+        test -f test_outputs/edDCA_test_training.json || (echo "Missing edDCA summary" && exit 1)
         
         echo "All required output files exist! ✅"
     
