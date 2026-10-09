@@ -27,18 +27,25 @@ classifiers = [
 dependencies = [
     "matplotlib>=3.8.0",
     "numpy>=1.26.4",
+    "scipy>=1.11",
     "pandas>=2.2.2",
     "torch>=2.1.0",
+    "h5py>=3.8",
     "tqdm>=4.66.6",
     "wandb>=0.12.0",
     "biopython>=1.85",
     "seaborn>=0.12.2",
 ]
 
+[project.optional-dependencies]
+# Compiled, multithreaded CPU samplers (used automatically on CPU when installed).
+cpu = ["numba>=0.60"]
+
 [dependency-groups]
 dev = [
     "pytest>=8.3",
     "ruff>=0.9",
+    "numba>=0.60",
 ]
 docs = [
     "mkdocs>=1.6",

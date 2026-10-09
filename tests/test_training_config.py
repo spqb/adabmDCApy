@@ -32,7 +32,7 @@ from adabmDCA.training_config import (
 
 
 def test_api_and_cli_defaults_share_canonical_values():
-    assert DEFAULT_SAMPLER == "metropolis"
+    assert DEFAULT_SAMPLER == "metropolized_gibbs"
     expected = {
         "model_type": DEFAULT_MODEL_TYPE,
         "alphabet": DEFAULT_ALPHABET,
@@ -65,22 +65,22 @@ def test_api_and_cli_defaults_share_canonical_values():
     assert parser.get_default("nepochs") == DEFAULT_MAX_EPOCHS
     assert parser.get_default("gsteps") == DEFAULT_ACTIVATION_STEPS
     assert parser.get_default("density") == DEFAULT_TARGET_DENSITY
-    assert parser.get_default("sampler") == "metropolis"
-    assert parser.get_default("checkpoint_interval") == DEFAULT_CHECKPOINT_INTERVAL == 100
+    assert parser.get_default("sampler") == "metropolized_gibbs"
+    assert parser.get_default("checkpoint_interval") == DEFAULT_CHECKPOINT_INTERVAL == 500
 
     from adabmDCA.api.entropy import estimate_entropy
     from adabmDCA.api.model import DCAModel
     from adabmDCA.api.sampling import sample_sequences
 
-    assert inspect.signature(sample_sequences).parameters["sampler"].default == "metropolis"
-    assert inspect.signature(estimate_entropy).parameters["sampler"].default == "metropolis"
-    assert inspect.signature(DCAModel.sample).parameters["sampler"].default == "metropolis"
+    assert inspect.signature(sample_sequences).parameters["sampler"].default == "metropolized_gibbs"
+    assert inspect.signature(estimate_entropy).parameters["sampler"].default == "metropolized_gibbs"
+    assert inspect.signature(DCAModel.sample).parameters["sampler"].default == "metropolized_gibbs"
 
 
 def test_model_aware_limits_and_checkpoint_intervals():
     for model in ("bmDCA", "eaDCA", "edDCA", "edgeDCA"):
-        assert TrainingConfig(model_type=model).resolved_checkpoint_interval == 100
-        assert TrainingConfig(model_type=model, checkpoint_interval=None).resolved_checkpoint_interval == 100
+        assert TrainingConfig(model_type=model).resolved_checkpoint_interval == 500
+        assert TrainingConfig(model_type=model, checkpoint_interval=None).resolved_checkpoint_interval == 500
     dense = TrainingConfig(max_epochs=12)
     assert dense.limits.max_gradient_steps == 12
     assert dense.limits.max_structure_steps is None
@@ -135,16 +135,14 @@ def test_advanced_runtime_values_are_serialized():
     config = TrainingConfig(
         checkpoint_interval=3,
         inner_gradient_steps=17,
-        slope_tolerance=0.05,
-        edge_logz_chain_fraction=0.3,
     )
 
     serialized = config.as_dict()
 
     assert serialized["checkpoint_interval"] == 3
     assert serialized["inner_gradient_steps"] == 17
-    assert serialized["slope_tolerance"] == 0.05
-    assert serialized["edge_logz_chain_fraction"] == 0.3
+    assert "slope_tolerance" not in serialized
+    assert "edge_logz_chain_fraction" not in serialized
 
 
 def test_cli_forwards_checkpoint_interval():
@@ -172,7 +170,7 @@ def test_checkpoint_schedule_and_early_final_save(tmp_path, interval, saved_epoc
     save = Checkpoint.save
 
     def record_save(checkpoint, **snapshot):
-        observed.append(checkpoint.logs["Epochs"])
+        observed.append(checkpoint._counters.gradient_steps)
         save(checkpoint, **snapshot)
 
     # Reach the target at step five, before the configured maximum of ten.
@@ -191,3 +189,36 @@ def test_checkpoint_schedule_and_early_final_save(tmp_path, interval, saved_epoc
     assert result.config.checkpoint_interval == interval
     assert result.artifacts["params"].is_file()
     assert result.artifacts["chains"].is_file()
+
+
+@pytest.mark.parametrize(
+    "extra, expected",
+    [
+        ([], False),
+        (["-v", "validation.fasta"], True),
+        (["-v", "validation.fasta", "--no-ptt-validation-stop"], False),
+        (["--ptt-validation-stop"], True),
+    ],
+)
+def test_cli_stops_on_validation_by_default_when_a_validation_set_is_given(extra, expected):
+    from unittest.mock import patch
+
+    from adabmDCA.scripts.train import create_parser, run
+
+    args = create_parser().parse_args(["-d", "alignment.fasta", "--alphabet", "protein", *extra])
+    with patch("adabmDCA.api.training.train_model") as train:
+        run(args)
+    assert train.call_args.kwargs["ptt"].validation_stop is expected
+
+
+def test_cli_validation_set_does_not_imply_ptt_options_for_pcd():
+    from unittest.mock import patch
+
+    from adabmDCA.scripts.train import create_parser, run
+
+    args = create_parser().parse_args(
+        ["-d", "alignment.fasta", "--alphabet", "protein", "-v", "validation.fasta", "--strategy", "pcd"]
+    )
+    with patch("adabmDCA.api.training.train_model") as train:
+        run(args)
+    assert train.call_args.kwargs["ptt"] is None

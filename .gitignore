@@ -171,3 +171,16 @@ wandb/
 models/
 plots/
 output/
+
+# Local material kept out of the repository: archived documentation and site, benchmarks
+local_archive/
+/benchmarks/
+
+# Example data: only the RF00379 training/validation split is tracked
+example_data/*
+!example_data/RF00379/
+example_data/RF00379/*
+!example_data/RF00379/splits/
+
+# Results written by the notebook in a local Jupyter session
+notebook_outputs/

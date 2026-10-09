@@ -6,7 +6,7 @@ import pytest
 import torch
 
 from adabmDCA import Alignment, TrainingConfig
-from adabmDCA.api.exceptions import (
+from adabmDCA.exceptions import (
     AlignmentLengthError,
     AlignmentLoadError,
     ConvergenceError,

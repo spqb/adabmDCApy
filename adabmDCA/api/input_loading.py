@@ -7,17 +7,17 @@ from pathlib import Path
 
 import torch
 
-from adabmDCA.api.exceptions import (
+from adabmDCA.alignment import Alignment
+from adabmDCA.dataset import DatasetDCA
+from adabmDCA.exceptions import (
     AdabmDCAError,
     ChainLoadError,
     ModelCompatibilityError,
     ModelLoadError,
 )
-from adabmDCA.dataset import DatasetDCA
 from adabmDCA.input_loading import (
     AlignmentInput,
     AlignmentLoadConfig,
-    LoadedAlignment,
     WeightInput,
     load_alignment,
 )
@@ -27,15 +27,23 @@ from adabmDCA.training_config import TrainingConfig
 
 @dataclass(frozen=True)
 class TrainingInputs:
-    """Fully loaded and cross-validated inputs for model training."""
+    """Loaded and cross-checked inputs of one training run.
+
+    Attributes:
+        training: Weighted training dataset.
+        training_alignment: Training alignment after filtering.
+        validation: Weighted validation dataset, if any.
+        validation_alignment: Validation alignment after filtering, if any.
+        initial_params: Parameters to start from, if given.
+        initial_chains: One-hot chains to start from, if given.
+    """
 
     training: DatasetDCA
-    training_alignment: LoadedAlignment
+    training_alignment: Alignment
     validation: DatasetDCA | None = None
-    validation_alignment: LoadedAlignment | None = None
+    validation_alignment: Alignment | None = None
     initial_params: dict[str, torch.Tensor] | None = None
     initial_chains: torch.Tensor | None = None
-    initial_log_weights: torch.Tensor | None = None
 
 
 def _check_parameter_compatibility(
@@ -69,7 +77,6 @@ def _check_parameter_compatibility(
 
 def _check_chain_compatibility(
     chains: torch.Tensor,
-    log_weights: torch.Tensor,
     *,
     length: int,
     num_states: int,
@@ -81,11 +88,6 @@ def _check_chain_compatibility(
                 "chain_shape": tuple(chains.shape),
                 "expected_suffix": (length, num_states),
             },
-        )
-    if len(log_weights) != len(chains):
-        raise ModelCompatibilityError(
-            "The number of chain log-weights does not match the number of chains.",
-            details={"chains": len(chains), "log_weights": len(log_weights)},
         )
 
 
@@ -101,14 +103,38 @@ def load_training_inputs(
     initial_chains_path: str | Path | None = None,
     allow_signed_weights: bool = False,
 ) -> TrainingInputs:
-    """Load all training resources and validate their shared dimensions."""
+    """Load the training inputs of :func:`train_model` and check they fit together.
+
+    Sequences with unknown tokens are dropped and duplicates removed. The
+    validation alignment, initial parameters and initial chains must have the
+    training alignment's length and alphabet.
+
+    Args:
+        training: Training alignment (path, :class:`Alignment` or sequences).
+        config: Training settings; provides alphabet and reweighting options.
+        device: Device of the loaded tensors.
+        dtype: Precision of the loaded tensors.
+        validation: Optional validation alignment.
+        weights: Optional training-sequence weights (path, array or tensor).
+        initial_params_path: Optional parameter file to start from.
+        initial_chains_path: Optional FASTA of starting chains.
+        allow_signed_weights: Accept negative weights (experimental reintegration).
+
+    Returns:
+        The loaded :class:`TrainingInputs`.
+
+    Raises:
+        ModelCompatibilityError: If validation data, parameters or chains do not
+            match the training alignment.
+        InputLoadError: If a file cannot be read.
+    """
     load_policy = AlignmentLoadConfig(
         alphabet=config.alphabet,
         invalid_sequences="drop",
         remove_duplicates=True,
     )
     training_alignment = load_alignment(training, config=load_policy)
-    training_dataset = DatasetDCA.from_loaded_alignment(
+    training_dataset = DatasetDCA.from_alignment(
         training_alignment,
         weights=weights,
         clustering_th=config.clustering_seqid,
@@ -127,10 +153,10 @@ def load_training_inputs(
                 alphabet=config.alphabet,
                 invalid_sequences="drop",
                 remove_duplicates=True,
-                expected_length=training_alignment.alignment.sequence_length,
+                expected_length=training_alignment.sequence_length,
             ),
         )
-        validation_dataset = DatasetDCA.from_loaded_alignment(
+        validation_dataset = DatasetDCA.from_alignment(
             validation_alignment,
             clustering_th=config.clustering_seqid,
             no_reweighting=config.no_reweighting,
@@ -168,7 +194,7 @@ def load_training_inputs(
             num_states=num_states,
         )
 
-    chains = log_weights = None
+    chains = None
     if initial_chains_path is not None:
         path = Path(initial_chains_path)
         if not path.is_file():
@@ -177,10 +203,9 @@ def load_training_inputs(
                 details={"path": str(path)},
             )
         try:
-            chains, log_weights = load_chains(
+            chains, = load_chains(
                 str(path),
                 tokens=training_dataset.tokens,
-                load_weights=True,
                 device=device,
                 dtype=dtype,
             )
@@ -193,7 +218,6 @@ def load_training_inputs(
             ) from exc
         _check_chain_compatibility(
             chains,
-            log_weights,
             length=length,
             num_states=num_states,
         )
@@ -205,5 +229,4 @@ def load_training_inputs(
         validation_alignment=validation_alignment,
         initial_params=params,
         initial_chains=chains,
-        initial_log_weights=log_weights,
     )

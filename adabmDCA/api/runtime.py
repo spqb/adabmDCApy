@@ -6,7 +6,7 @@ from collections.abc import Iterable
 
 import torch
 
-from adabmDCA.api.exceptions import InputValidationError, ModelCompatibilityError
+from adabmDCA.exceptions import InputValidationError, ModelCompatibilityError
 from adabmDCA.input_loading import AlignmentInput, AlignmentLoadConfig, load_alignment
 from adabmDCA.utils import get_device, get_dtype
 
@@ -75,4 +75,4 @@ def load_fasta_sequences(
             expected_length=expected_length,
         ),
     )
-    return loaded.alignment.names, loaded.alignment.sequences
+    return loaded.names, loaded.sequences

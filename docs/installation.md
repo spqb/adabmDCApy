@@ -1,40 +1,55 @@
-# Installation Guide
+# Installation
 
-`adabmDCA` is available in three language-specific implementations:
+adabmDCA needs Python 3.10 or newer and runs on NVIDIA GPUs (CUDA), Apple GPUs (Metal) and CPUs.
 
-- **Python** – optimized for GPU execution  
-- **Julia** – designed for multi-core CPU usage  
-- **C++** – lightweight and single-core CPU compatible
-
-Follow the instructions below based on your preferred environment.
-
----
-
-## Python
-
-### Option 1: Install from PyPI with uv (recommended)
-
-```bash
-uv add adabmDCA
-```
-
-This adds the latest stable release to the current Python project. To install
-only the command-line application in an isolated environment, use:
+## Install the command-line tool
 
 ```bash
 uv tool install adabmDCA
-adabmDCA --help
-```
-
-The equivalent pip command remains supported:
-
-```bash
+# or
 python -m pip install adabmDCA
 ```
 
-### Option 2: Install from GitHub with uv
+Check the installation with `adabmDCA --help`. To use the package from Python inside an existing project, add it as a dependency instead (`uv add adabmDCA`).
 
-Clone the repository and synchronize its locked environment:
+### Faster CPU sampling
+
+Without a GPU, install the `cpu` extra:
+
+```bash
+uv tool install 'adabmDCA[cpu]'
+# or
+python -m pip install 'adabmDCA[cpu]'
+```
+
+It adds [Numba](https://numba.pydata.org/) and enables compiled, multithreaded sampling kernels, which the package then uses automatically on CPU. They need no compiler, give the same result for a given seed whatever the number of threads, and are 7–36× faster per sweep than the plain PyTorch samplers (see [Benchmarks](algorithms/benchmarks.md#sampling-kernels)). They use as many threads as PyTorch (`torch.set_num_threads`).
+
+## Choose a device
+
+Every command accepts `--device`:
+
+| Value | Uses |
+| --- | --- |
+| `auto` (default) | CUDA if available, then Apple Metal (`mps`), then CPU |
+| `cuda`, `cuda:1`, … | A specific NVIDIA GPU; sampling uses Triton kernels |
+| `mps` | An Apple GPU |
+| `cpu` | The CPU; Numba kernels when the `cpu` extra is installed |
+
+A GPU is 5–20× faster per sampling sweep, and 12–16× faster for a whole bmDCA training, than a 16-thread CPU. It is recommended for protein families of a few hundred positions. CPU runs reach models of the same quality and are perfectly usable for small RNA families: RF00379 (136 positions) trains in about 5 minutes with PCD and 35 minutes with PTT.
+
+The default precision is `float32`; `--dtype float64` is available. `--dtype bfloat16` stores the couplings used inside the sampler in BF16 while keeping all other state in FP32. It requires an Ampere-or-newer NVIDIA GPU with Triton, is not available with PTT, and gave at most about 12% speed-up in our tests, so it is rarely worth enabling.
+
+## Environment variables
+
+These change how the sampling kernels are selected. They never change the sampled distribution.
+
+| Variable | Effect |
+| --- | --- |
+| `ADABMDCA_NUMBA=0` | Use the PyTorch samplers on CPU even when Numba is installed |
+| `ADABMDCA_NUMBA_PIN=1` | Pin each Numba thread to its own core. Can help on idle multi-chiplet CPUs (AMD Zen), can hurt when other work shares the cores: measure before relying on it |
+| `ADABMDCA_SPARSE=0` | Always use the dense kernels, even for sparse coupling graphs |
+
+## Install from source
 
 ```bash
 git clone https://github.com/spqb/adabmDCApy.git
@@ -43,98 +58,14 @@ uv sync --locked
 uv run adabmDCA --help
 ```
 
-The default `dev` dependency group includes the test and lint tools. To install
-the documentation dependencies too, run:
+The default `dev` dependency group includes the test tools and Numba. For an editable installation into another environment, use `uv pip install -e .`.
+
+### Build this documentation
 
 ```bash
 uv sync --locked --group docs
-uv run --group docs mkdocs serve
+uv run --group docs mkdocs serve     # live preview
+uv run --group docs mkdocs build     # writes site/
 ```
 
-For an editable installation without project synchronization:
-
-```bash
-uv venv
-uv pip install -e .
-```
-
-GitHub repository: [adabmDCApy](https://github.com/spqb/adabmDCApy)
-
-The Python package runs on CUDA, Apple Metal, and CPU. CUDA is recommended for
-large training and sampling workloads. `--device auto` selects CUDA when
-available, then Apple Metal, and finally CPU. BF16 sampling requires an NVIDIA
-Ampere-or-newer GPU and Triton; the default FP32 mode has no such requirement.
-
-The [Colab tutorial notebook](https://colab.research.google.com/drive/1uMY1mIlurutquw87FcfX8Rmqfzsyk74Z?usp=sharing)
-can run in Colab or from a local checkout.
-
----
-
-## Julia (Multi-core CPU)
-
-Make sure you’ve installed [Julia](https://julialang.org/downloads/). Then choose one of the following:
-
-### Option 1: Automatic Setup via Shell
-
-```bash
-# Download main scripts
-wget -O adabmDCA.sh https://raw.githubusercontent.com/spqb/adabmDCA.jl/refs/heads/main/adabmDCA.sh
-wget -O execute.jl https://raw.githubusercontent.com/spqb/adabmDCA.jl/refs/heads/main/execute.jl
-chmod +x adabmDCA.sh
-
-# Install dependencies and the package
-julia --eval 'using Pkg; Pkg.add("ArgParse"); Pkg.add(PackageSpec(url="https://github.com/spqb/adabmDCA.jl"))'
-```
-
-### Option 2: Manual Setup via Julia REPL
-
-1. Launch Julia and run:
-```bash
-using Pkg
-Pkg.add(url="https://github.com/spqb/adabmDCA.jl")
-Pkg.add("ArgParse")
-```
-
-2. Download execution scripts:
-```bash
-wget https://raw.githubusercontent.com/spqb/adabmDCA.jl/main/adabmDCA.sh
-wget https://raw.githubusercontent.com/spqb/adabmDCA.jl/main/execute.jl
-chmod +x adabmDCA.sh
-```
-        
-
-GitHub repo: [adabmDCA.jl](https://github.com/spqb/adabmDCA.jl.git)
-
----
-
-## C++ (Single-core CPU)
-
-A minimal setup with no external dependencies beyond `make`.
-
-### Installation Steps
-
-1. Clone the repository:
-```bash
-git clone https://github.com/spqb/adabmDCAc.git
-cd adabmDCAc/src
-make
-```
-
-2. Return to the root folder and make the main script executable:
-```bash
-chmod +x adabmDCA.sh
-```
-
-3. Verify installation and available options:
-```bash
-./adabmDCA --help
-```
-
-GitHub repo: [adabmDCAc](https://github.com/spqb/adabmDCAc.git)
-
----
-
-!!! tip
-    The implementations share the same general command shape, although some
-    runtime and workflow options are implementation-specific. Check the
-    installed program's `--help` output when switching languages.
+Next: [prepare an alignment](usage/preprocess.md) and [train a model](usage/train.md).

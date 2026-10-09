@@ -9,7 +9,7 @@ import torch
 from adabmDCA import DCAModel, sample_sequences, train_model
 from adabmDCA import sampling_triton as kernels
 from adabmDCA.alignment import Alignment
-from adabmDCA.api.exceptions import InputValidationError
+from adabmDCA.exceptions import InputValidationError
 from adabmDCA.parser import add_args_sample, add_args_train
 from adabmDCA.sampling import prepare_fixed_model_sampler, prepare_training_sampler
 from adabmDCA.training_config import TrainingConfig
@@ -84,7 +84,7 @@ def test_bf16_kernels_match_fp32_for_identically_rounded_parameters(independent,
 
 
 @gpu
-@pytest.mark.parametrize("sampler", ["gibbs", "metropolis"])
+@pytest.mark.parametrize("sampler", ["gibbs", "metropolis", "metropolized_gibbs"])
 def test_bf16_one_hot_uses_fp32_rng(sampler):
     torch.manual_seed(3)
     chains = torch.nn.functional.one_hot(torch.randint(5, (33, 17), device="cuda"), 5).float()
@@ -104,7 +104,7 @@ def test_bf16_one_hot_uses_fp32_rng(sampler):
 
 
 @gpu
-@pytest.mark.parametrize("sampler", ["gibbs", "metropolis"])
+@pytest.mark.parametrize("sampler", ["gibbs", "metropolis", "metropolized_gibbs"])
 def test_master_params_unchanged_and_quantization_refreshed(sampler):
     torch.manual_seed(19)
     chains = torch.nn.functional.one_hot(torch.randint(5, (33, 17), device="cuda"), 5).float()
@@ -128,7 +128,7 @@ def test_master_params_unchanged_and_quantization_refreshed(sampler):
 
 
 @gpu
-@pytest.mark.parametrize("sampler", ["gibbs", "metropolis"])
+@pytest.mark.parametrize("sampler", ["gibbs", "metropolis", "metropolized_gibbs"])
 def test_fixed_model_sampling_quantizes_couplings_once_and_keeps_fp32_state(sampler):
     torch.manual_seed(53)
     params = {
@@ -161,7 +161,7 @@ def test_fixed_model_sampling_quantizes_couplings_once_and_keeps_fp32_state(samp
 
 @gpu
 @pytest.mark.parametrize("model_type", ["bmDCA", "eaDCA", "edDCA", "edgeDCA"])
-@pytest.mark.parametrize("sampler", ["gibbs", "metropolis"])
+@pytest.mark.parametrize("sampler", ["gibbs", "metropolis", "metropolized_gibbs"])
 def test_training_state_stays_fp32_and_sampler_uses_bf16(model_type, sampler, tmp_path):
     original = getattr(kernels, sampler + "_sampling_triton")
     observed = []
@@ -190,7 +190,7 @@ def test_training_state_stays_fp32_and_sampler_uses_bf16(model_type, sampler, tm
     with patch.object(kernels, sampler + "_sampling_triton", check):
         result = train_model(alignment(), config=config, output_dir=tmp_path)
     assert observed and all(dtype == torch.bfloat16 for dtype in observed)
-    assert result.chains.dtype == result.log_weights.dtype == torch.float32
+    assert result.chains.dtype == torch.float32
     assert result.model.metadata.dtype == "float32"
     assert result.config.dtype == "bfloat16"
     for param in result.model.params.values():

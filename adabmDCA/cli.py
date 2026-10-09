@@ -2,7 +2,7 @@ import importlib
 import sys
 from contextlib import contextmanager
 
-from adabmDCA.api.exceptions import AdabmDCAError
+from adabmDCA.exceptions import AdabmDCAError
 
 COMMANDS = {
     "train": "adabmDCA.scripts.train",
@@ -13,7 +13,7 @@ COMMANDS = {
     "DMS": "adabmDCA.scripts.dms",
     "entropy": "adabmDCA.scripts.td_integration",
     "reintegrate": "adabmDCA.scripts.reintegrate",
-    "profmark": "adabmDCA.scripts.profmark",
+    "split-data": "adabmDCA.scripts.split_data",
     "plot-training-log": "adabmDCA.plot_training_log",
     "plot_training_log": "adabmDCA.plot_training_log",
     "preprocess": "adabmDCA.scripts.preprocess",
@@ -25,9 +25,9 @@ COMMAND_DESCRIPTIONS = {
     "contacts": "Predict residue-residue contacts.",
     "energies": "Compute DCA energies for aligned sequences.",
     "dms": "Score all single-residue substitutions.",
-    "entropy": "Estimate sequence entropy by thermodynamic integration.",
-    "reintegrate": "Reintegrate previously removed alignment positions.",
-    "profmark": "Create profile-model training and test splits.",
+    "entropy": "Estimate the entropy of a model (PTT archive or thermodynamic integration).",
+    "reintegrate": "Train a DCA model with experimental feedback on tested sequences.",
+    "split-data": "Split an alignment into training and test sets with reduced homology correlation",
     "plot-training-log": "Plot metrics from a training log.",
     "preprocess": "Convert and preprocess sequence alignments.",
 }

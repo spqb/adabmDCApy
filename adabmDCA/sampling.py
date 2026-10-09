@@ -232,11 +232,128 @@ def metropolis_sampling(
     return chains_mutate
 
 
+def metropolized_gibbs_step_uniform_sites(
+    chains: torch.Tensor,
+    params: dict[str, torch.Tensor],
+    beta: float = 1.0,
+) -> torch.Tensor:
+    """Performs a single Metropolized Gibbs update at the same site for all chains.
+
+    A new residue b different from the current one a is proposed from the site
+    conditional restricted to the other residues and accepted with
+    min(1, (1 - p_a) / (1 - p_b)) (Liu 1996). Both normalizers are summed
+    directly so that dominant residues do not cancel.
+
+    Args:
+        chains (torch.Tensor): One-hot encoded sequences of shape (batch_size, L, q).
+        params (Dict[str, torch.Tensor]): Parameters of the model.
+            - "bias": Tensor of shape (L, q) - local biases.
+            - "coupling_matrix": Tensor of shape (L, q, L, q) - coupling matrix.
+        beta (float, optional): Inverse temperature. Defaults to 1.0.
+
+    Returns:
+        torch.Tensor: Updated chains.
+    """
+    N, L, q = chains.shape
+    device = chains.device
+    dtype = chains.dtype
+    idx = torch.randint(0, L, (1,), device=device)[0]
+    couplings_residue = params["coupling_matrix"][idx].reshape(q, L * q)
+    logits = beta * (params["bias"][idx].unsqueeze(0) + chains.reshape(N, L * q) @ couplings_residue.T)
+    weights = torch.exp(logits - logits.max(dim=1, keepdim=True).values)
+    rows = torch.arange(N, device=device)
+    old = chains[:, idx].argmax(dim=1)
+    others = weights.clone()
+    others[rows, old] = 0.0
+    others_total = others.sum(dim=1)
+    uniforms = torch.rand((N, 2), device=device, dtype=weights.dtype)
+    threshold = (uniforms[:, 0] * others_total).unsqueeze(1)
+    proposed = (others.cumsum(dim=1) <= threshold).sum(dim=1).clamp_max(q - 1)
+    excluded = weights.clone()
+    excluded[rows, proposed] = 0.0
+    accepted = (others_total > 0) & (uniforms[:, 1] * excluded.sum(dim=1) < others_total)
+    chains[:, idx] = one_hot(torch.where(accepted, proposed, old), num_classes=q).to(dtype)
+
+    return chains
+
+
+def metropolized_gibbs_sampling(
+    chains: torch.Tensor,
+    params: dict[str, torch.Tensor],
+    nsweeps: int,
+    beta: float = 1.0,
+) -> torch.Tensor:
+    """Metropolized Gibbs sampling. Attempts L * nsweeps updates to each sequence in 'chains'.
+
+    Args:
+        chains (torch.Tensor): One-hot encoded sequences of shape (batch_size, L, q).
+        params (Dict[str, torch.Tensor]): Parameters of the model.
+            - "bias": Tensor of shape (L, q) - local biases.
+            - "coupling_matrix": Tensor of shape (L, q, L, q) - coupling matrix.
+        nsweeps (int): Number of sweeps, where one sweep corresponds to attempting L updates.
+        beta (float, optional): Inverse temperature. Defaults to 1.0.
+
+    Returns:
+        torch.Tensor: Updated chains.
+    """
+    L = params["bias"].shape[0]
+    chains_mutate = chains.clone()  # avoids to modify the chains inplace
+    for _ in range(nsweeps * L):
+        chains_mutate = metropolized_gibbs_step_uniform_sites(chains_mutate, params, beta)
+
+    return chains_mutate
+
+
+@torch.no_grad()
+def metropolized_gibbs_sampling_categorical(
+    states: torch.Tensor,
+    params: dict[str, torch.Tensor],
+    nsweeps: int,
+    beta: float = 1.0,
+) -> torch.Tensor:
+    """Metropolized Gibbs sampling of integer states of shape (N, L).
+
+    Each update draws one site, shared by all chains, proposes a different
+    state b from the site conditional restricted to the other states and
+    accepts it with min(1, (1 - p_a) / (1 - p_b)) (Liu 1996). This dominates
+    Gibbs sampling in the Peskun order. Reference implementation for the
+    Triton replica kernel; couplings must have zero within-site blocks.
+    """
+    states = states.clone()
+    num_chains, length = states.shape
+    num_states = params["bias"].shape[1]
+    if num_chains == 0:
+        return states
+    # (site, source_site, source_state, state): candidate couplings are contiguous.
+    couplings = params["coupling_matrix"].permute(0, 2, 3, 1)
+    positions = torch.arange(length, device=states.device)
+    rows = torch.arange(num_chains, device=states.device)
+    for _ in range(nsweeps * length):
+        site = int(torch.randint(0, length, (1,), device=states.device))
+        field = params["bias"][site] + couplings[site][positions, states.long()].sum(1)
+        weights = torch.exp(beta * field - (beta * field).max(1, keepdim=True).values)
+        old = states[:, site].long()
+        others = weights.clone()
+        others[rows, old] = 0.0
+        others_total = others.sum(1)
+        uniforms = torch.rand(num_chains, 2, device=states.device, dtype=weights.dtype)
+        threshold = uniforms[:, 0] * others_total
+        proposed = (others.cumsum(1) <= threshold[:, None]).sum(1).clamp_max(num_states - 1)
+        # Sum the excluded weights directly: S - w_b cancels when b dominates.
+        excluded = weights.clone()
+        excluded[rows, proposed] = 0.0
+        proposed_total = excluded.sum(1)
+        accepted = (others_total > 0) & (uniforms[:, 1] * proposed_total < others_total)
+        states[:, site] = torch.where(accepted, proposed, old).to(states.dtype)
+    return states
+
+
 def get_sampler(sampling_method: str) -> Callable:
     """Returns the sampling function corresponding to the chosen method.
 
     Args:
-        sampling_method (str): String indicating the sampling method. Choose between 'metropolis' and 'gibbs'.
+        sampling_method (str): String indicating the sampling method. Choose between 'metropolis', 'gibbs'
+            and 'metropolized_gibbs'.
 
     Raises:
         KeyError: Unknown sampling method.
@@ -248,13 +365,28 @@ def get_sampler(sampling_method: str) -> Callable:
         return gibbs_sampling
     elif sampling_method == "metropolis":
         return metropolis_sampling
+    elif sampling_method == "metropolized_gibbs":
+        return metropolized_gibbs_sampling
     else:
-        raise KeyError("Unknown sampling method. Choose between 'metropolis' and 'gibbs'.")
+        raise KeyError("Unknown sampling method. Choose between 'metropolis', 'gibbs' and 'metropolized_gibbs'.")
 
 
 def prepare_sampler(sampling_method: str, device: torch.device) -> Callable:
-    """Select a fused CUDA sampler, or the scripted sampler without Triton."""
+    """Select the fastest sampler for ``device``.
+
+    CUDA uses the fused Triton kernels when Triton is installed. CPU uses the
+    multithreaded Numba kernels of :mod:`adabmDCA.numba_kernels` when Numba is
+    installed (``pip install adabmDCA[cpu]``) and not disabled with
+    ``ADABMDCA_NUMBA=0``. Otherwise the TorchScript samplers of this module run.
+    All of them perform the same random-site updates and sample the same
+    distribution.
+    """
     sampler = get_sampler(sampling_method)
+    if device.type == "cpu":
+        from adabmDCA.numba_kernels import is_numba_available, onehot_sampler
+
+        if is_numba_available():
+            return onehot_sampler(sampling_method)
     scripted_sampler = torch.jit.script(sampler)
     if device.type == "cuda":
         try:
@@ -262,11 +394,14 @@ def prepare_sampler(sampling_method: str, device: torch.device) -> Callable:
                 gibbs_sampling_triton,
                 is_triton_available,
                 metropolis_sampling_triton,
+                metropolized_gibbs_sampling_triton,
             )
 
             if is_triton_available():
                 if sampling_method == "metropolis":
                     return metropolis_sampling_triton
+                if sampling_method == "metropolized_gibbs":
+                    return metropolized_gibbs_sampling_triton
 
                 # The former N*L threshold described the old strided gather
                 # kernel. Contiguous candidate loads also win above it.

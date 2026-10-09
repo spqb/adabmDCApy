@@ -1,5 +1,7 @@
+import gzip
 import math
-from typing import Dict, Optional, Tuple, Union
+from pathlib import Path
+from typing import IO, Dict, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -16,52 +18,34 @@ from adabmDCA.utils import get_mask_save
 def load_chains(
     fname: str,
     tokens: str,
-    load_weights: bool = False,
     device: torch.device = torch.device("cpu"),
     dtype: torch.dtype = torch.float32,
 ) -> Tuple[torch.Tensor, ...]:
-    """Loads the sequences from a fasta file and returns the one-hot encoded version.
-    If the sequences are weighted, the log-weights are also returned. If the sequences are not weighted, the log-weights are set to 0.
+    """Load chain sequences from FASTA and return their one-hot encoding.
     
     Args:
         fname (str): Path to the file containing the sequences.
         tokens (str): "protein", "dna", "rna" or another string with the alphabet to be used.
-        load_weights (bool, optional): If True, the log-weights are loaded and returned. Defaults to False.
         device (torch.device, optional): Device where to store the sequences. Defaults to "cpu".
         dtype (torch.dtype, optional): Data type of the sequences. Defaults to torch.float32
     
     Return:
-        Tuple[torch.Tensor, ...]: One-hot encoded sequences and log-weights if load_weights is True.
+        Tuple[torch.Tensor, ...]: One-hot encoded sequences.
     """
-    def parse_header(header: str):
-        h = header.split("|")
-        if len(h) == 2:
-            log_weight = float(h[1].split("=")[1])
-            return log_weight
-        else:
-            return 0.0
-    
     alignment = read_alignment(fname, format="fasta")
-    headers = np.asarray(alignment.names, dtype=str)
     sequences = np.asarray(alignment.sequences, dtype=str)
     validate_alphabet(sequences, tokens=tokens)
     encoded_sequences = encode_sequence(sequences, tokens=tokens)
     encoded_sequences = torch.tensor(encoded_sequences, dtype=torch.int64)
     sequences_oh = one_hot(encoded_sequences, num_classes=len(tokens)).to(device=device, dtype=dtype)
     
-    if load_weights:
-        log_weights = np.vectorize(parse_header)(headers)
-        log_weights = torch.tensor(log_weights, device=device, dtype=dtype)
-        return (sequences_oh, log_weights)
-    else:
-        return (sequences_oh,)
+    return (sequences_oh,)
 
 
 def save_chains(
     fname: str,
     chains: Union[list, np.ndarray, torch.Tensor],
     tokens: str,
-    log_weights: Union[torch.Tensor, np.ndarray, None] = None
 ) -> None:
     """Saves the chains in a fasta file.
 
@@ -69,14 +53,8 @@ def save_chains(
         fname (str): Path to the file where to save the chains.
         chains (Union[list, np.ndarray, torch.Tensor]): Iterable with sequences in string, categorical or one-hot encoded format.
         tokens (str): "protein", "dna", "rna" or another string with the alphabet to be used.
-        log_weights (Union[torch.Tensor, np.ndarray, None], optional): Log-weights of the chains. Defaults to None.
     """
-    if log_weights is not None:
-        if isinstance(log_weights, torch.Tensor):
-            log_weights = log_weights.cpu().numpy()
-        headers = [f"chain_{i}|log_weight={log_weights[i]}" for i in range(len(chains))]
-    else:
-        headers = [f"chain_{i}" for i in range(len(chains))]
+    headers = [f"chain_{i}" for i in range(len(chains))]
     resolved_tokens = get_tokens(tokens)
     if isinstance(chains, torch.Tensor):
         chains = chains.detach().cpu().numpy()
@@ -93,6 +71,29 @@ def save_chains(
     )
 
 
+_GZIP_MAGIC = b"\x1f\x8b"
+# Parameter files are rewritten at every checkpoint: the fastest level keeps
+# about two thirds of the savings of the default one at a fifth of its cost.
+_PARAMS_COMPRESSLEVEL = 1
+
+
+def is_gzip(fname: Union[str, Path]) -> bool:
+    """Whether a file is gzip-compressed, judged by its content rather than its name."""
+    with open(fname, "rb") as handle:
+        return handle.read(2) == _GZIP_MAGIC
+
+
+def open_params(fname: Union[str, Path], mode: str = "r") -> IO[str]:
+    """Open a parameter file as text; gzip is detected on reading and chosen by a ``.gz`` name on writing."""
+    if mode == "r":
+        if is_gzip(fname):
+            return gzip.open(fname, "rt", encoding="utf-8")
+        return open(fname, "r", encoding="utf-8")
+    if str(fname).endswith(".gz"):
+        return gzip.open(fname, "wt", encoding="utf-8", compresslevel=_PARAMS_COMPRESSLEVEL)
+    return open(fname, "w", encoding="utf-8", buffering=1024 * 1024)
+
+
 def load_params(
     fname: str,
     tokens: str,
@@ -101,7 +102,8 @@ def load_params(
 ) -> Dict[str, torch.Tensor]:
     """Import parameters from the established ``J``/``h`` text format.
 
-    The file is parsed in two streaming passes so memory use is bounded by the
+    Gzip-compressed files (such as ``params.dat.gz``) are read transparently,
+    whatever their name. The file is parsed in two streaming passes so memory use is bounded by the
     final tensors and a small coupling chunk. Files containing one or both
     coupling triangles are supported.
 
@@ -124,7 +126,7 @@ def load_params(
 
     # First pass: validate the compact text records and determine L without
     # retaining the file or millions of Python objects in memory.
-    with open(fname, "r", encoding="utf-8") as handle:
+    with open_params(fname) as handle:
         for line_number, raw_line in enumerate(handle, 1):
             parts = raw_line.split()
             if not parts or parts[0].startswith("#"):
@@ -184,7 +186,7 @@ def load_params(
         j_values.clear()
 
     # Second pass: populate the final memory layout in bounded chunks.
-    with open(fname, "r", encoding="utf-8") as handle:
+    with open_params(fname) as handle:
         for line_number, raw_line in enumerate(handle, 1):
             parts = raw_line.split()
             if not parts or parts[0].startswith("#"):
@@ -322,7 +324,8 @@ def save_params(
     """Save parameters in the established ``J``/``h`` text format.
 
     Couplings are streamed in bounded chunks using the canonical ``i < j``
-    triangle. A supplied symmetric mask is collapsed onto that triangle.
+    triangle. A supplied symmetric mask is collapsed onto that triangle. A
+    file name ending in ``.gz`` is written gzip-compressed.
 
     Args:
         fname (str): Path to the file where to save the parameters.
@@ -365,7 +368,7 @@ def save_params(
     buffer: list[str] = []
     chunk_size = 65_536
 
-    with open(fname, "w", encoding="utf-8", buffering=1024 * 1024) as handle:
+    with open_params(fname, "w") as handle:
         def flush_lines() -> None:
             if buffer:
                 handle.write("".join(buffer))

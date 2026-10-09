@@ -2,7 +2,7 @@
 
 from numbers import Integral
 
-from adabmDCA.api.exceptions import InputValidationError
+from adabmDCA.exceptions import InputValidationError
 
 
 def validate_integer(

@@ -1,5 +1,5 @@
-import warnings
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 import torch
@@ -9,7 +9,6 @@ from torch.utils.data import Dataset
 from adabmDCA.alignment import Alignment
 from adabmDCA.input_loading import (
     AlignmentLoadConfig,
-    LoadedAlignment,
     WeightInput,
     load_alignment,
     load_sequence_weights,
@@ -19,73 +18,33 @@ CPU_DEVICE = torch.device("cpu")
 
 
 class DatasetDCA(Dataset):
-    """Dataset class for handling multi-sequence alignments data.
+    """Encoded alignment with sequence weights, as a PyTorch dataset.
 
-    Args:
-       path_data (str): Path to multi sequence alignment in fasta format.
-       path_weights (Optional[str], optional): Path to the file containing the importance weights of the sequences. If None, the weights are computed automatically.
-       alphabet (str, optional): Selects the type of encoding of the sequences. Default choices are ("protein", "rna", "dna"). Defaults to "protein".
-       clustering_th (float, optional): Sequence identity threshold for clustering. Defaults to 0.8.
-       no_reweighting (bool, optional): If True, the weights are not computed. Defaults to False.
-       remove_duplicates (bool, optional): If True, removes duplicate sequences from the dataset. Defaults to False.
-       filter_sequences (bool, optional): If True, removes sequences containing tokens not in the alphabet. Defaults to False.
-       message (bool, optional): Print the import message. Defaults to True.
-       device (torch.device, optional): Device to be used. Defaults to "cpu".
-       dtype (torch.dtype, optional): Data type of the dataset. Defaults to torch.float32.
+    Build one with :meth:`from_alignment`. Items are ``(sequence, weight)`` pairs
+    of encoded sequences.
+
+    Attributes:
+        names: Sequence names.
+        data: Encoded sequences, shape ``(M, L)``, integer states.
+        weights: Weight of each sequence.
+        tokens: Ordered alphabet.
     """
 
-    def __init__(
-        self,
-        path_data: str | Path | Alignment,
-        path_weights: WeightInput | None = None,
-        alphabet: str = "protein",
-        clustering_th: float = 0.8,
-        no_reweighting: bool = False,
-        remove_duplicates: bool = False,
-        filter_sequences: bool = False,
-        message: bool = True,
-        device: torch.device = CPU_DEVICE,
-        dtype: torch.dtype = torch.float32,
-    ):
-        warnings.warn(
-            "DatasetDCA(path_data=...) is deprecated; use DatasetDCA.from_alignment() "
-            "or the high-level train_model/sample_sequences/predict_contacts APIs.",
-            DeprecationWarning,
-            stacklevel=2,
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        raise TypeError(
+            "DatasetDCA cannot be built from a path; use DatasetDCA.from_alignment(), "
+            "or the high-level train_model/sample_sequences/predict_contacts APIs."
         )
-        loaded = load_alignment(
-            path_data,
-            config=AlignmentLoadConfig(
-                alphabet=alphabet,
-                invalid_sequences="drop" if filter_sequences else "error",
-                remove_duplicates=remove_duplicates,
-            ),
-        )
-        weights = load_sequence_weights(
-            path_weights,
-            loaded_alignment=loaded,
-            no_reweighting=no_reweighting,
-            clustering_seqid=clustering_th,
-            device=device,
-            dtype=dtype,
-        )
-        self._initialize(loaded, weights, device=device, dtype=dtype)
-        if message:
-            print(
-                "Multi-sequence alignment imported: "
-                f"M = {self.data.shape[0]}, L = {self.data.shape[1]}, "
-                f"q = {len(self.tokens)}, M_eff = {int(self.weights.sum())}."
-            )
 
     def _initialize(
         self,
-        loaded: LoadedAlignment,
+        loaded: Alignment,
         weights: torch.Tensor,
         *,
         device: torch.device,
         dtype: torch.dtype,
     ) -> None:
-        self.names = np.asarray(loaded.alignment.names, dtype=str)
+        self.names = np.asarray(loaded.names, dtype=str)
         self.data = torch.as_tensor(
             loaded.encoded_sequences,
             dtype=torch.int64,
@@ -96,32 +55,6 @@ class DatasetDCA(Dataset):
         self.device = device
         self.dtype = dtype
         self.load_result = loaded
-
-    @classmethod
-    def from_loaded_alignment(
-        cls,
-        loaded: LoadedAlignment,
-        *,
-        weights: WeightInput | None = None,
-        clustering_th: float = 0.8,
-        no_reweighting: bool = False,
-        device: torch.device = CPU_DEVICE,
-        dtype: torch.dtype = torch.float32,
-        allow_signed_weights: bool = False,
-    ) -> "DatasetDCA":
-        """Materialize an in-memory dataset from a validated alignment."""
-        resolved_weights = load_sequence_weights(
-            weights,
-            loaded_alignment=loaded,
-            no_reweighting=no_reweighting,
-            clustering_seqid=clustering_th,
-            device=device,
-            dtype=dtype,
-            allow_negative=allow_signed_weights,
-        )
-        dataset = cls.__new__(cls)
-        dataset._initialize(loaded, resolved_weights, device=device, dtype=dtype)
-        return dataset
 
     @classmethod
     def from_alignment(
@@ -136,31 +69,46 @@ class DatasetDCA(Dataset):
         dtype: torch.dtype = torch.float32,
         allow_signed_weights: bool = False,
     ) -> "DatasetDCA":
-        """Load and materialize an alignment without constructor-side policy."""
-        loaded = load_alignment(alignment, config=load_config)
-        return cls.from_loaded_alignment(
-            loaded,
-            weights=weights,
-            clustering_th=clustering_th,
+        """Load an alignment and its weights into a dataset.
+
+        An ``Alignment`` already returned by :func:`load_alignment` is reused
+        when ``load_config`` is omitted, preserving its filtering provenance.
+        Pass ``load_config`` to apply a new loading policy.
+
+        Args:
+            alignment: Path, :class:`Alignment` or sequences.
+            weights: Sequence weights (file, array or tensor), or ``None`` to compute them.
+            load_config: Loading policy; see :class:`AlignmentLoadConfig`.
+            clustering_th: Identity threshold of the computed weights.
+            no_reweighting: Give every sequence weight 1.
+            device: Device of the tensors.
+            dtype: Precision of the weights and one-hot encodings.
+            allow_signed_weights: Accept negative weights (experimental reintegration).
+
+        Returns:
+            A :class:`DatasetDCA`.
+
+        Example:
+            >>> dataset = DatasetDCA.from_alignment("family.fasta", load_config=AlignmentLoadConfig(alphabet="rna"))
+            >>> fi, fij = dataset.get_frequencies(pseudocount=1 / dataset.get_effective_size())
+        """
+        loaded = (
+            alignment
+            if isinstance(alignment, Alignment) and alignment.tokens is not None and load_config is None
+            else load_alignment(alignment, config=load_config)
+        )
+        resolved_weights = load_sequence_weights(
+            weights,
+            loaded_alignment=loaded,
             no_reweighting=no_reweighting,
+            clustering_seqid=clustering_th,
             device=device,
             dtype=dtype,
-            allow_signed_weights=allow_signed_weights,
+            allow_negative=allow_signed_weights,
         )
-
-    @classmethod
-    def from_path(cls, path: str | Path, **kwargs) -> "DatasetDCA":
-        """Compatibility factory mirroring :meth:`from_alignment`.
-
-        .. deprecated:: 0.7.8
-           Use :meth:`from_alignment` instead.
-        """
-        warnings.warn(
-            "DatasetDCA.from_path() is deprecated; use DatasetDCA.from_alignment().",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return cls.from_alignment(path, **kwargs)
+        dataset = cls.__new__(cls)
+        dataset._initialize(loaded, resolved_weights, device=device, dtype=dtype)
+        return dataset
 
     def __len__(self) -> int:
         return len(self.data)

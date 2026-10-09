@@ -8,8 +8,13 @@ from adabmDCA.parser import add_args_reintegration, add_args_train
 
 
 def create_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Train a DCA model with experimental reintegration.")
-    return add_args_reintegration(add_args_train(parser))
+    parser = argparse.ArgumentParser(
+        description=(
+            "Train a DCA model with experimental reintegration. Training uses PCD (Persistent Contrastive "
+            "Divergence), because the signed weights of the tested sequences are not supported by PTT."
+        )
+    )
+    return add_args_reintegration(add_args_train(parser, ptt=False))
 
 
 def _config_from_args(args):

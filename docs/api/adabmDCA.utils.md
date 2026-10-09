@@ -10,7 +10,7 @@
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/utils.py#L118"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/utils.py#L7"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `init_parameters`
 
@@ -36,7 +36,7 @@ Initialize the parameters of the DCA model. The bias terms are initialized from 
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/utils.py#L139"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/utils.py#L28"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `init_chains`
 
@@ -73,7 +73,7 @@ Initialize the Markov chains of the DCA model. If 'fi' is provided, the chains a
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/utils.py#L169"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/utils.py#L58"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `get_mask_save`
 
@@ -100,7 +100,7 @@ Returns the mask to save the upper-triangular part of the coupling matrix.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/utils.py#L187"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/utils.py#L76"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `systematic_resampling`
 
@@ -126,7 +126,7 @@ Performs the systematic resampling of the chains according to their relative wei
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/utils.py#L214"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/utils.py#L103"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `resample_sequences`
 
@@ -153,7 +153,7 @@ Extracts nextract sequences from data with replacement according to the weights.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/utils.py#L235"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/utils.py#L124"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `get_device`
 
@@ -179,7 +179,7 @@ Returns the device where to store the tensors.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/utils.py#L269"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/utils.py#L158"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `get_dtype`
 
@@ -204,7 +204,7 @@ Returns the data type of the tensors.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/utils.py#L286"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/utils.py#L175"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `parse_log_file`
 
@@ -225,77 +225,6 @@ Parse a DCA training log file.
 **Returns:**
 
  - <b>`Tuple[Dict[str, str], Dict[str, np.ndarray]]`</b>:  Dictionary containing metadata and training data.
-
-
----
-
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/utils.py#L8"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
-
-## <kbd>class</kbd> `Timer`
-Track recent ``(time, pearson)`` points and predict when a target Pearson is reached.
-
-The prediction assumes a power-law relation in log-space:
-
-``log(1 - pearson) = a * log(time) + b``.
-
-Fitting starts only after ``burnout`` updates have been observed and once at least ``min_points`` buffered points are available.
-
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/utils.py#L19"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
-
-### <kbd>method</kbd> `__init__`
-
-```python
-__init__(
-    target_pearson: float,
-    memory_size: int = 50,
-    burnout: int = 80,
-    min_points: int = 20
-)
-```
-
-
-
-
-
-
-
-
----
-
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/utils.py#L65"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
-
-### <kbd>method</kbd> `predict`
-
-```python
-predict() → Optional[float]
-```
-
-Predict the total training time needed to reach the configured target Pearson.
-
-
-
-**Returns:**
-
- - <b>`Optional[float]`</b>:  Predicted total time to reach the target Pearson. Returns ``None``  during burnout, when there are not enough valid points, or when the fit  is not predictive.
-
----
-
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/utils.py#L47"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
-
-### <kbd>method</kbd> `update`
-
-```python
-update(time: float, pearson: float) → None
-```
-
-Append a new observation.
-
-
-
-**Args:**
-
- - <b>`time`</b> (float):  Elapsed training time. Must be > 0.
- - <b>`pearson`</b> (float):  Current Pearson correlation. Must be < 1.
 
 
 

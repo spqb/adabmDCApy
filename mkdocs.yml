@@ -1,72 +1,71 @@
-site_name: adabmDCApy
+site_name: adabmDCA 2.1
 site_dir: site
 docs_dir: docs
 nav:
   - Home: index.md
   - Installation: installation.md
-  - Input data and preprocessing: preprocessing.md
-  - Alignment utilities: alignment_preprocessing.md
-  - Training: training.md
-  - Thermodynamic integration: thermodynamic_integration.md
-  - Applications: applications.md
-  - High-level Python API: high_level_api.md
-  - Quicklist: quicklist.md
-  - Script arguments: script_arguments.md
-  - Release verification: release_checks.md
-  - Python APIs:
+  - Use the package:
+      - Overview: usage/index.md
+      - Choosing settings: usage/choosing.md
+      - Prepare alignments · preprocess: usage/preprocess.md
+      - Split an alignment · split-data: usage/split-data.md
+      - Train models · train: usage/train.md
+      - Generate sequences · sample: usage/sample.md
+      - Score sequences · energies: usage/energies.md
+      - Mutation scan · dms: usage/dms.md
+      - Contact prediction · contacts: usage/contacts.md
+      - Entropy · entropy: usage/entropy.md
+      - Experimental feedback · reintegrate: usage/reintegrate.md
+      - Plot a run · plot-training-log: usage/plot-training-log.md
+      - Python workflows: usage/python.md
+  - How it works:
+      - Overview: algorithms/index.md
+      - Input and reweighting: algorithms/input.md
+      - Training: algorithms/training.md
+      - Sampling: algorithms/sampling.md
+      - Diagnose a run: algorithms/diagnostics.md
+      - Analysis: algorithms/analysis.md
+      - Benchmarks: algorithms/benchmarks.md
+  - Theory and definitions:
+      - Overview: quantities/index.md
+      - Potts model and statistics: quantities/model.md
+      - Training quantities: quantities/training.md
+      - Sampling quantities: quantities/sampling.md
+      - Normalization, scoring and importance weights: quantities/derived.md
+  - Python API:
       - Overview: api/index.md
-      - Generated symbol index: api/symbols.md
-      - High-level workflows:
-          - Models: api/adabmDCA.api.model.md
-          - Training: api/adabmDCA.api.training.md
-          - Sampling: api/adabmDCA.api.sampling.md
-          - Sequence scoring: api/adabmDCA.api.scoring.md
-          - Contact prediction: api/adabmDCA.api.contacts.md
-          - Mutation scanning: api/adabmDCA.api.mutations.md
-          - Entropy estimation: api/adabmDCA.api.entropy.md
-          - Reintegration: api/adabmDCA.api.reintegration.md
-          - Alignment splitting: api/adabmDCA.api.splitting.md
-          - Result objects: api/adabmDCA.api.results.md
-          - Errors: api/adabmDCA.api.exceptions.md
-          - Training input loading: api/adabmDCA.api.input_loading.md
-          - Serialization helpers: api/adabmDCA.api.serialization.md
-      - Core data APIs:
-          - Alphabets: api/adabmDCA.alphabet.md
-          - Alignment objects and I/O: api/adabmDCA.alignment.md
-          - Validated input loading: api/adabmDCA.input_loading.md
-          - Alignment preprocessing: api/adabmDCA.preprocessing.md
-          - Training configuration: api/adabmDCA.training_config.md
-          - Training control: api/adabmDCA.training_control.md
-      - Numerical and low-level APIs:
-          - Checkpoints and logs: api/adabmDCA.checkpoint.md
-          - Fasta utils: api/adabmDCA.fasta.md
-          - Compute statistics: api/adabmDCA.stats.md
-          - DCA utils: api/adabmDCA.dca.md
-          - Graph operations: api/adabmDCA.graph.md
-          - Import and export: api/adabmDCA.io.md
-          - Sampling functions: api/adabmDCA.sampling.md
-          - Triton sampling kernels: api/adabmDCA.sampling_triton.md
-          - Mixing-time estimation: api/adabmDCA.resampling.md
-          - Utilities: api/adabmDCA.utils.md
-          - Dataset class: api/adabmDCA.dataset.md
-          - Statistical mechanics functions: api/adabmDCA.statmech.md
-          - Train/test split: api/adabmDCA.cobalt.md
-          - Training functions: api/adabmDCA.training.md
-          - Special functions: api/adabmDCA.functional.md
-          - Helper functions for plotting: api/adabmDCA.plot.md
-
-theme: 
+      - Symbols: api/symbols.md
+      - Training: api/adabmDCA.api.training.md
+      - Sampling: api/adabmDCA.api.sampling.md
+      - PTT workflows: api/adabmDCA.api.ptt.md
+      - Models: api/adabmDCA.api.model.md
+      - Results: api/adabmDCA.api.results.md
+      - PTT configuration: api/adabmDCA.ptt.config.md
+      - PTT sampler: api/adabmDCA.ptt.sampler.md
+      - Steering: api/adabmDCA.steering.md
+      - Scoring: api/adabmDCA.api.scoring.md
+      - Contacts: api/adabmDCA.api.contacts.md
+      - Mutations: api/adabmDCA.api.mutations.md
+      - Entropy: api/adabmDCA.api.entropy.md
+      - Reintegration: api/adabmDCA.api.reintegration.md
+      - Splitting: api/adabmDCA.api.splitting.md
+      - Input loading: api/adabmDCA.input_loading.md
+      - Training configuration: api/adabmDCA.training_config.md
+theme:
   name: material
+  logo: assets/images/logo-header.png
+  favicon: assets/images/favicon.png
   features:
-    - content.code.annotate # Optional syntax highlighting
-    - content.tabs.link     # Optional tabs support
-
+    - navigation.sections
+    - content.code.copy
+extra_css:
+  - assets/stylesheets/extra.css
 markdown_extensions:
-    - pymdownx.arithmatex:  # Enables LaTeX math
-        generic: true       # Uses KaTeX by default
-    - pymdownx.snippets
-    - admonition  # Enables basic !!! syntax
-    - pymdownx.details  # For richer styles (optional)
-
+  - admonition
+  - attr_list
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.arithmatex:
+      generic: true
 extra_javascript:
   - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js

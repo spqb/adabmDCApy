@@ -11,52 +11,107 @@ Notebook-friendly DCA model object.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/model.py#L150"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/model.py#L248"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `load_model`
 
 ```python
 load_model(
     path: 'str | Path',
-    alphabet: 'str' = 'protein',
+    alphabet: 'str | None' = None,
     device: 'str' = 'auto',
     dtype: 'str' = 'float32'
 ) → DCAModel
 ```
 
-Load DCA parameters into a reusable :class:`DCAModel`.
+Load DCA parameters from a text parameter file or a PTT archive.
 
-``device='auto'`` selects CUDA when available and otherwise uses CPU. Explicit ``'cpu'``, ``'cuda'``, and ``'mps'`` values remain supported.
+The file type is detected from its content. For a PTT archive (``.h5``), the final model of the training run is loaded together with its alphabet.
+
+
+
+**Args:**
+
+ - <b>`path`</b>:  Parameter file written by ``adabmDCA train`` (``params.dat``,  optionally gzipped) or a PTT archive (``ptt.h5``).
+ - <b>`alphabet`</b>:  ``"protein"``, ``"rna"``, ``"dna"`` or an ordered custom token  string. ``None`` reads it from a PTT archive and assumes  ``"protein"`` for text files. An explicit value must match the archive.
+ - <b>`device`</b>:  ``"auto"`` (CUDA when available, else CPU), ``"cpu"``, ``"cuda"``  or ``"mps"``.
+ - <b>`dtype`</b>:  ``"float32"`` or ``"float64"``. PTT archives keep their precision.
+
+
+
+**Returns:**
+
+ - <b>`A `</b>: class:`DCAModel` on the requested device.
+
+
+
+**Raises:**
+
+ - <b>`ModelLoadError`</b>:  If the file is missing or cannot be parsed.
+ - <b>`InputValidationError`</b>:  If the alphabet is invalid or conflicts with the file.
+
+
+
+**Example:**
+ ``` model = load_model("output/params.dat.gz", alphabet="rna")```
+    >>> model
+    DCAModel(L=136, q=5, tokens='-ACGU', ...)
+
 
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/model.py#L190"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/model.py#L317"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `inspect_model`
 
 ```python
 inspect_model(
     model: 'DCAModel | str | Path',
-    alphabet: 'str' = 'protein',
+    alphabet: 'str | None' = None,
     device: 'str' = 'auto',
     dtype: 'str' = 'float32'
 ) → ModelMetadata
 ```
 
-Return portable metadata for an in-memory or saved model.
+Describe a model without using it: length, alphabet, device and precision.
+
+
+
+**Args:**
+
+ - <b>`model`</b>:  A :class:`DCAModel`, or a path to a parameter file or PTT archive.
+ - <b>`alphabet`</b>:  Alphabet of a text parameter file: ``"protein"``, ``"rna"``,  ``"dna"`` or an ordered custom token string. ``None`` reads it from a  PTT archive and assumes ``"protein"`` for text files. Ignored when
+ - <b>```model`` is already a `</b>: class:`DCAModel`.
+ - <b>`device`</b>:  ``"auto"`` (CUDA when available, else CPU), ``"cpu"``,  ``"cuda"`` or ``"mps"``. Ignored for an in-memory model.
+ - <b>`dtype`</b>:  ``"float32"`` or ``"float64"`` for loaded parameters. Ignored for an  in-memory model.
+
+
+
+**Returns:**
+
+ - <b>`The model's `</b>: class:`ModelMetadata`.
 
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/model.py#L35"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/model.py#L37"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `DCAModel`
-Loaded DCA parameters with convenient analysis methods.
+DCA parameters and convenience methods for scoring and sampling.
 
-Prefer :func:`load_model` when loading a model saved by adabmDCA. Direct construction is useful for advanced users and tests that already have the parameter tensors in memory.
+Use :func:`load_model` for a saved model. Construct ``DCAModel`` directly when parameter tensors are already in memory. The bias tensor determines the model length ``L``, number of states ``q``, device, and dtype. The ordered ``tokens`` string maps state indices to residue symbols.
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/model.py#L43"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+
+
+**Attributes:**
+
+ - <b>`params`</b>:  Parameter tensors, including ``bias`` with shape ``(L, q)``  and ``coupling_matrix`` with shape ``(L, q, L, q)``.
+ - <b>`alphabet`</b>:  Standard alphabet name or custom alphabet passed at creation.
+ - <b>`tokens`</b>:  Resolved, ordered token string of length ``q``.
+ - <b>`source`</b>:  Source path as a string, or ``None`` for an in-memory model.
+
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/model.py#L53"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `__init__`
 
@@ -68,48 +123,76 @@ __init__(
 ) → None
 ```
 
+Validate and retain a set of DCA parameter tensors.
 
 
 
+**Args:**
+
+ - <b>`params`</b>:  Mapping containing finite ``bias`` and  ``coupling_matrix`` tensors with compatible shapes.
+ - <b>`alphabet`</b>:  ``"protein"``, ``"dna"``, ``"rna"``, or an ordered  custom token string whose length equals ``q``.
+ - <b>`source`</b>:  Optional path to the file from which the parameters came.
+
+
+
+**Raises:**
+
+ - <b>`InputValidationError`</b>:  If required tensors are missing, nonfinite,  incompatible in shape, or inconsistent with ``alphabet``.
 
 
 ---
 
 #### <kbd>property</kbd> metadata
 
+Portable model description derived from the current bias tensor.
 
-
-
+Includes length, alphabet, tokens, source, package version, device, and dtype. ``num_states`` is available on the returned metadata.
 
 
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/model.py#L104"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/model.py#L160"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `compute_contact_map`
 
 ```python
-compute_contact_map()
+compute_contact_map() → ndarray
 ```
 
-Return the model's APC-corrected contact-score matrix.
+Return the model's APC-corrected contact scores.
+
+
+
+**Returns:**
+  A NumPy array of shape ``(L, L)``. Contact prediction requires  the ``"-"`` gap token in the model alphabet.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/model.py#L92"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/model.py#L129"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `compute_energies`
 
 ```python
-compute_energies(sequences: 'str | Iterable[str]')
+compute_energies(sequences: 'str | Iterable[str]') → ndarray
 ```
 
-Return a NumPy vector with one energy per sequence.
+Compute model energies for one or more aligned sequences.
+
+
+
+**Args:**
+
+ - <b>`sequences`</b>:  One sequence string or an iterable of strings, each of  length ``L`` and containing only the model's tokens.
+
+
+
+**Returns:**
+ A one-dimensional NumPy array with one energy per input sequence, including when a single string is supplied.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/model.py#L110"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/model.py#L171"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `predict_contacts`
 
@@ -117,11 +200,17 @@ Return a NumPy vector with one energy per sequence.
 predict_contacts() → ContactMapResult
 ```
 
-Return contact scores plus method and model metadata.
+Return contact scores together with method and model metadata.
+
+
+
+**Returns:**
+
+ - <b>`A `</b>: class:`ContactMapResult` whose score matrix has shape ``(L, L)``. The model alphabet must include ``"-"``.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/model.py#L122"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/model.py#L198"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `sample`
 
@@ -129,17 +218,32 @@ Return contact scores plus method and model metadata.
 sample(
     n_sequences: 'int',
     n_sweeps: 'int' = 1000,
-    sampler: 'str' = 'metropolis',
+    sampler: 'str' = 'metropolized_gibbs',
     beta: 'float' = 1.0,
     seed: 'int' = 0
 ) → tuple[str, ]
 ```
 
-Generate sequences and return them as ordinary strings.
+Generate sequences and return only their decoded strings.
+
+
+
+**Args:**
+
+ - <b>`n_sequences`</b>:  Number of sequences to generate.
+ - <b>`n_sweeps`</b>:  Sampling sweeps applied to the initial chains.
+ - <b>`sampler`</b>:  ``"metropolis"``, ``"gibbs"`` or ``"metropolized_gibbs"``.
+ - <b>`beta`</b>:  Positive inverse temperature used for sampling.
+ - <b>`seed`</b>:  Random seed for reproducible initialization and sampling.
+
+
+
+**Returns:**
+ A tuple of ``n_sequences`` strings, each of length ``L``.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/model.py#L143"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/model.py#L230"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `sample_sequences`
 
@@ -147,11 +251,25 @@ Generate sequences and return them as ordinary strings.
 sample_sequences(n_sequences: 'int', **kwargs) → SamplingResult
 ```
 
-Generate sequences and return structured diagnostics.
+Generate sequences with energies and optional diagnostics.
+
+
+
+**Args:**
+
+ - <b>`n_sequences`</b>:  Number of sequences to generate.
+ - <b>`**kwargs`</b>:  Additional options accepted by
+ - <b>`:func`</b>: `adabmDCA.api.sampling.sample_sequences`, such as ``n_sweeps``, ``sampler``, ``seed``, or ``reference_fasta``.
+
+
+
+**Returns:**
+
+ - <b>`A `</b>: class:`SamplingResult` containing generated sequences, energies, model metadata, and any requested diagnostics.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/model.py#L116"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/model.py#L182"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `scan_mutations`
 
@@ -159,19 +277,48 @@ Generate sequences and return structured diagnostics.
 scan_mutations(wild_type: 'str', name: 'str' = 'wild_type') → MutationScanResult
 ```
 
-Score every single-residue mutant of ``wild_type``.
+Score every single-token substitution of a wild-type sequence.
+
+
+
+**Args:**
+
+ - <b>`wild_type`</b>:  Aligned sequence of length ``L`` using model tokens.
+ - <b>`name`</b>:  Label attached to the resulting mutation scan.
+
+
+
+**Returns:**
+
+ - <b>`A `</b>: class:`MutationScanResult` with wild-type energy and each mutant's energy difference relative to the wild type. Gap substitutions are included when ``"-"`` is a model token.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/model.py#L98"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/model.py#L144"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `score_sequences`
 
 ```python
-score_sequences(sequences: 'str | Iterable[str]') → EnergyResult
+score_sequences(
+    sequences: 'str | Iterable[str]',
+    local_lambda: 'float' = 1.0
+) → EnergyResult
 ```
 
-Return energies plus sequence and model metadata.
+Compute energy and CDE-based local free energy with sequence metadata.
+
+
+
+**Args:**
+
+ - <b>`sequences`</b>:  One aligned sequence or an iterable of aligned  sequences compatible with this model.
+ - <b>`local_lambda`</b>:  Coefficient of summed CDE; defaults to 1.
+
+
+
+**Returns:**
+
+ - <b>`An `</b>: class:`EnergyResult` containing the sequences, energy and local-free-energy vectors, and model metadata.
 
 
 

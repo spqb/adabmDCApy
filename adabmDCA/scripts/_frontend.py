@@ -2,9 +2,25 @@
 
 from __future__ import annotations
 
+import argparse
 from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
+
+
+class ExplicitOptionParser(argparse.ArgumentParser):
+    """Retain explicit options so archive workflows can inherit stored defaults."""
+
+    def parse_known_args(self, args=None, namespace=None):
+        import sys
+        arguments = list(sys.argv[1:] if args is None else args)
+        result, unknown = super().parse_known_args(arguments, namespace)
+        result._explicit_options = {
+            self._option_string_actions[option].dest
+            for arg in arguments
+            if (option := arg.split("=", 1)[0]) in self._option_string_actions
+        }
+        return result, unknown
 
 
 def print_header(title: str) -> None:
@@ -44,6 +60,31 @@ def input_stem(path: str | Path) -> str:
 
 def resolve_alphabet(args) -> None:
     """Resolve CLI auto once, before constructing any workflow configuration."""
+    archive = getattr(args, "ptt_resume", None)
+    params_path = getattr(args, "path_params", None)
+    if archive is None and params_path is not None:
+        if getattr(args, "strategy", None) == "ptt":
+            archive = params_path
+        elif Path(params_path).is_file():
+            with open(params_path, "rb") as handle:
+                if handle.read(8) == b"\x89HDF\r\n\x1a\n":
+                    archive = params_path
+    if archive is not None:
+        import json
+
+        import h5py
+
+        from adabmDCA.exceptions import InputValidationError
+        from adabmDCA.fasta import get_tokens
+        try:
+            with h5py.File(archive, "r") as handle:
+                tokens = json.loads(handle.attrs["metadata"])["tokens"]
+        except (OSError, KeyError, ValueError) as exc:
+            raise InputValidationError("PTT requires a structured HDF5 ladder archive.") from exc
+        if args.alphabet != "auto" and get_tokens(args.alphabet) != tokens:
+            raise InputValidationError("Explicit alphabet conflicts with the PTT archive.")
+        args.alphabet = tokens
+        return
     if args.alphabet != "auto":
         return
     from adabmDCA.alignment import normalize_gap_symbols, read_alignment
@@ -54,14 +95,16 @@ def resolve_alphabet(args) -> None:
     # or contact prediction without an input alignment.
     params = getattr(args, "path_params", None)
     if params is not None:
-        from adabmDCA.api.exceptions import ModelLoadError
+        from adabmDCA.exceptions import ModelLoadError
 
         if not Path(params).is_file():
             raise ModelLoadError(
                 f"Model parameter file '{params}' was not found.",
                 details={"path": str(params)},
             )
-        with open(params, encoding="utf-8") as handle:
+        from adabmDCA.io import open_params
+
+        with open_params(params) as handle:
             for line in handle:
                 parts = line.split()
                 if parts and parts[0] == "h" and len(parts) == 4:

@@ -14,43 +14,28 @@
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/dataset.py#L21"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/dataset.py#L20"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `DatasetDCA`
-Dataset class for handling multi-sequence alignments data.
+Encoded alignment with sequence weights, as a PyTorch dataset.
+
+Build one with :meth:`from_alignment`. Items are ``(sequence, weight)`` pairs of encoded sequences.
 
 
 
-**Args:**
+**Attributes:**
 
- - <b>`path_data`</b> (str):  Path to multi sequence alignment in fasta format.
- - <b>`path_weights`</b> (Optional[str], optional):  Path to the file containing the importance weights of the sequences. If None, the weights are computed automatically.
- - <b>`alphabet`</b> (str, optional):  Selects the type of encoding of the sequences. Default choices are ("protein", "rna", "dna"). Defaults to "protein".
- - <b>`clustering_th`</b> (float, optional):  Sequence identity threshold for clustering. Defaults to 0.8.
- - <b>`no_reweighting`</b> (bool, optional):  If True, the weights are not computed. Defaults to False.
- - <b>`remove_duplicates`</b> (bool, optional):  If True, removes duplicate sequences from the dataset. Defaults to False.
- - <b>`filter_sequences`</b> (bool, optional):  If True, removes sequences containing tokens not in the alphabet. Defaults to False.
- - <b>`message`</b> (bool, optional):  Print the import message. Defaults to True.
- - <b>`device`</b> (torch.device, optional):  Device to be used. Defaults to "cpu".
- - <b>`dtype`</b> (torch.dtype, optional):  Data type of the dataset. Defaults to torch.float32.
+ - <b>`names`</b>:  Sequence names.
+ - <b>`data`</b>:  Encoded sequences, shape ``(M, L)``, integer states.
+ - <b>`weights`</b>:  Weight of each sequence.
+ - <b>`tokens`</b>:  Ordered alphabet.
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/dataset.py#L37"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/dataset.py#L33"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `__init__`
 
 ```python
-__init__(
-    path_data: str | Path | Alignment,
-    path_weights: str | Path | Sequence[float] | ndarray | Tensor | None = None,
-    alphabet: str = 'protein',
-    clustering_th: float = 0.8,
-    no_reweighting: bool = False,
-    remove_duplicates: bool = False,
-    filter_sequences: bool = False,
-    message: bool = True,
-    device: device = device(type='cpu'),
-    dtype: dtype = torch.float32
-)
+__init__(*args: Any, **kwargs: Any) → None
 ```
 
 
@@ -62,7 +47,7 @@ __init__(
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/dataset.py#L126"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/dataset.py#L59"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>classmethod</kbd> `from_alignment`
 
@@ -79,45 +64,39 @@ from_alignment(
 ) → DatasetDCA
 ```
 
-Load and materialize an alignment without constructor-side policy.
+Load an alignment and its weights into a dataset.
+
+An ``Alignment`` already returned by :func:`load_alignment` is reused when ``load_config`` is omitted, preserving its filtering provenance. Pass ``load_config`` to apply a new loading policy.
+
+
+
+**Args:**
+
+ - <b>`alignment`</b>:  Path, :class:`Alignment` or sequences.
+ - <b>`weights`</b>:  Sequence weights (file, array or tensor), or ``None`` to compute them.
+ - <b>`load_config`</b>:  Loading policy; see :class:`AlignmentLoadConfig`.
+ - <b>`clustering_th`</b>:  Identity threshold of the computed weights.
+ - <b>`no_reweighting`</b>:  Give every sequence weight 1.
+ - <b>`device`</b>:  Device of the tensors.
+ - <b>`dtype`</b>:  Precision of the weights and one-hot encodings.
+ - <b>`allow_signed_weights`</b>:  Accept negative weights (experimental reintegration).
+
+
+
+**Returns:**
+
+ - <b>`A `</b>: class:`DatasetDCA`.
+
+
+
+**Example:**
+ ``` dataset = DatasetDCA.from_alignment("family.fasta", load_config=AlignmentLoadConfig(alphabet="rna"))```
+    >>> fi, fij = dataset.get_frequencies(pseudocount=1 / dataset.get_effective_size())
+
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/dataset.py#L100"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
-
-### <kbd>classmethod</kbd> `from_loaded_alignment`
-
-```python
-from_loaded_alignment(
-    loaded: LoadedAlignment,
-    weights: str | Path | Sequence[float] | ndarray | Tensor | None = None,
-    clustering_th: float = 0.8,
-    no_reweighting: bool = False,
-    device: device = device(type='cpu'),
-    dtype: dtype = torch.float32,
-    allow_signed_weights: bool = False
-) → DatasetDCA
-```
-
-Materialize an in-memory dataset from a validated alignment.
-
----
-
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/dataset.py#L151"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
-
-### <kbd>classmethod</kbd> `from_path`
-
-```python
-from_path(path: str | Path, **kwargs) → DatasetDCA
-```
-
-Compatibility factory mirroring :meth:`from_alignment`.
-
-.. deprecated:: 0.7.8  Use :meth:`from_alignment` instead.
-
----
-
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/dataset.py#L189"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/dataset.py#L137"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `get_effective_size`
 
@@ -135,7 +114,7 @@ Returns the effective size (Meff) of the dataset.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/dataset.py#L213"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/dataset.py#L161"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `get_frequencies`
 
@@ -163,7 +142,7 @@ Computes the single-site and two-site frequencies of the dataset. When there are
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/dataset.py#L173"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/dataset.py#L121"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `get_num_residues`
 
@@ -181,7 +160,7 @@ Returns the number of residues (L) in the multi-sequence alignment.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/dataset.py#L181"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/dataset.py#L129"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `get_num_states`
 
@@ -199,7 +178,7 @@ Returns the number of states (q) in the alphabet.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/dataset.py#L197"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/dataset.py#L145"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `shuffle`
 
@@ -211,7 +190,7 @@ Shuffles the dataset.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/dataset.py#L204"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/dataset.py#L152"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `to_one_hot`
 

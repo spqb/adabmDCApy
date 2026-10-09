@@ -1,0 +1,22 @@
+/* Give plots, tables, and API signatures more room on desktop screens. */
+.md-grid {
+  max-width: 86rem;
+}
+
+/* Centred logo above the title of the home page. */
+.home-logo {
+  text-align: center;
+  margin: 0 0 -0.5rem;
+}
+
+/* Figures carry a width proportional to their physical size (see the image
+   attributes in the pages), so that text and panels render at similar sizes.
+   They never exceed the content column, and are centred. */
+.md-typeset img[width] {
+  display: block;
+  margin: 1em auto 0.4em;
+  height: auto;
+}
+.md-typeset a > img[width] {
+  cursor: zoom-in;
+}

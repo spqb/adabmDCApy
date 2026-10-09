@@ -2,7 +2,12 @@ name: Deploy MkDocs with API docs
 
 on:
   push:
-    branches: [main]
+    branches: [main, develop]
+  workflow_dispatch:  # Allow manual deployment
+
+concurrency:
+  group: pages-deploy
+  cancel-in-progress: true
 
 permissions:
   contents: write  # Allow pushing to gh-pages
@@ -22,7 +27,7 @@ jobs:
 
     - name: 📦 Install dependencies
       run: |
-        pip install mkdocs mkdocs-material
-        
+        pip install "mkdocs>=1.6" "mkdocs-material>=9.5"
+
     - name: 🚀 Deploy to GitHub Pages
       run: mkdocs gh-deploy --force

@@ -6,7 +6,19 @@ TOKENS_DNA = "-ACGT"
 
 
 def get_tokens(alphabet: str) -> str:
-    """Return built-in tokens or an explicitly supplied custom alphabet."""
+    """Return the ordered token string of an alphabet.
+
+    Args:
+        alphabet: ``"protein"``, ``"rna"``, ``"dna"`` or a custom token string,
+            which is returned unchanged.
+
+    Returns:
+        The tokens, gap first for the built-in alphabets: ``"-ACDEFGHIKLMNPQRSTVWY"``,
+        ``"-ACGU"`` or ``"-ACGT"``.
+
+    Raises:
+        TypeError: If ``alphabet`` is not a string.
+    """
     if not isinstance(alphabet, str):
         raise TypeError("Argument 'alphabet' must be of type str")
     if alphabet == "protein":
@@ -24,7 +36,7 @@ def detect_alphabet(sequences) -> str:
     All symbols must fit a standard alphabet; custom tokens are never inferred.
     Gap-only or empty input cannot identify an alphabet.
     """
-    from adabmDCA.api.exceptions import InputValidationError
+    from adabmDCA.exceptions import InputValidationError
 
     symbols = set()
     for sequence in sequences:

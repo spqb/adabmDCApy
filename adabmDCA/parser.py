@@ -45,10 +45,12 @@ def add_args_dca(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     )
     dca_args.add_argument(
         "-v",
+        "--validation",
         "--val",
+        dest="val",
         type=str,
         default=None,
-        help="(Defaults to None). Filename of the fasta file to be used for validating the model. If provided, validation metrics are computed at each checkpoint.",
+        help="(Defaults to None). Filename of the fasta file to be used for validating the model. If provided, validation metrics are computed at each checkpoint. --val is an older alias.",
     )
     dca_args.add_argument(
         "-p",
@@ -88,14 +90,14 @@ def add_args_dca(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         "--sampler",
         type=str,
         default=DEFAULT_SAMPLER,
-        help="(Defaults to 'metropolis'). Sampling method to be used.",
+        help="(Defaults to 'metropolized_gibbs'). Sampling method to be used.",
         choices=SAMPLERS,
     )
     dca_args.add_argument(
         "--nchains",
         type=int,
         default=DEFAULT_N_CHAINS,
-        help="(Defaults to 10000). Number of Markov chains to run in parallel.",
+        help="(Defaults to 2000). Number of Markov chains to run in parallel.",
     )
     dca_args.add_argument(
         "--target",
@@ -107,13 +109,13 @@ def add_args_dca(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         "--nepochs",
         type=int,
         default=DEFAULT_MAX_EPOCHS,
-        help="(Defaults to 50000). Compatibility limit: gradient steps for bmDCA, structure steps for sparse models.",
+        help="(Defaults to 50000). Compatibility limit: gradient steps for bmDCA and PTT edgeDCA; structure steps (graph activations/decimations) for eaDCA, including PTT eaDCA, and edDCA.",
     )
     dca_args.add_argument(
         "--max-gradient-steps",
         type=int,
         default=None,
-        help="Optional global limit on parameter-gradient updates, including nested eaDCA/edDCA optimization.",
+        help="Optional limit on parameter updates, including PTT edge corrections and nested eaDCA/edDCA optimization. PTT eaDCA may stop inside a --gsteps block.",
     )
     dca_args.add_argument(
         "--max-structure-steps", type=int, default=None, help="Optional limit on graph activation or decimation steps."
@@ -122,7 +124,7 @@ def add_args_dca(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         "--checkpoint-interval",
         type=int,
         default=DEFAULT_CHECKPOINT_INTERVAL,
-        help="Save parameters and chains every N training steps (default: 100). The final state is also saved.",
+        help=f"Save parameters and chains every N training steps (default: {DEFAULT_CHECKPOINT_INTERVAL}). The final state is also saved.",
     )
     dca_args.add_argument(
         "--pseudocount",
@@ -195,7 +197,7 @@ def add_args_eaDCA(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         "--factivate",
         type=float,
         default=DEFAULT_ACTIVATION_FRACTION,
-        help="(Defaults to 0.001). Fraction of inactive couplings to be proposed for activation at each graph update.",
+        help="(Defaults to 0.001). Fraction of the inactive coupling entries, counted once per symmetric pair, activated at each graph update.",
     )
 
     return parser
@@ -219,11 +221,94 @@ def add_args_edDCA(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     return parser
 
 
-def add_args_train(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
+def add_args_ptt(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
+    ptt_args = parser.add_argument_group(
+        "Parallel Trajectory Tempering arguments",
+        "PTT defaults: Metropolized Gibbs, 10 sweeps per exchange round, 2000 chains, 50000 updates.",
+    )
+    parser.add_argument("--strategy", choices=("ptt", "pcd"), default="ptt",
+                        help="Training strategy (default: ptt).")
+    ptt_args.add_argument("--ptt-resume", help="Resume a full PTT HDF5 training archive.")
+    ptt_args.add_argument("--ptt-swaps-factor", dest="ptt_swaps", type=int, default=None,
+                          help="PTT exchange-round factor; updates use int(factor * sqrt(active replicas)) rounds (default: 1).")
+    ptt_args.add_argument("--ptt-target-acceptance", type=float, default=None, help="PTT target acceptance (default: 0.25).")
+    ptt_args.add_argument("--ptt-max-replicas", type=int, default=None, help="Refresh the reservoir above this active ladder size after held-snapshot replacement (default: 2).")
+    ptt_args.add_argument("--ptt-target-replicas", type=int, default=None, help="Active replicas retained after reservoir refresh (default: 2).")
+    ptt_args.add_argument("--ptt-reservoir-size", type=int, default=None, help="Reservoir population size (default: 10 * nchains).")
+    ptt_args.add_argument("--ptt-full-sampler", action="store_true", default=None, help="Generate new reservoirs using the full historical ladder.")
+    ptt_args.add_argument("--ptt-min-acceptance", type=float, default=None, help="Acceptance below this starts a mixing diagnostic (default: 0.1).")
+    ptt_args.add_argument("--ptt-mixing-chains", type=int, default=None, help="Chains per replica in the mixing experiment (default: 100).")
+    ptt_args.add_argument("--ptt-mixing-initial-rounds", type=int, default=None, help="Initial mixing trajectory length (default: 100).")
+    ptt_args.add_argument("--ptt-mixing-thermalization-rounds", type=int, default=None, help="Warmup before the mixing experiment (default: 1000).")
+    ptt_args.add_argument("--ptt-mixing-max-rounds", type=int, default=None, help="Maximum mixing trajectory length before recovery (default: 20000).")
+    ptt_args.add_argument("--ptt-mixing-window-factor", type=float, default=None, help="Required trajectory length divided by max(tau_int, tau_exp) (default: 20).")
+    ptt_args.add_argument(
+        "--ptt-mixing-method", choices=("renewal", "autocorrelation"), default=None,
+        help=("How PTT training checks that the ladder mixes (default: renewal). 'renewal' tracks when "
+              "each configuration entered the ladder from the exact profile or the reservoir, requires the "
+              "ladder to be repopulated twice within --ptt-mixing-max-rounds, and spaces reservoir batches "
+              "by full renewal of the collection replica; 'autocorrelation' fits tau_int and tau_exp of "
+              "each configuration's replica position."),
+    )
+    ptt_args.add_argument(
+        "--ptt-renewal-tolerance", type=float, default=None,
+        help="Maximum fraction of old configurations, per chains of one replica, at renewal (default: 0.01).",
+    )
+    ptt_args.add_argument(
+        "--diagnostic", action="store_true",
+        help=("Show detailed PTT progress, including learning rates, trust-region, lag and mixing "
+              "diagnostics, train/validation LL per residue, and adjacent swap acceptance rates."),
+    )
+    ptt_args.add_argument("--ptt-max-recoveries", type=int, default=None, help="Maximum learning-rate reductions after mixing failures (default: 3).")
+    ptt_args.add_argument("--ptt-min-learning-rate", type=float, default=None, help="Effective-step floor during mixing recovery: learning rate for bmDCA, 1 - pseudocount for edgeDCA (default: 1e-8).")
+    ptt_args.add_argument("--ptt-optimizer", choices=("adaptive", "sgd"), default=None,
+                          help=("PTT optimizer: adaptive bounds each update by a KL trust radius and pauses when endpoint "
+                                "chains lag; sgd uses fixed --lr for bmDCA or fixed --pseudocount for edgeDCA "
+                                "(default: adaptive)."))
+    ptt_args.add_argument("--ptt-trust-radius", type=float, default=None,
+                        help="Adaptive optimizer: maximum local KL divergence per update (default: 0.01).")
+    ptt_args.add_argument("--ptt-lag-tolerance", type=float, default=None,
+                        help=("Adaptive optimizer: largest lag of the endpoint chains behind the model along the "
+                              "drift and its tails, in standard deviations of the population, before training "
+                              "pauses (default: 0.25)."))
+    ptt_args.add_argument("--ptt-lag-horizon", type=int, default=None,
+                        help="Adaptive optimizer: memory of past updates, in gradient steps (default: 200).")
+    ptt_args.add_argument("--ptt-lag-pause-rounds", type=int, default=None,
+                        help="Adaptive optimizer: maximum exchange rounds of one pause (default: 100).")
+    ptt_args.add_argument("--ptt-activation", choices=("fixed", "adaptive"), default=None,
+                        help=("eaDCA: couplings activated per graph update. fixed activates --factivate of the "
+                              "inactive entries; adaptive activates at most that fraction, only statistically "
+                              "significant candidates, as many as fit the KL budget of the first update "
+                              "(default: fixed)."))
+    ptt_args.add_argument("--ptt-activation-kl-share", type=float, default=None,
+                        help=("Adaptive activation: share of --ptt-trust-radius available to the first update of "
+                              "the new couplings; halved by each mixing recovery (default: 0.5)."))
+    ptt_args.add_argument("--ptt-activation-significance", type=float, default=None,
+                        help=("Adaptive activation: candidates need |f - p| above this many standard errors of "
+                              "the data and chain frequencies; 0 disables the test (default: 3)."))
+    ptt_args.add_argument("--ptt-validation-stop", action=argparse.BooleanOptionalAction, default=None,
+                        help=("Stop when the validation log-likelihood per site plateaus instead of at --target; "
+                              "requires --validation. Default: on when --validation is given, off otherwise."))
+    ptt_args.add_argument("--ptt-validation-window", type=int, default=None,
+                        help="Validation stop: updates per window of the compared medians (default: 100).")
+    ptt_args.add_argument("--ptt-validation-min-gain", type=float, default=None,
+                        help=("Validation stop: stop when the median validation log-likelihood per site of the last "
+                              "window exceeds that of the window before by less than this (default: 0)."))
+    ptt_args.add_argument("--ptt-equilibration-rounds", type=int, default=None,
+                        help="PTT rounds after a ladder change (default: 10).")
+    ptt_args.add_argument("--ptt-initialization-rounds", type=int, default=None,
+                        help="PTT initialization rounds (default: 100).")
+    return parser
+
+
+def add_args_train(parser: argparse.ArgumentParser, *, ptt: bool = True) -> argparse.ArgumentParser:
+    """Add the training options; ``ptt=False`` omits ``--strategy`` and the PTT options (PCD-only commands)."""
     parser = add_args_dca(parser)
     parser = add_args_eaDCA(parser)
     parser = add_args_edDCA(parser)
     parser = add_args_reweighting(parser)
+    if ptt:
+        parser = add_args_ptt(parser)
 
     return parser
 
@@ -249,6 +334,9 @@ def add_args_energies(parser: argparse.ArgumentParser) -> argparse.ArgumentParse
         help="(Defaults to 'auto'). Device to use: CUDA if available, otherwise MPS, otherwise CPU.",
     )
     parser.add_argument("--dtype", type=str, default="float32", help="(Defaults to 'float32'). Data type to be used.")
+    parser.add_argument("--local-lambda", type=float, default=None,
+                        help="Coefficient of summed per-residue CDE in local free energy E - lambda * CDE. "
+                             "By default, local free energy is not computed. Obtain a fitted value using the sampling script.")
 
     return parser
 
@@ -333,98 +421,145 @@ def add_args_dms(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
 
 
 def add_args_sample(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
-    parser.add_argument(
-        "-p",
-        "--path_params",
-        type=str,
-        required=True,
-        help="Path to the file containing the parameters of DCA model to sample from.",
+    io_args = parser.add_argument_group("Input and output")
+    io_args.add_argument(
+        "-p", "--path_params", type=str, required=True,
+        help="DCA model to sample from: a parameter file (plain or gzip-compressed) or, with --strategy ptt, a PTT archive.",
     )
-    parser.add_argument("-o", "--output", type=str, required=True, help="Path to the folder where to save the output.")
-    parser.add_argument("--ngen", type=int, required=True, help="Number of sequences to be generated.")
-
-    # Optional arguments
-    parser.add_argument(
-        "-d",
-        "--data",
-        type=str,
-        default=None,
-        help="Path to the file containing the natural data. If provided, the mixing time of the model is computed. Defaults to None.",
+    io_args.add_argument("-o", "--output", type=str, required=True, help="Path to the folder where to save the output.")
+    io_args.add_argument(
+        "--ngen", type=int, default=None,
+        help=("Number of sequences to be generated. Defaults to the number of chains per model used in "
+              "training with --strategy ptt, and to 2000 with --strategy pcd."),
     )
-    parser.add_argument(
+    io_args.add_argument(
         "-l", "--label", type=str, default=None, help="(Defaults to None). Label to be used for the output files."
     )
-    parser.add_argument(
-        "--nmeasure",
-        type=int,
-        default=10000,
-        help="(Defaults to min(10000, len(data))). Number of data sequences to use for computing the mixing time.",
+    io_args.add_argument(
+        "--alphabet", type=str, default="auto",
+        help=("(Defaults to auto). Detect protein, dna, or rna; otherwise specify a custom string of tokens. "
+              "DNA wins ambiguous nucleotide matches."),
     )
-    parser.add_argument(
-        "--nmix",
-        type=int,
-        default=2,
-        help="(Defaults to 2). Number of mixing times used to generate 'ngen' sequences starting from random.",
-    )
-    parser.add_argument(
-        "--max_nsweeps", type=int, default=5000, help="(Defaults to 5000). Maximum number of chain updates."
-    )
-    parser.add_argument(
-        "--alphabet",
-        type=str,
-        default="auto",
-        help="(Defaults to auto). Detect protein, dna, or rna; otherwise specify a custom string of tokens. DNA wins ambiguous nucleotide matches.",
-    )
-    parser.add_argument(
-        "--sampler",
-        type=str,
-        default=DEFAULT_SAMPLER,
-        help="(Defaults to 'metropolis'). Sampling method to be used. Choose between 'metropolis' and 'gibbs'.",
-        choices=SAMPLERS,
-    )
-    parser.add_argument(
-        "--beta", type=float, default=1.0, help="(Defaults to 1.0). Inverse temperature for the sampling."
-    )
-    parser.add_argument(
+    io_args.add_argument(
         "--seed", type=int, default=0, help="(Defaults to 0). Seed for reproducible sequence generation."
     )
-    parser.add_argument(
-        "--pseudocount",
-        type=float,
-        default=None,
-        help="(Defaults to None). Pseudocount for the single and two-sites statistics used during the training. If None, 1/Meff is used.",
-    )
-    parser.add_argument(
-        "--device",
-        type=str,
-        default="auto",
+    io_args.add_argument(
+        "--device", type=str, default="auto",
         help="(Defaults to 'auto'). Device to use: CUDA if available, otherwise MPS, otherwise CPU.",
     )
-    parser.add_argument(
-        "--dtype",
-        type=str,
-        default="float32",
-        choices=("float32", "float64", "bfloat16"),
+    io_args.add_argument(
+        "--dtype", type=str, default="float32", choices=("float32", "float64", "bfloat16"),
         help=(
             "(Defaults to 'float32'). Sampling precision. bfloat16 stores sampling couplings in BF16 "
             "while retaining FP32 model state and requires an Ampere-or-newer CUDA GPU with Triton."
         ),
     )
-    parser.add_argument(
-        "--plot",
-        action="store_true",
-        help=(
-            "Save autocorrelation, sampling-Pearson, final Cij scatter, and natural-versus-generated PCA plots. "
-            "Requires a reference alignment supplied with --data."
-        ),
+
+    standard_args = parser.add_argument_group("PCD sampling (--strategy pcd)")
+    standard_args.add_argument(
+        "--sampler", type=str, default=DEFAULT_SAMPLER, choices=SAMPLERS,
+        help="(Defaults to 'metropolized_gibbs'). Sampling method to be used: 'metropolis', 'gibbs' or 'metropolized_gibbs'.",
+    )
+    standard_args.add_argument(
+        "--beta", type=float, default=1.0, help="(Defaults to 1.0). Inverse temperature for the sampling."
+    )
+    standard_args.add_argument(
+        "--nmix", type=int, default=2,
+        help="(Defaults to 2). Number of mixing times used to generate 'ngen' sequences starting from random.",
+    )
+    standard_args.add_argument(
+        "--max_nsweeps", type=int, default=5000,
+        help="(Defaults to 5000). Maximum chain updates. Ignored with --strategy ptt; use --ptt-max-rounds.",
     )
 
+    ptt_args = parser.add_argument_group("PTT sampling (--strategy ptt)")
+    parser.add_argument("--strategy", choices=("ptt", "pcd"), default="ptt",
+                        help="Sampling strategy (default: ptt).")
+    ptt_args.add_argument("--ptt-local-sweeps", type=int, default=10, help="Local sweeps per PTT exchange round (default: 10).")
+    ptt_args.add_argument(
+        "--ptt-local-kernel", choices=("archived", "metropolis", "gibbs", "metropolized_gibbs"),
+        default="metropolized_gibbs",
+        help=(
+            "Local update for PTT generation (default: metropolized_gibbs). Every kernel samples the same "
+            "distributions. 'metropolized_gibbs' proposes from the site conditional excluding the current state; "
+            "'archived' keeps the training kernel."
+        ),
+    )
+    ptt_args.add_argument(
+        "--ptt-mixing-method", choices=("renewal", "autocorrelation"), default="renewal",
+        help=(
+            "How PTT decides the ladder is equilibrated (default: renewal). 'renewal' tracks when each "
+            "configuration was drawn at the exact bottom model and waits until the initial populations have "
+            "been replaced (once, or twice with --ptt-stationary); 'autocorrelation' fits tau_int and tau_exp "
+            "of replica labels."
+        ),
+    )
+    ptt_args.add_argument(
+        "--ptt-renewal-tolerance", type=float, default=0.01,
+        help="Maximum endpoint fraction of configurations older than the reference round (default: 0.01).",
+    )
+    ptt_args.add_argument(
+        "--ptt-stationary", action="store_true",
+        help=("Renewal method: after the warmup, which replaces the initial populations once, renew the ladder "
+              "a second time, so that every sample descends from draws made after the ladder had forgotten "
+              "its start. About doubles the sampling time."),
+    )
+    ptt_args.add_argument(
+        "--ptt-max-rounds", type=int, default=20_000,
+        help=("Maximum PTT equilibration rounds (default: 20000). With --ptt-mixing-method autocorrelation, "
+              "the budget excludes its 1000 warm-up rounds."),
+    )
+
+    reference_args = parser.add_argument_group("Reference alignment")
+    reference_args.add_argument(
+        "-d", "--data", type=str, default=None,
+        help=("Natural alignment used as reference: for the mixing time, the Pearson of the generated sequences and "
+              "the plots. Required with --strategy ptt, where it also gives the ladder log-likelihoods."),
+    )
+    reference_args.add_argument(
+        "--pseudocount", type=float, default=None,
+        help="(Defaults to None). Pseudocount for the reference single and two-site statistics. If None, 1/Meff is used.",
+    )
+    reference_args.add_argument(
+        "--nmeasure", type=int, default=10000,
+        help="(Defaults to min(10000, len(data))). Reference sequences used for the mixing time and the PCA.",
+    )
+    reference_args.add_argument(
+        "-v", "--validation", "--test", dest="test", metavar="FASTA", type=str, default=None,
+        help=("Held-out alignment, e.g. the validation set used in training (--test is an older alias). "
+              "Used with --plot: its distances to the nearest --data sequence are the yardstick for those of "
+              "the generated sequences in distances.png (overfitting check); it also enables the PRIVET "
+              "test (beta). Without it, only distances to and within --data are plotted."),
+    )
+    reference_args.add_argument(
+        "--privet-window", type=float, nargs=2, default=[0.01, 0.5], metavar=("Q1", "Q2"),
+        help=("(Defaults to 0.01 0.5). Beta feature: quantiles of the training nearest-neighbour distances "
+              "fitted by the extreme-value law of the PRIVET memorization test; check the fit in privet.png."),
+    )
     parser = add_args_reweighting(parser)
 
+    report_args = parser.add_argument_group("Reporting")
+    report_args.add_argument(
+        "--plot", action="store_true",
+        help=(
+            "Save mixing/renewal, final Cij scatter, and natural-versus-generated PCA plots; "
+            "standard sampling also saves its Pearson trajectory. Requires a reference alignment supplied with --data."
+        ),
+    )
+    report_args.add_argument(
+        "--diagnostic", action="store_true",
+        help=(
+            "In PTT mode, print renewal fractions periodically (renewal method), or tau_int, tau_exp and "
+            "the updated round target after every mixing estimate (autocorrelation method), together with "
+            "all adjacent-model acceptance rates."
+        ),
+    )
     return parser
 
 
 def add_args_tdint(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
+    parser.add_argument("--strategy", choices=("ptt", "pcd"), default="ptt",
+                        help="Entropy strategy (default: ptt). PTT reads an archive; PCD uses MCMC thermodynamic integration.")
     parser.add_argument(
         "-p",
         "--path_params",
@@ -433,10 +568,10 @@ def add_args_tdint(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         help="Path to the file containing the parameters of DCA model to sample from.",
     )
     parser.add_argument(
-        "-d", "--data", type=str, required=True, help="Path to the file containing the data to sample from."
+        "-d", "--data", type=str, default=None, help="Natural alignment (required with --strategy pcd)."
     )
     parser.add_argument(
-        "-t", "--path_targetseq", type=str, required=True,
+        "-t", "--path_targetseq", type=str, default=None,
         help="Path to the target alignment. Uses the first valid sequence and warns if more than one is present."
     )
     parser.add_argument(
@@ -458,7 +593,8 @@ def add_args_tdint(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         default="entropy",
         help="(Defaults to 'entropy'). Label to be used for the output files.",
     )
-    parser.add_argument("--nchains", type=int, default=10000, help="(Defaults to 10000). Number of chains to be used.")
+    parser.add_argument("--nchains", type=int, default=10000,
+                        help="(Defaults to 10000). Integration chain count; ignored with --strategy ptt because the archive owns the chains.")
     parser.add_argument("--theta_max", type=float, default=5, help="(Defaults to 5). Maximum integration strength")
     parser.add_argument("--nsteps", type=int, default=100, help="(Defaults to 100). Number of integration steps.")
     parser.add_argument(
@@ -489,7 +625,7 @@ def add_args_tdint(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         "--sampler",
         type=str,
         default=DEFAULT_SAMPLER,
-        help="(Defaults to 'metropolis'). Sampling method to be used. Choose between 'metropolis' and 'gibbs'.",
+        help="(Defaults to 'metropolized_gibbs'). Sampling method to be used: 'metropolis', 'gibbs' or 'metropolized_gibbs'.",
         choices=SAMPLERS,
     )
     parser.add_argument("--seed", type=int, default=0, help="(Defaults to 0). Seed for the random number generator.")
@@ -519,51 +655,55 @@ def add_args_reintegration(parser: argparse.ArgumentParser) -> argparse.Argument
     return parser
 
 
-def add_args_profmark(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
+def add_args_split_data(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     parser.add_argument("output_prefix", type=str, help="Prefix for the output files.")
-    parser.add_argument("input_msa", type=str, help="Fasta file containing the multiple sequence alignment.")
-    parser.add_argument(
-        "-t1",
-        type=float,
-        default=0.5,
-        help="(Defaults to 0.5) No sequence in S (the candidate training set) has more than this fraction of its residues identical to any sequence in T (the candidate test set).",
+    parser.add_argument("input_msa", type=str, help="FASTA file containing the multiple sequence alignment.")
+    parser.add_argument("--method", choices=("clustering", "cobalt"), default="clustering",
+                        help="Splitting method (default: clustering).")
+
+    clustering = parser.add_argument_group(
+        "clustering options",
+        "Assign whole clusters from an MMseqs2-like sequence clustering approach to training or test.",
     )
-    parser.add_argument(
-        "-t2",
-        type=float,
-        default=0.5,
-        help="(Defaults to 0.5) No pair of test sequences has more than this value fractional identity.",
+    clustering.add_argument("--identity", type=float, default=0.8,
+                            help="Minimum sequence identity for clustering (default: 0.8).")
+    clustering.add_argument("--train-fraction", type=float, default=0.8,
+                            help="Target fraction of sequences in training (default: 0.8).")
+
+    cobalt = parser.add_argument_group(
+        "cobalt options",
+        "Apply hard thresholds to inter-set and intra-set sequence identities "
+        "(Petti & Eddy, PLoS Comput Biol 18(3):e1009492, 2022).",
     )
-    parser.add_argument(
-        "-t3",
-        type=float,
-        default=1.0,
-        help="(Defaults to 1.0) No pair of training sequences has more than this value fractional identity.",
+    cobalt.add_argument(
+        "-t1", type=float, default=0.5,
+        help="Maximum identity between training and test sequences (default: 0.5).",
     )
-    parser.add_argument(
-        "--bestof",
-        type=int,
-        default=1,
-        help="(Defaults to 1) Runs the algorithm n times and returns the one that maximizes |S| * |T|.",
+    cobalt.add_argument(
+        "-t2", type=float, default=0.5,
+        help="Maximum identity between test sequences (default: 0.5).",
     )
-    parser.add_argument(
-        "--maxtrain", type=int, default=None, help="(Defaults to None) Maximum number of sequences in the training set."
+    cobalt.add_argument(
+        "-t3", type=float, default=1.0,
+        help="Maximum identity between training sequences (default: 1.0).",
     )
-    parser.add_argument(
-        "--maxtest", type=int, default=None, help="(Defaults to None) Maximum number of sequences in the test set."
+    cobalt.add_argument(
+        "--bestof", type=int, default=1,
+        help="Number of attempts; select the split maximizing train size × test size (default: 1).",
     )
+    cobalt.add_argument("--maxtrain", type=int, default=None,
+                        help="Maximum number of training sequences (default: no limit).")
+    cobalt.add_argument("--maxtest", type=int, default=None,
+                        help="Maximum number of test sequences (default: no limit).")
+
     parser.add_argument(
-        "--alphabet",
-        type=str,
-        default="auto",
+        "--alphabet", type=str, default="auto",
         help="(Defaults to auto). Detect protein, dna, or rna; otherwise specify a custom string of tokens. DNA wins ambiguous nucleotide matches.",
     )
     parser.add_argument("--seed", type=int, default=0, help="(Defaults to 0) Random seed for reproducibility.")
     parser.add_argument(
-        "--device",
-        type=str,
-        default="auto",
+        "--device", type=str, default="auto",
         help="(Defaults to 'auto'). Device to use: CUDA if available, otherwise MPS, otherwise CPU.",
     )
-
     return parser
+

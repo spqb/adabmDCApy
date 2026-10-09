@@ -39,7 +39,7 @@ Returns a tensor containing the sequence identities between two sets of one-hot 
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/dca.py#L38"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/dca.py#L40"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `get_seqid_stats`
 
@@ -48,9 +48,9 @@ get_seqid_stats(s1: Tensor, s2: Optional[Tensor] = None) → Tuple[Tensor, Tenso
 ```
 
 
-- If s2 is provided, computes the mean and the standard deviation of the mean sequence identity between two sets of one-hot encoded sequences.
-- If s2 is a single sequence (L, q), it computes the mean and the standard deviation of the mean sequence identity between the dataset s1 and s2.
-- If s2 is none, computes the mean and the standard deviation of the mean of the sequence identity between s1 and a permutation of s1.
+- If s2 is provided, computes the mean and the standard deviation of the sequence identity between two sets of one-hot encoded sequences.
+- If s2 is a single sequence (L, q), it computes the mean and the standard deviation of the sequence identity between the dataset s1 and s2.
+- If s2 is none, computes the mean and the standard deviation of the sequence identity between s1 and a permutation of s1.
 
 
 
@@ -62,12 +62,12 @@ get_seqid_stats(s1: Tensor, s2: Optional[Tensor] = None) → Tuple[Tensor, Tenso
 
 
 **Returns:**
- Tuple[torch.Tensor, torch.Tensor]:  (torch.Tensor) Mean sequence identity  (torch.Tensor) Standard deviation of the mean sequence identity.
+ Tuple[torch.Tensor, torch.Tensor]:  (torch.Tensor) Mean sequence identity  (torch.Tensor) Standard deviation of the sequence identity.
 
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/dca.py#L66"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/dca.py#L68"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `set_zerosum_gauge`
 
@@ -94,7 +94,7 @@ Sets the zero-sum gauge on the coupling matrix.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/dca.py#L88"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/dca.py#L90"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `get_contact_map`
 
@@ -122,7 +122,7 @@ Computes the contact map from the model coupling matrix.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/dca.py#L136"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/dca.py#L138"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `get_mf_contact_map`
 

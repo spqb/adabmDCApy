@@ -21,12 +21,30 @@ Alphabet definitions shared by lightweight and tensor-based APIs.
 get_tokens(alphabet: str) → str
 ```
 
-Return built-in tokens or an explicitly supplied custom alphabet.
+Return the ordered token string of an alphabet.
+
+
+
+**Args:**
+
+ - <b>`alphabet`</b>:  ``"protein"``, ``"rna"``, ``"dna"`` or a custom token string,  which is returned unchanged.
+
+
+
+**Returns:**
+
+ - <b>`The tokens, gap first for the built-in alphabets`</b>:  ``"-ACDEFGHIKLMNPQRSTVWY"``, ``"-ACGU"`` or ``"-ACGT"``.
+
+
+
+**Raises:**
+
+ - <b>`TypeError`</b>:  If ``alphabet`` is not a string.
 
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/alphabet.py#L21"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/alphabet.py#L33"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `detect_alphabet`
 

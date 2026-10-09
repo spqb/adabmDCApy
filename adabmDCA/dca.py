@@ -24,7 +24,9 @@ def get_seqid(
     if len(s1.shape) == 2:
         s1 = s1.unsqueeze(0)
     if s2 is None:
-        s2 = s1[torch.randperm(s1.shape[0], device=s1.device)]
+        # Pair each shuffled sequence with its neighbour so that no sequence is compared with itself
+        s1 = s1[torch.randperm(s1.shape[0], device=s1.device)]
+        s2 = s1.roll(1, dims=0)
     if len(s2.shape) == 2:
         s2 = s2.unsqueeze(0)
         
@@ -40,9 +42,9 @@ def get_seqid_stats(
     s2: Optional[torch.Tensor] = None,
 ) -> Tuple[torch.Tensor, torch.Tensor]:
     """
-    - If s2 is provided, computes the mean and the standard deviation of the mean sequence identity between two sets of one-hot encoded sequences.
-    - If s2 is a single sequence (L, q), it computes the mean and the standard deviation of the mean sequence identity between the dataset s1 and s2.
-    - If s2 is none, computes the mean and the standard deviation of the mean of the sequence identity between s1 and a permutation of s1.
+    - If s2 is provided, computes the mean and the standard deviation of the sequence identity between two sets of one-hot encoded sequences.
+    - If s2 is a single sequence (L, q), it computes the mean and the standard deviation of the sequence identity between the dataset s1 and s2.
+    - If s2 is none, computes the mean and the standard deviation of the sequence identity between s1 and a permutation of s1.
 
     Args:
         s1 (torch.Tensor): One-hot encoded sequence dataset 1 of shape (batch_size, L, q) or (L, q).
@@ -51,7 +53,7 @@ def get_seqid_stats(
     Returns:
         Tuple[torch.Tensor, torch.Tensor]:
             (torch.Tensor) Mean sequence identity
-            (torch.Tensor) Standard deviation of the mean sequence identity.
+            (torch.Tensor) Standard deviation of the sequence identity.
     """
     seqids = get_seqid(s1, s2)
     if len(seqids) == 1:
@@ -59,7 +61,7 @@ def get_seqid_stats(
         std_seqid = torch.tensor(0.0, device=seqids.device)
     else:
         mean_seqid = seqids.mean()
-        std_seqid = seqids.std() / np.sqrt(len(seqids))
+        std_seqid = seqids.std()
     return mean_seqid, std_seqid
 
 

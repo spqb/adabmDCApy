@@ -1,9 +1,28 @@
 import itertools
+import weakref
 from typing import Dict
 
 import torch
 
-from adabmDCA.stats import get_freq_two_points
+
+
+_SYMMETRY_CACHE: dict[int, tuple] = {}
+
+
+def couplings_are_symmetric(couplings: torch.Tensor) -> bool:
+    """Whether ``J[i, a, j, b] == J[j, b, i, a]`` exactly, as for every trained Potts model.
+
+    The answer is cached per tensor and recomputed after in-place changes, so
+    kernels can ask on every call. Kernels use it to sum pair terms once.
+    """
+    entry = _SYMMETRY_CACHE.get(id(couplings))
+    if entry is not None and entry[0]() is couplings and entry[1] == couplings._version:
+        return entry[2]
+    symmetric = bool(torch.equal(couplings, couplings.permute(2, 3, 0, 1)))
+    key = id(couplings)
+    reference = weakref.ref(couplings, lambda _, key=key: _SYMMETRY_CACHE.pop(key, None))
+    _SYMMETRY_CACHE[key] = (reference, couplings._version, symmetric)
+    return symmetric
 
 
 def compute_energy(
@@ -35,44 +54,67 @@ def compute_energy(
     return energy
 
 
-def _update_weights_AIS(
-    prev_params: Dict[str, torch.Tensor],
-    curr_params: Dict[str, torch.Tensor],
-    chains: torch.Tensor,
-    log_weights: torch.Tensor,
+def get_cde(
+    x: torch.Tensor,
+    params: dict[str, torch.Tensor],
 ) -> torch.Tensor:
-    """Update the weights used during  the trajectory Annealed Importance Sampling (AIS) algorithm.
+    """Compute per-site context-dependent entropy of one-hot sequences.
+
+    For each site ``i``, hold all other residues fixed, evaluate the model
+    probability of every state at ``i``, and return the Shannon entropy of
+    that conditional distribution in nats. The conditional probabilities
+    follow the same energy convention as :func:`compute_energy`, including
+    asymmetric couplings and nonzero same-site terms.
 
     Args:
-        prev_params (Dict[str, torch.Tensor]): Params at time t-1.
-        curr_params (Dict[str, torch.Tensor]): Params at time t.
-        chains (torch.Tensor): Chains at time t-1.
-        log_weights (torch.Tensor): Log-weights at time t-1.
+        x: One-hot sequence of shape ``(L, q)`` or batch of shape
+            ``(N, L, q)``. It is moved to the model's device and dtype.
+        params: Model parameters with ``bias`` of shape ``(L, q)`` and
+            ``coupling_matrix`` of shape ``(L, q, L, q)``.
 
     Returns:
-        torch.Tensor: Log-weights at time t.
+        Tensor of shape ``(L,)`` for one sequence or ``(N, L)`` for a batch.
+
+    Raises:
+        ValueError: If the parameter or sequence dimensions are incompatible,
+            or ``x`` is not one-hot encoded.
     """
-    energy_prev = compute_energy(chains, prev_params)
-    energy_curr = compute_energy(chains, curr_params)
-    log_weights += energy_prev - energy_curr
-    
-    return log_weights
+    bias = params["bias"]
+    couplings = params["coupling_matrix"]
+    if bias.ndim != 2:
+        raise ValueError("bias must have shape (L, q).")
+    length, states = bias.shape
+    if couplings.shape != (length, states, length, states):
+        raise ValueError("coupling_matrix must have shape (L, q, L, q).")
+    if x.ndim not in (2, 3) or x.shape[-2:] != (length, states):
+        raise ValueError("x must have shape (L, q) or (N, L, q) matching bias.")
 
+    single_sequence = x.ndim == 2
+    sequences = x.unsqueeze(0) if single_sequence else x
+    sequences = sequences.to(device=bias.device, dtype=bias.dtype)
+    if not torch.isfinite(sequences).all() or not (
+        ((sequences == 0) | (sequences == 1)).all()
+        and (sequences.sum(dim=-1) == 1).all()
+    ):
+        raise ValueError("x must contain finite one-hot encoded sequences.")
 
-def _compute_ess(log_weights: torch.Tensor) -> float:
-    """Compute the normalized effective sample-size fraction of the chains.
-
-    Args:
-        log_weights: log-weights of the chains.
-        
-    Returns:
-        float: Chain ESS divided by the number of chains, in ``[0, 1]``.
-    """
-    lwc = log_weights - log_weights.min()
-    numerator = torch.square(torch.mean(torch.exp(-lwc))).item()
-    denominator = torch.mean(torch.exp(-2.0 * lwc)).item()
-
-    return numerator / denominator
+    # For an energy -h*x - x*J*x/2, both J[i,a,j,b] and J[j,b,i,a]
+    # contribute when site i changes. Remove the current site's state before
+    # adding the candidate state's same-site diagonal contribution.
+    outgoing = torch.einsum("iajb,njb->nia", couplings, sequences)
+    incoming = torch.einsum("jbia,njb->nia", couplings, sequences)
+    sites = torch.arange(length, device=couplings.device)
+    same_site = couplings[sites, :, sites, :]
+    own_outgoing = torch.einsum("iab,nib->nia", same_site, sequences)
+    own_incoming = torch.einsum("iba,nib->nia", same_site, sequences)
+    candidate_diagonal = same_site.diagonal(dim1=1, dim2=2)
+    logits = bias.unsqueeze(0) + 0.5 * (
+        outgoing + incoming - own_outgoing - own_incoming + candidate_diagonal.unsqueeze(0)
+    )
+    log_probabilities = torch.log_softmax(logits, dim=-1)
+    probabilities = log_probabilities.exp()
+    cde = -(probabilities * log_probabilities).sum(dim=-1)
+    return cde[0] if single_sequence else cde
 
 
 def _compute_log_likelihood(
@@ -170,34 +212,14 @@ def compute_entropy(
     return entropy.item()
 
 
-def _get_acceptance_rate(
-    prev_params: Dict[str, torch.Tensor],
-    curr_params: Dict[str, torch.Tensor],
-    prev_chains: torch.Tensor,
-    curr_chains: torch.Tensor,
-) -> float:
-    """Compute the acceptance rate of swapping the configurations between two models along the training.
-
-    Args:
-        prev_params (Dict[str, torch.Tensor]): Parameters at time t-1.
-        curr_params (Dict[str, torch.Tensor]): Parameters at time t.
-        prev_chains (torch.Tensor): Chains at time t-1.
-        curr_chains (torch.Tensor): Chains at time t.
-
-    Returns:
-        float: Acceptance rate of swapping the configurations between two models along the training.
-    """
-    nchains = len(prev_chains)
-    delta_energy = (
-        - compute_energy(curr_chains, prev_params)
-        + compute_energy(prev_chains, prev_params)
-        + compute_energy(curr_chains, curr_params)
-        - compute_energy(prev_chains, curr_params)
-    )
-    swap = torch.exp(delta_energy) > torch.rand(size=(nchains,), device=delta_energy.device)
-    acceptance_rate = swap.float().mean().item()
-    
-    return acceptance_rate
+def exchange_log_acceptance(prev_params, curr_params, prev_chains, curr_chains):
+    """Deterministic log Metropolis acceptance for Hamiltonian exchange."""
+    return (
+        compute_energy(prev_chains, prev_params).double()
+        + compute_energy(curr_chains, curr_params).double()
+        - compute_energy(curr_chains, prev_params).double()
+        - compute_energy(prev_chains, curr_params).double()
+    ).clamp_max(0.0)
 
 
 def _tap_residue(
@@ -278,32 +300,3 @@ def iterate_tap(
             break
     
     return mag_
-
-# Edge activation functions
-
-def _update_logZ_edge_activation(
-    logZ: float,
-    ids_edge: tuple[int, int],
-    fij: torch.Tensor,
-    pij: torch.Tensor,
-    chains_estimate: torch.Tensor,
-) -> float:
-    """Updates the log-partition function of the model using the edge-activation algorithm.
-
-    Args:
-        logZ (float): Log-partition function at time t-1.
-        ids_edge (tuple[int, int]): Indices of the newly activated edge.
-        fij (torch.Tensor): Two-point frequencies of the dataset.
-        pij (torch.Tensor): Two-point marginals of the model.
-        chains_estimate (torch.Tensor): Chains used for the partition function estimation.
-
-    Returns:
-        float: Updated log-partition function.
-    """
-    pij_estimate = get_freq_two_points(data=chains_estimate, pseudo_count=1e-6)
-    fij_edge = fij[ids_edge[0], :, ids_edge[1], :]
-    pij_edge = pij[ids_edge[0], :, ids_edge[1], :]
-    pij_estimate_edge = pij_estimate[ids_edge[0], :, ids_edge[1], :]
-    delta_logZ = torch.log(torch.sum(fij_edge / pij_edge * pij_estimate_edge)).item()
-    
-    return logZ + delta_logZ

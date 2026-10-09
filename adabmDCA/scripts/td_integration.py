@@ -8,7 +8,17 @@ from adabmDCA.parser import add_args_tdint
 
 
 def create_parser() -> argparse.ArgumentParser:
-    return add_args_tdint(argparse.ArgumentParser(description="Estimate DCA entropy by thermodynamic integration."))
+    from adabmDCA.scripts._frontend import ExplicitOptionParser
+
+    class EntropyParser(ExplicitOptionParser):
+        def parse_known_args(self, args=None, namespace=None):
+            result, unknown = super().parse_known_args(args, namespace)
+            if result.strategy != "ptt" and (result.data is None or result.path_targetseq is None):
+                self.error("--data and --path_targetseq are required with --strategy pcd")
+            return result, unknown
+    return add_args_tdint(EntropyParser(description=("Estimate DCA entropy. PTT uses the PTT (Parallel Trajectory Tempering) sampling strategy; "
+                      "PCD uses normal MCMC sampling for thermodynamic integration.")))
+
 
 
 class _EntropyProgressRenderer:
@@ -40,6 +50,19 @@ def run(args, *, progress=None):
     from adabmDCA.scripts._frontend import resolve_alphabet
 
     resolve_alphabet(args)
+    if args.strategy == "ptt":
+        from adabmDCA.exceptions import InputValidationError
+        from adabmDCA.api.ptt import estimate_ptt_entropy
+        if args.data is not None or args.path_targetseq is not None or args.path_chains is not None or args.dtype == "bfloat16":
+            raise InputValidationError("PTT entropy requires only an archive; target/data/chains and BF16 are unsupported.")
+        incompatible = {"theta_max", "nsteps", "nsweeps_theta", "nsweeps_zero", "sampler", "dtype"}
+        if incompatible.intersection(getattr(args, "_explicit_options", ())):
+            raise InputValidationError("Integration/local-kernel options cannot be combined with --strategy ptt; the archive owns the kernel.")
+        return estimate_ptt_entropy(model=args.path_params, n_sweeps=args.nsweeps, device=args.device,
+                                    alphabet=args.alphabet, seed=args.seed, output_dir=args.output, label=args.label)
+    from adabmDCA.exceptions import InputValidationError
+    if args.data is None or args.path_targetseq is None:
+        raise InputValidationError("Entropy integration requires --data and --path_targetseq (or select --strategy ptt).")
     from adabmDCA.api.entropy import estimate_entropy
 
     return estimate_entropy(
@@ -72,16 +95,19 @@ def main(args=None) -> int:
 
     from adabmDCA.scripts._frontend import print_completion, print_configuration, print_header
 
-    print_header("Thermodynamic-integration entropy")
+    print_header("Direct PTT entropy" if args.strategy == "ptt" else "Thermodynamic-integration entropy")
     print_configuration(
         {
             "alignment": args.data,
             "model": args.path_params,
             "target": args.path_targetseq,
             "output": args.output,
-            "chains": args.nchains,
-            "integration steps": args.nsteps,
-            "sweeps per step": args.nsweeps,
+            "chains": args.nchains if args.strategy != "ptt" else None,
+            "integration steps": args.nsteps if args.strategy != "ptt" else None,
+            "sweeps per step": args.nsweeps if args.strategy != "ptt" else None,
+            "PTT local sweeps": args.nsweeps if args.strategy == "ptt" else None,
+            "--nchains": "ignored; the archive owns the chains" if args.strategy == "ptt" and
+                "nchains" in getattr(args, "_explicit_options", ()) else None,
             "device": args.device,
             "dtype": args.dtype,
         }
@@ -92,12 +118,12 @@ def main(args=None) -> int:
     finally:
         renderer.close()
     print_completion(
-        "Thermodynamic integration completed successfully.",
+        "PTT entropy estimation completed successfully." if args.strategy == "ptt" else "Thermodynamic integration completed successfully.",
         metrics={
             "entropy": f"{result.entropy:.6g}",
             "free energy": f"{result.free_energy:.6g}",
-            "theta max": f"{result.theta_max:.6g}",
-            "target fraction": f"{result.target_fraction:.3%}",
+            **({"logZ": result.log_z, "status": result.status} if args.strategy == "ptt" else {
+                "theta max": f"{result.theta_max:.6g}", "target fraction": f"{result.target_fraction:.3%}"}),
         },
         artifacts=result.artifacts,
     )

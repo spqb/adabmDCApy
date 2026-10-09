@@ -17,12 +17,8 @@ def _metrics() -> TrainingMetrics:
     return TrainingMetrics(
         pearson=0.2,
         slope=0.8,
-        ll_train=-1.0,
-        ll_val=float("nan"),
         pearson_val=float("nan"),
         slope_val=float("nan"),
-        ess=1.0,
-        entropy=0.5,
         density=0.1,
         elapsed_time=0.01,
     )
@@ -37,8 +33,7 @@ def _tiny_state():
     }
     mask = torch.zeros_like(params["coupling_matrix"], dtype=torch.bool)
     chains = torch.nn.functional.one_hot(torch.zeros((4, 2), dtype=torch.int64), num_classes=2).float()
-    log_weights = torch.zeros(len(chains))
-    return fi, fij, params, mask, chains, log_weights
+    return fi, fij, params, mask, chains
 
 
 def test_controller_owns_history_progress_and_checkpoint_schedule():
@@ -66,7 +61,7 @@ def test_controller_owns_history_progress_and_checkpoint_schedule():
         checkpoint=store,
         observer=lambda record, counters: observed.append((record["Epochs"], counters.gradient_steps)),
     )
-    snapshot = {"params": {}, "mask": None, "chains": None, "log_weights": None}
+    snapshot = {"params": {}, "mask": None, "chains": None}
     controller.begin_stage("optimization", target_pearson=0.95)
 
     for step in (1, 2):
@@ -78,10 +73,30 @@ def test_controller_owns_history_progress_and_checkpoint_schedule():
     assert controller.history["Epochs"] == [1, 2]
     assert observed == [(1, 1), (2, 2)]
     assert len(store.logs) == 2
-    assert len(store.saves) == 2  # scheduled checkpoint plus one final save
+    # The scheduled checkpoint at the last step already holds the final state.
+    assert len(store.saves) == 1
     assert store.stages == [("optimization", {"target_pearson": 0.95})]
     assert controller.counters.stage == "optimization"
     assert controller.counters.sweeps == 6
+
+
+def test_stage_updates_do_not_append_metric_rows():
+    stages = []
+    metrics = []
+    controller = TrainingController(stage_observer=stages.append,
+                                    observer=lambda row, counters: metrics.append(row))
+    controller.begin_stage("ptt_mixing", reason="overlap")
+    controller.report_stage_progress("mixing_warmup", 25, 100, chains=20)
+    controller.report_stage_progress("mixing_warmup", 100, 100, chains=20)
+    assert [(event.stage, event.kind, event.current, event.total) for event in stages] == [
+        ("ptt_mixing", "start", None, None),
+        ("mixing_warmup", "progress", 25, 100),
+        ("mixing_warmup", "progress", 100, 100),
+    ]
+    assert stages[1].details == {"chains": 20}
+    assert controller.history["Epochs"] == [] and metrics == []
+    controller.record(_metrics(), epoch=0)
+    assert len(metrics) == len(controller.history["Epochs"]) == 1
 
 
 def test_controller_reports_cancellation():
@@ -94,11 +109,11 @@ def test_controller_reports_cancellation():
 
 
 def test_eadca_tracks_nested_gradient_and_structure_steps():
-    fi, fij, params, mask, chains, log_weights = _tiny_state()
+    fi, fij, params, mask, chains = _tiny_state()
     controller = TrainingController(limits=TrainingLimits(max_structure_steps=2))
 
     def inner_training(**kwargs):
-        return kwargs["chains"], kwargs["params"], kwargs["log_weights"], {"Epochs": [1, 2, 3]}
+        return kwargs["chains"], kwargs["params"], {"Epochs": [1, 2, 3]}
 
     with (
         patch("adabmDCA.training.train_graph", side_effect=inner_training),
@@ -106,19 +121,15 @@ def test_eadca_tracks_nested_gradient_and_structure_steps():
         patch("adabmDCA.training.get_freq_single_point", return_value=fi),
         patch("adabmDCA.training.get_freq_two_points", return_value=fij),
         patch("adabmDCA.training.get_correlation_two_points", return_value=(0.0, 0.0)),
-        patch("adabmDCA.training.compute_log_likelihood", return_value=0.0),
-        patch("adabmDCA.training.compute_entropy", return_value=torch.tensor(0.0)),
-        patch("adabmDCA.training._compute_ess", return_value=1.0),
         patch("adabmDCA.training.compute_density", return_value=0.0),
     ):
-        _, _, _, history = train_eaDCA(
+        _, _, history = train_eaDCA(
             sampler=lambda **kwargs: kwargs["chains"],
             fi_target=fi,
             fij_target=fij,
             params=params,
             mask=mask,
             chains=chains,
-            log_weights=log_weights,
             target_pearson=0.95,
             nsweeps=2,
             max_epochs=2,
@@ -137,29 +148,24 @@ def test_eadca_tracks_nested_gradient_and_structure_steps():
 
 
 def test_eddca_respects_structure_budget_and_tracks_inner_steps(capsys):
-    fi, fij, params, mask, chains, log_weights = _tiny_state()
+    fi, fij, params, mask, chains = _tiny_state()
     mask.fill_(True)
     controller = TrainingController(limits=TrainingLimits(max_structure_steps=2))
 
     def inner_training(**kwargs):
-        return kwargs["chains"], kwargs["params"], kwargs["log_weights"], {"Epochs": [1, 2]}
+        return kwargs["chains"], kwargs["params"], {"Epochs": [1, 2]}
 
     with (
         patch("adabmDCA.training.train_graph", side_effect=inner_training),
         patch("adabmDCA.training.decimate_graph", side_effect=lambda **kwargs: (kwargs["params"], kwargs["mask"])),
-        patch("adabmDCA.training._update_weights_AIS", side_effect=lambda **kwargs: kwargs["log_weights"]),
         patch("adabmDCA.training.get_freq_single_point", return_value=fi),
         patch("adabmDCA.training.get_freq_two_points", return_value=fij),
         patch("adabmDCA.training.get_correlation_two_points", return_value=(0.9, 1.0)),
-        patch("adabmDCA.training.compute_log_likelihood", return_value=0.0),
-        patch("adabmDCA.training.compute_entropy", return_value=torch.tensor(0.0)),
-        patch("adabmDCA.training._compute_ess", return_value=1.0),
         patch("adabmDCA.training.compute_density", return_value=1.0),
     ):
-        _, _, _, history = train_edDCA(
+        _, _, history = train_edDCA(
             sampler=lambda **kwargs: kwargs["chains"],
             chains=chains,
-            log_weights=log_weights,
             fi_target=fi,
             fij_target=fij,
             params=params,

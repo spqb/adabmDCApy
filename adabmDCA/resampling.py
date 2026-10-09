@@ -76,9 +76,11 @@ def compute_mixing_time(
                 # Perform a sweep on sample_t_half
                 sample_t_half = sampler(chains=sample_t_half, params=params, nsweeps=1, beta=beta)
 
-                # Calculate the average distance between sample_t and itself shuffled
+                # Calculate the average distance between sample_t and itself shuffled. Pairing each
+                # shuffled chain with its neighbour guarantees that no chain is compared with itself.
                 perm = torch.randperm(len(sample_t), device=sample_t.device)
-                seqid_t, std_seqid_t = get_seqid_stats(sample_t, sample_t[perm])
+                shuffled = sample_t[perm]
+                seqid_t, std_seqid_t = get_seqid_stats(shuffled, shuffled.roll(1, dims=0))
                 seqid_t, std_seqid_t = seqid_t / L, std_seqid_t / L
 
                 # Calculate the average distance between sample_t and sample_t_half

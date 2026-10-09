@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Literal
 
@@ -16,12 +16,13 @@ from adabmDCA.alignment import (
     normalize_gap_symbols,
     read_alignment,
 )
-from adabmDCA.api.exceptions import (
+from adabmDCA.alphabet import detect_alphabet
+from adabmDCA.exceptions import (
     InputValidationError,
     ModelCompatibilityError,
     WeightLoadError,
 )
-from adabmDCA.fasta import compute_weights, encode_sequence, get_tokens
+from adabmDCA.fasta import compute_weights, get_tokens
 
 AlignmentInput = str | Path | Alignment
 InvalidSequencePolicy = Literal["error", "drop"]
@@ -30,9 +31,21 @@ WeightInput = str | Path | Sequence[float] | np.ndarray | torch.Tensor
 
 @dataclass(frozen=True)
 class AlignmentLoadConfig:
-    """Policy applied after parsing an alignment."""
+    """How :func:`load_alignment` reads, validates and filters an alignment.
 
-    alphabet: str = "protein"
+    Attributes:
+        alphabet: ``"auto"`` (detect DNA, RNA or protein), a built-in name, or a
+            custom token string.
+        invalid_sequences: ``"error"`` to reject, or ``"drop"`` to remove,
+            sequences with tokens outside the alphabet.
+        remove_duplicates: Keep only the first copy of identical sequences.
+        expected_length: Required alignment length, or ``None``.
+        format: ``"auto"``, ``"fasta"`` or ``"stockholm"``.
+        alignment_index: Alignment to read from a multi-alignment Stockholm file.
+        normalize_dots: Turn ``"."`` gaps into ``"-"``.
+    """
+
+    alphabet: str = "auto"
     invalid_sequences: InvalidSequencePolicy = "error"
     remove_duplicates: bool = False
     expected_length: int | None = None
@@ -56,42 +69,66 @@ class AlignmentLoadConfig:
             raise InputValidationError("expected_length must be positive.")
 
 
-@dataclass(frozen=True)
-class LoadedAlignment:
-    """Validated alignment plus provenance of filtering transformations."""
-
-    alignment: Alignment
-    tokens: str
-    retained_indices: tuple[int, ...]
-    dropped_indices: tuple[int, ...] = ()
-    duplicate_indices: tuple[int, ...] = ()
-    original_size: int = 0
-
-    @property
-    def encoded_sequences(self) -> np.ndarray:
-        return encode_sequence(list(self.alignment.sequences), tokens=self.tokens)
-
-    def to_dict(self) -> dict[str, object]:
-        """Return a JSON-serializable filtering and provenance report."""
-        return {
-            "source": (None if self.alignment.source is None else str(self.alignment.source)),
-            "original_sequences": self.original_size,
-            "retained_sequences": len(self.alignment),
-            "retained_indices": list(self.retained_indices),
-            "dropped_indices": list(self.dropped_indices),
-            "duplicate_indices": list(self.duplicate_indices),
-            "sequence_length": self.alignment.sequence_length,
-            "tokens": self.tokens,
-        }
-
-
 def load_alignment(
     source: AlignmentInput,
     *,
     config: AlignmentLoadConfig | None = None,
-) -> LoadedAlignment:
-    """Parse, validate, filter, and deduplicate one alignment."""
+    alphabet: str | None = None,
+    invalid_sequences: InvalidSequencePolicy | None = None,
+    remove_duplicates: bool | None = None,
+    expected_length: int | None = None,
+    format: AlignmentFormat | None = None,
+    alignment_index: int | None = None,
+    normalize_dots: bool | None = None,
+) -> Alignment:
+    """Parse, validate, filter, and deduplicate an alignment.
+
+    The alphabet is detected from standard DNA, RNA, or protein tokens by
+    default; pass ``alphabet`` for ambiguous or custom alignments. Direct
+    keyword options override the corresponding fields in ``config``.
+    The returned :class:`Alignment` contains its selected encoding tokens and
+    filtering provenance, so callers do not need a separate wrapper type.
+
+    Args:
+        source: Path, :class:`Alignment` or sequences.
+        config: Loading policy; see :class:`AlignmentLoadConfig`.
+        alphabet: Overrides ``config.alphabet``.
+        invalid_sequences: Overrides ``config.invalid_sequences``.
+        remove_duplicates: Overrides ``config.remove_duplicates``.
+        expected_length: Overrides ``config.expected_length``.
+        format: Overrides ``config.format``.
+        alignment_index: Overrides ``config.alignment_index``.
+        normalize_dots: Overrides ``config.normalize_dots``.
+
+    Returns:
+        The filtered :class:`Alignment`, with ``tokens``, ``encoded_sequences``
+        and the indices of the retained sequences.
+
+    Raises:
+        AlignmentLoadError: If the file cannot be read.
+        InputValidationError: If sequences are invalid under ``"error"``, the
+            length is wrong, or no sequence remains.
+
+    Example:
+        >>> alignment = load_alignment("family.fasta", invalid_sequences="drop")
+        >>> alignment.tokens, alignment.num_sequences
+    """
     policy = config or AlignmentLoadConfig()
+    overrides = {
+        name: value
+        for name, value in {
+            "alphabet": alphabet,
+            "invalid_sequences": invalid_sequences,
+            "remove_duplicates": remove_duplicates,
+            "expected_length": expected_length,
+            "format": format,
+            "alignment_index": alignment_index,
+            "normalize_dots": normalize_dots,
+        }.items()
+        if value is not None
+    }
+    if overrides:
+        policy = replace(policy, **overrides)
     if isinstance(source, Alignment):
         alignment = source
     else:
@@ -103,7 +140,11 @@ def load_alignment(
     if policy.normalize_dots:
         alignment = normalize_gap_symbols(alignment)
 
-    tokens = get_tokens(policy.alphabet)
+    if policy.alphabet == "auto":
+        resolved_alphabet = alignment.tokens or detect_alphabet(alignment.sequences)
+    else:
+        resolved_alphabet = policy.alphabet
+    tokens = get_tokens(resolved_alphabet)
     if policy.expected_length is not None and alignment.sequence_length != policy.expected_length:
         raise ModelCompatibilityError(
             f"Alignment length ({alignment.sequence_length}) does not match the expected length "
@@ -169,8 +210,10 @@ def load_alignment(
         sequences=tuple(alignment.sequences[index] for index in retained),
         source=alignment.source,
     )
-    return LoadedAlignment(
-        alignment=selected,
+    return Alignment(
+        names=selected.names,
+        sequences=selected.sequences,
+        source=selected.source,
         tokens=tokens,
         retained_indices=retained,
         dropped_indices=invalid if policy.invalid_sequences == "drop" else (),
@@ -182,7 +225,7 @@ def load_alignment(
 def load_sequence_weights(
     source: WeightInput | None,
     *,
-    loaded_alignment: LoadedAlignment,
+    loaded_alignment: Alignment,
     no_reweighting: bool,
     clustering_seqid: float,
     device: torch.device,
@@ -195,6 +238,27 @@ def load_sequence_weights(
     ``allow_negative`` and ``require_positive_sum`` are intended for signed
     experimental adjustment vectors; ordinary statistical weights should keep
     their safe defaults.
+
+    Args:
+        source: Weights file (one number per line), sequence, array or tensor, or
+            ``None`` to compute them. Their count may match the original or the
+            retained sequences.
+        loaded_alignment: Alignment returned by :func:`load_alignment`.
+        no_reweighting: Give every sequence weight 1 (``source`` is ignored).
+        clustering_seqid: Computed weights: each sequence gets
+            ``1 / (number of sequences more than this identical to it)``,
+            itself included.
+        device: Device of the returned tensor.
+        dtype: Precision of the returned tensor.
+        allow_negative: Accept negative weights.
+        require_positive_sum: Reject weights whose sum is not positive.
+
+    Returns:
+        One weight per retained sequence.
+
+    Raises:
+        WeightLoadError: If the weights cannot be read, have the wrong count, or
+            are not finite, negative, or sum to zero when disallowed.
     """
     encoded = torch.as_tensor(
         loaded_alignment.encoded_sequences,
@@ -237,7 +301,7 @@ def load_sequence_weights(
                 "Sequence weights must be one-dimensional.",
                 details={"shape": tuple(values.shape)},
             )
-        retained_size = len(loaded_alignment.alignment)
+        retained_size = len(loaded_alignment)
         if len(values) == loaded_alignment.original_size:
             values = values[list(loaded_alignment.retained_indices)]
         elif len(values) != retained_size:

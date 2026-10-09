@@ -50,15 +50,16 @@ jobs:
           adabmDCA.training_control \
           adabmDCA.api.contacts \
           adabmDCA.api.entropy \
-          adabmDCA.api.exceptions \
+          adabmDCA.exceptions \
           adabmDCA.api.input_loading \
           adabmDCA.api.model \
+          adabmDCA.api.ptt \
           adabmDCA.api.mutations \
           adabmDCA.api.reintegration \
           adabmDCA.api.results \
           adabmDCA.api.sampling \
           adabmDCA.api.scoring \
-          adabmDCA.api.serialization \
+          adabmDCA.serialization \
           adabmDCA.api.splitting \
           adabmDCA.api.training \
           adabmDCA.checkpoint \
@@ -70,10 +71,14 @@ jobs:
           adabmDCA.graph \
           adabmDCA.io \
           adabmDCA.plot \
+          adabmDCA.ptt.config \
+          adabmDCA.ptt.mixing \
+          adabmDCA.ptt.sampler \
           adabmDCA.resampling \
           adabmDCA.sampling \
           adabmDCA.sampling_triton \
           adabmDCA.statmech \
+          adabmDCA.steering \
           adabmDCA.stats \
           adabmDCA.training \
           adabmDCA.utils

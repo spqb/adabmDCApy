@@ -6,7 +6,7 @@ import pytest
 import torch
 
 from adabmDCA import Alignment
-from adabmDCA.api.exceptions import (
+from adabmDCA.exceptions import (
     InputValidationError,
     ModelCompatibilityError,
     WeightLoadError,
@@ -36,12 +36,99 @@ def test_loading_policy_reports_filtering_and_duplicates():
         ),
     )
 
-    assert loaded.alignment.names == ("first", "last")
-    assert loaded.alignment.sequences == ("AA", "BB")
+    assert isinstance(loaded, Alignment)
+    assert loaded.names == ("first", "last")
+    assert loaded.sequences == ("AA", "BB")
+    assert loaded.tokens == "AB-"
     assert loaded.retained_indices == (0, 3)
     assert loaded.dropped_indices == (1,)
     assert loaded.duplicate_indices == (2,)
     assert loaded.original_size == 4
+
+
+def test_alignment_to_onehot_can_flatten_feature_dimensions():
+    alignment = load_alignment(
+        Alignment(("first", "second"), ("AB", "B-")),
+        config=AlignmentLoadConfig(alphabet="AB-"),
+    )
+
+    onehot = alignment.to_onehot()
+    flattened = alignment.to_onehot(flatten=True)
+
+    assert onehot.dtype == torch.float32
+    assert onehot.shape == (2, 2, 3)
+    assert flattened.shape == (2, 6)
+    torch.testing.assert_close(
+        onehot,
+        torch.tensor(
+            [
+                [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0]],
+                [[0.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
+            ]
+        ),
+    )
+    torch.testing.assert_close(flattened, onehot.flatten(start_dim=1))
+
+
+@pytest.mark.parametrize(
+    ("sequence", "tokens"),
+    [
+        ("ACGT", "-ACGT"),
+        ("ACGU", "-ACGU"),
+        ("MEK", "-ACDEFGHIKLMNPQRSTVWY"),
+        ("ACG", "-ACGT"),
+    ],
+)
+def test_load_alignment_detects_standard_alphabet_by_default(sequence, tokens):
+    loaded = load_alignment(Alignment(("s1",), (sequence,)))
+
+    assert loaded.tokens == tokens
+
+
+def test_alignment_repr_summarizes_shape_and_tokens():
+    raw = Alignment(("first", "second"), ("AC", "AG"))
+    loaded = load_alignment(raw, alphabet="dna")
+
+    assert repr(raw) == "Alignment(num_sequences=2, sequence_length=2, tokens=None)"
+    assert repr(loaded) == "Alignment(num_sequences=2, sequence_length=2, tokens='-ACGT')"
+    assert "first" not in repr(loaded)
+    assert "sequences=(" not in repr(loaded)
+
+
+def test_load_alignment_accepts_direct_options_and_config_overrides():
+    alignment = Alignment(
+        ("first", "invalid", "duplicate", "last"),
+        ("AA", "AX", "AA", "BB"),
+    )
+    direct = load_alignment(
+        alignment,
+        alphabet="AB-",
+        invalid_sequences="drop",
+        remove_duplicates=True,
+    )
+    loaded = load_alignment(
+        alignment,
+        config=AlignmentLoadConfig(alphabet="dna", invalid_sequences="error"),
+        alphabet="AB-",
+        invalid_sequences="drop",
+        remove_duplicates=True,
+    )
+
+    assert loaded.names == ("first", "last")
+    assert loaded.tokens == "AB-"
+    assert loaded.retained_indices == (0, 3)
+    assert loaded.dropped_indices == (1,)
+    assert loaded.duplicate_indices == (2,)
+    assert direct == loaded
+
+
+def test_auto_alphabet_requires_explicit_tokens_for_custom_symbols():
+    alignment = Alignment(("s1",), ("01",))
+
+    with pytest.raises(InputValidationError, match="explicit custom alphabet"):
+        load_alignment(alignment)
+
+    assert load_alignment(alignment, alphabet="01").tokens == "01"
 
 
 def test_strict_loading_reports_unknown_tokens():
@@ -94,8 +181,8 @@ def test_compressed_fasta_and_stockholm_use_the_same_loader(tmp_path: Path):
         config=AlignmentLoadConfig(alphabet="AB-"),
     )
 
-    assert loaded_gzip.alignment.sequences == ("AB", "A-")
-    assert loaded_stockholm.alignment.sequences == ("A-", "AB")
+    assert loaded_gzip.sequences == ("AB", "A-")
+    assert loaded_stockholm.sequences == ("A-", "AB")
 
 
 def test_original_weights_follow_retained_indices():
@@ -148,7 +235,7 @@ def test_dataset_can_be_materialized_without_file_io(capsys):
         config=AlignmentLoadConfig(alphabet="AB-"),
     )
 
-    dataset = DatasetDCA.from_loaded_alignment(
+    dataset = DatasetDCA.from_alignment(
         loaded,
         weights=[1.0, 2.0],
         device=torch.device("cpu"),

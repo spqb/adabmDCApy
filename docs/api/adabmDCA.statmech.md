@@ -10,7 +10,22 @@
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/statmech.py#L9"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/statmech.py#L12"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+
+## <kbd>function</kbd> `couplings_are_symmetric`
+
+```python
+couplings_are_symmetric(couplings: Tensor) → bool
+```
+
+Whether ``J[i, a, j, b] == J[j, b, i, a]`` exactly, as for every trained Potts model.
+
+The answer is cached per tensor and recomputed after in-place changes, so kernels can ask on every call. Kernels use it to sum pair terms once.
+
+
+---
+
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/statmech.py#L28"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `compute_energy`
 
@@ -40,7 +55,40 @@ Compute the DCA energy for a batch of sequences.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/statmech.py#L91"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/statmech.py#L57"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+
+## <kbd>function</kbd> `get_cde`
+
+```python
+get_cde(x: Tensor, params: dict[str, Tensor]) → Tensor
+```
+
+Compute per-site context-dependent entropy of one-hot sequences.
+
+For each site ``i``, hold all other residues fixed, evaluate the model probability of every state at ``i``, and return the Shannon entropy of that conditional distribution in nats. The conditional probabilities follow the same energy convention as :func:`compute_energy`, including asymmetric couplings and nonzero same-site terms.
+
+
+
+**Args:**
+
+ - <b>`x`</b>:  One-hot sequence of shape ``(L, q)`` or batch of shape  ``(N, L, q)``. It is moved to the model's device and dtype.
+ - <b>`params`</b>:  Model parameters with ``bias`` of shape ``(L, q)`` and  ``coupling_matrix`` of shape ``(L, q, L, q)``.
+
+
+
+**Returns:**
+ Tensor of shape ``(L,)`` for one sequence or ``(N, L)`` for a batch.
+
+
+
+**Raises:**
+
+ - <b>`ValueError`</b>:  If the parameter or sequence dimensions are incompatible,  or ``x`` is not one-hot encoded.
+
+
+---
+
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/statmech.py#L133"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `compute_log_likelihood`
 
@@ -73,7 +121,7 @@ Compute the log-likelihood per residue of the model.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/statmech.py#L111"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/statmech.py#L153"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `enumerate_states`
 
@@ -100,7 +148,7 @@ Enumerate all possible states of a system of L sites and q states.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/statmech.py#L133"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/statmech.py#L175"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `compute_logZ_exact`
 
@@ -126,7 +174,7 @@ Compute the log-partition function of the model.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/statmech.py#L152"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/statmech.py#L194"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `compute_entropy`
 
@@ -153,7 +201,20 @@ Compute the entropy of the DCA model.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/statmech.py#L249"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/statmech.py#L215"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+
+## <kbd>function</kbd> `exchange_log_acceptance`
+
+```python
+exchange_log_acceptance(prev_params, curr_params, prev_chains, curr_chains)
+```
+
+Deterministic log Metropolis acceptance for Hamiltonian exchange.
+
+
+---
+
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/statmech.py#L271"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `iterate_tap`
 

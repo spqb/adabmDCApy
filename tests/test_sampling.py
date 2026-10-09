@@ -90,6 +90,86 @@ class SamplingTests(unittest.TestCase):
 
 @unittest.skipUnless(torch.cuda.is_available(), "CUDA is required for Triton sampling tests")
 class TritonSamplingTests(unittest.TestCase):
+    def test_replica_metropolis_matches_sequential_controlled_updates(self):
+        from adabmDCA.sampling_triton import (
+            _metropolis_steps_triton,
+            _replica_metropolis_steps_triton,
+            is_triton_available,
+        )
+
+        if not is_triton_available():
+            self.skipTest("Triton is unavailable")
+        torch.manual_seed(7)
+        replicas, num_chains, length, num_states, num_steps = 3, 37, 17, 5, 19
+        states = torch.randint(
+            num_states, (replicas, num_chains, length), device="cuda", dtype=torch.int32
+        )
+        biases = torch.randn(replicas, length, num_states, device="cuda") * 0.1
+        couplings = torch.randn(
+            replicas, length, num_states, length, num_states, device="cuda"
+        ) * 0.01
+        sites = torch.randint(length, (num_steps, replicas), device="cuda", dtype=torch.int32)
+        proposals = torch.randint(
+            num_states, (num_steps, replicas, num_chains), device="cuda", dtype=torch.int32
+        )
+        uniforms = torch.rand(num_steps, replicas, num_chains, device="cuda")
+
+        expected = states.clone()
+        for replica in range(replicas):
+            _metropolis_steps_triton(
+                expected[replica],
+                {"bias": biases[replica], "coupling_matrix": couplings[replica]},
+                sites[:, replica].contiguous(),
+                proposals[:, replica].contiguous(),
+                uniforms[:, replica].contiguous(),
+                0.8,
+            )
+        actual = states.clone()
+        _replica_metropolis_steps_triton(
+            actual, biases, couplings, sites, proposals, uniforms, 0.8
+        )
+        torch.testing.assert_close(actual, expected, rtol=0, atol=0)
+
+    def test_categorical_exchange_matches_dense_energy_reference(self):
+        from adabmDCA.sampling_triton import exchange_log_acceptance_categorical_triton, is_triton_available
+        from adabmDCA.statmech import exchange_log_acceptance
+
+        if not is_triton_available():
+            self.skipTest("Triton is unavailable")
+        torch.manual_seed(23)
+        device = torch.device("cuda")
+        num_chains, length, num_states = 37, 11, 5
+        lower_states = torch.randint(
+            num_states, (num_chains, length), device=device, dtype=torch.int32
+        )
+        upper_states = torch.randint(
+            num_states, (num_chains, length), device=device, dtype=torch.int32
+        )
+        lower = {
+            "bias": torch.randn(length, num_states, device=device) * 0.1,
+            "coupling_matrix": torch.randn(
+                length, num_states, length, num_states, device=device
+            ) * 0.02,
+        }
+        upper = {
+            "bias": torch.randn(length, num_states, device=device) * 0.1,
+            "coupling_matrix": torch.randn(
+                length, num_states, length, num_states, device=device
+            ) * 0.02,
+        }
+        lower_one_hot = torch.nn.functional.one_hot(lower_states.long(), num_states).float()
+        upper_one_hot = torch.nn.functional.one_hot(upper_states.long(), num_states).float()
+        for symmetric in (False, True):
+            if symmetric:
+                # Symmetric couplings (diagonal blocks included) take the half-sum path.
+                for params in (lower, upper):
+                    params["coupling_matrix"] = 0.5 * (
+                        params["coupling_matrix"] + params["coupling_matrix"].permute(2, 3, 0, 1)
+                    )
+            expected = exchange_log_acceptance(lower, upper, lower_one_hot, upper_one_hot)
+            actual = exchange_log_acceptance_categorical_triton(lower, upper, lower_states, upper_states)
+            torch.testing.assert_close(actual, expected, rtol=2e-5, atol=2e-5)
+
     def test_public_independent_site_kernels_update_chains_in_place(self):
         from adabmDCA.sampling_triton import (
             gibbs_step_independent_sites_triton,

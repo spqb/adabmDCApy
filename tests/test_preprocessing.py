@@ -1,10 +1,9 @@
 import json
-from pathlib import Path
 import subprocess
 import sys
-from tempfile import TemporaryDirectory
 import unittest
-
+from pathlib import Path
+from tempfile import TemporaryDirectory
 
 STOCKHOLM = """# STOCKHOLM 1.0
 s1 ACd.-E
@@ -183,8 +182,7 @@ s2 D-
                     str(report),
                 ],
                 text=True,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
+                capture_output=True,
                 check=False,
             )
 
@@ -193,6 +191,78 @@ s2 D-
             self.assertTrue(report.is_file())
             self.assertIn("Output sequences: 1", completed.stdout)
             self.assertNotIn(".", output.read_text(encoding="utf-8"))
+
+
+    def test_unknown_token_policies_update_alignment_and_report(self):
+        from adabmDCA import AlignmentProcessingConfig, InputValidationError, preprocess_alignment
+
+        with TemporaryDirectory() as directory:
+            source = Path(directory) / "input.fasta"
+            source.write_text(">clean\nACGT\n>alien\nAXGT\n>other\nAC?T\n", encoding="utf-8")
+            gap = preprocess_alignment(source, alphabet="dna")
+            self.assertEqual(gap.alignment.sequences, ("ACGT", "A-GT", "AC-T"))
+            self.assertEqual(gap.keep_mask, (True, True, True))
+            self.assertEqual(gap.report.replaced_unknown_characters, 2)
+            removed = preprocess_alignment(
+                source, config=AlignmentProcessingConfig(alphabet="dna", unknown_tokens="remove")
+            )
+            self.assertEqual(removed.alignment.names, ("clean",))
+            self.assertEqual(removed.keep_mask, (True, False, False))
+            self.assertEqual(removed.report.removed_for_unknown_tokens, 2)
+            self.assertEqual(removed.report.removed_names, ("alien", "other"))
+            with self.assertRaises(InputValidationError) as context:
+                preprocess_alignment(source, alphabet="dna", unknown_tokens="error")
+            self.assertEqual(context.exception.details["unexpected_tokens"], ["?", "X"])
+            self.assertEqual(context.exception.details["invalid_names"], ["alien", "other"])
+
+    def test_auto_detection_ignores_alien_symbols_and_custom_alphabet_keeps_its_symbols(self):
+        from adabmDCA import preprocess_alignment
+
+        with TemporaryDirectory() as directory:
+            source = Path(directory) / "input.fasta"
+            source.write_text(">a\nACGT\n>b\nACXT\n", encoding="utf-8")
+            auto = preprocess_alignment(source, alphabet="auto")
+            custom = preprocess_alignment(source, alphabet="ACGXT-", unknown_tokens="gap")
+            self.assertEqual(auto.alignment.sequences, ("ACGT", "AC-T"))
+            self.assertEqual(custom.alignment.sequences, ("ACGT", "ACXT"))
+
+    def test_unknown_gap_replacement_precedes_gap_filter(self):
+        from adabmDCA import preprocess_alignment
+
+        with TemporaryDirectory() as directory:
+            source = Path(directory) / "input.fasta"
+            source.write_text(">clean\nACGT\n>alien\nAXXT\n", encoding="utf-8")
+            result = preprocess_alignment(source, alphabet="dna", max_gap_fraction=0.25)
+            self.assertEqual(result.alignment.names, ("clean",))
+            self.assertEqual(result.report.replaced_unknown_characters, 2)
+            self.assertEqual(result.report.removed_for_gap_fraction, 1)
+            self.assertEqual(result.keep_mask, (True, False))
+
+    def test_preprocess_cli_unknown_token_modes(self):
+        with TemporaryDirectory() as directory:
+            source = Path(directory) / "input.fasta"
+            source.write_text(">clean\nACGT\n>alien\nAXGT\n", encoding="utf-8")
+            for mode, expected in (("gap", "A-GT"), ("remove", None), ("error", None)):
+                with self.subTest(mode=mode):
+                    output = Path(directory) / f"{mode}.fasta"
+                    report = Path(directory) / f"{mode}.json"
+                    command = [sys.executable, "-m", "adabmDCA.cli", "preprocess", str(source),
+                               "--output", str(output), "--alphabet", "dna", "--report", str(report)]
+                    if mode != "gap":
+                        command.extend(("--unknown-tokens", mode))
+                    completed = subprocess.run(command, text=True, capture_output=True, check=False)
+                    if mode == "error":
+                        self.assertNotEqual(completed.returncode, 0)
+                        self.assertFalse(output.exists())
+                        self.assertFalse(report.exists())
+                        self.assertIn("X", completed.stderr)
+                    else:
+                        self.assertEqual(completed.returncode, 0, completed.stderr)
+                        written = output.read_text(encoding="utf-8")
+                        self.assertEqual(expected is not None, ">alien" in written)
+                        if expected:
+                            self.assertIn(expected, written)
+                        self.assertTrue(report.exists())
 
 
 if __name__ == "__main__":

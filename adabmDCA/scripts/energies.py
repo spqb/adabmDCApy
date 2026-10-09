@@ -25,6 +25,7 @@ def run(args):
         device=args.device,
         dtype=args.dtype,
         remove_duplicates=True,
+        local_lambda=args.local_lambda,
     )
 
 
@@ -45,6 +46,7 @@ def main(args=None) -> int:
             "alphabet": args.alphabet,
             "device": args.device,
             "dtype": args.dtype,
+            "local lambda": args.local_lambda,
         }
     )
     result = run(args)
@@ -56,6 +58,8 @@ def main(args=None) -> int:
             "length": result.model.length,
             "mean energy": f"{result.energies.mean():.3f}",
             "standard deviation": f"{result.energies.std():.3f}",
+            **({"mean local free energy": f"{result.local_free_energies.mean():.3f}"}
+               if result.local_free_energies is not None else {}),
         },
         artifacts=artifacts,
     )

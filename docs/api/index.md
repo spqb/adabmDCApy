@@ -1,23 +1,13 @@
 # Python API reference
 
-For notebook and application workflows, begin with the
-[high-level Python API guide](../high_level_api.md). It explains the public
-objects exported directly from `adabmDCA`, with complete examples for loading,
-training, sampling, scoring, contact prediction, mutation scanning, entropy
-estimation, reintegration, and result serialization.
+These pages are generated from the current Python source with `lazydocs`. Begin with the [usage guides](../usage/index.md) for complete workflows; use these pages for callable signatures and result fields. The [symbol index](symbols.md) links to individual documented functions and classes.
 
-The pages under **High-level workflows** document the current callable
-signatures and result types. The pages under **Core data APIs** cover alignment
-loading, preprocessing, configuration, and training control. **Numerical and
-low-level APIs** are intended for code that needs direct access to tensors,
-samplers, statistics, and parameter files.
+| Workflow | Modules |
+| --- | --- |
+| Train and resume | [Training](adabmDCA.api.training.md), [PTT configuration](adabmDCA.ptt.config.md), [Training configuration](adabmDCA.training_config.md) |
+| Generate and steer | [Sampling](adabmDCA.api.sampling.md), [PTT workflows](adabmDCA.api.ptt.md), [Steering](adabmDCA.steering.md), [PTT sampler](adabmDCA.ptt.sampler.md) |
+| Work with results | [Model object](adabmDCA.api.model.md), [Result objects](adabmDCA.api.results.md) |
+| Analyze | [Scoring](adabmDCA.api.scoring.md), [Contacts](adabmDCA.api.contacts.md), [Mutations](adabmDCA.api.mutations.md), [Entropy](adabmDCA.api.entropy.md) |
+| Prepare data | [Input loading](adabmDCA.input_loading.md), [Splitting](adabmDCA.api.splitting.md), [Reintegration](adabmDCA.api.reintegration.md) |
 
-Most application code should import the public interfaces from the package
-root:
-
-```python
-from adabmDCA import load_model, sample_sequences, train_model
-```
-
-Use the [generated symbol index](symbols.md) to find an individual class,
-method, or function.
+For a new application, import high-level functions from `adabmDCA`, for example `from adabmDCA import PTTConfig, train_model, sample_sequences`.

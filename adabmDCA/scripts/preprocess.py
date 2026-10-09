@@ -45,6 +45,10 @@ def create_parser() -> argparse.ArgumentParser:
         help="Detect protein, dna, or rna (default: auto), or specify custom tokens.",
     )
     parser.add_argument(
+        "--unknown-tokens", choices=("gap", "remove", "error"), default="gap",
+        help="Handle characters outside the selected alphabet: replace with '-' (default), remove the sequence, or error.",
+    )
+    parser.add_argument(
         "--gap-token",
         default="-",
         help="Single character counted as a gap (default: '-').",
@@ -78,6 +82,7 @@ def main() -> None:
         remove_duplicates=args.remove_duplicates,
         alphabet=args.alphabet,
         gap_token=args.gap_token,
+        unknown_tokens=args.unknown_tokens,
         line_width=args.line_width,
     )
     if args.report is not None:
@@ -91,6 +96,8 @@ def main() -> None:
     print(f"  Output length:    {report.output_length}")
     print(f"  Insertions removed: {report.removed_insertion_characters}")
     print(f"  Gaps normalized:    {report.normalized_gap_characters}")
+    print(f"  Unknowns replaced:  {report.replaced_unknown_characters}")
+    print(f"  Unknowns removed:   {report.removed_for_unknown_tokens}")
     print(f"  Gap-filtered:       {report.removed_for_gap_fraction}")
     print(f"  Duplicates removed: {report.removed_as_duplicates}")
     print(f"  Output: {result.output_path}")

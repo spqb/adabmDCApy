@@ -8,7 +8,7 @@ import torch
 
 from adabmDCA import DCAModel, TrainingConfig, TrainingLimits, load_model
 from adabmDCA.api.entropy import estimate_entropy
-from adabmDCA.api.exceptions import InputValidationError, ModelLoadError
+from adabmDCA.exceptions import InputValidationError, ModelLoadError
 from adabmDCA.api.sampling import sample_sequences
 from adabmDCA.api.splitting import split_alignment
 from adabmDCA.io import load_params

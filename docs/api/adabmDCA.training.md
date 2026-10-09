@@ -11,12 +11,10 @@
 ---------------
 - **DEFAULT_INNER_GRADIENT_STEPS**
 - **EDGE_EMPIRICAL_PSEUDOCOUNT**
-- **EDGE_LOGZ_CHAIN_FRACTION**
-- **SLOPE_TOLERANCE**
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training.py#L38"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training.py#L29"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `compute_gradient`
 
@@ -49,7 +47,7 @@ Computes the gradient of the log-likelihood of the model using PyTorch.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training.py#L63"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training.py#L54"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `update_params`
 
@@ -90,7 +88,7 @@ Updates the parameters of the model.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training.py#L105"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training.py#L96"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `update_params_edge_activation`
 
@@ -125,7 +123,7 @@ Updates the mask and the coupling parameters using the edge-activation algorithm
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training.py#L143"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training.py#L134"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `train_graph`
 
@@ -143,12 +141,9 @@ train_graph(
     target_pearson: float,
     fi_val: Tensor | None = None,
     fij_val: Tensor | None = None,
-    check_slope: bool = False,
-    log_weights: Tensor | None = None,
     l2_reg: float = 0.0,
-    controller: TrainingController | None = None,
-    slope_tolerance: float = 0.1
-) → tuple[Tensor, dict[str, Tensor], Tensor, dict[str, list[Any]]]
+    controller: TrainingController | None = None
+) → tuple[Tensor, dict[str, Tensor], dict[str, list[Any]]]
 ```
 
 Trains the model on a given graph until the target Pearson correlation is reached or the maximum number of epochs is exceeded.
@@ -169,20 +164,18 @@ Trains the model on a given graph until the target Pearson correlation is reache
  - <b>`target_pearson`</b> (float):  Target Pearson coefficient.
  - <b>`fi_val`</b> (Optional[torch.Tensor], optional):  Single-point frequencies of the validation data. Defaults to None.
  - <b>`fij_val`</b> (Optional[torch.Tensor], optional):  Two-point frequencies of the validation data. Defaults to None.
- - <b>`check_slope`</b> (bool, optional):  Whether to take into account the slope for the convergence criterion or not. Defaults to False.
- - <b>`log_weights`</b> (Optional[torch.Tensor], optional):  Log-weights used for the online computation of the log-likelihood. Defaults to None.
  - <b>`l2_reg`</b> (float, optional):  L2 regularization coefficient. Defaults to 0.0.
+ - <b>`controller`</b> (TrainingController, optional):  Shared controller for counters, limits and logging.
 
 
 
 **Returns:**
-
- - <b>`Tuple[torch.Tensor, Dict[str, torch.Tensor], torch.Tensor, Dict[str, List[float]]]`</b>:  Updated chains and parameters, log-weights for the log-likelihood computation.
+ Updated chains, parameters, and training history.
 
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training.py#L305"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training.py#L255"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `train_eaDCA`
 
@@ -194,7 +187,6 @@ train_eaDCA(
     params: dict[str, Tensor],
     mask: Tensor,
     chains: Tensor,
-    log_weights: Tensor,
     target_pearson: float,
     nsweeps: int,
     max_epochs: int,
@@ -207,7 +199,7 @@ train_eaDCA(
     l2_reg: float = 0.0,
     controller: TrainingController | None = None,
     max_gradient_steps: int | None = None
-) → tuple[Tensor, dict[str, Tensor], Tensor, dict[str, list[Any]]]
+) → tuple[Tensor, dict[str, Tensor], dict[str, list[Any]]]
 ```
 
 Fits an eaDCA model on the training data and saves the results in a file.
@@ -222,7 +214,6 @@ Fits an eaDCA model on the training data and saves the results in a file.
  - <b>`params`</b> (Dict[str, torch.Tensor]):  Initialization of the model's parameters.
  - <b>`mask`</b> (torch.Tensor):  Initialization of the coupling matrix's mask.
  - <b>`chains`</b> (torch.Tensor):  Initialization of the Markov chains.
- - <b>`log_weights`</b> (torch.Tensor):  Log-weights of the chains. Used to estimate the log-likelihood.
  - <b>`target_pearson`</b> (float):  Pearson correlation coefficient on the two-points statistics to be reached.
  - <b>`nsweeps`</b> (int):  Number of Monte Carlo steps to update the state of the model.
  - <b>`max_epochs`</b> (int):  Maximum number of epochs to be performed.
@@ -237,13 +228,12 @@ Fits an eaDCA model on the training data and saves the results in a file.
 
 
 **Returns:**
-
- - <b>`Tuple[torch.Tensor, Dict[str, torch.Tensor], torch.Tensor, Dict[str, List[float]]]`</b>:  Updated chains and parameters, log-weights for the log-likelihood computation, and training history.
+ Updated chains, parameters, and training history.
 
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training.py#L497"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training.py#L421"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `train_edDCA`
 
@@ -251,7 +241,6 @@ Fits an eaDCA model on the training data and saves the results in a file.
 train_edDCA(
     sampler: Callable[, Tensor],
     chains: Tensor,
-    log_weights: Tensor,
     fi_target: Tensor,
     fij_target: Tensor,
     params: dict[str, Tensor],
@@ -268,7 +257,7 @@ train_edDCA(
     controller: TrainingController | None = None,
     max_gradient_steps: int | None = None,
     inner_gradient_steps: int = 10000
-) → tuple[Tensor, dict[str, Tensor], Tensor, dict[str, list[Any]]]
+) → tuple[Tensor, dict[str, Tensor], dict[str, list[Any]]]
 ```
 
 Fits an edDCA model on the training data and saves the results in a file.
@@ -279,7 +268,6 @@ Fits an edDCA model on the training data and saves the results in a file.
 
  - <b>`sampler`</b> (Callable):  Sampling function to be used.
  - <b>`chains`</b> (torch.Tensor):  Initialization of the Markov chains.
- - <b>`log_weights`</b> (torch.Tensor):  Log-weights of the chains. Used to estimate the log-likelihood.
  - <b>`fi_target`</b> (torch.Tensor):  Single-point frequencies of the data.
  - <b>`fij_target`</b> (torch.Tensor):  Two-point frequencies of the data.
  - <b>`params`</b> (Dict[str, torch.Tensor]):  Initialization of the model's parameters.
@@ -296,13 +284,12 @@ Fits an edDCA model on the training data and saves the results in a file.
 
 
 **Returns:**
-
- - <b>`Tuple[torch.Tensor, Dict[str, torch.Tensor], torch.Tensor, Dict[str, List[float]]]`</b>:  Updated chains and parameters, log-weights for the log-likelihood computation, and training history.
+ Updated chains, parameters, and training history.
 
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training.py#L738"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training.py#L623"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `train_edgeDCA`
 
@@ -323,9 +310,8 @@ train_edgeDCA(
     fi_val: Tensor | None = None,
     fij_val: Tensor | None = None,
     controller: TrainingController | None = None,
-    empirical_pseudocount: float = 1e-06,
-    logz_chain_fraction: float = 0.2
-) → tuple[Tensor, dict[str, Tensor], Tensor, dict[str, list[Any]]]
+    empirical_pseudocount: float = 1e-06
+) → tuple[Tensor, dict[str, Tensor], dict[str, list[Any]]]
 ```
 
 Fits an edge activation DCA model (edgeDCA) on the training data and saves the results in a file.
@@ -352,8 +338,7 @@ Fits an edge activation DCA model (edgeDCA) on the training data and saves the r
 
 
 **Returns:**
-
- - <b>`Tuple[torch.Tensor, Dict[str, torch.Tensor], torch.Tensor, Dict[str, List[float]]]`</b>:  Updated chains and parameters, log-weights for the log-likelihood computation, and training history.
+ Updated chains, parameters, and training history.
 
 
 

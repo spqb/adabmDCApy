@@ -13,18 +13,18 @@ import numpy as np
 import torch
 
 from adabmDCA._validation import validate_integer, validate_seed
-from adabmDCA.api.exceptions import (
-    ConvergenceError,
-    InputValidationError,
-    ModelCompatibilityError,
-    OperationCancelledError,
-)
 from adabmDCA.api.model import load_model
 from adabmDCA.api.results import (
     ThermodynamicIntegrationProgress,
     ThermodynamicIntegrationResult,
 )
 from adabmDCA.dca import get_seqid
+from adabmDCA.exceptions import (
+    ConvergenceError,
+    InputValidationError,
+    ModelCompatibilityError,
+    OperationCancelledError,
+)
 from adabmDCA.functional import one_hot
 from adabmDCA.input_loading import AlignmentInput, AlignmentLoadConfig, load_alignment
 from adabmDCA.io import load_chains
@@ -49,8 +49,8 @@ def estimate_entropy(
     zero_sweeps: int = 100,
     target_fraction: float = 0.1,
     max_theta_iterations: int = 10_000,
-    sampler: str = "metropolis",
-    alphabet: str = "protein",
+    sampler: str = "metropolized_gibbs",
+    alphabet: str | None = None,
     seed: int = 0,
     device: str = "auto",
     dtype: str = "float32",
@@ -59,10 +59,55 @@ def estimate_entropy(
     progress: EntropyProgress | None = None,
     is_cancelled: Callable[[], bool] | None = None,
 ) -> ThermodynamicIntegrationResult:
-    """Estimate model entropy with bounded, observable thermodynamic integration.
+    """Estimate the entropy of a DCA model by thermodynamic integration.
 
-    Use the first valid sequence in ``target_alignment`` in input order. If
-    multiple valid sequences are provided, emit a warning and ignore the rest.
+    A field ``theta * x_target`` biases the model towards a target sequence.
+    ``theta_max`` is first increased (by 1% per 100 sweeps) until more than
+    ``target_fraction`` of the chains coincide with the target, which fixes the
+    free energy at ``theta_max``. The free energy at ``theta = 0`` then follows
+    by integrating the mean sequence identity over ``n_steps`` values of
+    ``theta`` (trapezoidal rule), and the entropy is ``<E> - F``. For PTT
+    archives, :func:`adabmDCA.api.ptt.estimate_ptt_entropy` is cheaper and
+    needs no integration.
+
+    Args:
+        model: Path to a parameter file or PTT archive.
+        natural_alignment: Natural alignment, checked for compatibility with the model.
+        target_alignment: Alignment whose first valid sequence is the target; a
+            warning is emitted if it contains more.
+        initial_chains_path: Optional FASTA of starting chains, resampled to
+            ``n_chains`` if needed; random chains otherwise.
+        n_chains: Number of Markov chains.
+        n_sweeps: Sweeps at each integration step.
+        n_steps: Integration points between 0 and ``theta_max`` (at least 2).
+        theta_max: Initial largest bias strength; increased if needed.
+        theta_sweeps: Sweeps to equilibrate the chains at the initial ``theta_max``.
+        zero_sweeps: Sweeps to estimate the unbiased mean energy ``<E>``.
+        target_fraction: Fraction of chains, in ``(0, 1)``, that must reach the
+            target at ``theta_max``.
+        max_theta_iterations: Largest number of ``theta_max`` increases.
+        sampler: ``"metropolized_gibbs"``, ``"gibbs"`` or ``"metropolis"``.
+        alphabet: Alphabet of a text parameter file; ``None`` reads it from a
+            PTT archive and assumes ``"protein"`` for text files.
+        seed: Random seed.
+        device: ``"auto"``, ``"cpu"``, ``"cuda"`` or ``"mps"``.
+        dtype: ``"float32"`` or ``"float64"``.
+        output_dir: If given, the result files are written there.
+        label: Prefix of the files written to ``output_dir``.
+        progress: Optional callback receiving
+            :class:`ThermodynamicIntegrationProgress` updates.
+        is_cancelled: Optional callable; returning ``True`` stops the run.
+
+    Returns:
+        A :class:`ThermodynamicIntegrationResult` with the entropy (nats), the
+        free energy and the integration history.
+
+    Raises:
+        InputValidationError: If a numerical setting is out of range.
+        ModelCompatibilityError: If the initial chains do not match the model.
+        ConvergenceError: If ``target_fraction`` is not reached within
+            ``max_theta_iterations``.
+        OperationCancelledError: If ``is_cancelled`` returns ``True``.
     """
     for name, value in {
         "n_chains": n_chains,
@@ -104,10 +149,10 @@ def estimate_entropy(
             expected_length=length,
         ),
     )
-    if target.alignment.num_sequences > 1:
+    if target.num_sequences > 1:
         warnings.warn(
-            f"target_alignment contains {target.alignment.num_sequences} valid sequences; "
-            f"using only the first ({target.alignment.names[0]!r}) for entropy estimation.",
+            f"target_alignment contains {target.num_sequences} valid sequences; "
+            f"using only the first ({target.names[0]!r}) for entropy estimation.",
             UserWarning,
             stacklevel=2,
         )
@@ -187,7 +232,8 @@ def estimate_entropy(
     exact = identities == length
     free_energy = np.log(observed_fraction) + compute_energy(biased_chains[exact], biased_params).mean()
     thetas = torch.linspace(0, theta_max, n_steps, device=runtime_device, dtype=runtime_dtype)
-    factor = theta_max / (2 * n_steps)
+    # linspace includes both endpoints, so n_steps samples span n_steps - 1 intervals.
+    factor = theta_max / (2 * (n_steps - 1))
     entropy = average_energy_zero - free_energy
     history: dict[str, list[float]] = {
         "step": [],

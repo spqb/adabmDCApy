@@ -8,19 +8,21 @@ Training checkpoints and the versioned human-readable training log.
 **Global Variables**
 ---------------
 - **DEFAULT_CHECKPOINT_INTERVAL**
+- **HEADER_EVERY**
+- **PHASES**
 - **LOG_FORMAT_VERSION**
-- **HISTORY_KEYS**
-- **LOG_COLUMNS**
 
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/checkpoint.py#L54"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/checkpoint.py#L56"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `Checkpoint`
-Save model state and write a version-2 training log.
+Save model state and write the training history, events and readable log.
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/checkpoint.py#L57"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+``history.csv`` gains one row per update and is rewritten whenever the history changes retroactively (resume, recovery). ``events.jsonl`` gains one JSON object per event. The readable log holds the run metadata, a narrow progress table with events as ``»`` lines, and the end summary.
+
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/checkpoint.py#L65"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `__init__`
 
@@ -30,7 +32,8 @@ __init__(
     tokens: 'str',
     metadata: 'Mapping[str, Any]',
     use_wandb: 'bool' = False,
-    config: 'TrainingConfig | None' = None
+    config: 'TrainingConfig | None' = None,
+    resume: 'bool' = False
 ) → None
 ```
 
@@ -43,7 +46,7 @@ __init__(
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/checkpoint.py#L96"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/checkpoint.py#L146"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `begin_stage`
 
@@ -51,11 +54,23 @@ __init__(
 begin_stage(stage: 'str', metadata: 'dict[str, Any]') → None
 ```
 
-Record a phase boundary and its progress-table header.
+Record a phase change or an event; returning to the current phase is not recorded.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/checkpoint.py#L139"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/checkpoint.py#L122"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+
+### <kbd>method</kbd> `bind_counters`
+
+```python
+bind_counters(counters: 'Any') → None
+```
+
+Share the controller's counters, which place events in the run.
+
+---
+
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/checkpoint.py#L194"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `check`
 
@@ -67,7 +82,19 @@ Return whether this update requires a persisted checkpoint.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/checkpoint.py#L128"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/checkpoint.py#L133"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+
+### <kbd>method</kbd> `event`
+
+```python
+event(name: 'str', details: 'Mapping[str, Any]') → None
+```
+
+Record one event in ``events.jsonl`` and, if describable, as a ``»`` log line.
+
+---
+
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/checkpoint.py#L184"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `finish`
 
@@ -79,7 +106,7 @@ Append exactly one terminal status section.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/checkpoint.py#L106"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/checkpoint.py#L157"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `log`
 
@@ -87,11 +114,11 @@ Append exactly one terminal status section.
 log(record: 'dict[str, Any]') → None
 ```
 
-Write a record without lifecycle counters for direct callers.
+Write a record for direct callers.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/checkpoint.py#L110"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/checkpoint.py#L161"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `log_with_context`
 
@@ -99,11 +126,37 @@ Write a record without lifecycle counters for direct callers.
 log_with_context(record: 'dict[str, Any]', counters: 'Any | None') → None
 ```
 
-Write one metrics record with stage and lifecycle counters.
+Append one update to the history table and the progress table.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/checkpoint.py#L143"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/checkpoint.py#L154"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+
+### <kbd>method</kbd> `resumed`
+
+```python
+resumed(step: 'int') → None
+```
+
+
+
+
+
+---
+
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/checkpoint.py#L175"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+
+### <kbd>method</kbd> `rewrite_history`
+
+```python
+rewrite_history(history: 'Mapping[str, list[Any]]') → None
+```
+
+Replace ``history.csv`` after the history changed retroactively (resume, recovery).
+
+---
+
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/checkpoint.py#L198"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `save`
 
@@ -112,7 +165,7 @@ save(
     params: 'dict[str, Tensor]',
     mask: 'Tensor',
     chains: 'Tensor',
-    log_weights: 'Tensor'
+    ptt_sampler=None
 ) → None
 ```
 

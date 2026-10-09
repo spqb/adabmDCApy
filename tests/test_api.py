@@ -38,6 +38,26 @@ class HighLevelApiTests(unittest.TestCase):
         self.assertEqual(result.model.length, 2)
         self.assertEqual(result.model.schema_version, "1.0")
 
+    def test_model_repr_summarizes_dimensions_source_and_runtime(self):
+        import torch
+
+        from adabmDCA import DCAModel
+
+        self.assertEqual(
+            repr(self.model),
+            "DCAModel(L=2, q=3, tokens='AB-', source=None, device='cpu', dtype='float32')",
+        )
+        model = DCAModel(
+            {key: value.to(torch.float64) for key, value in self.params.items()},
+            alphabet="AB-",
+            source=Path("models/params.dat"),
+        )
+        self.assertEqual(
+            repr(model),
+            "DCAModel(L=2, q=3, tokens='AB-', source='models/params.dat', "
+            "device='cpu', dtype='float64')",
+        )
+
     def test_saved_model_can_be_loaded_through_public_api(self):
         from adabmDCA import load_model
         from adabmDCA.io import save_params
@@ -219,16 +239,13 @@ class HighLevelApiTests(unittest.TestCase):
             patch("adabmDCA.training.get_freq_single_point", return_value=fi),
             patch("adabmDCA.training.get_freq_two_points", return_value=fij),
             patch("adabmDCA.training.get_correlation_two_points", return_value=(0.0, 0.0)),
-            patch("adabmDCA.training.compute_log_likelihood", return_value=0.0),
-            patch("adabmDCA.training.compute_entropy", return_value=torch.tensor(0.0)),
             patch("adabmDCA.training.compute_density", return_value=0.0),
             patch(
                 "adabmDCA.training.update_params_edge_activation",
                 side_effect=lambda **kwargs: ((0, 1), kwargs["mask"], kwargs["params"]),
             ),
-            patch("adabmDCA.training._update_logZ_edge_activation", return_value=0.0),
         ):
-            _, _, _, history = train_edgeDCA(
+            _, _, history = train_edgeDCA(
                 sampler=sampler,
                 fi_target=fi,
                 fij_target=fij,
@@ -276,7 +293,11 @@ class HighLevelApiTests(unittest.TestCase):
                 output_dir=Path(directory) / "model",
             )
             log_text = result.artifacts["log"].read_text(encoding="utf-8")
-            params_text = result.artifacts["params"].read_text(encoding="utf-8")
+            self.assertEqual(result.artifacts["params"].name, "params.dat.gz")
+            from adabmDCA.io import open_params
+
+            with open_params(result.artifacts["params"]) as handle:
+                params_text = handle.read()
             reloaded = load_model(result.artifacts["params"], alphabet="AB-", device="cpu")
 
             records = [line.split() for line in params_text.splitlines()]
@@ -292,7 +313,7 @@ class HighLevelApiTests(unittest.TestCase):
         self.assertEqual(result.model.tokens, "AB-")
         self.assertEqual(result.gradient_steps, 1)
         self.assertIs(result.config, config)
-        self.assertIn("format_version: 2", log_text)
+        self.assertIn("format_version: 4", log_text)
         self.assertIn("checkpoint_interval:    1", log_text)
 
     def test_training_accepts_an_in_memory_alignment_and_weights(self):

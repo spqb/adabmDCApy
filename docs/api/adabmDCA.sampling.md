@@ -242,6 +242,96 @@ Metropolis sampling. Attempts L * nsweeps mutations to each sequence in 'chains'
 
 <a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling.py#L235"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
+## <kbd>function</kbd> `metropolized_gibbs_step_uniform_sites`
+
+```python
+metropolized_gibbs_step_uniform_sites(
+    chains: Tensor,
+    params: dict[str, Tensor],
+    beta: float = 1.0
+) → Tensor
+```
+
+Performs a single Metropolized Gibbs update at the same site for all chains.
+
+A new residue b different from the current one a is proposed from the site conditional restricted to the other residues and accepted with min(1, (1 - p_a) / (1 - p_b)) (Liu 1996). Both normalizers are summed directly so that dominant residues do not cancel.
+
+
+
+**Args:**
+
+ - <b>`chains`</b> (torch.Tensor):  One-hot encoded sequences of shape (batch_size, L, q).
+ - <b>`params`</b> (Dict[str, torch.Tensor]):  Parameters of the model.
+        - "bias": Tensor of shape (L, q) - local biases.
+        - "coupling_matrix": Tensor of shape (L, q, L, q) - coupling matrix.
+ - <b>`beta`</b> (float, optional):  Inverse temperature. Defaults to 1.0.
+
+
+
+**Returns:**
+
+ - <b>`torch.Tensor`</b>:  Updated chains.
+
+
+---
+
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling.py#L280"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+
+## <kbd>function</kbd> `metropolized_gibbs_sampling`
+
+```python
+metropolized_gibbs_sampling(
+    chains: Tensor,
+    params: dict[str, Tensor],
+    nsweeps: int,
+    beta: float = 1.0
+) → Tensor
+```
+
+Metropolized Gibbs sampling. Attempts L * nsweeps updates to each sequence in 'chains'.
+
+
+
+**Args:**
+
+ - <b>`chains`</b> (torch.Tensor):  One-hot encoded sequences of shape (batch_size, L, q).
+ - <b>`params`</b> (Dict[str, torch.Tensor]):  Parameters of the model.
+        - "bias": Tensor of shape (L, q) - local biases.
+        - "coupling_matrix": Tensor of shape (L, q, L, q) - coupling matrix.
+ - <b>`nsweeps`</b> (int):  Number of sweeps, where one sweep corresponds to attempting L updates.
+ - <b>`beta`</b> (float, optional):  Inverse temperature. Defaults to 1.0.
+
+
+
+**Returns:**
+
+ - <b>`torch.Tensor`</b>:  Updated chains.
+
+
+---
+
+<a href="https://github.com/spqb/adabmDCApy/blob/main/.venv/lib/python3.12/site-packages/torch/utils/_contextlib.py#L307"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+
+## <kbd>function</kbd> `metropolized_gibbs_sampling_categorical`
+
+```python
+metropolized_gibbs_sampling_categorical(
+    states: Tensor,
+    params: dict[str, Tensor],
+    nsweeps: int,
+    beta: float = 1.0
+) → Tensor
+```
+
+Metropolized Gibbs sampling of integer states of shape (N, L).
+
+Each update draws one site, shared by all chains, proposes a different state b from the site conditional restricted to the other states and accepts it with min(1, (1 - p_a) / (1 - p_b)) (Liu 1996). This dominates Gibbs sampling in the Peskun order. Reference implementation for the Triton replica kernel; couplings must have zero within-site blocks.
+
+
+---
+
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling.py#L351"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+
 ## <kbd>function</kbd> `get_sampler`
 
 ```python
@@ -254,7 +344,7 @@ Returns the sampling function corresponding to the chosen method.
 
 **Args:**
 
- - <b>`sampling_method`</b> (str):  String indicating the sampling method. Choose between 'metropolis' and 'gibbs'.
+ - <b>`sampling_method`</b> (str):  String indicating the sampling method. Choose between 'metropolis', 'gibbs'  and 'metropolized_gibbs'.
 
 
 
@@ -271,7 +361,7 @@ Returns the sampling function corresponding to the chosen method.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling.py#L255"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling.py#L374"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `prepare_sampler`
 
@@ -279,12 +369,14 @@ Returns the sampling function corresponding to the chosen method.
 prepare_sampler(sampling_method: str, device: device) → Callable
 ```
 
-Select a fused CUDA sampler, or the scripted sampler without Triton.
+Select the fastest sampler for ``device``.
+
+CUDA uses the fused Triton kernels when Triton is installed. CPU uses the multithreaded Numba kernels of :mod:`adabmDCA.numba_kernels` when Numba is installed (``pip install adabmDCA[cpu]``) and not disabled with ``ADABMDCA_NUMBA=0``. Otherwise the TorchScript samplers of this module run. All of them perform the same random-site updates and sample the same distribution.
 
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling.py#L289"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling.py#L424"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `prepare_fixed_model_sampler`
 
@@ -304,7 +396,7 @@ BF16 mode keeps biases, chains, statistics, and energy calculations in float32. 
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling.py#L314"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling.py#L449"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `prepare_training_sampler`
 

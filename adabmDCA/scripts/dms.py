@@ -23,9 +23,9 @@ def run(args):
         args.data,
         config=AlignmentLoadConfig(alphabet=args.alphabet, invalid_sequences="error"),
     )
-    name = "".join(character for character in loaded.alignment.names[0] if character.isalnum())
+    name = "".join(character for character in loaded.names[0] if character.isalnum())
     return scan_mutations(
-        loaded.alignment.sequences[0],
+        loaded.sequences[0],
         model=args.path_params,
         name=name or "wild_type",
         alphabet=args.alphabet,

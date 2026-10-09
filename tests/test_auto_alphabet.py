@@ -4,7 +4,7 @@ from argparse import Namespace
 import pytest
 
 from adabmDCA.alphabet import detect_alphabet
-from adabmDCA.api.exceptions import InputValidationError
+from adabmDCA.exceptions import InputValidationError
 from adabmDCA.scripts._frontend import resolve_alphabet
 
 
