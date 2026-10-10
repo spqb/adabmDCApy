@@ -55,7 +55,7 @@ Labels must be replica numbers, not globally unique chain identifiers. Use zero 
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/mixing.py#L197"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/mixing.py#L198"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `integrated_autocorrelation_time`
 
@@ -68,7 +68,7 @@ Self-consistent window t >= 6 tau_int(t), with C(0)/2.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/mixing.py#L208"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/mixing.py#L209"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `exponential_autocorrelation_time`
 
@@ -83,7 +83,7 @@ For a trajectory without a zero crossing, use half the available lags as the win
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/mixing.py#L251"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/mixing.py#L252"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `process_replica_experiment`
 

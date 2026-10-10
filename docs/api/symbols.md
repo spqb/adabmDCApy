@@ -219,6 +219,7 @@
 - [`sampling.prepare_sampler`](./adabmDCA.sampling.md#function-prepare_sampler): Select the fastest sampler for ``device``.
 - [`sampling.prepare_training_sampler`](./adabmDCA.sampling.md#function-prepare_training_sampler): Prepare sampling for training with optional BF16 coupling storage.
 - [`sampling.sampling_profile`](./adabmDCA.sampling.md#function-sampling_profile): Samples from the profile model defined by the local biases only.
+- [`sampling.sampling_profile_categorical`](./adabmDCA.sampling.md#function-sampling_profile_categorical): Sample integer states (N,L) from the uncoupled profile, without encoding.
 - [`sampling_triton.exchange_log_acceptance_categorical_triton`](./adabmDCA.sampling_triton.md#function-exchange_log_acceptance_categorical_triton): Compute Hamiltonian-exchange log acceptance from categorical states.
 - [`sampling_triton.exchange_log_acceptance_sparse_triton`](./adabmDCA.sampling_triton.md#function-exchange_log_acceptance_sparse_triton): Hamiltonian-exchange log acceptance from sparse coupling layouts, or ``None`` if a graph is dense.
 - [`sampling_triton.gibbs_sampling_categorical_triton`](./adabmDCA.sampling_triton.md#function-gibbs_sampling_categorical_triton): Run Gibbs sampling directly on contiguous int32 categorical states.

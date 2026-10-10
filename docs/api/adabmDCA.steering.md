@@ -21,7 +21,7 @@ For this Metropolis-Hastings correction to be exact, the proposal must be revers
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/steering.py#L261"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/steering.py#L278"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `importance_warning`
 
@@ -34,7 +34,7 @@ A warning when the importance weights are too concentrated to reweight reliably.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/steering.py#L270"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/steering.py#L287"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `importance_summary`
 
@@ -62,7 +62,7 @@ Log importance weights back to the unsteered model and their effective sample si
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/steering.py#L48"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/steering.py#L49"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `Steering`
 A validated steering potential, evaluated on batches of chains.
@@ -75,7 +75,7 @@ A validated steering potential, evaluated on batches of chains.
  - <b>`tokens`</b>:  Ordered alphabet of the model, used to decode sequences.
  - <b>`steering_input`</b>:  ``"sequences"`` or ``"onehot"``.
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/steering.py#L61"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/steering.py#L62"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `__init__`
 
@@ -96,7 +96,7 @@ __init__(
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/steering.py#L119"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/steering.py#L121"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `check_zero_strength`
 
@@ -108,7 +108,7 @@ Raise unless the potential vanishes at strength 0, as the steering ladder requir
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/steering.py#L72"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/steering.py#L73"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `decode`
 
@@ -121,7 +121,7 @@ Decode categorical chains ``(n, L)`` to aligned sequence strings.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/steering.py#L129"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/steering.py#L131"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `SteeredKernel`
 Metropolis-Hastings kernel for ``exp(-beta * H - V(·, strength))``.
@@ -140,7 +140,7 @@ With ``proposal_steps=None`` the block length adapts while ``adapting`` is true 
  - <b>`device`</b>:  Device of the chains, which selects the Triton step on CUDA.
  - <b>`proposal_steps`</b>:  Site updates per proposal, or ``None`` to adapt.
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/steering.py#L151"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/steering.py#L153"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `__init__`
 
@@ -169,7 +169,7 @@ Fraction of accepted block proposals since the kernel was frozen (or created).
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/steering.py#L172"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/steering.py#L174"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `freeze`
 
@@ -181,7 +181,7 @@ Stop adapting the block length and reset the acceptance counters.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/steering.py#L183"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/steering.py#L185"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `remember`
 
@@ -193,7 +193,7 @@ Record the potential of ``chains`` so the next call need not evaluate it again.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/steering/run#L187"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/steering/run#L189"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `run`
 
@@ -211,7 +211,7 @@ Advance one-hot chains; return them with their potential values.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/steering.py#L177"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/steering.py#L179"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `values`
 

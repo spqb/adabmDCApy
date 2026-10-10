@@ -16,7 +16,7 @@ All replicas target beta=1. The active ladder can be shortened using a reservoir
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler.py#L97"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler.py#L98"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `bridge_increment`
 
@@ -29,7 +29,7 @@ Return log(Z_upper/Z_lower) from samples of the lower Hamiltonian.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler.py#L68"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler.py#L69"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `PartitionEstimate`
 Estimate of the endpoint's log partition function, with its provenance.
@@ -72,7 +72,7 @@ __init__(
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler.py#L109"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler.py#L114"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `PTTSampler`
 A Parallel Trajectory Tempering ladder: models, their chains and its own RNG.
@@ -99,7 +99,7 @@ The remaining public methods (``transition_target``, ``update_replica_chain``, `
      >>> sampler.entropy()["entropy"]
 
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler.py#L140"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler.py#L145"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `__init__`
 
@@ -146,7 +146,7 @@ Number of replicas in the active ladder (above the reservoir, if any).
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler/advance#L431"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler/advance#L465"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `advance`
 
@@ -174,7 +174,7 @@ Each round swaps configurations between adjacent replicas, permutes chains withi
  - <b>`is_cancelled`</b>:  Optional callable; returning ``True`` stops the run.
  - <b>`on_round`</b>:  Optional callback ``on_round(completed, rounds)`` after each round.
  - <b>`until`</b>:  Optional callable; returning ``True`` stops after the current round.
- - <b>`return_samples`</b>:  Return one-hot endpoint chains; ``False`` skips their construction when only advancing the sampler state.
+ - <b>`return_samples`</b>:  Return one-hot endpoint chains; ``False`` skips  their construction when only advancing the sampler state.
 
 
 
@@ -189,7 +189,7 @@ Each round swaps configurations between adjacent replicas, permutes chains withi
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler.py#L410"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler.py#L443"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `capture_state`
 
@@ -203,7 +203,7 @@ Training history and recovery points are excluded; see :meth:`restore_state`.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler.py#L1622"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler.py#L1717"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `draw`
 
@@ -236,7 +236,7 @@ Samples are only as good as the ladder's equilibration: run :meth:`measure_renew
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler.py#L283"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler.py#L299"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `endpoint_params`
 
@@ -248,7 +248,7 @@ Return a copy of the endpoint (last replica) parameters: the trained model.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler.py#L287"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler.py#L303"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `endpoint_samples`
 
@@ -266,7 +266,7 @@ Return the endpoint chains, one-hot, shape ``(n_chains, L, q)``.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler.py#L1655"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler.py#L1750"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `entropy`
 
@@ -290,7 +290,7 @@ Estimate the endpoint entropy as ``<E> + log Z`` from the current chains.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler.py#L624"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler.py#L709"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `equilibrate`
 
@@ -321,7 +321,7 @@ Run a fixed warmup of :meth:`advance`; this does not certify equilibrium.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler.py#L1395"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler.py#L1487"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `equilibrate_for_lag`
 
@@ -342,7 +342,7 @@ The response of the ``lag`` optimizer when the endpoint chains trail the model: 
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler.py#L754"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler.py#L843"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `estimate_mixing_time`
 
@@ -386,7 +386,7 @@ Extend the experiment until it contains at least 20 times both estimated correla
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler.py#L1361"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler.py#L1453"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `force_ladder_update`
 
@@ -404,7 +404,7 @@ With a held snapshot, it replaces the replica below the endpoint (and the reserv
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler.py#L349"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler.py#L380"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `fork`
 
@@ -428,7 +428,7 @@ Return an independent copy of the sampler, without its recovery points.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler.py#L1945"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler.py#L2040"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>classmethod</kbd> `from_archive`
 
@@ -450,7 +450,7 @@ Every array is validated on load. Generation never writes the source archive. Lo
 **Args:**
 
  - <b>`path`</b>:  Archive path.
- - <b>`device`</b>:  ``"cpu"``, a CUDA device such as ``"cuda"``, or ``"mps"`` (float32 archives).
+ - <b>`device`</b>:  ``"cpu"``, a CUDA device such as ``"cuda"``, or  ``"mps"`` (float32 archives).
  - <b>`mode`</b>:  ``"generate"`` (sampling; training state dropped), ``"resume"``  (continue training exactly) or ``"inspect"`` (read only).
  - <b>`seed`</b>:  New random seed, or ``None`` to continue the archived stream.
 
@@ -468,7 +468,7 @@ Every array is validated on load. Generation never writes the source archive. Lo
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler/ladder_health#L702"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler/ladder_health#L791"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `ladder_health`
 
@@ -494,7 +494,7 @@ See ``adabmDCA.ptt.health``. Per pair: forward, reverse and BAR free energies wi
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler/ladder_statistics#L1675"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler/ladder_statistics#L1770"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `ladder_statistics`
 
@@ -526,7 +526,7 @@ Energies, entropy and logZ are in nats per sequence; likelihood also includes a 
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler.py#L945"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler.py#L1035"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `measure_renewal`
 
@@ -570,7 +570,7 @@ Progress events carry the old fraction ``ladder_old`` of the whole ladder, the `
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler.py#L648"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler.py#L733"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `partition_estimate`
 
@@ -596,7 +596,7 @@ Estimate log Z of the endpoint from the exact anchor and one bridge per replica 
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler.py#L297"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler.py#L328"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `prepare_sampling_ladder`
 
@@ -622,7 +622,7 @@ The generation ladder is the training ladder: the exact profile, every update fl
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler.py#L1815"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler.py#L1910"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `prepare_steering`
 
@@ -674,7 +674,7 @@ Call after :meth:`prepare_sampling_ladder`. A steered ladder cannot be saved wit
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler.py#L1434"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler.py#L1526"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `refresh_reservoir`
 
@@ -695,7 +695,7 @@ Training: collect a new reservoir from the ladder and shorten the active ladder.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler.py#L423"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler.py#L456"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `restore_state`
 
@@ -707,7 +707,7 @@ Restore a state returned by :meth:`capture_state`, clearing the training state.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler.py#L1927"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler.py#L2022"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `save_archive`
 
@@ -732,7 +732,7 @@ The archive is validated before it replaces an existing file, so an interrupted 
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler.py#L384"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler.py#L416"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `set_generation_kernel`
 
@@ -752,7 +752,7 @@ Every kernel leaves each replica's distribution invariant, so a model trained wi
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler.py#L903"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler.py#L993"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `start_birth_tracking`
 
@@ -766,7 +766,7 @@ From then on ``advance`` stamps configurations entering the active ladder with t
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler.py#L1908"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler.py#L2003"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `steering_log_z_ratio`
 
@@ -791,7 +791,7 @@ Estimate ``log Z_s - log Z_0``: steered top rung against the unsteered endpoint.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler.py#L1570"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler.py#L1664"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `transition_target`
 
@@ -825,7 +825,7 @@ The transition runs on a fork and is committed only if the ladder stays healthy;
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler.py#L1277"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler.py#L1367"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `update_replica_chain`
 
