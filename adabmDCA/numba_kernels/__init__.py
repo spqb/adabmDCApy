@@ -11,6 +11,7 @@ Modules:
         states, for one model or a stack of replicas (PTT), and exact samples
         of the independent-site (profile) model.
     exchange: Acceptance of PTT exchanges between two models.
+    swaps: Fused swaps, permutations and metadata for seven-model generation.
     random: The counter-based random numbers the kernels use.
     threads: Thread count and placement.
 """

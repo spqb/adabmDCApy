@@ -1,0 +1,915 @@
+{
+  "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+  "torch": "2.13.0",
+  "settings": {
+    "output": "docs/assets/benchmarks/mps-training-tuned-m4.json",
+    "repeats": 3,
+    "steps": 20,
+    "chains": 2000,
+    "sweeps": 10
+  },
+  "families": {
+    "RNA": {
+      "length": 136,
+      "q": 5,
+      "training": {
+        "dense_PCD": {
+          "numba_cpu": {
+            "median_seconds": 3.4964230000041425,
+            "seconds": [
+              3.4476117079611868,
+              3.4964230000041425,
+              3.5534414999419823
+            ],
+            "gradient_steps": 20,
+            "metrics": {
+              "Epochs": 20,
+              "Pearson": 0.13402536511421204,
+              "Slope": 0.023825984448194504,
+              "Pearson_val": 0.09826400876045227,
+              "Slope_val": 0.019131772220134735,
+              "Density": 1.0,
+              "Time": 3.5052578449249268,
+              "Sweeps": 200,
+              "Gradient_steps": 20,
+              "Structure_steps": 0,
+              "Stage": "optimization"
+            },
+            "max_degree": 135
+          },
+          "previous_mps": {
+            "median_seconds": 1.4387568339006975,
+            "seconds": [
+              1.4665440419921651,
+              1.414320916053839,
+              1.4387568339006975
+            ],
+            "gradient_steps": 20,
+            "metrics": {
+              "Epochs": 20,
+              "Pearson": 0.13935443758964539,
+              "Slope": 0.024999652057886124,
+              "Pearson_val": 0.10119980573654175,
+              "Slope_val": 0.01988334208726883,
+              "Density": 1.0,
+              "Time": 1.3890128135681152,
+              "Sweeps": 200,
+              "Gradient_steps": 20,
+              "Structure_steps": 0,
+              "Stage": "optimization"
+            },
+            "max_degree": 135
+          },
+          "tuned_mps": {
+            "median_seconds": 1.371267124894075,
+            "seconds": [
+              1.371267124894075,
+              1.3608437089715153,
+              1.37430237501394
+            ],
+            "gradient_steps": 20,
+            "metrics": {
+              "Epochs": 20,
+              "Pearson": 0.13935443758964539,
+              "Slope": 0.024999652057886124,
+              "Pearson_val": 0.10119980573654175,
+              "Slope_val": 0.01988334208726883,
+              "Density": 1.0,
+              "Time": 1.3237638473510742,
+              "Sweeps": 200,
+              "Gradient_steps": 20,
+              "Structure_steps": 0,
+              "Stage": "optimization"
+            },
+            "max_degree": 135
+          }
+        },
+        "dense_PTT": {
+          "numba_cpu": {
+            "median_seconds": 5.2793602080782875,
+            "seconds": [
+              5.063390291994438,
+              5.2793602080782875,
+              5.385113333002664
+            ],
+            "gradient_steps": 20,
+            "metrics": {
+              "Epochs": 20,
+              "Pearson": 0.14530828595161438,
+              "Slope": 0.025613652542233467,
+              "Pearson_val": 0.0946601927280426,
+              "Slope_val": 0.018274465575814247,
+              "Density": 1.0,
+              "Time": 5.320348665933125,
+              "LL_train": -0.839659550437342,
+              "LL_val": -0.8998079017700625,
+              "Entropy": 119.50664520263672,
+              "logZ": 0.18935010459569046,
+              "logZ_method": "ptt_bridge",
+              "logZ_status": "estimated",
+              "model_version": 20,
+              "ladder_version": 0,
+              "ptt_acceptance": 0.784,
+              "ptt_acceptance_rates": [
+                0.784
+              ],
+              "ptt_replicas": 2,
+              "ptt_total_models": 2,
+              "bias_learning_rate": 0.01,
+              "coupling_learning_rate": 0.01,
+              "ptt_predicted_kl": 0.0029083842468088437,
+              "ptt_lag_drift": 0.0011873504832173923,
+              "ptt_lag_drift_tail": 0.0006206921667683273,
+              "Sweeps": 260,
+              "Gradient_steps": 20,
+              "Structure_steps": 0,
+              "Stage": "ptt_optimization"
+            },
+            "max_degree": 135
+          },
+          "previous_mps": {
+            "median_seconds": 3.392875959048979,
+            "seconds": [
+              3.6398709160275757,
+              3.392875959048979,
+              3.2509774999925867
+            ],
+            "gradient_steps": 20,
+            "metrics": {
+              "Epochs": 20,
+              "Pearson": 0.13691753149032593,
+              "Slope": 0.02422526851296425,
+              "Pearson_val": 0.09514360874891281,
+              "Slope_val": 0.018436813727021217,
+              "Density": 1.0,
+              "Time": 3.1573998749954626,
+              "LL_train": -0.839626651318922,
+              "LL_val": -0.8996735204846791,
+              "Entropy": 119.7314682006836,
+              "logZ": 0.07376132253744934,
+              "logZ_method": "ptt_bridge",
+              "logZ_status": "estimated",
+              "model_version": 20,
+              "ladder_version": 0,
+              "ptt_acceptance": 0.7950000166893005,
+              "ptt_acceptance_rates": [
+                0.7950000166893005
+              ],
+              "ptt_replicas": 2,
+              "ptt_total_models": 2,
+              "bias_learning_rate": 0.01,
+              "coupling_learning_rate": 0.01,
+              "ptt_predicted_kl": 0.0024479383297748287,
+              "ptt_lag_drift": 0.0008797973277978599,
+              "ptt_lag_drift_tail": 0.0007686670869588852,
+              "Sweeps": 260,
+              "Gradient_steps": 20,
+              "Structure_steps": 0,
+              "Stage": "ptt_optimization"
+            },
+            "max_degree": 135
+          },
+          "tuned_mps": {
+            "median_seconds": 2.2376125829759985,
+            "seconds": [
+              2.225963542005047,
+              2.2376125829759985,
+              2.2448929999955
+            ],
+            "gradient_steps": 20,
+            "metrics": {
+              "Epochs": 20,
+              "Pearson": 0.13691753149032593,
+              "Slope": 0.02422526851296425,
+              "Pearson_val": 0.09514360874891281,
+              "Slope_val": 0.018436813727021217,
+              "Density": 1.0,
+              "Time": 2.1678975829854608,
+              "LL_train": -0.839626651318922,
+              "LL_val": -0.8996735204846791,
+              "Entropy": 119.7314682006836,
+              "logZ": 0.07376132253744934,
+              "logZ_method": "ptt_bridge",
+              "logZ_status": "estimated",
+              "model_version": 20,
+              "ladder_version": 0,
+              "ptt_acceptance": 0.7950000166893005,
+              "ptt_acceptance_rates": [
+                0.7950000166893005
+              ],
+              "ptt_replicas": 2,
+              "ptt_total_models": 2,
+              "bias_learning_rate": 0.01,
+              "coupling_learning_rate": 0.01,
+              "ptt_predicted_kl": 0.00244793835640866,
+              "ptt_lag_drift": 0.0008797973277978599,
+              "ptt_lag_drift_tail": 0.0007686670869588852,
+              "Sweeps": 260,
+              "Gradient_steps": 20,
+              "Structure_steps": 0,
+              "Stage": "ptt_optimization"
+            },
+            "max_degree": 135
+          }
+        },
+        "sparse_PCD": {
+          "numba_cpu": {
+            "median_seconds": 1.5050525839906186,
+            "seconds": [
+              1.497337416978553,
+              1.5050525839906186,
+              1.5250244999770075
+            ],
+            "gradient_steps": 20,
+            "metrics": {
+              "Epochs": 20,
+              "Pearson": 0.01966387964785099,
+              "Slope": 0.003458775347098708,
+              "Pearson_val": 0.01479879766702652,
+              "Slope_val": 0.002850858960300684,
+              "Density": 0.14814814925193787,
+              "Time": 1.4370722770690918,
+              "Sweeps": 200,
+              "Gradient_steps": 20,
+              "Structure_steps": 0,
+              "Stage": "optimization"
+            },
+            "max_degree": 20
+          },
+          "previous_mps": {
+            "median_seconds": 0.6852312500122935,
+            "seconds": [
+              0.6922487909905612,
+              0.6852312500122935,
+              0.6796707079047337
+            ],
+            "gradient_steps": 20,
+            "metrics": {
+              "Epochs": 20,
+              "Pearson": 0.02970985509455204,
+              "Slope": 0.005232866853475571,
+              "Pearson_val": 0.02236154116690159,
+              "Slope_val": 0.004313575103878975,
+              "Density": 0.14814814925193787,
+              "Time": 0.589104175567627,
+              "Sweeps": 200,
+              "Gradient_steps": 20,
+              "Structure_steps": 0,
+              "Stage": "optimization"
+            },
+            "max_degree": 20
+          },
+          "tuned_mps": {
+            "median_seconds": 0.6886199159780517,
+            "seconds": [
+              0.6886199159780517,
+              0.691300250007771,
+              0.6836811669636518
+            ],
+            "gradient_steps": 20,
+            "metrics": {
+              "Epochs": 20,
+              "Pearson": 0.02970985509455204,
+              "Slope": 0.005232866853475571,
+              "Pearson_val": 0.02236154116690159,
+              "Slope_val": 0.004313575103878975,
+              "Density": 0.14814814925193787,
+              "Time": 0.5924360752105713,
+              "Sweeps": 200,
+              "Gradient_steps": 20,
+              "Structure_steps": 0,
+              "Stage": "optimization"
+            },
+            "max_degree": 20
+          }
+        },
+        "sparse_PTT": {
+          "numba_cpu": {
+            "median_seconds": 2.0964224580675364,
+            "seconds": [
+              2.1438250829232857,
+              2.072807041928172,
+              2.0964224580675364
+            ],
+            "gradient_steps": 20,
+            "metrics": {
+              "Epochs": 20,
+              "Pearson": 0.004335375037044287,
+              "Slope": 0.00076017074752599,
+              "Pearson_val": 0.003432817989960313,
+              "Slope_val": 0.0006592200952582061,
+              "Density": 9.58605669438839e-05,
+              "Time": 2.031708125025034,
+              "LL_train": -0.8830196745318958,
+              "LL_val": -0.9286618541332285,
+              "Entropy": 120.09270477294922,
+              "logZ": -0.045875166982486164,
+              "logZ_method": "ptt_bridge",
+              "logZ_status": "estimated",
+              "model_version": 20,
+              "ladder_version": 0,
+              "ptt_acceptance": 0.9665,
+              "ptt_acceptance_rates": [
+                0.9665
+              ],
+              "ptt_replicas": 2,
+              "ptt_total_models": 2,
+              "bias_learning_rate": 0.01,
+              "coupling_learning_rate": 0.01,
+              "steps_on_graph": 20,
+              "activated_entries": 0,
+              "active_entries": 22,
+              "ptt_predicted_kl": 3.3454154015271286e-06,
+              "ptt_lag_drift": 1.9904975076794418e-06,
+              "ptt_lag_drift_tail": 1.3855761164173419e-05,
+              "Sweeps": 260,
+              "Gradient_steps": 20,
+              "Structure_steps": 1,
+              "Stage": "ptt_optimization"
+            },
+            "max_degree": 4
+          },
+          "previous_mps": {
+            "median_seconds": 2.193993750028312,
+            "seconds": [
+              2.2070376250194386,
+              2.193993750028312,
+              2.191638792050071
+            ],
+            "gradient_steps": 20,
+            "metrics": {
+              "Epochs": 20,
+              "Pearson": 0.0009044090402312577,
+              "Slope": 0.00015898769197519869,
+              "Pearson_val": -0.000364212435670197,
+              "Slope_val": 7.012153946561739e-05,
+              "Density": 9.58605669438839e-05,
+              "Time": 2.123837708029896,
+              "LL_train": -0.8830435559761903,
+              "LL_val": -0.9286835477364442,
+              "Entropy": 120.2385482788086,
+              "logZ": -0.04334445364436417,
+              "logZ_method": "ptt_bridge",
+              "logZ_status": "estimated",
+              "model_version": 20,
+              "ladder_version": 0,
+              "ptt_acceptance": 0.9750000238418579,
+              "ptt_acceptance_rates": [
+                0.9750000238418579
+              ],
+              "ptt_replicas": 2,
+              "ptt_total_models": 2,
+              "bias_learning_rate": 0.01,
+              "coupling_learning_rate": 0.01,
+              "steps_on_graph": 20,
+              "activated_entries": 0,
+              "active_entries": 22,
+              "ptt_predicted_kl": 3.0620752567849517e-06,
+              "ptt_lag_drift": 1.0488086445548106e-05,
+              "ptt_lag_drift_tail": 1.1162155715283006e-05,
+              "Sweeps": 260,
+              "Gradient_steps": 20,
+              "Structure_steps": 1,
+              "Stage": "ptt_optimization"
+            },
+            "max_degree": 6
+          },
+          "tuned_mps": {
+            "median_seconds": 1.3456530830590054,
+            "seconds": [
+              1.2686083749867976,
+              1.6203966659959406,
+              1.3456530830590054
+            ],
+            "gradient_steps": 20,
+            "metrics": {
+              "Epochs": 20,
+              "Pearson": 0.0009044090402312577,
+              "Slope": 0.00015898769197519869,
+              "Pearson_val": -0.000364212435670197,
+              "Slope_val": 7.012153946561739e-05,
+              "Density": 9.58605669438839e-05,
+              "Time": 1.244937999988906,
+              "LL_train": -0.8830435559761903,
+              "LL_val": -0.9286835477364442,
+              "Entropy": 120.2385482788086,
+              "logZ": -0.04334445364436417,
+              "logZ_method": "ptt_bridge",
+              "logZ_status": "estimated",
+              "model_version": 20,
+              "ladder_version": 0,
+              "ptt_acceptance": 0.9750000238418579,
+              "ptt_acceptance_rates": [
+                0.9750000238418579
+              ],
+              "ptt_replicas": 2,
+              "ptt_total_models": 2,
+              "bias_learning_rate": 0.01,
+              "coupling_learning_rate": 0.01,
+              "steps_on_graph": 20,
+              "activated_entries": 0,
+              "active_entries": 22,
+              "ptt_predicted_kl": 3.0620752160053327e-06,
+              "ptt_lag_drift": 1.0488086445548106e-05,
+              "ptt_lag_drift_tail": 1.1162155715283006e-05,
+              "Sweeps": 260,
+              "Gradient_steps": 20,
+              "Structure_steps": 1,
+              "Stage": "ptt_optimization"
+            },
+            "max_degree": 6
+          }
+        }
+      },
+      "directional_scores": {
+        "previous_mps": {
+          "median_seconds": 0.04836687503848225,
+          "seconds": [
+            0.04767437500413507,
+            0.04847200005315244,
+            0.047544416040182114,
+            0.048261750023812056,
+            0.04678158392198384,
+            0.04765966604463756,
+            0.04999608302023262,
+            0.05093304091133177,
+            0.04971799999475479,
+            0.051891084061935544
+          ]
+        },
+        "tuned_mps": {
+          "median_seconds": 0.0015279584913514555,
+          "seconds": [
+            0.0016334160463884473,
+            0.001516625052317977,
+            0.002398959011770785,
+            0.0016410000389441848,
+            0.0014669999945908785,
+            0.001539291930384934,
+            0.0015746670542284846,
+            0.0014948330353945494,
+            0.0014547919854521751,
+            0.001419208012521267
+          ]
+        }
+      },
+      "sparse_initial_degree": 20,
+      "sparse_ptt": {
+        "model_type": "eaDCA",
+        "activation_fraction": 0.0001,
+        "activation_steps": 1000
+      }
+    },
+    "protein": {
+      "length": 96,
+      "q": 21,
+      "training": {
+        "dense_PCD": {
+          "numba_cpu": {
+            "median_seconds": 5.871795249986462,
+            "seconds": [
+              5.762744750012644,
+              5.871795249986462,
+              6.066307417000644
+            ],
+            "gradient_steps": 20,
+            "metrics": {
+              "Epochs": 20,
+              "Pearson": 0.02630527876317501,
+              "Slope": 0.0056109558790922165,
+              "Pearson_val": 0.011970355175435543,
+              "Slope_val": 0.002827035030350089,
+              "Density": 1.0,
+              "Time": 6.032269716262817,
+              "Sweeps": 200,
+              "Gradient_steps": 20,
+              "Structure_steps": 0,
+              "Stage": "optimization"
+            },
+            "max_degree": 95
+          },
+          "previous_mps": {
+            "median_seconds": 2.861155124963261,
+            "seconds": [
+              2.861155124963261,
+              2.862463832949288,
+              2.8198587499791756
+            ],
+            "gradient_steps": 20,
+            "metrics": {
+              "Epochs": 20,
+              "Pearson": 0.022094618529081345,
+              "Slope": 0.004695094656199217,
+              "Pearson_val": 0.011787023395299911,
+              "Slope_val": 0.002773251151666045,
+              "Density": 1.0,
+              "Time": 2.7910239696502686,
+              "Sweeps": 200,
+              "Gradient_steps": 20,
+              "Structure_steps": 0,
+              "Stage": "optimization"
+            },
+            "max_degree": 95
+          },
+          "tuned_mps": {
+            "median_seconds": 1.9749866659985855,
+            "seconds": [
+              1.9749866659985855,
+              2.002659499994479,
+              1.9494160000467673
+            ],
+            "gradient_steps": 20,
+            "metrics": {
+              "Epochs": 20,
+              "Pearson": 0.022094618529081345,
+              "Slope": 0.004695094656199217,
+              "Pearson_val": 0.011787023395299911,
+              "Slope_val": 0.002773251151666045,
+              "Density": 1.0,
+              "Time": 1.9182052612304688,
+              "Sweeps": 200,
+              "Gradient_steps": 20,
+              "Structure_steps": 0,
+              "Stage": "optimization"
+            },
+            "max_degree": 95
+          }
+        },
+        "dense_PTT": {
+          "numba_cpu": {
+            "median_seconds": 9.789356125053018,
+            "seconds": [
+              9.622088750009425,
+              9.821685792063363,
+              9.789356125053018
+            ],
+            "gradient_steps": 20,
+            "metrics": {
+              "Epochs": 20,
+              "Pearson": 0.028930211439728737,
+              "Slope": 0.006162561941891909,
+              "Pearson_val": 0.02254691906273365,
+              "Slope_val": 0.005317771807312965,
+              "Density": 1.0,
+              "Time": 9.680287500028498,
+              "LL_train": -1.8495775188331702,
+              "LL_val": -1.9664627040748694,
+              "Entropy": 181.84043884277344,
+              "logZ": 0.36592984509370813,
+              "logZ_method": "ptt_bridge",
+              "logZ_status": "estimated",
+              "model_version": 20,
+              "ladder_version": 0,
+              "ptt_acceptance": 0.8435,
+              "ptt_acceptance_rates": [
+                0.8435
+              ],
+              "ptt_replicas": 2,
+              "ptt_total_models": 2,
+              "bias_learning_rate": 0.01,
+              "coupling_learning_rate": 0.01,
+              "ptt_predicted_kl": 0.00022747726988286252,
+              "ptt_lag_drift": 0.00017051523711931433,
+              "ptt_lag_drift_tail": 0.00016050189086262321,
+              "Sweeps": 260,
+              "Gradient_steps": 20,
+              "Structure_steps": 0,
+              "Stage": "ptt_optimization"
+            },
+            "max_degree": 95
+          },
+          "previous_mps": {
+            "median_seconds": 6.236556499963626,
+            "seconds": [
+              6.236556499963626,
+              6.255918208975345,
+              5.9436416670214385
+            ],
+            "gradient_steps": 20,
+            "metrics": {
+              "Epochs": 20,
+              "Pearson": 0.029188942164182663,
+              "Slope": 0.006219837814569473,
+              "Pearson_val": 0.011126444675028324,
+              "Slope_val": 0.0026250937953591347,
+              "Density": 1.0,
+              "Time": 5.866670333896764,
+              "LL_train": -1.849458770675989,
+              "LL_val": -1.9663555589552046,
+              "Entropy": 181.73715209960938,
+              "logZ": 0.34203307376213093,
+              "logZ_method": "ptt_bridge",
+              "logZ_status": "estimated",
+              "model_version": 20,
+              "ladder_version": 0,
+              "ptt_acceptance": 0.8690000176429749,
+              "ptt_acceptance_rates": [
+                0.8690000176429749
+              ],
+              "ptt_replicas": 2,
+              "ptt_total_models": 2,
+              "bias_learning_rate": 0.01,
+              "coupling_learning_rate": 0.01,
+              "ptt_predicted_kl": 0.00027045349908261083,
+              "ptt_lag_drift": 7.805946370353922e-05,
+              "ptt_lag_drift_tail": 0.00018575484864413738,
+              "Sweeps": 260,
+              "Gradient_steps": 20,
+              "Structure_steps": 0,
+              "Stage": "ptt_optimization"
+            },
+            "max_degree": 95
+          },
+          "tuned_mps": {
+            "median_seconds": 4.816058999975212,
+            "seconds": [
+              4.816058999975212,
+              4.944080124958418,
+              4.56625862501096
+            ],
+            "gradient_steps": 20,
+            "metrics": {
+              "Epochs": 20,
+              "Pearson": 0.029188942164182663,
+              "Slope": 0.006219837814569473,
+              "Pearson_val": 0.011126444675028324,
+              "Slope_val": 0.0026250937953591347,
+              "Density": 1.0,
+              "Time": 4.480624750023708,
+              "LL_train": -1.849458770675989,
+              "LL_val": -1.9663555589552046,
+              "Entropy": 181.73715209960938,
+              "logZ": 0.34203307376213093,
+              "logZ_method": "ptt_bridge",
+              "logZ_status": "estimated",
+              "model_version": 20,
+              "ladder_version": 0,
+              "ptt_acceptance": 0.8690000176429749,
+              "ptt_acceptance_rates": [
+                0.8690000176429749
+              ],
+              "ptt_replicas": 2,
+              "ptt_total_models": 2,
+              "bias_learning_rate": 0.01,
+              "coupling_learning_rate": 0.01,
+              "ptt_predicted_kl": 0.00027045350123394154,
+              "ptt_lag_drift": 7.805946370353922e-05,
+              "ptt_lag_drift_tail": 0.00018575484864413738,
+              "Sweeps": 260,
+              "Gradient_steps": 20,
+              "Structure_steps": 0,
+              "Stage": "ptt_optimization"
+            },
+            "max_degree": 95
+          }
+        },
+        "sparse_PCD": {
+          "numba_cpu": {
+            "median_seconds": 3.035568041028455,
+            "seconds": [
+              3.0340301669202745,
+              3.035568041028455,
+              3.1445922079728916
+            ],
+            "gradient_steps": 20,
+            "metrics": {
+              "Epochs": 20,
+              "Pearson": 0.005261638667434454,
+              "Slope": 0.0011227278737351298,
+              "Pearson_val": 0.0008000912494026124,
+              "Slope_val": 0.00018902923329733312,
+              "Density": 0.147367924451828,
+              "Time": 2.8661999702453613,
+              "Sweeps": 200,
+              "Gradient_steps": 20,
+              "Structure_steps": 0,
+              "Stage": "optimization"
+            },
+            "max_degree": 14
+          },
+          "previous_mps": {
+            "median_seconds": 1.6711259169969708,
+            "seconds": [
+              1.752440958051011,
+              1.6711259169969708,
+              1.6541822080034763
+            ],
+            "gradient_steps": 20,
+            "metrics": {
+              "Epochs": 20,
+              "Pearson": 0.0010207928717136383,
+              "Slope": 0.0002173493558075279,
+              "Pearson_val": 7.065026147756726e-05,
+              "Slope_val": 1.6651401892886497e-05,
+              "Density": 0.147367924451828,
+              "Time": 1.3831679821014404,
+              "Sweeps": 200,
+              "Gradient_steps": 20,
+              "Structure_steps": 0,
+              "Stage": "optimization"
+            },
+            "max_degree": 14
+          },
+          "tuned_mps": {
+            "median_seconds": 1.653036209056154,
+            "seconds": [
+              1.653036209056154,
+              1.6652242080308497,
+              1.6434320410480723
+            ],
+            "gradient_steps": 20,
+            "metrics": {
+              "Epochs": 20,
+              "Pearson": 0.0010207928717136383,
+              "Slope": 0.0002173493558075279,
+              "Pearson_val": 7.065026147756726e-05,
+              "Slope_val": 1.6651401892886497e-05,
+              "Density": 0.147367924451828,
+              "Time": 1.3645260334014893,
+              "Sweeps": 200,
+              "Gradient_steps": 20,
+              "Structure_steps": 0,
+              "Stage": "optimization"
+            },
+            "max_degree": 14
+          }
+        },
+        "sparse_PTT": {
+          "numba_cpu": {
+            "median_seconds": 6.335533250006847,
+            "seconds": [
+              6.44853133300785,
+              6.335533250006847,
+              6.2375962500227615
+            ],
+            "gradient_steps": 20,
+            "metrics": {
+              "Epochs": 20,
+              "Pearson": 0.0032505313865840435,
+              "Slope": 0.0006931956158950925,
+              "Pearson_val": 0.007780166808515787,
+              "Slope_val": 0.0018370418110862374,
+              "Density": 9.995225991588086e-05,
+              "Time": 6.097764750011265,
+              "LL_train": -1.9021998802863411,
+              "LL_val": -1.992976164822067,
+              "Entropy": 182.8583221435547,
+              "logZ": 0.021955109051260458,
+              "logZ_method": "ptt_bridge",
+              "logZ_status": "estimated",
+              "model_version": 20,
+              "ladder_version": 0,
+              "ptt_acceptance": 0.983,
+              "ptt_acceptance_rates": [
+                0.983
+              ],
+              "ptt_replicas": 2,
+              "ptt_total_models": 2,
+              "bias_learning_rate": 0.01,
+              "coupling_learning_rate": 0.01,
+              "steps_on_graph": 20,
+              "activated_entries": 0,
+              "active_entries": 201,
+              "ptt_predicted_kl": 9.90601745708602e-07,
+              "ptt_lag_drift": 1.2332177589531056e-05,
+              "ptt_lag_drift_tail": 6.248303510714807e-06,
+              "Sweeps": 260,
+              "Gradient_steps": 20,
+              "Structure_steps": 1,
+              "Stage": "ptt_optimization"
+            },
+            "max_degree": 19
+          },
+          "previous_mps": {
+            "median_seconds": 4.671896458952688,
+            "seconds": [
+              4.760255667031743,
+              4.671896458952688,
+              4.093354584067129
+            ],
+            "gradient_steps": 20,
+            "metrics": {
+              "Epochs": 20,
+              "Pearson": 0.0016420468455180526,
+              "Slope": 0.0003520564641803503,
+              "Pearson_val": -0.0034132651053369045,
+              "Slope_val": 0.0008102671708911657,
+              "Density": 9.995225991588086e-05,
+              "Time": 3.999332375009544,
+              "LL_train": -1.9024053893997015,
+              "LL_val": -1.9930950485183538,
+              "Entropy": 182.78274536132812,
+              "logZ": 0.01678164018383263,
+              "logZ_method": "ptt_bridge",
+              "logZ_status": "estimated",
+              "model_version": 20,
+              "ladder_version": 0,
+              "ptt_acceptance": 0.9890000224113464,
+              "ptt_acceptance_rates": [
+                0.9890000224113464
+              ],
+              "ptt_replicas": 2,
+              "ptt_total_models": 2,
+              "bias_learning_rate": 0.01,
+              "coupling_learning_rate": 0.01,
+              "steps_on_graph": 20,
+              "activated_entries": 0,
+              "active_entries": 201,
+              "ptt_predicted_kl": 9.168404410222715e-07,
+              "ptt_lag_drift": 6.096438482927624e-06,
+              "ptt_lag_drift_tail": 4.857502972299699e-06,
+              "Sweeps": 260,
+              "Gradient_steps": 20,
+              "Structure_steps": 1,
+              "Stage": "ptt_optimization"
+            },
+            "max_degree": 13
+          },
+          "tuned_mps": {
+            "median_seconds": 3.878896416979842,
+            "seconds": [
+              3.903385707992129,
+              3.690158582990989,
+              3.878896416979842
+            ],
+            "gradient_steps": 20,
+            "metrics": {
+              "Epochs": 20,
+              "Pearson": 0.0016420468455180526,
+              "Slope": 0.0003520564641803503,
+              "Pearson_val": -0.0034132651053369045,
+              "Slope_val": 0.0008102671708911657,
+              "Density": 9.995225991588086e-05,
+              "Time": 3.77505525003653,
+              "LL_train": -1.9024053893997015,
+              "LL_val": -1.9930950485183538,
+              "Entropy": 182.78274536132812,
+              "logZ": 0.01678164018383263,
+              "logZ_method": "ptt_bridge",
+              "logZ_status": "estimated",
+              "model_version": 20,
+              "ladder_version": 0,
+              "ptt_acceptance": 0.9890000224113464,
+              "ptt_acceptance_rates": [
+                0.9890000224113464
+              ],
+              "ptt_replicas": 2,
+              "ptt_total_models": 2,
+              "bias_learning_rate": 0.01,
+              "coupling_learning_rate": 0.01,
+              "steps_on_graph": 20,
+              "activated_entries": 0,
+              "active_entries": 201,
+              "ptt_predicted_kl": 9.168404377346303e-07,
+              "ptt_lag_drift": 6.096438482927624e-06,
+              "ptt_lag_drift_tail": 4.857502972299699e-06,
+              "Sweeps": 260,
+              "Gradient_steps": 20,
+              "Structure_steps": 1,
+              "Stage": "ptt_optimization"
+            },
+            "max_degree": 13
+          }
+        }
+      },
+      "directional_scores": {
+        "previous_mps": {
+          "median_seconds": 0.030624666484072804,
+          "seconds": [
+            0.029412582982331514,
+            0.030551375006325543,
+            0.030384458019398153,
+            0.030934124952182174,
+            0.0315968330251053,
+            0.03189045807812363,
+            0.03178662492427975,
+            0.030697957961820066,
+            0.030001624953001738,
+            0.03033170895650983
+          ]
+        },
+        "tuned_mps": {
+          "median_seconds": 0.00829391647130251,
+          "seconds": [
+            0.008172207977622747,
+            0.008359125000424683,
+            0.00860412500333041,
+            0.008762541925534606,
+            0.008178416988812387,
+            0.008286457974463701,
+            0.008301374968141317,
+            0.008720750105567276,
+            0.008183666970580816,
+            0.008252250030636787
+          ]
+        }
+      },
+      "sparse_ptt": {
+        "model_type": "eaDCA",
+        "activation_fraction": 0.0001,
+        "activation_steps": 1000
+      },
+      "sparse_initial_degree": 14
+    }
+  }
+}

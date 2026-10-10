@@ -281,9 +281,10 @@ def train_model(
             result = train_model("alignment.fasta", progress=show_progress)
 
     Notes:
-        ``dtype="bfloat16"`` uses BF16 coupling copies for CUDA/Triton
+        ``dtype="bfloat16"`` uses BF16 coupling copies for CUDA/Triton or MPS
         sampling and float32 master parameters, statistics, chains, and saved
-        models; it requires an NVIDIA Ampere or newer GPU. PTT requires bmDCA, eaDCA or edgeDCA
+        models; it requires NVIDIA Ampere or newer with Triton, or enabled MPS
+        kernels on macOS 14 or newer. PTT requires bmDCA, eaDCA or edgeDCA
         with float32 or float64 and uses PTT bridges for normalization. For PTT resume, ``max_epochs`` is the
         total committed-step limit, including steps already saved: gradient steps for bmDCA and
         edgeDCA, graph-activation (structure) steps for eaDCA.

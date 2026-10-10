@@ -485,6 +485,7 @@ class _PTTTrainer:
             if stage_progress is not None:
                 stage_progress("recovery_warmup", 0, total, restored_step=restored_step)
             sampler.advance(
+                return_samples=False,
                 rounds=total, local_sweeps=self.config.n_sweeps, is_cancelled=controller.is_cancelled,
                 on_round=(None if stage_progress is None else
                           lambda done, total: stage_progress(

@@ -185,7 +185,8 @@ def replica_autocorrelation(indices: torch.Tensor) -> torch.Tensor:
     if not torch.isfinite(indices).all() or indices.min() < 0 or indices.max() >= indices.shape[1]:
         raise ValueError("PTT mixing labels must be replica indices.")
     n = indices.shape[0]
-    x = indices.double().reshape(n, -1) - (indices.shape[1] - 1) / 2
+    x = indices.cpu().double() if indices.device.type == "mps" else indices.double()
+    x = x.reshape(n, -1) - (indices.shape[1] - 1) / 2
     spectrum = torch.fft.rfft(x, n=1 << (2 * n - 1).bit_length(), dim=0)
     correlation = torch.fft.irfft(spectrum.abs().square(), n=1 << (2 * n - 1).bit_length(), dim=0)
     correlation = correlation[: n // 2].mean(1)
@@ -196,7 +197,7 @@ def replica_autocorrelation(indices: torch.Tensor) -> torch.Tensor:
 
 def integrated_autocorrelation_time(correlation: torch.Tensor) -> float:
     """Self-consistent window t >= 6 tau_int(t), with C(0)/2."""
-    c = correlation.double().clone()
+    c = (correlation.cpu() if correlation.device.type == "mps" else correlation).double().clone()
     if c.ndim != 1 or len(c) < 2 or not torch.isfinite(c).all():
         raise ValueError("A finite autocorrelation vector is required.")
     c[0] = 0.5
@@ -212,7 +213,7 @@ def exponential_autocorrelation_time(correlation: torch.Tensor) -> float:
     the window endpoint, as in the reference. Positive fit bounds and explicit
     fit failure avoid accepting a negative or non-finite relaxation time.
     """
-    c = correlation.detach().double().cpu().numpy()
+    c = correlation.detach().cpu().double().numpy()
     if c.ndim != 1 or len(c) < 4 or not np.isfinite(c).all():
         raise ValueError("At least four finite autocorrelation lags are required.")
     zeros = np.flatnonzero(c <= 0)

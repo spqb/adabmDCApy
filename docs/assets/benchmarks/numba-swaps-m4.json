@@ -1,0 +1,201 @@
+{
+  "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+  "torch": "2.13.0",
+  "numba": "0.68.0",
+  "settings": {
+    "output": "docs/assets/benchmarks/numba-swaps-m4.json",
+    "chains": 2000,
+    "sweeps": 10,
+    "rounds": 5,
+    "repeats": 3,
+    "threads": 4,
+    "dtype": "float32",
+    "rna_train": "example_data/RF00379/splits/RF00379_train.fasta",
+    "rna_validation": "example_data/RF00379/splits/RF00379_validation.fasta",
+    "protein_train": "example_data/cm_russ_natural/splits/cm_russ_natural.train.fasta",
+    "protein_validation": "example_data/cm_russ_natural/splits/cm_russ_natural.test.fasta"
+  },
+  "order": "reference/fused on even repetitions, fused/reference on odd",
+  "families": {
+    "RNA": {
+      "length": 136,
+      "q": 5,
+      "graphs": {
+        "dense": {
+          "0_sweeps": {
+            "reference": {
+              "seconds": [
+                0.23407045798376203,
+                0.23281129205133766,
+                0.25274904095567763
+              ],
+              "median_seconds": 0.23407045798376203
+            },
+            "fused": {
+              "seconds": [
+                0.22250995808281004,
+                0.2257886250736192,
+                0.22272149997297674
+              ],
+              "median_seconds": 0.22272149997297674
+            },
+            "exact_trajectory_and_metadata": true,
+            "speedup": 1.0509558260525467
+          },
+          "10_sweeps": {
+            "reference": {
+              "seconds": [
+                5.73113175004255,
+                6.043840541969985,
+                6.153025791980326
+              ],
+              "median_seconds": 6.043840541969985
+            },
+            "fused": {
+              "seconds": [
+                5.86393200000748,
+                5.961609083926305,
+                6.395815083058551
+              ],
+              "median_seconds": 5.961609083926305
+            },
+            "exact_trajectory_and_metadata": true,
+            "speedup": 1.0137935005274654
+          }
+        },
+        "sparse": {
+          "0_sweeps": {
+            "reference": {
+              "seconds": [
+                0.17322575009893626,
+                0.19288650003727525,
+                0.25896929192822427
+              ],
+              "median_seconds": 0.19288650003727525
+            },
+            "fused": {
+              "seconds": [
+                0.16761004202999175,
+                0.17534333397634327,
+                0.23003816604614258
+              ],
+              "median_seconds": 0.17534333397634327
+            },
+            "exact_trajectory_and_metadata": true,
+            "speedup": 1.1000503735334406
+          },
+          "10_sweeps": {
+            "reference": {
+              "seconds": [
+                2.3972406670218334,
+                2.3513089580228552,
+                2.342168250004761
+              ],
+              "median_seconds": 2.3513089580228552
+            },
+            "fused": {
+              "seconds": [
+                2.337913083960302,
+                2.3375906250439584,
+                2.3350671669468284
+              ],
+              "median_seconds": 2.3375906250439584
+            },
+            "exact_trajectory_and_metadata": true,
+            "speedup": 1.005868578027275
+          }
+        }
+      }
+    },
+    "protein": {
+      "length": 96,
+      "q": 21,
+      "graphs": {
+        "dense": {
+          "0_sweeps": {
+            "reference": {
+              "seconds": [
+                0.19920016697142273,
+                0.20352716592606157,
+                0.20275704201776534
+              ],
+              "median_seconds": 0.20275704201776534
+            },
+            "fused": {
+              "seconds": [
+                0.19679512502625585,
+                0.1966798750218004,
+                0.20048862497787923
+              ],
+              "median_seconds": 0.19679512502625585
+            },
+            "exact_trajectory_and_metadata": true,
+            "speedup": 1.0302950441008845
+          },
+          "10_sweeps": {
+            "reference": {
+              "seconds": [
+                10.999496707925573,
+                10.68746166699566,
+                11.083425207994878
+              ],
+              "median_seconds": 10.999496707925573
+            },
+            "fused": {
+              "seconds": [
+                10.707874499959871,
+                10.737472084001638,
+                10.616342458990403
+              ],
+              "median_seconds": 10.707874499959871
+            },
+            "exact_trajectory_and_metadata": true,
+            "speedup": 1.0272343692454367
+          }
+        },
+        "sparse": {
+          "0_sweeps": {
+            "reference": {
+              "seconds": [
+                0.10492066608276218,
+                0.10222941590473056,
+                0.10316712502390146
+              ],
+              "median_seconds": 0.10316712502390146
+            },
+            "fused": {
+              "seconds": [
+                0.09990587504580617,
+                0.09613083302974701,
+                0.0961822090903297
+              ],
+              "median_seconds": 0.0961822090903297
+            },
+            "exact_trajectory_and_metadata": true,
+            "speedup": 1.0726217041554105
+          },
+          "10_sweeps": {
+            "reference": {
+              "seconds": [
+                3.214971667039208,
+                3.2033751249546185,
+                3.244862207910046
+              ],
+              "median_seconds": 3.214971667039208
+            },
+            "fused": {
+              "seconds": [
+                3.2009079169947654,
+                3.1979470000369474,
+                3.2149091250030324
+              ],
+              "median_seconds": 3.2009079169947654
+            },
+            "exact_trajectory_and_metadata": true,
+            "speedup": 1.004393675297491
+          }
+        }
+      }
+    }
+  }
+}

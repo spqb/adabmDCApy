@@ -147,7 +147,7 @@ adabmDCA train --strategy pcd -d train.fasta -o model_pcd \
 
 ## Precision and speed
 
-`--dtype bfloat16` stores the couplings used inside the sampler in BF16, keeping parameters, chains and statistics in FP32. It needs an Ampere-or-newer NVIDIA GPU with Triton, is not available with PTT, and gave at most about 12% speed-up (Metropolis on a large protein), sometimes a small slowdown. Saved models stay FP32. Pass `--dtype bfloat16` again when resuming.
+`--dtype bfloat16` stores the couplings used inside the sampler in BF16, keeping parameters, chains and statistics in FP32. It needs an Ampere-or-newer NVIDIA GPU with Triton, or enabled MPS kernels on macOS 14 or newer. PTT does not support BF16. Performance depends on the model and device: CUDA tests gave at most about 12% speed-up; dense MPS protein sampling can benefit more (see [MPS benchmarks](../algorithms/benchmarks.md#mps-vs-cpu)). Saved models stay FP32. Pass `--dtype bfloat16` again when resuming.
 
 ## In Python
 

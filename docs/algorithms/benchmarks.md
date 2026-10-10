@@ -1,6 +1,6 @@
 # Benchmarks
 
-What to expect from adabmDCA on real data, and how the training strategies, model types, samplers and devices compare. Six families were trained and sampled with every combination of interest on one workstation (NVIDIA RTX A5000; AMD Threadripper PRO 5955WX, 16 threads for CPU runs), one job at a time so that wall times are comparable.
+What to expect from adabmDCA on real data, and how the training strategies, model types, samplers and devices compare. Six families were trained and sampled with every combination of interest on one workstation (NVIDIA RTX A5000; AMD Threadripper PRO 5955WX, 16 threads for CPU runs), one job at a time so that wall times are comparable. A separate [MPS vs CPU](#mps-vs-cpu) comparison below uses an Apple M4 laptop.
 
 ## Setup
 
@@ -137,6 +137,10 @@ For these families, bmDCA is better than edgeDCA in accuracy, robustness and tot
 
 ## Sampling kernels
 
+For Apple GPUs, see [MPS vs CPU](#mps-vs-cpu) below.
+For fixed seven-model CPU PTT generation, see the separate
+[Numba swap-fusion measurements](numba-swaps.md).
+
 Time per sweep, 2,000 chains, comparing the original PyTorch samplers with the current ones (Triton on GPU, Numba on CPU):
 
 | Model | Device | Gibbs | Metropolis | Metropolized Gibbs |
@@ -168,6 +172,51 @@ bmDCA training with identical settings on the GPU and on the CPU (16 threads, Nu
 | RF00379 | PTT | 2.9 min | 35 min | 12× | Yes: validation plateau after 2,475 and 2,632 updates; validation log-likelihood −0.711 per site on both |
 
 The two devices draw different random numbers, so the trajectories differ in detail, but they reach models of the same quality in a similar number of updates. Per sampling sweep, the GPU is 15–20× faster for Gibbs and Metropolized Gibbs and 5–9× for Metropolis, which is cheap on CPU. A small RNA family trains on a CPU in minutes with PCD and in about half an hour with PTT; protein families of a few hundred positions need a GPU.
+
+## MPS vs CPU
+
+Optimized Apple Metal kernels have been written for MPS sampling. They are
+selected automatically on supported Apple GPUs and are used by both PCD and PTT.
+
+This comparison uses a **MacBook Air with an Apple M4**: a 10-core CPU
+(4 performance and 6 efficiency cores), an 8-core Apple GPU and 16 GB of unified
+memory. CPU runs use the optimized Numba kernels with **4 threads**; MPS runs
+use the optimized Apple Metal kernels. This is a laptop, separate from the
+Threadripper/RTX A5000 workstation used above. Runs use PyTorch 2.13.0,
+float32, with one job running at a time.
+
+**Sampling.** Time per sweep for 2,000 chains on the same dense bmDCA model,
+measured over 10 sweeps after warmup; median of three calls, including the
+sampler's input/output conversions:
+
+| Family | Sampler | CPU (Numba) | MPS (Apple Metal) | MPS speed-up |
+| --- | --- | --- | --- | --- |
+| RF00379 | Gibbs | 20.7 ms | 5.6 ms | 3.7× |
+| RF00379 | Metropolis | 6.4 ms | 2.1 ms | 3.1× |
+| RF00379 | Metropolized Gibbs | 21.9 ms | 5.7 ms | 3.9× |
+| cm_russ_natural | Gibbs | 59.4 ms | 12.4 ms | 4.8× |
+| cm_russ_natural | Metropolis | 9.0 ms | 8.5 ms | 1.1× |
+| cm_russ_natural | Metropolized Gibbs | 48.7 ms | 5.9 ms | 8.3× |
+
+**PCD training.** Dense bmDCA, 2,000 chains, **10 sweeps per update for both
+families**, Metropolized Gibbs, learning rate 0.01, seed 0 and sequence
+reweighting at 80% identity.
+The target Pearsons match the endpoints of the earlier PTT runs. Training
+uses the same `example_data` training/validation splits listed in the setup
+above. Times exclude loading, setup and compilation.
+
+| Family | Target Pearson | CPU (Numba) | MPS (Apple Metal) | MPS speed-up | Updates CPU / MPS |
+| --- | --- | --- | --- | --- | --- |
+| RF00379 | 0.952 | 8.1 min | 2.5 min | 3.3× | 2,221 / 2,226 |
+| cm_russ_natural | 0.918 | 14.1 min | 4.7 min | 3.0× | 2,314 / 2,339 |
+
+Both devices reached the requested targets. Their random streams differ,
+so the update counts need not match. These are single training runs; speed-ups
+apply to this laptop and these settings. In particular, the protein run uses
+10 sweeps here, versus 100 in the workstation comparison above. Reaching the
+training Pearson alone does not establish equilibrium or equal validation quality.
+The [measurement record](../assets/benchmarks/mps-cpu-convergence-m4.json) contains
+the individual sampling timings and final training metrics.
 
 ## 10 vs 100 local sweeps
 

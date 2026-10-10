@@ -12,7 +12,7 @@
 - **estimate the entropy** and the normalization of the model;
 - **retrain** the model with experimental feedback on tested sequences.
 
-adabmDCA 2.1 is a major update of the Python implementation. It introduces equilibrium training and sampling with Parallel Trajectory Tempering (below), and rewrites the Monte Carlo samplers: optimized **Triton kernels on NVIDIA GPUs** and multithreaded **Numba kernels on CPUs** are 24–74× and 7–36× faster per sweep than the previous PyTorch implementation, while producing the same Markov chains. It also runs on Apple GPUs (Metal), and offers both a command-line interface and a Python API. The Python package has its own version number.
+adabmDCA 2.1 is a major update of the Python implementation. It introduces equilibrium training and sampling with Parallel Trajectory Tempering (below), and rewrites the Monte Carlo samplers: optimized **Triton kernels on NVIDIA GPUs** and multithreaded **Numba kernels on CPUs** are 24–74× and 7–36× faster per sweep than the previous PyTorch implementation, while producing the same Markov chains. It also runs on Apple GPUs (Metal) using optimized mps kernels, and offers both a command-line interface and a Python API. The Python package has its own version number.
 
 ## Equilibrium training with Parallel Trajectory Tempering
 

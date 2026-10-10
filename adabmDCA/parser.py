@@ -156,7 +156,7 @@ def add_args_dca(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         choices=("float32", "float64", "bfloat16"),
         help=(
             "Training precision (default: float32). bfloat16 uses BF16 sampling couplings "
-            "with FP32 master parameters; requires Ampere+ CUDA and Triton."
+            "with FP32 master parameters; requires Ampere+ CUDA with Triton or MPS kernels on macOS 14+."
         ),
     )
 
@@ -451,7 +451,7 @@ def add_args_sample(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         "--dtype", type=str, default="float32", choices=("float32", "float64", "bfloat16"),
         help=(
             "(Defaults to 'float32'). Sampling precision. bfloat16 stores sampling couplings in BF16 "
-            "while retaining FP32 model state and requires an Ampere-or-newer CUDA GPU with Triton."
+            "while retaining FP32 model state and requires Ampere+ CUDA with Triton or MPS kernels on macOS 14+."
         ),
     )
 

@@ -16,6 +16,7 @@ from adabmDCA.exceptions import InputValidationError
 from adabmDCA.fasta import decode_sequence, get_tokens
 from adabmDCA.input_loading import AlignmentInput, WeightInput
 from adabmDCA.ptt import PTTSampler
+from adabmDCA.ptt.precision import device_accumulation
 from adabmDCA.serialization import result_document, write_json
 from adabmDCA.statmech import compute_energy
 from adabmDCA.steering import (
@@ -41,7 +42,7 @@ def load_ptt_backend(
 
     Args:
         source: A :class:`PTTSampler` or a path to a PTT archive.
-        device: Device to load the archive on; ``"auto"`` picks CUDA when available.
+        device: Device to load the archive on; ``"auto"`` prefers CUDA, then MPS, then CPU.
             Changing device requires a new ``seed``.
         seed: New random seed, or ``None`` to continue the archived random stream.
         alphabet: Optional alphabet; must match the archive's tokens.
@@ -237,10 +238,10 @@ def sample_ptt_sequences(
         if collected < n_sequences:
             snapshot_round = backend.rounds
             report("spacing", 0, spacing)
-            backend.advance(rounds=spacing, local_sweeps=local_sweeps, is_cancelled=is_cancelled,
+            backend.advance(return_samples=False, rounds=spacing, local_sweeps=local_sweeps, is_cancelled=is_cancelled,
                             on_round=lambda done, total: report("spacing", done, total))
             # Fraction of the next batch drawn at rung 0 after this batch.
-            batch_endpoint_fresh.append(float((backend.birth[-1] >= snapshot_round).double().mean()))
+            batch_endpoint_fresh.append(float(device_accumulation(backend.birth[-1] >= snapshot_round).mean()))
     samples = torch.cat(batches)
 
     # Compare the endpoint samples with the weighted natural alignment.  The
@@ -460,7 +461,7 @@ def estimate_ptt_entropy(
         model: A PTT archive path, or a :class:`PTTSampler` (it is forked, not modified).
         n_sweeps: Local sweeps per exchange round of the warmup.
         seed: Random seed of the warmup.
-        device: ``"cpu"``, ``"cuda"`` or ``"auto"``.
+        device: ``"cpu"``, ``"cuda"``, ``"mps"`` (float32) or ``"auto"``.
         alphabet: Optional alphabet; must match the archive.
         output_dir: If given, the result is written to ``<output_dir>/<label>.json``.
         label: File-name stem of the written JSON.

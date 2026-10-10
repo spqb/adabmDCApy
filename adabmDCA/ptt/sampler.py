@@ -32,7 +32,8 @@ from adabmDCA.ptt.kernels import (
     _prepare_replica_sampler,
 )
 from adabmDCA.ptt.mixing import MixingEstimate, RenewalEstimate, process_replica_experiment, renewal_forecast
-from adabmDCA.sampling import sampling_profile
+from adabmDCA.ptt.precision import accumulation_dtype, device_accumulation, diagnostic_double
+from adabmDCA.sampling import sampling_profile_categorical
 from adabmDCA.statmech import compute_energy
 from adabmDCA.steering import SteeredKernel, Steering
 
@@ -44,7 +45,7 @@ def _profile_states(params, n_chains):
 
         if is_numba_available():
             return sample_profile_states(params["bias"], n_chains)
-    return sampling_profile(params, n_chains, 1.0).argmax(-1).to(torch.int32)
+    return sampling_profile_categorical(params, n_chains, 1.0).to(torch.int32)
 
 
 def _replica_positions_by_lineage(lineage, active_start=0):
@@ -97,7 +98,11 @@ def _clone(params):
 def bridge_increment(lower, upper, samples):
     """Return log(Z_upper/Z_lower) from samples of the lower Hamiltonian."""
     samples = _one_hot(samples, lower)
-    weights = compute_energy(samples, lower).double() - compute_energy(samples, upper).double()
+    if samples.device.type == "mps":
+        delta = {key: lower[key] - upper[key] for key in lower}
+        weights = diagnostic_double(compute_energy(samples, delta))
+    else:
+        weights = compute_energy(samples, lower).double() - compute_energy(samples, upper).double()
     if not torch.isfinite(weights).all():
         raise ValueError("Non-finite PTT bridge energies.")
     offset = weights.max()
@@ -154,7 +159,7 @@ class PTTSampler:
 
         Args:
             params: ``bias`` of shape ``(L, q)`` and an all-zero ``coupling_matrix``
-                of shape ``(L, q, L, q)``, float32 or float64, on CPU or CUDA.
+                of shape ``(L, q, L, q)``, float32 or float64, on CPU, CUDA or MPS (float32).
             tokens: Ordered alphabet of length ``q``.
             n_chains: Chains per replica.
             sampler: Local kernel: ``"metropolized_gibbs"``, ``"gibbs"`` or ``"metropolis"``.
@@ -199,7 +204,7 @@ class PTTSampler:
         self.acceptance = [1.0]
         self.training_state = {}
         self.active_start = 0
-        self.anchor_log_z = float(torch.logsumexp(params["bias"].double(), -1).sum())
+        self.anchor_log_z = float(torch.logsumexp(diagnostic_double(params["bias"]), -1).sum())
         self.reservoir = None
         self.temporary = None
         self.held = None
@@ -246,8 +251,10 @@ class PTTSampler:
             raise InputValidationError("Invalid PTT dimensions or token order.")
         if h.dtype not in (torch.float32, torch.float64) or j.dtype != h.dtype or h.device != j.device:
             raise InputValidationError("PTT requires consistent float32/float64 parameters.")
-        if h.device.type not in ("cpu", "cuda"):
-            raise InputValidationError("PTT supports CPU and CUDA only.")
+        if h.device.type not in ("cpu", "cuda", "mps"):
+            raise InputValidationError("PTT supports CPU, CUDA and MPS.")
+        if h.device.type == "mps" and h.dtype != torch.float32:
+            raise InputValidationError("PTT on MPS requires float32 parameters.")
         if j.shape != (L, q, L, q) or not torch.isfinite(h).all() or not torch.isfinite(j).all():
             raise InputValidationError(
                 "PTT parameters must have compatible shapes and finite values; use positive pseudocounts."
@@ -265,6 +272,15 @@ class PTTSampler:
 
     @contextmanager
     def _random_context(self):
+        if self.device.type == "mps":
+            global_state = torch.mps.get_rng_state()
+            torch.mps.set_rng_state(self._rng)
+            try:
+                yield
+            finally:
+                self._rng = torch.mps.get_rng_state()
+                torch.mps.set_rng_state(global_state)
+            return
         devices = (
             [self.device.index if self.device.index is not None else torch.cuda.current_device()]
             if self.device.type == "cuda"
@@ -291,7 +307,22 @@ class PTTSampler:
             copy: Return a copy; ``False`` may return internal storage, which must
                 not be modified.
         """
-        samples = _one_hot(self.chains[-1], self.models[-1])
+        chains, params = self.chains[-1], self.models[-1]
+        signature = (params["bias"].shape[1], params["bias"].dtype)
+        cache = getattr(self, "_endpoint_samples_cache", None)
+        if not torch.is_inference(chains) and cache is not None and (
+            cache[0] is chains and cache[1] == chains._version and cache[2] == signature
+            and cache[4] == cache[3]._version
+        ):
+            samples = cache[3]
+        else:
+            samples = _one_hot(chains, params)
+            # Inference tensors have no version counters, so their mutations
+            # cannot be tracked safely. Rebuild those encodings every time.
+            self._endpoint_samples_cache = (
+                (chains, chains._version, signature, samples, samples._version)
+                if not torch.is_inference(chains) and not torch.is_inference(samples) else None
+            )
         return samples.clone() if copy else samples
 
     def prepare_sampling_ladder(self, n_chains: int) -> None:
@@ -328,7 +359,7 @@ class PTTSampler:
         self._replica_params_cache = None
         self.active_start = 0
         self.reservoir = self.temporary = self.held = None
-        self.anchor_log_z = float(torch.logsumexp(self.profile_params["bias"].double(), -1).sum())
+        self.anchor_log_z = float(torch.logsumexp(diagnostic_double(self.profile_params["bias"]), -1).sum())
         # Start every replica from exact draws of the bottom profile, i.e. the
         # distribution that enters the ladder at rung 0. Uniform random
         # sequences can relax into states that every model disfavors
@@ -361,7 +392,7 @@ class PTTSampler:
             k: v for k, v in self.__dict__.items()
             if k not in (
                 "recovery_points", "ptt_checkpoints", "_local_kernel", "_replica_kernel",
-                "_replica_params_cache", "_exchange_kernel", "steering", "_steering_kernels",
+                "_replica_params_cache", "_endpoint_samples_cache", "_exchange_kernel", "steering", "_steering_kernels",
             )
         })
         # The steering potential is user code (possibly a large model): share it.
@@ -372,6 +403,7 @@ class PTTSampler:
         result._local_kernel = _prepare_categorical_sampler(kernel, result.device)
         result._replica_kernel = _prepare_replica_sampler(kernel, result.device)
         result._replica_params_cache = None
+        result._endpoint_samples_cache = None
         result._exchange_kernel = _prepare_exchange_kernel(result.device)
         result.ptt_checkpoints = list(self.ptt_checkpoints)
         result.recovery_points = []
@@ -398,6 +430,7 @@ class PTTSampler:
         self._local_kernel = _prepare_categorical_sampler(kernel, self.device)
         self._replica_kernel = _prepare_replica_sampler(kernel, self.device)
         self._replica_params_cache = None
+        self._endpoint_samples_cache = None
 
     @property
     def n_active(self) -> int:
@@ -424,6 +457,7 @@ class PTTSampler:
         """Restore a state returned by :meth:`capture_state`, clearing the training state."""
         self.__dict__.update(copy.deepcopy(state))
         self._replica_params_cache = None
+        self._endpoint_samples_cache = None
         self.ptt_checkpoints = [p for p in self.ptt_checkpoints if p["step"] <= self.model_version]
         self.training_state = {}
         self.last_failure = None
@@ -437,7 +471,8 @@ class PTTSampler:
         is_cancelled: Callable[[], bool] | None = None,
         on_round: Callable[[int, int], None] | None = None,
         until: Callable[[], bool] | None = None,
-    ) -> torch.Tensor:
+        return_samples: bool = True,
+    ) -> torch.Tensor | None:
         """Run exchange rounds at fixed parameters.
 
         Each round swaps configurations between adjacent replicas, permutes
@@ -449,15 +484,20 @@ class PTTSampler:
             is_cancelled: Optional callable; returning ``True`` stops the run.
             on_round: Optional callback ``on_round(completed, rounds)`` after each round.
             until: Optional callable; returning ``True`` stops after the current round.
+            return_samples: Return one-hot endpoint chains; ``False`` skips
+                their construction when only advancing the sampler state.
 
         Returns:
-            A copy of the endpoint chains, one-hot, shape ``(n_chains, L, q)``.
+            A copy of the endpoint chains, one-hot, shape ``(n_chains, L, q)``,
+            or ``None`` when ``return_samples=False``.
 
         Raises:
             OperationCancelledError: If ``is_cancelled`` returns ``True``.
         """
         validate_integer("rounds", rounds)
         validate_integer("local_sweeps", local_sweeps)
+        if rounds:
+            self._endpoint_samples_cache = None
         completed = rounds
         kernel = self._local_kernel
         exchange_kernel = self._exchange_kernel
@@ -471,6 +511,22 @@ class PTTSampler:
         if memory is not None and memory.shape != (len(self.chains), len(self.chains[0])):
             # Experiments on forks replace populations; their memory is meaningless.
             memory = self.lag_memory = None
+        fused_counts = None
+        fused_move = None
+        if self.device.type == "mps":
+            from adabmDCA.mps_kernels.swaps import acceptance_rates, swap_and_permute, swaps_available
+
+            if swaps_available(self, birth, reached, memory):
+                fused_counts = torch.zeros((rounds, self.n_active - 1), dtype=torch.int32, device=self.device)
+                fused_move = swap_and_permute
+        elif self.device.type == "cpu" and self.mode == "generate" and len(self.models) == 7:
+            from adabmDCA.numba_kernels import is_numba_available
+
+            if is_numba_available():
+                from adabmDCA.numba_kernels.swaps import swap_and_permute, swaps_available
+
+                if swaps_available(self, birth, reached, memory):
+                    fused_move = swap_and_permute
         # A training checkpoint becomes stale when populations evolve outside
         # its commit. The trainer installs fresh metadata after each commit.
         self.training_state = {}
@@ -481,6 +537,26 @@ class PTTSampler:
                 # Reference order: one pass of adjacent exchanges and population
                 # permutations, then local moves and reservoir refresh.
                 for k in range(self.active_start, len(self.models) - 1):
+                    if fused_move is not None:
+                        with timer.measure("exchange_seconds"):
+                            log_a = exchange_kernel(self.models[k], self.models[k + 1], self.chains[k], self.chains[k + 1])
+                            log_u = torch.rand(len(log_a), device=self.device).log()
+                            orders = tuple(torch.randperm(len(self.chains[j]), device=self.device) for j in (k, k + 1))
+                            moved = fused_move(
+                                (self.chains[k], self.chains[k + 1]), (self.lineage[k], self.lineage[k + 1]),
+                                log_a, log_u, orders, fused_counts, step * (self.n_active - 1) + k - self.active_start,
+                                birth=None if birth is None else (birth[k], birth[k + 1]),
+                                reached=None if reached is None else (reached[k], reached[k + 1]),
+                                memory=None if memory is None else (memory[k], memory[k + 1]),
+                            )
+                            if fused_counts is None:
+                                acceptance[k - self.active_start] += moved["accepted"] / len(log_a)
+                            self.chains[k], self.chains[k + 1] = moved["chains"].unbind(0)
+                            self.lineage[k:k + 2] = moved["lineage"]
+                            for key, values in (("birth", birth), ("reached", reached), ("memory", memory)):
+                                if values is not None:
+                                    values[k:k + 2] = moved[key]
+                        continue
                     with timer.measure("exchange_seconds"):
                         steered_pair = self._steered_pair(k)
                         if steered_pair:
@@ -492,7 +568,7 @@ class PTTSampler:
                         swap = torch.rand(len(log_a), device=self.device).log() < log_a
                         if steered_pair:
                             self._swap_steering_values(k, swap, cross)
-                        acceptance[k - self.active_start] += swap.double().mean().cpu()
+                        acceptance[k - self.active_start] += device_accumulation(swap).mean().cpu()
                         saved = self.chains[k][swap].clone()
                         self.chains[k][swap] = self.chains[k + 1][swap]
                         self.chains[k + 1][swap] = saved
@@ -550,8 +626,11 @@ class PTTSampler:
                         and (self._replica_kernel.always or (
                             self.mode == "generate" and (self._replica_params_cache is not None or rounds >= 32)))
                     )
+                    # Metal amortizes launch overhead across sweeps. Keep one-sweep
+                    # calls when cancellation must be checked between sweeps.
+                    batch_sweeps = local_sweeps if self.device.type == "mps" and is_cancelled is None else 1
                     if use_replica_kernel:
-                        for _ in range(local_sweeps):
+                        for _ in range(local_sweeps // batch_sweeps):
                             if is_cancelled is not None and is_cancelled():
                                 raise OperationCancelledError("PTT sampling was cancelled.")
                             biases, couplings = self._stacked_replica_params(local_indices)
@@ -559,18 +638,18 @@ class PTTSampler:
                                 torch.stack([self.chains[k] for k in local_indices]),
                                 biases,
                                 couplings,
-                                nsweeps=1,
+                                nsweeps=batch_sweeps,
                             )
                             for k, chains in zip(local_indices, stacked.unbind(0)):
                                 self.chains[k] = chains
-                            self.local_sweeps += len(local_indices)
+                            self.local_sweeps += len(local_indices) * batch_sweeps
                     else:
                         for k in local_indices:
-                            for _ in range(local_sweeps):
+                            for _ in range(local_sweeps // batch_sweeps):
                                 if is_cancelled is not None and is_cancelled():
                                     raise OperationCancelledError("PTT sampling was cancelled.")
-                                self.chains[k] = kernel(self.chains[k], self.models[k], nsweeps=1)
-                                self.local_sweeps += 1
+                                self.chains[k] = kernel(self.chains[k], self.models[k], nsweeps=batch_sweeps)
+                                self.local_sweeps += batch_sweeps
                 if self.reservoir is not None:
                     # Exchange with randomly selected reservoir entries, as
                     # in ptt_paper.pre_sampler.reservoir.Reservoir.
@@ -595,24 +674,30 @@ class PTTSampler:
         self.last_advance_timing = timer.finish()
         for key, value in self.last_advance_timing.items():
             self.timings[key] += value
-        self.acceptance = (acceptance / completed).tolist()
-        return self.endpoint_samples()
+        self.acceptance = ((acceptance / completed).tolist() if fused_counts is None
+                           else acceptance_rates(fused_counts, completed, len(self.chains[-1])))
+        return self.endpoint_samples() if return_samples else None
 
     def _stacked_replica_params(self, indices):
         """Stacked biases and kernel-layout couplings for ``indices``, cached per replica set.
 
         At most two sets are kept (all local replicas and one boosted subset);
-        keys include tensor addresses, so a replaced model is restacked. Each
+        keys include tensor addresses and versions, so replaced or modified
+        models are restacked. Inference tensors are restacked on every call. Each
         entry keeps its source tensors alive, so no other tensor can reuse
         their addresses while it is cached.
         """
         sources = [(self.models[k]["bias"], self.models[k]["coupling_matrix"]) for k in indices]
-        key = tuple((k, bias.data_ptr(), couplings.data_ptr()) for k, (bias, couplings) in zip(indices, sources))
+        transform = self._replica_kernel.transform_couplings
+        if any(torch.is_inference(value) for pair in sources for value in pair):
+            return (torch.stack([bias for bias, _ in sources]),
+                    torch.stack([transform(couplings) for _, couplings in sources]))
+        key = tuple((k, bias.data_ptr(), bias._version, couplings.data_ptr(), couplings._version)
+                    for k, (bias, couplings) in zip(indices, sources))
         cache = self._replica_params_cache or {}
         if key not in cache:
             if len(cache) >= 2:
                 cache = {}  # release old stacks before materializing a new one
-            transform = self._replica_kernel.transform_couplings
             cache[key] = (
                 torch.stack([bias for bias, _ in sources]),
                 torch.stack([transform(couplings) for _, couplings in sources]),
@@ -683,7 +768,7 @@ class PTTSampler:
         for start in range(0, len(chains), chunk):
             x = _one_hot(chains[start:start + chunk], params_list[0])
             for out, params in zip(results, params_list):
-                out.append(compute_energy(x, params).double())
+                out.append(device_accumulation(compute_energy(x, params)))
         return [torch.cat(out) for out in results]
 
     @torch.no_grad()
@@ -695,6 +780,10 @@ class PTTSampler:
             return (lower_under_upper - self._rung_values(k),
                     self._rung_values(k + 1) - upper_under_lower)
         lower, upper = self.models[k], self.models[k + 1]
+        if self.device.type == "mps":
+            delta = {key: upper[key] - lower[key] for key in lower}
+            return (self._energies(self.chains[k], [delta])[0],
+                    self._energies(self.chains[k + 1], [delta])[0])
         lower_under_lower, lower_under_upper = self._energies(self.chains[k], [lower, upper])
         upper_under_lower, upper_under_upper = self._energies(self.chains[k + 1], [lower, upper])
         return lower_under_upper - lower_under_lower, upper_under_upper - upper_under_lower
@@ -742,11 +831,11 @@ class PTTSampler:
         reached = getattr(self, "reached_top", None)
         if birth is not None:
             for k in range(self.active_start, len(self.models)):
-                ages = (self.rounds - birth[k]).double().cpu()
+                ages = device_accumulation(self.rounds - birth[k]).cpu()
                 replicas.append({
                     "replica": k, "age_median": float(ages.median()), "age_q99": float(torch.quantile(ages, 0.99)),
                     # Fraction of the configurations that reached the top since birth (moving down).
-                    "flow_down": None if reached is None else float(reached[k].double().mean()),
+                    "flow_down": None if reached is None else float(device_accumulation(reached[k]).mean()),
                 })
         return {"pairs": pairs, "replicas": replicas, "log_z_forward": log_z_forward, "log_z_bar": log_z_bar,
                 "log_z_bar_error": math.sqrt(bar_variance), "immobile_threshold": IMMOBILE_THRESHOLD}
@@ -815,7 +904,7 @@ class PTTSampler:
         if full_ladder:
             trial.active_start = 0
             trial.reservoir = None
-            trial.anchor_log_z = float(torch.logsumexp(trial.profile_params["bias"].double(), -1).sum())
+            trial.anchor_log_z = float(torch.logsumexp(diagnostic_double(trial.profile_params["bias"]), -1).sum())
             trial.acceptance = [1.0] * (len(trial.models) - 1)
         n = min(self.config.mixing_chains, len(trial.reservoir)) if trial.reservoir is not None else self.config.mixing_chains
         if in_place:
@@ -831,6 +920,7 @@ class PTTSampler:
             if on_progress is not None:
                 on_progress("mixing_warmup", 0, warmup_rounds, chains=n, replicas=trial.n_active)
             trial.advance(
+                return_samples=False,
                 rounds=warmup_rounds, local_sweeps=local_sweeps, is_cancelled=is_cancelled,
                 on_round=(None if on_progress is None else
                           lambda done, total: on_progress("mixing_warmup", done, total, chains=n, replicas=trial.n_active)),
@@ -852,7 +942,7 @@ class PTTSampler:
                         max_rounds=max_rounds, observable="lineage")
         while True:
             for _ in range(len(indices), target):
-                trial.advance(local_sweeps=local_sweeps, is_cancelled=is_cancelled)
+                trial.advance(return_samples=False, local_sweeps=local_sweeps, is_cancelled=is_cancelled)
                 indices.append(_replica_positions_by_lineage(trial.lineage, trial.active_start).cpu())
                 acceptance += torch.tensor(trial.acceptance, dtype=torch.float64)
                 if on_progress is not None:
@@ -931,15 +1021,15 @@ class PTTSampler:
             nonlocal renewed_at, count
             old = self.birth[self.active_start:] < reference
             count = int(old.sum()) if rung is None else int(old[rung - self.active_start].sum())
-            ladder_old.append(float(old.double().mean()))
-            endpoint_fresh.append(1.0 - float(old[-1].double().mean()))
+            ladder_old.append(float(device_accumulation(old).mean()))
+            endpoint_fresh.append(1.0 - float(device_accumulation(old[-1]).mean()))
             if renewed_at is None and count <= limit:
                 renewed_at = len(ladder_old)
             if on_round is not None:
                 on_round(len(ladder_old), ladder_old[-1], endpoint_fresh[-1])
             return stop_when_renewed and renewed_at is not None
 
-        self.advance(rounds=rounds, local_sweeps=local_sweeps, is_cancelled=is_cancelled, until=after_round)
+        self.advance(return_samples=False, rounds=rounds, local_sweeps=local_sweeps, is_cancelled=is_cancelled, until=after_round)
         return ladder_old, endpoint_fresh, renewed_at, count
 
     def measure_renewal(
@@ -1065,10 +1155,10 @@ class PTTSampler:
         result = RenewalEstimate(
             status=status, tolerance=float(tolerance), warmup_rounds=warmup_rounds,
             renewal_rounds=renewal_rounds, stationary_rounds=len(stationary_old), chunk_rounds=chunk,
-            trapped_fraction=float(old[-1].double().mean()),
+            trapped_fraction=float(device_accumulation(old[-1]).mean()),
             warmup_ladder_old=tuple(warm_old), warmup_endpoint_fresh=tuple(warm_fresh),
             stationary_ladder_old=tuple(stationary_old), stationary_endpoint_fresh=tuple(stationary_fresh),
-            old_fraction_by_model=tuple(old.double().mean(1).tolist()),
+            old_fraction_by_model=tuple(device_accumulation(old).mean(1).tolist()),
             acceptance=tuple((acceptance / max(used, 1)).tolist()),
             local_sweeps=self.local_sweeps - before,
             replicas=self.n_active,
@@ -1100,7 +1190,7 @@ class PTTSampler:
             if self._is_steered(k) or self._is_steered(k - 1) or not old.any():
                 continue
             upper, lower = self.chains[k][old], self.chains[k - 1]
-            acceptance = torch.zeros(len(upper), dtype=torch.float64, device=self.device)
+            acceptance = torch.zeros(len(upper), dtype=accumulation_dtype(self.device), device=self.device)
             with self._random_context():
                 for _ in range(partners):
                     partner = torch.randint(len(lower), (len(upper),), device=self.device)
@@ -1126,7 +1216,7 @@ class PTTSampler:
         if full_ladder:
             trial.active_start = 0
             trial.reservoir = None
-            trial.anchor_log_z = float(torch.logsumexp(trial.profile_params["bias"].double(), -1).sum())
+            trial.anchor_log_z = float(torch.logsumexp(diagnostic_double(trial.profile_params["bias"]), -1).sum())
             trial.acceptance = [1.0] * (len(trial.models) - 1)
         n = self.config.mixing_chains
         if trial.reservoir is not None:
@@ -1268,7 +1358,7 @@ class PTTSampler:
         """
         shape = (len(self.chains), len(self.chains[0]))
         if self.lag_memory is None or self.lag_memory.shape != shape:
-            self.lag_memory = torch.zeros(shape, dtype=torch.float64, device=self.device)
+            self.lag_memory = torch.zeros(shape, dtype=accumulation_dtype(self.device), device=self.device)
         change = {key: params[key] - self.models[-1][key] for key in ("bias", "coupling_matrix")}
         (energy_change,) = self._energies(self.chains[-1], [change])
         self.lag_memory.mul_(1.0 - 1.0 / self.config.lag_horizon)
@@ -1327,6 +1417,7 @@ class PTTSampler:
         if on_progress is not None:
             on_progress("replica_equilibration", 0, self.config.equilibration_rounds, action="insert")
         self.advance(
+            return_samples=False,
             rounds=self.config.equilibration_rounds, local_sweeps=local_sweeps, is_cancelled=is_cancelled,
             on_round=(None if on_progress is None else
                       lambda done, total: on_progress("replica_equilibration", done, total, action="insert")),
@@ -1347,6 +1438,7 @@ class PTTSampler:
         if on_progress is not None:
             on_progress("replica_equilibration", 0, self.config.equilibration_rounds, action="replace")
         self.advance(
+            return_samples=False,
             rounds=self.config.equilibration_rounds, local_sweeps=local_sweeps, is_cancelled=is_cancelled,
             on_round=(None if on_progress is None else
                       lambda done, total: on_progress("replica_equilibration", done, total, action="replace")),
@@ -1418,7 +1510,7 @@ class PTTSampler:
             step = min(chunk, max_rounds - rounds)
             if on_progress is not None:
                 on_progress("lag_equilibration", rounds, max_rounds)
-            trial.advance(rounds=step, local_sweeps=local_sweeps, is_cancelled=is_cancelled)
+            trial.advance(return_samples=False, rounds=step, local_sweeps=local_sweeps, is_cancelled=is_cancelled)
             rounds += step
         work = trial.local_sweeps - self.local_sweeps
         if not healthy:
@@ -1450,7 +1542,7 @@ class PTTSampler:
         if self.config.full_sampler:
             source.active_start = 0
             source.reservoir = None
-            source.anchor_log_z = float(torch.logsumexp(source.models[0]["bias"].double(), -1).sum())
+            source.anchor_log_z = float(torch.logsumexp(diagnostic_double(source.models[0]["bias"]), -1).sum())
             source.acceptance = [1.0] * (len(source.models) - 1)
         before = source.local_sweeps
         timing_before = dict(source.timings)
@@ -1501,6 +1593,7 @@ class PTTSampler:
         if on_progress is not None:
             on_progress("reservoir_warmup", 0, warmup_rounds, replicas=source.n_active)
         source.advance(
+            return_samples=False,
             rounds=warmup_rounds, local_sweeps=local_sweeps, is_cancelled=is_cancelled,
             on_round=(None if on_progress is None else
                       lambda done, total: on_progress("reservoir_warmup", done, total, replicas=source.n_active)),
@@ -1522,6 +1615,7 @@ class PTTSampler:
                 spacing = max(1, 2 * int(mixing.tau_int))
                 collected = size - remaining
                 source.advance(
+                    return_samples=False,
                     rounds=spacing, local_sweeps=local_sweeps, is_cancelled=is_cancelled,
                     on_round=(None if on_progress is None else
                               lambda done, total, collected=collected: on_progress(
@@ -1599,6 +1693,7 @@ class PTTSampler:
         trial.models[-1] = _clone(params)
         trial.model_version += 1
         trial.advance(
+            return_samples=False,
             rounds=max(1, int(self.config.swaps * math.sqrt(trial.n_active))),
             local_sweeps=local_sweeps,
             is_cancelled=is_cancelled,
@@ -1663,7 +1758,7 @@ class PTTSampler:
             with the fields of the :class:`PartitionEstimate`.
         """
         estimate = self.partition_estimate(estimator)
-        mean_energy = float((compute_energy(self.endpoint_samples(copy=False), self.models[-1]).double()
+        mean_energy = float((device_accumulation(compute_energy(self.endpoint_samples(copy=False), self.models[-1]))
                              + self._rung_values(len(self.models) - 1)).mean())
         return {
             "entropy": mean_energy + estimate.log_z,
@@ -1696,14 +1791,14 @@ class PTTSampler:
             raise InputValidationError("PTT partition estimator must be 'forward' or 'bar'.")
         rows = []
         log_z = log_z_forward = self.anchor_log_z
-        weights = weights.double() / weights.double().sum()
+        weights = device_accumulation(weights) / device_accumulation(weights).sum()
         for k in range(self.active_start, len(self.models)):
             if k > self.active_start:
                 forward = self._forward_increment(k - 1)
                 log_z_forward += forward
                 log_z += forward if estimator == "forward" else -float(bar(*self._pair_works(k - 1)))
             samples = _one_hot(self.chains[k], self.models[k])
-            mean_energy = float((compute_energy(samples, self.models[k]).double() + self._rung_values(k)).mean())
+            mean_energy = float((device_accumulation(compute_energy(samples, self.models[k])) + self._rung_values(k)).mean())
             if self._is_steered(k):
                 # The data likelihood of a steered rung would need the potential on
                 # the whole reference alignment; it is not part of the diagnostics.
@@ -1712,7 +1807,7 @@ class PTTSampler:
                 # Categorical references are encoded in chunks: large alignments do
                 # not fit in memory as one one-hot tensor.
                 (reference_energy,) = (self._energies(reference, [self.models[k]]) if reference.ndim == 2
-                                       else (compute_energy(reference, self.models[k]).double(),))
+                                       else (device_accumulation(compute_energy(reference, self.models[k])),))
                 likelihood = -float((reference_energy * weights).sum()) - log_z
             rows.append({
                 "replica": k, "model_id": model_id(self.models[k]),
@@ -1775,7 +1870,7 @@ class PTTSampler:
         """Forward bridge estimate of ``log Z_{k+1} - log Z_k`` from the chains of rung ``k``."""
         if not self._steered_pair(k):
             return bridge_increment(self.models[k], self.models[k + 1], self.chains[k])
-        work = self._pair_works(k)[0]
+        work = diagnostic_double(self._pair_works(k)[0])
         return float(torch.logsumexp(-work, 0) - math.log(len(work)))
 
     def _append_steered_rung(self, strength: float, proposal_steps: int | None) -> None:
@@ -1887,8 +1982,8 @@ class PTTSampler:
                 )
             candidate = min(1.0, reached + step)
             self._append_steered_rung(candidate * strength, proposal_steps)
-            self.advance(rounds=trial_rounds, local_sweeps=local_sweeps, is_cancelled=is_cancelled)
-            self.advance(rounds=trial_rounds, local_sweeps=local_sweeps, is_cancelled=is_cancelled)
+            self.advance(return_samples=False, rounds=trial_rounds, local_sweeps=local_sweeps, is_cancelled=is_cancelled)
+            self.advance(return_samples=False, rounds=trial_rounds, local_sweeps=local_sweeps, is_cancelled=is_cancelled)
             acceptance = self.acceptance[-1]
             if acceptance >= target_acceptance or step <= 2.0 ** -12:
                 reached, rungs = candidate, rungs + 1
@@ -1955,7 +2050,8 @@ class PTTSampler:
 
         Args:
             path: Archive path.
-            device: ``"cpu"`` or a CUDA device such as ``"cuda"``.
+            device: ``"cpu"``, a CUDA device such as ``"cuda"``, or
+                ``"mps"`` (float32 archives).
             mode: ``"generate"`` (sampling; training state dropped), ``"resume"``
                 (continue training exactly) or ``"inspect"`` (read only).
             seed: New random seed, or ``None`` to continue the archived stream.
@@ -2002,7 +2098,7 @@ class PTTSampler:
                 raise ValueError("PTT reservoir is smaller than the chain population.")
         memory = getattr(self, "lag_memory", None)
         if memory is not None and (
-            not isinstance(memory, torch.Tensor) or memory.dtype != torch.float64
+            not isinstance(memory, torch.Tensor) or memory.dtype not in (torch.float32, torch.float64)
             or memory.shape != (len(self.chains), len(self.chains[0])) or not torch.isfinite(memory).all()
         ):
             raise ValueError("Invalid PTT lag memory.")
@@ -2026,5 +2122,3 @@ class PTTSampler:
                 checkpoint._validate_params(params)
                 validate_population(chains, size=len(self.chains[0]))
             checkpoint._validate_algorithm_state()
-
-

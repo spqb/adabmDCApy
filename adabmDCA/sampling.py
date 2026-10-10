@@ -4,6 +4,13 @@ import torch
 from torch.nn.functional import one_hot
 
 
+def sampling_profile_categorical(params: dict[str, torch.Tensor], nsamples: int, beta: float) -> torch.Tensor:
+    """Sample integer states (N,L) from the uncoupled profile, without encoding."""
+    length, q = params["bias"].shape
+    logits = beta * params["bias"].unsqueeze(0).expand(nsamples, -1, -1)
+    return torch.multinomial(torch.softmax(logits.reshape(-1, q), dim=-1), num_samples=1).reshape(nsamples, length)
+
+
 def sampling_profile(
     params: dict[str, torch.Tensor],
     nsamples: int,
@@ -23,8 +30,7 @@ def sampling_profile(
     L, q = params["bias"].shape
     device = params["bias"].device
     dtype = params["bias"].dtype
-    logits = beta * params["bias"].unsqueeze(0).expand(nsamples, -1, -1)  # Shape: (nsamples, L, q)
-    sampled_indices = torch.multinomial(torch.softmax(logits.view(-1, q), dim=-1), num_samples=1).squeeze(-1)
+    sampled_indices = sampling_profile_categorical(params, nsamples, beta)
     sampled_sequences = one_hot(sampled_indices, num_classes=q).view(nsamples, L, q).to(dtype).to(device)
     
     return sampled_sequences
@@ -374,7 +380,9 @@ def get_sampler(sampling_method: str) -> Callable:
 def prepare_sampler(sampling_method: str, device: torch.device) -> Callable:
     """Select the fastest sampler for ``device``.
 
-    CUDA uses the fused Triton kernels when Triton is installed. CPU uses the
+    CUDA uses the fused Triton kernels when Triton is installed. MPS uses the
+    fused Metal kernels when ``torch.mps.compile_shader`` is available, unless
+    disabled with ``ADABMDCA_MPS=0`` (unsupported shapes/dtypes use PyTorch). CPU uses the
     multithreaded Numba kernels of :mod:`adabmDCA.numba_kernels` when Numba is
     installed (``pip install adabmDCA[cpu]``) and not disabled with
     ``ADABMDCA_NUMBA=0``. Otherwise the TorchScript samplers of this module run.
@@ -382,6 +390,11 @@ def prepare_sampler(sampling_method: str, device: torch.device) -> Callable:
     distribution.
     """
     sampler = get_sampler(sampling_method)
+    if device.type == "mps":
+        from adabmDCA.mps_kernels import is_mps_available, onehot_sampler
+
+        if is_mps_available():
+            return onehot_sampler(sampling_method)
     if device.type == "cpu":
         from adabmDCA.numba_kernels import is_numba_available, onehot_sampler
 
@@ -412,11 +425,17 @@ def prepare_sampler(sampling_method: str, device: torch.device) -> Callable:
 
 
 def _validate_bfloat16_sampling(device: torch.device) -> None:
-    """Validate the CUDA features required by the BF16 Triton samplers."""
+    """Validate the device features required by the BF16 sampling kernels."""
+    if device.type == "mps":
+        from adabmDCA.mps_kernels.runtime import is_mps_available
+
+        if not is_mps_available() or not torch.backends.mps.is_macos_or_newer(14, 0):
+            raise ValueError("bfloat16 sampling requires enabled MPS kernels and macOS 14 or newer")
+        return
     from adabmDCA.sampling_triton import is_triton_available
 
     if device.type != "cuda" or not torch.cuda.is_available() or not is_triton_available():
-        raise ValueError("bfloat16 sampling requires CUDA and Triton")
+        raise ValueError("bfloat16 sampling requires CUDA and Triton or supported MPS kernels")
     if torch.cuda.get_device_capability(device)[0] < 8:
         raise ValueError("bfloat16 sampling requires an NVIDIA Ampere or newer GPU")
 

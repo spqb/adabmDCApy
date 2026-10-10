@@ -7,6 +7,7 @@ from contextlib import contextmanager
 
 import torch
 
+from adabmDCA.ptt.precision import device_accumulation
 from adabmDCA.sampling import prepare_sampler
 from adabmDCA.statmech import compute_energy
 
@@ -31,6 +32,24 @@ def _numba_categorical_sampler(name, device):
 
 
 def _prepare_categorical_sampler(name, device):
+    if device.type == "mps":
+        from adabmDCA.mps_kernels import categorical_sampler, is_mps_available
+        from adabmDCA.mps_kernels.sampling import _supported
+
+        if is_mps_available():
+            metal = categorical_sampler(name)
+            from adabmDCA.sampling import get_sampler
+            fallback = None
+
+            def mps_dispatch(chains, params, nsweeps, beta=1.0):
+                nonlocal fallback
+                if _supported(chains, params["bias"], params["coupling_matrix"]):
+                    return metal(chains, params, nsweeps, beta)
+                if fallback is None:
+                    fallback = torch.jit.script(get_sampler(name))
+                return fallback(_one_hot(chains, params), params, nsweeps, beta).argmax(-1).to(torch.int32)
+
+            return mps_dispatch
     if name == "metropolized_gibbs":
         return _prepare_metropolized_gibbs_sampler(device)
     numba_sampler = _numba_categorical_sampler(name, device)
@@ -63,6 +82,15 @@ def _prepare_metropolized_gibbs_sampler(device):
     """Single-model Metropolized Gibbs: Triton on CUDA, Numba on CPU when installed, else PyTorch."""
     from adabmDCA.sampling import metropolized_gibbs_sampling_categorical
 
+    if device.type == "mps":
+        # The one-hot PyTorch implementation uses GEMM rather than a large
+        # categorical gather per update, which is much faster on Apple GPUs.
+        sampler = prepare_sampler("metropolized_gibbs", device)
+
+        def fallback(chains, params, nsweeps, beta=1.0):
+            return sampler(_one_hot(chains, params), params, nsweeps, beta).argmax(-1).to(torch.int32)
+
+        return fallback
     numba_sampler = _numba_categorical_sampler("metropolized_gibbs", device)
     if numba_sampler is not None:
         return numba_sampler
@@ -100,6 +128,23 @@ class _ReplicaKernel:
 
 
 def _prepare_replica_sampler(name, device):
+    if device.type == "mps":
+        from adabmDCA.mps_kernels import is_mps_available, replica_sampler
+        if is_mps_available():
+            metal = replica_sampler(name)
+            local = _prepare_categorical_sampler(name, device)
+            from adabmDCA.mps_kernels.sampling import _supported
+
+            def replicas(states, biases, couplings, nsweeps, beta=1.0):
+                if _supported(states, biases, couplings):
+                    return metal(states, biases, couplings, nsweeps, beta)
+                return torch.stack([
+                    local(x, {"bias": h, "coupling_matrix": j}, nsweeps, beta)
+                    for x, h, j in zip(states, biases, couplings)
+                ])
+
+            return _ReplicaKernel(replicas, always=True)
+        return None
     if device.type == "cpu" and name in ("gibbs", "metropolis", "metropolized_gibbs"):
         from adabmDCA.numba_kernels import is_numba_available
 
@@ -135,11 +180,15 @@ def _prepare_exchange_kernel(device):
             "coupling_matrix": upper["coupling_matrix"] - lower["coupling_matrix"],
         }
         log_acceptance = (
-            compute_energy(_one_hot(upper_chains, upper), delta).double()
-            - compute_energy(_one_hot(lower_chains, lower), delta).double()
+            device_accumulation(compute_energy(_one_hot(upper_chains, upper), delta))
+            - device_accumulation(compute_energy(_one_hot(lower_chains, lower), delta))
         )
         return log_acceptance.clamp_max_(0.0)
 
+    if device.type == "mps":
+        from adabmDCA.mps_kernels import exchange_log_acceptance, is_mps_available
+        if is_mps_available():
+            return exchange_log_acceptance
     if device.type == "cpu":
         from adabmDCA.numba_kernels import is_numba_available
 

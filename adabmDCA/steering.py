@@ -35,6 +35,7 @@ import numpy as np
 import torch
 
 from adabmDCA.exceptions import InputValidationError
+from adabmDCA.ptt.precision import accumulation_dtype, device_accumulation
 
 SteeringInput = Literal["sequences", "onehot"]
 SteeringPotential = Callable[[Sequence[str] | torch.Tensor, float], Sequence[float] | np.ndarray | torch.Tensor]
@@ -79,11 +80,12 @@ class Steering:
         """Evaluate the potential on one-hot ``(n, L, q)`` or categorical ``(n, L)`` chains.
 
         Returns:
-            Float64 tensor of shape ``(n,)`` on the chains' device; zeros for ``strength == 0``.
+            Tensor of shape ``(n,)`` on the chains' device (float32 on MPS,
+            float64 elsewhere); zeros for ``strength == 0``.
         """
         n = chains.shape[0]
         if strength == 0.0 or n == 0:
-            return torch.zeros(n, dtype=torch.float64, device=chains.device)
+            return torch.zeros(n, dtype=accumulation_dtype(chains.device), device=chains.device)
         return self._evaluate(chains, strength, dtype=dtype)
 
     def _evaluate(self, chains: torch.Tensor, strength: float, *, dtype: torch.dtype | None) -> torch.Tensor:
@@ -99,10 +101,10 @@ class Steering:
         values = self.potential(batch, float(strength))
         self.evaluations += n
         if isinstance(values, torch.Tensor):
-            values = values.detach().to(device=chains.device, dtype=torch.float64)
+            values = values.detach().to(device=chains.device, dtype=accumulation_dtype(chains.device))
         else:
             try:
-                values = torch.as_tensor(np.asarray(values, dtype=np.float64), device=chains.device)
+                values = torch.as_tensor(np.asarray(values), device=chains.device, dtype=accumulation_dtype(chains.device))
             except (TypeError, ValueError) as exc:
                 raise InputValidationError(
                     "steering_potential must return one number per sequence (a list, array or tensor)."
@@ -197,11 +199,11 @@ class SteeredKernel:
             steps = min(self.proposal_steps, updates - done)
             proposal = self._propose(chains, params, steps, float(beta))
             proposed = self.steering(proposal, self.strength, dtype=chains.dtype)
-            log_u = torch.rand(len(chains), device=chains.device, dtype=torch.float64).log()
+            log_u = torch.rand(len(chains), device=chains.device, dtype=accumulation_dtype(chains.device)).log()
             accept = log_u < -(proposed - current)
             chains = torch.where(accept[:, None, None], proposal, chains)
             current = torch.where(accept, proposed, current)
-            rate = float(accept.double().mean())
+            rate = float(device_accumulation(accept).mean())
             self.proposals += 1
             self.accepted += rate
             done += steps
@@ -231,11 +233,26 @@ class SteeredKernel:
 
 
 def _fused_gibbs(device: str) -> Callable[..., torch.Tensor] | None:
-    """A compiled categorical Gibbs sampler with explicit sites: Triton on CUDA, Numba on CPU."""
+    """A compiled categorical Gibbs sampler with explicit sites: Metal on MPS, Triton on CUDA, Numba on CPU."""
     if device == "cpu":
         from adabmDCA.numba_kernels import categorical_sampler, is_numba_available
 
         return categorical_sampler("gibbs") if is_numba_available() else None
+    if device.startswith("mps"):
+        from adabmDCA.mps_kernels import categorical_sampler, is_mps_available
+        from adabmDCA.mps_kernels.sampling import _supported
+
+        if not is_mps_available():
+            return None
+        metal = categorical_sampler("gibbs")
+
+        def mps_gibbs(states, params, nsweeps, beta=1.0, *, sites=None):
+            if _supported(states, params["bias"], params["coupling_matrix"]):
+                return metal(states, params, nsweeps, beta, sites=sites)
+            onehot = torch.nn.functional.one_hot(states.long(), params["bias"].shape[-1]).float()
+            return _gibbs_at_sites(onehot, params, sites, beta).argmax(-1).to(torch.int32)
+
+        return mps_gibbs
     if not device.startswith("cuda"):
         return None
     try:
