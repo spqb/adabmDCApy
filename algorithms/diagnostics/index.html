@@ -1,0 +1,2788 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../sampling/">
+      
+      
+        <link rel="next" href="../analysis/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Diagnose a run - adabmDCA 2.1</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#diagnose-a-run" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="adabmDCA 2.1" class="md-header__button md-logo" aria-label="adabmDCA 2.1" data-md-component="logo">
+      
+  <img src="../../assets/images/logo-header.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            adabmDCA 2.1
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Diagnose a run
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="adabmDCA 2.1" class="md-nav__button md-logo" aria-label="adabmDCA 2.1" data-md-component="logo">
+      
+  <img src="../../assets/images/logo-header.png" alt="logo">
+
+    </a>
+    adabmDCA 2.1
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Use the package
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Use the package
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/choosing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Choosing settings
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/preprocess/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Prepare alignments · preprocess
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/split-data/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Split an alignment · split-data
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/train/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Train models · train
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/sample/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Generate sequences · sample
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/energies/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Score sequences · energies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/dms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mutation scan · dms
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/contacts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contact prediction · contacts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/entropy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Entropy · entropy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/reintegrate/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Experimental feedback · reintegrate
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/plot-training-log/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plot a run · plot-training-log
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/python/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python workflows
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How it works
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    How it works
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../input/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Input and reweighting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../training/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Training
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sampling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sampling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Diagnose a run
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Diagnose a run
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-can-go-wrong" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What can go wrong
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#decision-table" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Decision table
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#triage-procedure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Triage procedure
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#failure-catalogue" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Failure catalogue
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Failure catalogue">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#f1-a-narrow-basin-traps-configurations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        F1. A narrow basin traps configurations
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#f2-the-chains-fall-behind-a-forming-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        F2. The chains fall behind a forming mode
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#f3-a-ladder-link-is-too-wide" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        F3. A ladder link is too wide
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#f4-the-replicas-relax-too-slowly" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        F4. The replicas relax too slowly
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#f5-the-learning-rate-is-too-large" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        F5. The learning rate is too large
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#f6-good-metrics-miscalibrated-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        F6. Good metrics, miscalibrated model
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#f7-slow-or-incomplete-ptt-sampling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        F7. Slow or incomplete PTT sampling
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#f8-the-initial-mixing-check-fails" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        F8. The initial mixing check fails
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#checking-a-finished-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Checking a finished model
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Checking a finished model">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#checking-a-pcd-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Checking a PCD model
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#distances-and-overfitting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Distances and overfitting
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperparameters-that-matter-for-diagnosis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hyperparameters that matter for diagnosis
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-was-tried-and-did-not-help" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What was tried and did not help
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#open-problems" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Open problems
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../benchmarks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Benchmarks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../numba-swaps/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CPU PTT swap fusion
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Theory and definitions
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Theory and definitions
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quantities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quantities/model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Potts model and statistics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quantities/training/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Training quantities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quantities/sampling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sampling quantities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quantities/derived/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Normalization, scoring and importance weights
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python API
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Python API
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/symbols/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Symbols
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.api.training/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Training
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.api.sampling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sampling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.api.ptt/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PTT workflows
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.api.model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Models
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.api.results/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Results
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.ptt.config/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PTT configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.ptt.sampler/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PTT sampler
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.steering/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Steering
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.api.scoring/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scoring
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.api.contacts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contacts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.api.mutations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mutations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.api.entropy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Entropy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.api.reintegration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reintegration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.api.splitting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Splitting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.input_loading/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Input loading
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.training_config/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Training configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-can-go-wrong" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What can go wrong
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#decision-table" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Decision table
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#triage-procedure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Triage procedure
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#failure-catalogue" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Failure catalogue
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Failure catalogue">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#f1-a-narrow-basin-traps-configurations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        F1. A narrow basin traps configurations
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#f2-the-chains-fall-behind-a-forming-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        F2. The chains fall behind a forming mode
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#f3-a-ladder-link-is-too-wide" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        F3. A ladder link is too wide
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#f4-the-replicas-relax-too-slowly" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        F4. The replicas relax too slowly
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#f5-the-learning-rate-is-too-large" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        F5. The learning rate is too large
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#f6-good-metrics-miscalibrated-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        F6. Good metrics, miscalibrated model
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#f7-slow-or-incomplete-ptt-sampling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        F7. Slow or incomplete PTT sampling
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#f8-the-initial-mixing-check-fails" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        F8. The initial mixing check fails
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#checking-a-finished-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Checking a finished model
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Checking a finished model">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#checking-a-pcd-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Checking a PCD model
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#distances-and-overfitting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Distances and overfitting
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperparameters-that-matter-for-diagnosis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hyperparameters that matter for diagnosis
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-was-tried-and-did-not-help" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What was tried and did not help
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#open-problems" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Open problems
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="diagnose-a-run">Diagnose a run</h1>
+<p>This page explains how training and sampling go wrong, how to recognize each failure in the files a run writes, and what to change. It collects what was learnt on several protein and RNA families; each recommendation states the evidence behind it, and ideas that were tried and did not work are listed at the end so they are not tried again.</p>
+<h2 id="what-can-go-wrong">What can go wrong</h2>
+<p>Every gradient step needs the model's statistics, which are estimated from the chains at the top of the PTT ladder. Everything rests on one assumption: <strong>those chains are at equilibrium for the current model.</strong> The training metrics are computed from the same chains, so if the assumption fails, the gradient is wrong <em>and</em> the metrics cannot show it.</p>
+<p>The safeguards, and what each one watches:</p>
+<table>
+<thead>
+<tr>
+<th>Mechanism</th>
+<th>Watches</th>
+<th>Does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Snapshot insertion</td>
+<td>Swap acceptance of the top link</td>
+<td>Inserts a model below the endpoint when acceptance drops below 0.25</td>
+</tr>
+<tr>
+<td>Reservoir refresh</td>
+<td>Size of the active ladder</td>
+<td>Collects equilibrium samples of a recent model, drops older rungs</td>
+</tr>
+<tr>
+<td>Mixing checks</td>
+<td>Whether every configuration is eventually replaced by one born later at the bottom</td>
+<td>A failure triggers recovery</td>
+</tr>
+<tr>
+<td>Recovery</td>
+<td>Failed mixing checks</td>
+<td>Restores the newest checkpoint that passes a check, halves the learning rates; stops after 3</td>
+</tr>
+<tr>
+<td>Lag pause</td>
+<td>Correlation between the chains and the energy changes recent updates imposed on them</td>
+<td>Inserts a snapshot and lets the chains catch up</td>
+</tr>
+</tbody>
+</table>
+<p>The failures observed so far fall into three groups:</p>
+<ol>
+<li><strong>A narrow mode forms faster than the chains can follow</strong> (often a subfamily with a block of gaps). The chains under-populate it, the gradient keeps deepening it, and the model ends up giving it much more weight than the data. The most damaging failure, because the training metrics still look fine: <a href="#f1-a-narrow-basin-traps-configurations">F1</a>, <a href="#f2-the-chains-fall-behind-a-forming-mode">F2</a>, <a href="#f6-good-metrics-miscalibrated-model">F6</a>.</li>
+<li><strong>The ladder cannot transport configurations</strong>: a link is too wide, or local relaxation too slow. Training stalls in a mixing check or reservoir collection, then rolls back: <a href="#f3-a-ladder-link-is-too-wide">F3</a>, <a href="#f4-the-replicas-relax-too-slowly">F4</a>.</li>
+<li><strong>Steps too large</strong> for the chains: <a href="#f5-the-learning-rate-is-too-large">F5</a>.</li>
+</ol>
+<h2 id="decision-table">Decision table</h2>
+<table>
+<thead>
+<tr>
+<th>You see</th>
+<th>Most likely</th>
+<th>Do</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Error ending with "Restart the training with more local sweeps per round, e.g. <code>--nsweeps 100</code>", or log lines "… configurations cannot swap toward the bottom (only local moves free them)"</td>
+<td><a href="#f1-a-narrow-basin-traps-configurations">F1</a></td>
+<td>Restart from scratch with 10× the sweeps (<code>--nsweeps 100</code>). Do not resume</td>
+</tr>
+<tr>
+<td>Status stuck for tens of minutes in <code>reservoir warmup</code>, <code>reservoir renewal</code> or <code>measuring mixing</code>; <code>time_s</code> in <code>history.csv</code> barely grows</td>
+<td><a href="#f1-a-narrow-basin-traps-configurations">F1</a></td>
+<td>Wait for the failure message to confirm, or restart now with <code>--nsweeps 100</code></td>
+</tr>
+<tr>
+<td><code>» pause: drift tail lag …</code> lines, training continues normally</td>
+<td><a href="#f2-the-chains-fall-behind-a-forming-mode">F2</a>, handled</td>
+<td>Nothing. Check the finished model</td>
+</tr>
+<tr>
+<td><code>» pause: … reservoir refresh failed, pause discarded</code>, or repeated pauses</td>
+<td><a href="#f1-a-narrow-basin-traps-configurations">F1</a></td>
+<td>As F1</td>
+</tr>
+<tr>
+<td>Error naming a link "below the target", with no immobile configurations</td>
+<td><a href="#f3-a-ladder-link-is-too-wide">F3</a></td>
+<td>Smaller <code>--lr</code>, or larger <code>--ptt-target-acceptance</code></td>
+</tr>
+<tr>
+<td>Error saying "every link accepts at least the target"</td>
+<td><a href="#f4-the-replicas-relax-too-slowly">F4</a></td>
+<td>More <code>--nsweeps</code></td>
+</tr>
+<tr>
+<td>Repeated <code>restored step …; learning rates …</code> lines, <code>lr_coupling</code> halving</td>
+<td>F1, F3, F4 or F5</td>
+<td>Read the mixing-failure lines just before each recovery</td>
+</tr>
+<tr>
+<td><code>lr_bias</code> at ~10⁻¹⁴ and <code>kl</code> at 0.01 for most updates</td>
+<td><a href="#f5-the-learning-rate-is-too-large">F5</a></td>
+<td>Back to the default <code>--lr 0.01</code></td>
+</tr>
+<tr>
+<td>Training finished, but independent samples disagree with training (Pearson, cluster shares), or the ladder health shows trapped links</td>
+<td><a href="#f6-good-metrics-miscalibrated-model">F6</a></td>
+<td>Retrain with more <code>--nsweeps</code></td>
+</tr>
+<tr>
+<td>PTT sampling warns that <code>G</code> stopped decreasing or its decay time doubled, or hits <code>--ptt-max-rounds</code></td>
+<td><a href="#f7-slow-or-incomplete-ptt-sampling">F7</a></td>
+<td>Usually a better training run</td>
+</tr>
+<tr>
+<td>"PTT initial mixing experiment exceeded its round budget"</td>
+<td><a href="#f8-the-initial-mixing-check-fails">F8</a></td>
+<td>Check the input</td>
+</tr>
+<tr>
+<td>PCD model: plain MCMC sampling reaches <code>--max_nsweeps</code> without a mixing time</td>
+<td><a href="#checking-a-pcd-model">Checking a PCD model</a></td>
+<td>Retrain with PTT</td>
+</tr>
+<tr>
+<td>Plain MCMC resampling: <code>pearson_sampling.png</code> rises above its final level, then declines</td>
+<td>Model trained out of equilibrium (<a href="#checking-a-pcd-model">Checking a PCD model</a>)</td>
+<td>Retrain with PTT</td>
+</tr>
+</tbody>
+</table>
+<h2 id="triage-procedure">Triage procedure</h2>
+<p><strong>1. How did the run end?</strong> Read <code>training.json</code> (<code>data.stop_reason</code>, <code>data.converged</code>, <code>data.warnings</code>) or the <code>[END]</code> section of the log.</p>
+<ul>
+<li><code>validation_plateau</code>, <code>target_pearson</code>, or a budget: the run finished. Go to step 4.</li>
+<li>An error: its message names the cause of the last mixing failure (see the decision table). The restored state is in <code>ptt.h5</code>.</li>
+<li>No end and no recent output: the run is stuck. Go to step 2.</li>
+</ul>
+<p><strong>2. Where is it stuck?</strong> The status line names the phase: <code>optimizing</code> (normal), <code>measuring mixing</code> or <code>mixing warmup</code> (a mixing check), <code>reservoir warmup</code>, <code>reservoir renewal</code> or <code>collecting reservoir</code> (a reservoir refresh), <code>equilibrating replicas</code>, <code>recovery warmup</code>. Each mixing phase has a budget of 20,000 rounds and its own counter. A phase that runs for tens of minutes at the same update is the signature of F1. <code>time_s</code> in <code>history.csv</code> does not count these phases, so a growing gap between <code>time_s</code> and wall time points there too.</p>
+<p><strong>3. Read the events.</strong> <code>grep '»' adabmDCA.log</code>, or <code>events.jsonl</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Event</th>
+<th>Log line</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ptt_snapshot_*</code></td>
+<td><code>snapshot inserted, swap acceptance 0.24</code></td>
+<td>Normal ladder growth; <code>(pause)</code> when triggered by the lag</td>
+</tr>
+<tr>
+<td><code>ptt_reservoir_refreshed</code></td>
+<td><code>reservoir refreshed: 20000 samples, …, warmup 38 rounds, spacing 76 rounds</code></td>
+<td>Normal compression. Warmup and spacing in the tens of rounds are healthy; growing values (38 → 51 → 144) are an early warning of F1</td>
+</tr>
+<tr>
+<td><code>ptt_mixing</code> with <code>status: budget_exceeded</code></td>
+<td><code>mixing check budget exceeded: …</code></td>
+<td>A failed check. <code>immobile</code> lists, per rung, old configurations that cannot swap toward the bottom; <code>blocking: true</code> means they alone prevent renewal</td>
+</tr>
+<tr>
+<td><code>ptt_lag_pause</code></td>
+<td><code>pause: drift tail lag 0.26 → 0.13, inserted a snapshot</code></td>
+<td>The chains fell behind and training paused</td>
+</tr>
+<tr>
+<td><code>ptt_recovery</code>, <code>ptt_learning_rate</code></td>
+<td><code>restored step 97; learning rates h …, J …</code></td>
+<td>A rollback</td>
+</tr>
+</tbody>
+</table>
+<p><strong>4. Read the history</strong> (<code>history.csv</code>, or the plots of <code>plot-training-log</code>):</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Healthy</th>
+<th>Warning sign</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pearson</code>, <code>pearson_val</code></td>
+<td>Rising, then flat</td>
+<td>Sudden drops after a recovery</td>
+</tr>
+<tr>
+<td><code>ll_val</code></td>
+<td>Rising, then flat; spikes up to 0.01 per site at ladder changes</td>
+<td>Falling over hundreds of updates</td>
+</tr>
+<tr>
+<td><code>acceptance_min</code></td>
+<td>Saw-tooth between ~0.25 and 0.5–0.9</td>
+<td>Long stretches below 0.25, or below 0.1</td>
+</tr>
+<tr>
+<td><code>replicas</code></td>
+<td>2–3</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>lr_bias</code>, <code>lr_coupling</code></td>
+<td>At <code>--lr</code> most of the time</td>
+<td>Halved after recoveries; <code>lr_bias</code> at the floor most of the time</td>
+</tr>
+<tr>
+<td><code>kl</code></td>
+<td>Median well below 0.01 (~10⁻³)</td>
+<td>Pinned at 0.01</td>
+</tr>
+<tr>
+<td><code>lag_drift</code>, <code>lag_drift_tail</code></td>
+<td>Below ~0.05 most of the time</td>
+<td>Peaks approaching 0.25</td>
+</tr>
+</tbody>
+</table>
+<p><strong>5. Check the finished model</strong> as described <a href="#checking-a-finished-model">below</a>. Training metrics alone cannot prove that a model is good.</p>
+<p>A short script that collects the main indicators of a PTT run:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">Counter</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">triage</span><span class="p">(</span><span class="n">run_dir</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">""</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Key indicators of a PTT training run, from its history and events."""</span>
+    <span class="n">prefix</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">_"</span> <span class="k">if</span> <span class="n">label</span> <span class="k">else</span> <span class="s2">""</span>
+    <span class="n">run</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">run_dir</span><span class="p">)</span>
+    <span class="n">history</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">run</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s2">history.csv"</span><span class="p">)</span>
+    <span class="n">events</span> <span class="o">=</span> <span class="p">[</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">open</span><span class="p">(</span><span class="n">run</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s2">events.jsonl"</span><span class="p">)]</span>
+    <span class="n">counts</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">(</span><span class="n">event</span><span class="p">[</span><span class="s2">"event"</span><span class="p">]</span> <span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">events</span><span class="p">)</span>
+    <span class="n">failed</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">events</span> <span class="k">if</span> <span class="n">e</span><span class="p">[</span><span class="s2">"event"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"ptt_mixing"</span> <span class="ow">and</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"status"</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s2">"converged"</span><span class="p">)]</span>
+    <span class="n">immobile</span> <span class="o">=</span> <span class="p">[</span><span class="n">entry</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">failed</span>
+                <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"immobile"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"reservoir_renewal"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"immobile"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[])</span>
+                <span class="k">if</span> <span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"blocking"</span><span class="p">)]</span>
+    <span class="n">summary_file</span> <span class="o">=</span> <span class="n">run</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s2">training.json"</span>
+    <span class="n">summary</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">summary_file</span><span class="o">.</span><span class="n">read_text</span><span class="p">())[</span><span class="s2">"data"</span><span class="p">]</span> <span class="k">if</span> <span class="n">summary_file</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="k">else</span> <span class="p">{}</span>
+    <span class="n">last</span> <span class="o">=</span> <span class="n">history</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">"stop_reason"</span><span class="p">:</span> <span class="n">summary</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"stop_reason"</span><span class="p">),</span>
+        <span class="s2">"updates"</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">last</span><span class="o">.</span><span class="n">step</span><span class="p">),</span>
+        <span class="s2">"pearson"</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">last</span><span class="o">.</span><span class="n">pearson</span><span class="p">),</span> <span class="mi">4</span><span class="p">),</span>
+        <span class="s2">"best_val_ll"</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">history</span><span class="o">.</span><span class="n">ll_val</span><span class="o">.</span><span class="n">max</span><span class="p">()),</span> <span class="mi">4</span><span class="p">),</span>
+        <span class="s2">"failed_mixing_checks"</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">failed</span><span class="p">),</span>
+        <span class="s2">"blocking_immobile_configurations"</span><span class="p">:</span> <span class="nb">max</span><span class="p">((</span><span class="n">e</span><span class="p">[</span><span class="s2">"immobile"</span><span class="p">]</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">immobile</span><span class="p">),</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
+        <span class="s2">"recoveries"</span><span class="p">:</span> <span class="n">counts</span><span class="p">[</span><span class="s2">"ptt_recovery"</span><span class="p">],</span>
+        <span class="s2">"lag_pauses"</span><span class="p">:</span> <span class="n">counts</span><span class="p">[</span><span class="s2">"ptt_lag_pause"</span><span class="p">],</span>
+        <span class="s2">"reservoir_refreshes"</span><span class="p">:</span> <span class="n">counts</span><span class="p">[</span><span class="s2">"ptt_reservoir_refreshed"</span><span class="p">],</span>
+        <span class="s2">"min_acceptance_seen"</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">history</span><span class="o">.</span><span class="n">acceptance_min</span><span class="o">.</span><span class="n">min</span><span class="p">()),</span> <span class="mi">3</span><span class="p">),</span>
+        <span class="s2">"max_lag_drift_tail"</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">history</span><span class="o">.</span><span class="n">lag_drift_tail</span><span class="o">.</span><span class="n">max</span><span class="p">()),</span> <span class="mi">3</span><span class="p">),</span>
+        <span class="s2">"lr_bias_at_floor_fraction"</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="nb">float</span><span class="p">((</span><span class="n">history</span><span class="o">.</span><span class="n">lr_bias</span> <span class="o">&lt;</span> <span class="mf">1e-10</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()),</span> <span class="mi">3</span><span class="p">),</span>
+        <span class="s2">"median_kl"</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">history</span><span class="o">.</span><span class="n">kl</span><span class="o">.</span><span class="n">median</span><span class="p">()),</span>
+    <span class="p">}</span>
+
+
+<span class="nb">print</span><span class="p">(</span><span class="n">triage</span><span class="p">(</span><span class="s2">"model"</span><span class="p">))</span>
+</code></pre></div>
+<p>On a healthy protein run (cm_russ, <code>--nsweeps 100</code>): <code>validation_plateau</code>, no failed checks, no recoveries, smallest acceptance 0.25, largest tail lag 0.195, median KL 9·10⁻⁴. On a failed <code>--lr 0.1</code> run of the same family: no stop reason, 5 failed checks, 4 recoveries, field rate at the floor in 60% of the updates, median KL at the 0.01 cap.</p>
+<h2 id="failure-catalogue">Failure catalogue</h2>
+<h3 id="f1-a-narrow-basin-traps-configurations">F1. A narrow basin traps configurations</h3>
+<p><strong>Symptoms.</strong> Training stalls at one update for tens of minutes in a reservoir refresh or a mixing check, then reports a failure. The log shows lines such as <code>reservoir collection budget exceeded: …; 61 configurations cannot swap toward the bottom (only local moves free them)</code>. After 3 recoveries, an error ends with "Restart the training with more local sweeps per round". Before the stall, the warmup and spacing of reservoir refreshes grow (38 → 51 → 144 rounds) and <code>lag_drift_tail</code> peaks.</p>
+<p><strong>Confirm.</strong> The failed <code>ptt_mixing</code> event lists, for some rung, more <code>immobile</code> configurations than the renewal tolerance allows (20 of 2,000), with <code>blocking: true</code>. <code>PTTSampler.ladder_health()</code> on the archive shows a few percent of one rung's configurations with swap acceptance below 10⁻⁴ toward the rung below, while the link's <em>mean</em> acceptance looks normal.</p>
+<p><strong>Mechanism.</strong> Configurations are only replaced at the bottom of the ladder, so to be renewed a configuration must travel down. The model has learned a deep, narrow basin; in cm_russ, a 26-sequence subfamily (1.5% of the weighted data) with a block of 12 gaps. Older models in the ladder give that basin almost no weight, so a configuration inside it practically never swaps down. It can only leave by local moves, which took about 3·10⁵ sweeps per chain there. A renewal phase gives each chain at most 20,000 rounds × 10 sweeps = 2·10⁵, so renewal fails. Because the chains cannot follow the basin as it forms, the gradient also over-deepens it (F6).</p>
+<p><strong>Fix.</strong> Restart training from scratch with 10× more local sweeps per round: <code>--nsweeps 100</code>. The chains then follow the basin as it forms, and reservoir collections stay short.</p>
+<p><strong>Do not</strong> resume the failed archive with more sweeps: its model already holds the basin. On the cm_russ state at the stall, a reservoir collection at 100 sweeps still failed, and the immobile configurations grew from 60 to 145. <strong>Do not</strong> rely on recovery: halving the learning rate rebuilds the same ladder and the failure recurs.</p>
+<p><strong>Evidence</strong> (cm_russ, L = 96, 901 training sequences):</p>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>Outcome</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--nsweeps 10</code>, <code>--lr 0.01</code></td>
+<td>Basin forms around updates 775–830; stalls at update 907 in a reservoir refresh. Reproduced three times</td>
+</tr>
+<tr>
+<td><code>--nsweeps 100</code></td>
+<td>Completes at the validation plateau after 2,534 updates. Best validation log-likelihood −1.487 per site (−1.541 at the stall above). Training Pearson 0.918; PTT sampling of the final model 0.930</td>
+</tr>
+<tr>
+<td><code>--lr 0.1</code></td>
+<td>Fails earlier: rolled back to update 97 twice, aborts after 3 recoveries at update 256</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f2-the-chains-fall-behind-a-forming-mode">F2. The chains fall behind a forming mode</h3>
+<p><strong>Symptoms.</strong> <code>» pause: drift tail lag 0.28 → 0.07, inserted a snapshot, …</code> in the log, preceded by a peak of <code>lag_drift</code> or <code>lag_drift_tail</code>.</p>
+<p><strong>Mechanism.</strong> When the model forms a new mode, its relaxation time grows; the chains trail the model and the gradient overshoots. The adaptive optimizer measures the lag before every update and, above 0.25, pauses and gives the endpoint a close neighbour (<a href="../training/#the-adaptive-optimizer">details</a>).</p>
+<p><strong>F1 and F2 are the same failure at different severities.</strong> In both, a mode forms faster than the chains can follow. In F2 the mode is broad enough that some chains enter it: the population's response to the recent updates is still roughly linear, the lag measures it, and a pause lets the chains catch up. In F1 the mode is a deep, narrow basin that chains enter only through rare transitions. The lag is a covariance computed on the configurations present at the endpoint. When almost none of them are in the basin, the linear-response estimate stays small even though the population is far from equilibrium, so the pause fires late or never. The failure then shows up later, as a renewal that cannot complete.</p>
+<p><strong>Fix.</strong> Usually none: the pause is the fix. One pause followed by normal training is a handled event. Pauses followed by <code>reservoir refresh failed, pause discarded</code>, or repeated pauses, mean the mode is too narrow for the linear-response estimate: treat it as F1.</p>
+<p><strong>Evidence.</strong> On a 307-residue enzyme family, the pause turned a model that over-weighted a subfamily more than twofold (equilibrium Pearson 0.896) into one that matched the data (0.947), at 7% extra cost (<a href="../training/#the-adaptive-optimizer">case study</a>). On β-lactamase and bkace it never fired. On cm_russ at 10 sweeps it fired only at the stall, too late: for modes that fill by rare transitions, the linear-response lag underestimates the distance from equilibrium.</p>
+<h3 id="f3-a-ladder-link-is-too-wide">F3. A ladder link is too wide</h3>
+<p><strong>Symptoms.</strong> The failure message says that configurations rarely cross a link ("link 1 of 2 (acceptance 0.052, below the target 0.25)") and reports no immobile configurations. <code>acceptance_min</code> stays below the target for long stretches.</p>
+<p><strong>Mechanism.</strong> Snapshots are inserted when the <em>top</em> link's acceptance drops. If the model moves far between snapshots, or a lower link degrades after compression, neighbouring rungs are too far apart.</p>
+<p><strong>Fix.</strong> A smaller <code>--lr</code>, which spaces snapshots more closely, or a larger <code>--ptt-target-acceptance</code> (e.g. 0.35), which inserts them earlier. Both cost more updates or rungs.</p>
+<p><strong>Caveat.</strong> On the cm_russ <code>--lr 0.1</code> failure, the bottom link's mean acceptance was low (0.052), but the cause was F1: 23% of the configurations above it had acceptance below 10⁻³. Check for immobile configurations before concluding F3.</p>
+<h3 id="f4-the-replicas-relax-too-slowly">F4. The replicas relax too slowly</h3>
+<p><strong>Symptoms.</strong> The failure message says every link accepts at least the target, yet the ladder did not renew within the budget.</p>
+<p><strong>Fix.</strong> More <code>--nsweeps</code>. Prefer more sweeps per round over more rounds: the budgets count rounds, and each exchange pass costs about as much as a sweep.</p>
+<h3 id="f5-the-learning-rate-is-too-large">F5. The learning rate is too large</h3>
+<p><strong>Symptoms.</strong> <code>kl</code> pinned at 0.01, <code>lr_coupling</code> below <code>--lr</code> and fluctuating, <code>lr_bias</code> at about 10⁻¹⁴ for most updates, earlier and more frequent mixing failures.</p>
+<p><strong>Mechanism.</strong> With a large <code>--lr</code> the trust region binds at every step. Field and coupling steps change the sequence statistics along strongly correlated directions, so the optimizer spends the whole budget on the couplings and sets the field rate to its floor: the exact optimum of its quadratic model, not a bug. The larger steps move the model faster than the chains can follow, making F1 and F3 more likely. (Occasional updates with the field rate at the floor are normal at any learning rate.)</p>
+<p><strong>Fix.</strong> The default <code>--lr 0.01</code>.</p>
+<h3 id="f6-good-metrics-miscalibrated-model">F6. Good metrics, miscalibrated model</h3>
+<p><strong>Symptoms.</strong> None during training: Pearson and validation likelihood look normal. This is the silent failure.</p>
+<p><strong>Mechanism.</strong> If a mode formed faster than the chains could follow (F1, F2), the chains under-represent it, the gradient keeps asking for more of it, and the model over-weights it. The chains themselves then report about the data's share, so nothing looks wrong.</p>
+<p><strong>Confirm.</strong></p>
+<ol>
+<li><strong>Sample the finished model independently</strong> and compare its Pearson with the training value at equal sample size. Healthy runs lose 0.003–0.007; the enzyme model above fell from 0.950 to 0.896.</li>
+<li><strong>Read the ladder health</strong> of that sampling: trapped-configuration ratios above 2, carried by more than a few configurations, point to a trapped mode.</li>
+<li><strong>Compare cluster weights</strong> (PCA plots, <code>data_vs_samples.png</code>) between data and samples.</li>
+<li><strong>For a suspected mode, run long local chains at fixed parameters</strong> from inside and from outside it, and compare occupancies. On cm_russ at update 907 both sides converged to about 20% in the basin after 3·10⁵ sweeps, against 0.95% in the training chains and 1.5% in the data. The test needs a definition of the mode and becomes inconclusive when the barrier is very high.</li>
+</ol>
+<p><strong>Fix.</strong> Retrain with more <code>--nsweeps</code>. This reduces the over-weighting but may not remove it: the cm_russ model trained at 100 sweeps still gave its basin 7–20% at update 1,000 (data 1.5%). Correct weights for well-separated subfamilies remain an <a href="#open-problems">open problem</a>.</p>
+<h3 id="f7-slow-or-incomplete-ptt-sampling">F7. Slow or incomplete PTT sampling</h3>
+<p><strong>Symptoms.</strong> During <code>sample</code>: a warning that <span class="arithmatex">\(G\)</span> stopped decreasing, that its decay time more than doubled, or that renewal is predicted beyond <code>--ptt-max-rounds</code>; the budget exhausted with a <code>trapped_fraction</code> above 0.01; a plateau in <code>ptt_renewal.png</code>.</p>
+<p><strong>Mechanism.</strong> Generation uses the ladder built during training. A pair of models that traps configurations in training traps them in sampling too.</p>
+<p><strong>Fix.</strong> The ladder cannot be patched at sampling time; interpolating models between a trapping pair did not free the trapped configurations in tests. Retrain with more <code>--nsweeps</code> (F1, F2). If <span class="arithmatex">\(G\)</span> was still decaying cleanly when the budget ran out, a larger <code>--ptt-max-rounds</code> is enough.</p>
+<h3 id="f8-the-initial-mixing-check-fails">F8. The initial mixing check fails</h3>
+<p><strong>Symptoms.</strong> "PTT initial mixing experiment exceeded its round budget" right after initialization.</p>
+<p><strong>Mechanism.</strong> At initialization the ladder is the profile and a copy of it, which renews within a few rounds (2 on cm_russ). This failure was never observed on valid data.</p>
+<p><strong>Fix.</strong> Check the input: alphabet, sequence length, a mostly-gap alignment, weights that collapse onto a few sequences. Then try more <code>--nsweeps</code> or a larger <code>--ptt-mixing-max-rounds</code>.</p>
+<h2 id="checking-a-finished-model">Checking a finished model</h2>
+<p>A run can finish cleanly and still produce a model that does not match its own metrics (F6). Before relying on a model:</p>
+<ol>
+<li>Sample it: <code>adabmDCA sample -p model/ptt.h5 -d train.fasta -v validation.fasta --plot -o check</code>.</li>
+<li>Compare the sampled Pearson (<code>sampling.json</code> → <code>ptt_diagnostics.final_pearson</code>, also in the summary) with the last training Pearson, at the same number of sequences as training chains. A drop larger than about 0.01 deserves attention.</li>
+<li>Look at <code>ptt_ladder_health.png</code>: links whose trapped-configuration bar exceeds 2, carried by more than a handful of configurations, hold configurations that stay stuck above them.</li>
+<li>Look at <code>pca_1_2.png</code> and <code>data_vs_samples.png</code>: clusters whose share in the samples is far from ×1 are regions the model or its sampling mis-weights.</li>
+<li>Look at <code>distances.png</code> (<a href="#distances-and-overfitting">below</a>): generated sequences should not sit closer to the training set than held-out ones, and none should be identical to a training sequence.</li>
+<li>Optionally, sample with <code>--strategy pcd</code> as well. Plain MCMC gives a ladder-independent view when it mixes: on the cm_russ model trained at 100 sweeps, PTT sampling gave 0.930 and plain MCMC 0.924 (5,000 sequences, mixing time ≈ 2,300 sweeps), against 0.918 reported by training from 2,000 chains.</li>
+</ol>
+<p><strong>Trapped configurations do not mean bad samples.</strong> The cm_russ model trained at 100 sweeps had trapped links in its ladder, yet its PTT samples matched the data's share of every cluster within ×0.83–1.28, including the 1.5% subfamily behind the trapping. What this does not establish is that the samples are at the model's own equilibrium: sampling starts from the profile and stops at the first renewal, so a deep basin that the chains rarely enter stays near the share the sampler reaches. For generation, the samples are good; as a statement about the model's weights, the share of such a basin may be underestimated. When links are flagged, sample with and without <code>--ptt-stationary</code> and compare the cluster shares: if they move, they are not converged.</p>
+<h3 id="checking-a-pcd-model">Checking a PCD model</h3>
+<p>A PCD model has no ladder, so it can only be sampled with plain MCMC. Run <code>adabmDCA sample --strategy pcd -p model_pcd/params.dat.gz -d train.fasta --plot --max_nsweeps 10000</code>, then check:</p>
+<ol>
+<li><strong>The shape of <code>pearson_sampling.png</code>.</strong> The Pearson with the data should rise and settle on a plateau. If it rises above its final level and then declines, the model was trained out of equilibrium. It reproduces the data only during a transient of the sampler, and its equilibrium samples are worse than what training reported. In the benchmarks this happened only with PCD-trained models, including one (RF00023) whose resampling reached its mixing time (<a href="../benchmarks/#out-of-equilibrium-training-seen-in-resampling">details</a>). Retrain with PTT.</li>
+<li><strong>The mixing time.</strong> The run should report one instead of hitting <code>--max_nsweeps</code>. If it hits the budget, the samples are not at equilibrium and the model cannot be validated; on three benchmark protein families this was the case for every PCD model. Retrain with PTT.</li>
+<li><strong>The plateau value</strong>, compared with the training Pearson at equal sample size, as for PTT models.</li>
+</ol>
+<p>Passing all three is necessary, not sufficient. A monotone curve can belong to a model whose relaxation is too slow to show the decline within the run, or to chains confined to one region of a multimodal model.</p>
+<h2 id="distances-and-overfitting">Distances and overfitting</h2>
+<p><a href="../../figures/rf00379/diagnostics/distances.png"><img alt="RF00379 distances" src="../../figures/rf00379/diagnostics/distances.png" width="960" /></a></p>
+<p><code>distances.png</code> shows Hamming distances as a fraction of the sites; natural sequences carry their weights, and at most <code>--nmeasure</code> sequences of each set are used.</p>
+<ul>
+<li><strong>All pairs</strong> (left). Distances within the training set, within the samples, and between the two. The three curves should coincide: the samples then reproduce the family's diversity. Samples shifted to smaller distances are less diverse than the family (a collapsed model, or sampling at too low a temperature).</li>
+<li><strong>Nearest neighbours</strong> (right). The distance from each sequence to the closest member of a set. The key comparison is <strong>generated → nearest training</strong> (thick orange) against <strong>held-out → nearest training</strong> (solid green): both look for neighbours in the same set, so the only difference is whether the model saw the sequences. A model that memorizes its training set moves the orange curve to the left of the green one, with a pile near zero and generated sequences identical to training sequences (their share is printed in the legend and the summary).</li>
+</ul>
+<p>On RF00379 (figure), the all-pair curves coincide, and generated sequences sit <em>farther</em> from the training set (median 0.287) than held-out ones (0.250): no copying. The held-out curve has a left tail below 0.15 that the samples lack: the held-out set contains close relatives of training sequences, and the model does not regenerate near-duplicates.</p>
+<p>Three things to keep in mind:</p>
+<ul>
+<li><strong>The split sets the yardstick.</strong> With a cluster-based split, held-out sequences are by construction somewhat farther from the training set than random family members. Generated sequences slightly closer to the training set than held-out ones are not proof of copying; a pile near zero is.</li>
+<li><strong>Nearest distances shrink with the size of the target set.</strong> Compare only curves that search the same set.</li>
+<li><strong>Natural sets have a left tail from redundancy</strong>, which reweighting lowers but does not remove. Generated sets usually lack it.</li>
+<li><strong>Reweighting shifts the generated curve to the right.</strong> A model trained with reweighting is fitted to a less redundant distribution than the raw alignment, so its samples sit farther from the training set than held-out sequences, by a margin that says nothing about generalization. Trained without reweighting (<code>--no_reweighting</code>), the RF00379 model's samples sat exactly as close to the training set as held-out sequences (median 0.221 vs 0.228), with no identical sequence: for such a model, matching the held-out curve is the healthy result. See <a href="../input/#reweighting-and-the-redundancy-of-generated-sequences">the comparison</a>.</li>
+</ul>
+<p>Observed medians of nearest-neighbour distances (PTT samples, 2,000 sequences):</p>
+<table>
+<thead>
+<tr>
+<th>Family</th>
+<th>Training → training</th>
+<th>Held-out → training</th>
+<th>Generated → training</th>
+<th>Identical</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>RF00379</td>
+<td>0.228</td>
+<td>0.250</td>
+<td>0.287</td>
+<td>0%</td>
+</tr>
+<tr>
+<td>cm_russ</td>
+<td>0.323</td>
+<td>0.396</td>
+<td>0.406</td>
+<td>0%</td>
+</tr>
+</tbody>
+</table>
+<p>Across the six benchmark families, generated sequences sat farther from the training set than held-out ones, or at a comparable distance (cm_russ 0.41 vs 0.40; LBD 0.38–0.42 vs 0.43). The one case of collapse onto training sequences was a sparse PCD model that did not mix (nearest-training median 0.23 vs 0.40 for held-out).</p>
+<h2 id="hyperparameters-that-matter-for-diagnosis">Hyperparameters that matter for diagnosis</h2>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Default</th>
+<th>Raise it when</th>
+<th>Lower it when</th>
+<th>Cost</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--nsweeps</code></td>
+<td>10</td>
+<td>F1, repeated pauses, F4, F6</td>
+<td>The family trains cleanly and speed matters</td>
+<td>Proportional, though fewer stalls can make the run faster overall</td>
+</tr>
+<tr>
+<td><code>--lr</code></td>
+<td>0.01</td>
+<td>—</td>
+<td>F3, F5</td>
+<td>More updates</td>
+</tr>
+<tr>
+<td><code>--ptt-target-acceptance</code></td>
+<td>0.25</td>
+<td>F3</td>
+<td>—</td>
+<td>More snapshots and rungs</td>
+</tr>
+<tr>
+<td><code>--ptt-mixing-max-rounds</code></td>
+<td>20000</td>
+<td>F8, or renewal forecast slightly beyond the budget</td>
+<td>—</td>
+<td>Longer stalls before a failure; does not fix F1</td>
+</tr>
+<tr>
+<td><code>--ptt-lag-tolerance</code></td>
+<td>0.25</td>
+<td><code>1e9</code> disables pausing but still logs the lag (experiments)</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>--ptt-trust-radius</code></td>
+<td>0.01</td>
+<td>—</td>
+<td>Steps too aggressive</td>
+<td>More updates</td>
+</tr>
+<tr>
+<td><code>--nchains</code></td>
+<td>2000</td>
+<td>Noisy statistics</td>
+<td>—</td>
+<td>Does <strong>not</strong> help F1: entering or leaving a basin is a per-chain rate, so 10,000 chains relax the basin fraction no faster</td>
+</tr>
+</tbody>
+</table>
+<p><code>--ptt-optimizer sgd</code> disables both the trust region and the lag pause; use it only for comparisons.</p>
+<h2 id="what-was-tried-and-did-not-help">What was tried and did not help</h2>
+<p>Tested on cm_russ and, where noted, on RNA families, and listed so that they are not tried again without a new reason.</p>
+<table>
+<thead>
+<tr>
+<th>Idea</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Insert snapshots when a low quantile of the per-configuration acceptance drops, not only the mean</td>
+<td>Stalled at update 1,052 instead of 907: the snapshot was stored before the basin formed and inserted too late</td>
+</tr>
+<tr>
+<td>Bisect weak links with interpolated models</td>
+<td>Repairs links on a frozen ladder, but during training they degraded again within ~20 updates; stalled at update 806 at ~4× the sweeps</td>
+</tr>
+<tr>
+<td>Importance (Jarzynski) weights of ladder columns in the gradient</td>
+<td>Weights stayed even, but the basin still got ≥ 21%: weights cannot see mass in regions the chains never visit. On RF00379 and RF00023: no gain, worse on RF00023</td>
+</tr>
+<tr>
+<td>Raise the local sweeps automatically while a mode forms</td>
+<td>From 10 sweeps: each reservoir collection took ~1.5 h. From 100: same quality as plain 100 sweeps, +36% work</td>
+</tr>
+<tr>
+<td>A temperature ladder (β from 1 to 0.95)</td>
+<td>Fills the basin 3.5× faster per round but needs 6 rungs: worse per unit of compute than local moves</td>
+</tr>
+<tr>
+<td>More chains</td>
+<td>No effect on the relaxation of a mode</td>
+</tr>
+<tr>
+<td>Resume a stalled state with more sweeps</td>
+<td>Fails again, with more trapped configurations</td>
+</tr>
+<tr>
+<td>Shorten steps instead of pausing (enzyme family)</td>
+<td>The lag never resolved and the model over-weighted the mode even more</td>
+</tr>
+</tbody>
+</table>
+<h2 id="open-problems">Open problems</h2>
+<ul>
+<li><strong>Weights of well-separated subfamilies.</strong> Even when training completes, a narrow subfamily can be over-weighted, and the chains cannot measure it. A principled fix needs the relative partition function of the mode together with a source of configurations inside it (the data contain them).</li>
+<li><strong>Early detection of forming modes.</strong> The effective sample size of the lag memory flagged the cm_russ basin about 110 updates before the stall, while the pause fired only at the stall. Using it as a trigger has not yet been made to work.</li>
+<li><strong>edgeDCA with PTT.</strong> Each edge update rewrites a whole block of couplings at once, so the acceptance with the rung below drops quickly and the ladder flags many more models than for bmDCA (47 on RF00023, against 7–15). The ladder becomes over-populated, sampling it is slow, and training time becomes prohibitive on hard families. The integration of edgeDCA with PTT needs to be improved.</li>
+<li><strong>Replication.</strong> Most of the experiments behind this page used one or two seeds per setting.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

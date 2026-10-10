@@ -1,0 +1,2249 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../plot-training-log/">
+      
+      
+        <link rel="next" href="../../algorithms/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Python workflows - adabmDCA 2.1</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#python-workflows" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="adabmDCA 2.1" class="md-header__button md-logo" aria-label="adabmDCA 2.1" data-md-component="logo">
+      
+  <img src="../../assets/images/logo-header.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            adabmDCA 2.1
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Python workflows
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="adabmDCA 2.1" class="md-nav__button md-logo" aria-label="adabmDCA 2.1" data-md-component="logo">
+      
+  <img src="../../assets/images/logo-header.png" alt="logo">
+
+    </a>
+    adabmDCA 2.1
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Use the package
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Use the package
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../choosing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Choosing settings
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../preprocess/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Prepare alignments · preprocess
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../split-data/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Split an alignment · split-data
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../train/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Train models · train
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sample/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Generate sequences · sample
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../energies/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Score sequences · energies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mutation scan · dms
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contacts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contact prediction · contacts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../entropy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Entropy · entropy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reintegrate/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Experimental feedback · reintegrate
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../plot-training-log/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plot a run · plot-training-log
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python workflows
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python workflows
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#alignments" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Alignments
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#models" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Models
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#train" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Train
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sample" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sample
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Sample">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#steered-sampling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Steered sampling
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#other-workflows" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Other workflows
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#results-and-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Results and files
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Errors
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#low-level-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Low-level functions
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How it works
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    How it works
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../algorithms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../algorithms/input/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Input and reweighting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../algorithms/training/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Training
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../algorithms/sampling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sampling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../algorithms/diagnostics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Diagnose a run
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../algorithms/analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../algorithms/benchmarks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Benchmarks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../algorithms/numba-swaps/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CPU PTT swap fusion
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Theory and definitions
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Theory and definitions
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quantities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quantities/model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Potts model and statistics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quantities/training/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Training quantities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quantities/sampling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sampling quantities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quantities/derived/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Normalization, scoring and importance weights
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python API
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Python API
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/symbols/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Symbols
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.api.training/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Training
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.api.sampling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sampling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.api.ptt/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PTT workflows
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.api.model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Models
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.api.results/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Results
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.ptt.config/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PTT configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.ptt.sampler/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PTT sampler
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.steering/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Steering
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.api.scoring/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scoring
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.api.contacts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contacts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.api.mutations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mutations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.api.entropy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Entropy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.api.reintegration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reintegration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.api.splitting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Splitting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.input_loading/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Input loading
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.training_config/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Training configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#alignments" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Alignments
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#models" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Models
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#train" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Train
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sample" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sample
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Sample">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#steered-sampling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Steered sampling
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#other-workflows" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Other workflows
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#results-and-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Results and files
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Errors
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#low-level-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Low-level functions
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="python-workflows">Python workflows</h1>
+<p>Everything the command line does is available from Python, through the same functions: the commands are thin wrappers around them, so results, files and errors are identical. In a notebook, load alignments and models once and pass the objects around.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">adabmDCA</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span><span class="n">load_alignment</span><span class="p">,</span> <span class="n">load_model</span><span class="p">,</span> <span class="n">train_model</span><span class="p">,</span> <span class="n">sample_sequences</span><span class="p">,</span>
+                      <span class="n">PTTConfig</span><span class="p">,</span> <span class="n">TrainingConfig</span><span class="p">)</span>
+</code></pre></div>
+<div class="admonition warning">
+<p class="admonition-title">Defaults that differ from the command line</p>
+<ul>
+<li><code>train_model</code> and <code>sample_sequences</code> use <strong>PCD / plain MCMC unless asked for PTT</strong> (<code>ptt=PTTConfig()</code> for training, <code>ptt=True</code> for sampling).</li>
+<li>The validation stop is off unless <code>PTTConfig(validation_stop=True)</code>.</li>
+<li>Workflow functions default to <code>alphabet="protein"</code>; only <code>load_alignment</code> and <code>load_model</code> on a PTT archive detect it. Pass <code>alphabet=</code> for RNA, DNA or custom data.</li>
+</ul>
+</div>
+<h2 id="alignments">Alignments</h2>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">adabmDCA</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_alignment</span>
+
+<span class="n">alignment</span> <span class="o">=</span> <span class="n">load_alignment</span><span class="p">(</span><span class="s2">"family.fasta"</span><span class="p">)</span>                 <span class="c1"># detects DNA, RNA or protein</span>
+<span class="n">alignment</span> <span class="o">=</span> <span class="n">load_alignment</span><span class="p">(</span><span class="s2">"family.sto"</span><span class="p">,</span> <span class="n">alphabet</span><span class="o">=</span><span class="s2">"rna"</span><span class="p">,</span>
+                           <span class="n">invalid_sequences</span><span class="o">=</span><span class="s2">"drop"</span><span class="p">,</span> <span class="n">remove_duplicates</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">alignment</span><span class="p">)</span>                                           <span class="c1"># sequences, length, tokens</span>
+<span class="n">alignment</span><span class="o">.</span><span class="n">names</span><span class="p">,</span> <span class="n">alignment</span><span class="o">.</span><span class="n">sequences</span>                       <span class="c1"># tuples of strings</span>
+<span class="n">one_hot</span> <span class="o">=</span> <span class="n">alignment</span><span class="o">.</span><span class="n">to_onehot</span><span class="p">()</span>                            <span class="c1"># torch tensor (M, L, q)</span>
+</code></pre></div>
+<p>An <code>Alignment</code> is immutable and records which input rows were retained, invalid or duplicated, so supplied weights can be matched to the right sequences. Every function that takes an alignment accepts a path or an <code>Alignment</code>. <a href="../preprocess/#in-python"><code>preprocess</code></a> shows the cleaning functions (<code>remove_insertions</code>, <code>filter_gap_fraction</code>, <code>preprocess_alignment</code>), and <code>write_alignment</code> or <code>alignment.write_fasta(path)</code> write it back.</p>
+<h2 id="models">Models</h2>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">adabmDCA</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_model</span>
+
+<span class="n">model</span> <span class="o">=</span> <span class="n">load_model</span><span class="p">(</span><span class="s2">"model/params.dat.gz"</span><span class="p">,</span> <span class="n">alphabet</span><span class="o">=</span><span class="s2">"rna"</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="s2">"auto"</span><span class="p">)</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">load_model</span><span class="p">(</span><span class="s2">"model/ptt.h5"</span><span class="p">)</span>                         <span class="c1"># final model of an archive; alphabet read from it</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>                                               <span class="c1"># DCAModel(L=..., q=..., tokens=..., device=...)</span>
+</code></pre></div>
+<p>A <code>DCAModel</code> keeps the parameters on the chosen device and offers:</p>
+<div class="highlight"><pre><span></span><code><span class="n">energies</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">compute_energies</span><span class="p">([</span><span class="s2">"ACGU..."</span><span class="p">,</span> <span class="s2">"ACGA..."</span><span class="p">])</span>  <span class="c1"># NumPy array</span>
+<span class="n">scores</span>   <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">score_sequences</span><span class="p">(</span><span class="n">sequences</span><span class="p">,</span> <span class="n">local_lambda</span><span class="o">=</span><span class="mf">1.4</span><span class="p">)</span>   <span class="c1"># result object with a DataFrame</span>
+<span class="n">contacts</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">compute_contact_map</span><span class="p">()</span>                     <span class="c1"># L × L APC scores</span>
+<span class="n">scan</span>     <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">scan_mutations</span><span class="p">(</span><span class="n">wild_type</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">"wt"</span><span class="p">)</span>      <span class="c1"># single-mutant scan</span>
+<span class="n">samples</span>  <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="n">n_sweeps</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>       <span class="c1"># tuple of strings, fixed number of sweeps</span>
+</code></pre></div>
+<p><code>model.sample</code> is a quick fixed-length MCMC run without any mixing check; use <code>sample_sequences</code> for anything you will analyse.</p>
+<h2 id="train">Train</h2>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">adabmDCA</span><span class="w"> </span><span class="kn">import</span> <span class="n">PTTConfig</span><span class="p">,</span> <span class="n">train_model</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">train_model</span><span class="p">(</span>
+    <span class="s2">"train.fasta"</span><span class="p">,</span> <span class="n">validation_path</span><span class="o">=</span><span class="s2">"validation.fasta"</span><span class="p">,</span> <span class="n">alphabet</span><span class="o">=</span><span class="s2">"rna"</span><span class="p">,</span>
+    <span class="n">ptt</span><span class="o">=</span><span class="n">PTTConfig</span><span class="p">(</span><span class="n">validation_stop</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+    <span class="n">output_dir</span><span class="o">=</span><span class="s2">"model"</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"rf00379"</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="s2">"cuda"</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">result</span><span class="o">.</span><span class="n">stop_reason</span><span class="p">,</span> <span class="n">result</span><span class="o">.</span><span class="n">converged</span>                       <span class="c1"># 'validation_plateau', True</span>
+<span class="n">result</span><span class="o">.</span><span class="n">gradient_steps</span><span class="p">,</span> <span class="n">result</span><span class="o">.</span><span class="n">sweeps</span>
+<span class="n">result</span><span class="o">.</span><span class="n">partition_estimate</span>                                  <span class="c1"># log Z of the final model and its provenance</span>
+<span class="n">history</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">history_dataframe</span><span class="p">()</span>                       <span class="c1"># same columns as history.csv</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">model</span>                                       <span class="c1"># a DCAModel</span>
+</code></pre></div>
+<p>All training settings can be gathered in an immutable, validated <code>TrainingConfig</code>, convenient for reproducible scripts:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">adabmDCA</span><span class="w"> </span><span class="kn">import</span> <span class="n">TrainingConfig</span><span class="p">,</span> <span class="n">PTTConfig</span>
+
+<span class="n">config</span> <span class="o">=</span> <span class="n">TrainingConfig</span><span class="p">(</span><span class="n">model_type</span><span class="o">=</span><span class="s2">"eaDCA"</span><span class="p">,</span> <span class="n">n_chains</span><span class="o">=</span><span class="mi">2000</span><span class="p">,</span> <span class="n">n_sweeps</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+                        <span class="n">max_gradient_steps</span><span class="o">=</span><span class="mi">20000</span><span class="p">,</span> <span class="n">checkpoint_interval</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>
+                        <span class="n">ptt</span><span class="o">=</span><span class="n">PTTConfig</span><span class="p">(</span><span class="n">validation_stop</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s2">"adaptive"</span><span class="p">))</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">train_model</span><span class="p">(</span><span class="s2">"train.fasta"</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span> <span class="n">validation_path</span><span class="o">=</span><span class="s2">"validation.fasta"</span><span class="p">,</span>
+                     <span class="n">output_dir</span><span class="o">=</span><span class="s2">"model_ea"</span><span class="p">)</span>
+</code></pre></div>
+<p>When <code>config=</code> is given it is authoritative for all training values; paths, outputs and callbacks remain arguments of <code>train_model</code>. <code>PTTConfig</code> holds every <code>--ptt-*</code> option under the same name without the prefix (see the <a href="../../api/adabmDCA.ptt.config/">reference</a>).</p>
+<p><strong>Resume</strong> a PTT run with a larger budget:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">replace</span>
+
+<span class="n">resumed</span> <span class="o">=</span> <span class="n">train_model</span><span class="p">(</span><span class="s2">"train.fasta"</span><span class="p">,</span> <span class="n">validation_path</span><span class="o">=</span><span class="s2">"validation.fasta"</span><span class="p">,</span>
+                      <span class="n">config</span><span class="o">=</span><span class="n">replace</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="n">max_gradient_steps</span><span class="o">=</span><span class="mi">20000</span><span class="p">),</span>
+                      <span class="n">ptt_resume</span><span class="o">=</span><span class="s2">"model/rf00379_ptt.h5"</span><span class="p">,</span> <span class="n">output_dir</span><span class="o">=</span><span class="s2">"model"</span><span class="p">)</span>
+</code></pre></div>
+<p>A PCD run continues from <code>initial_params_path=</code> and <code>initial_chains_path=</code>.</p>
+<p><strong>Watch progress.</strong> Four optional callbacks follow a run:</p>
+<ul>
+<li><code>on_initialized=</code> receives the resolved setup (dimensions, <code>M_eff</code>, pseudocount, device) before training starts;</li>
+<li><code>progress=</code> receives one event per update, with the update number (<code>epoch</code>) and the values of that row of the history (<code>metrics</code>);</li>
+<li><code>stage_progress=</code> receives the PTT phases between updates (mixing checks, ladder equilibration, reservoir collection, recovery);</li>
+<li><code>is_cancelled=</code> is polled regularly; when it returns <code>True</code>, training stops and raises <code>OperationCancelledError</code>.</li>
+</ul>
+<p>For example, to print a line every 100 updates, keep the validation curve, and stop after an hour:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">adabmDCA</span><span class="w"> </span><span class="kn">import</span> <span class="n">OperationCancelledError</span>
+
+<span class="n">curve</span><span class="p">,</span> <span class="n">start</span> <span class="o">=</span> <span class="p">[],</span> <span class="n">time</span><span class="o">.</span><span class="n">monotonic</span><span class="p">()</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">on_update</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">metrics</span>
+    <span class="n">curve</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">event</span><span class="o">.</span><span class="n">epoch</span><span class="p">,</span> <span class="n">m</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"LL_val"</span><span class="p">)))</span>
+    <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">epoch</span> <span class="o">%</span> <span class="mi">100</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"update </span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">epoch</span><span class="si">:</span><span class="s2">5d</span><span class="si">}</span><span class="s2">  Pearson </span><span class="si">{</span><span class="n">m</span><span class="p">[</span><span class="s1">'Pearson'</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">  "</span>
+              <span class="sa">f</span><span class="s2">"val LL/site </span><span class="si">{</span><span class="n">m</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'LL_val'</span><span class="p">,</span><span class="w"> </span><span class="nb">float</span><span class="p">(</span><span class="s1">'nan'</span><span class="p">))</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">  rungs </span><span class="si">{</span><span class="n">m</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'ptt_replicas'</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">on_stage</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"start"</span> <span class="ow">and</span> <span class="n">event</span><span class="o">.</span><span class="n">stage</span> <span class="o">!=</span> <span class="s2">"ptt_optimization"</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  ... </span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">stage</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>                       <span class="c1"># e.g. ptt_mixing, ptt_equilibration</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">train_model</span><span class="p">(</span>
+        <span class="s2">"train.fasta"</span><span class="p">,</span> <span class="n">validation_path</span><span class="o">=</span><span class="s2">"validation.fasta"</span><span class="p">,</span> <span class="n">alphabet</span><span class="o">=</span><span class="s2">"rna"</span><span class="p">,</span>
+        <span class="n">ptt</span><span class="o">=</span><span class="n">PTTConfig</span><span class="p">(</span><span class="n">validation_stop</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="n">output_dir</span><span class="o">=</span><span class="s2">"model"</span><span class="p">,</span>
+        <span class="n">progress</span><span class="o">=</span><span class="n">on_update</span><span class="p">,</span> <span class="n">stage_progress</span><span class="o">=</span><span class="n">on_stage</span><span class="p">,</span>
+        <span class="n">is_cancelled</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="n">time</span><span class="o">.</span><span class="n">monotonic</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span> <span class="o">&gt;</span> <span class="mi">3600</span><span class="p">,</span>
+    <span class="p">)</span>
+<span class="k">except</span> <span class="n">OperationCancelledError</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"stopped after one hour; the files written so far are in model/"</span><span class="p">)</span>
+</code></pre></div>
+<p><code>metrics</code> holds the same quantities as <code>history.csv</code>, under the names <code>Pearson</code>, <code>Pearson_val</code>, <code>Slope</code>, <code>LL_train</code>, <code>LL_val</code>, <code>Entropy</code>, <code>logZ</code>, <code>ptt_replicas</code>, <code>ptt_acceptance</code>, <code>bias_learning_rate</code>, <code>coupling_learning_rate</code>, <code>ptt_predicted_kl</code>, <code>ptt_lag_drift</code> and <code>ptt_lag_drift_tail</code>. Quantities not yet available, such as the lag in the first updates, are absent.</p>
+<h2 id="sample">Sample</h2>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">adabmDCA</span><span class="w"> </span><span class="kn">import</span> <span class="n">sample_sequences</span>
+
+<span class="n">reference</span> <span class="o">=</span> <span class="n">load_alignment</span><span class="p">(</span><span class="s2">"train.fasta"</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">sample_sequences</span><span class="p">(</span>
+    <span class="n">model</span><span class="o">=</span><span class="s2">"model/ptt.h5"</span><span class="p">,</span> <span class="n">ptt</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">reference_fasta</span><span class="o">=</span><span class="n">reference</span><span class="p">,</span> <span class="n">test_fasta</span><span class="o">=</span><span class="s2">"validation.fasta"</span><span class="p">,</span>
+    <span class="n">n_sequences</span><span class="o">=</span><span class="mi">2000</span><span class="p">,</span> <span class="n">collect_diagnostics</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">result</span><span class="o">.</span><span class="n">sequences</span><span class="p">,</span> <span class="n">result</span><span class="o">.</span><span class="n">energies</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">to_dataframe</span><span class="p">()</span>                                 <span class="c1"># sequence, energy, cde_sum</span>
+<span class="n">result</span><span class="o">.</span><span class="n">local_lambda_fit</span>                                    <span class="c1"># slope, intercept, R² of energy vs CDE</span>
+<span class="n">result</span><span class="o">.</span><span class="n">save_bundle</span><span class="p">(</span><span class="s2">"samples"</span><span class="p">)</span>                              <span class="c1"># FASTA, CSV, JSON, logs</span>
+<span class="n">result</span><span class="o">.</span><span class="n">save_diagnostic_plots</span><span class="p">(</span><span class="s2">"samples"</span><span class="p">)</span>                    <span class="c1"># the --plot figures</span>
+</code></pre></div>
+<p>For plain MCMC, pass a <code>DCAModel</code> or a parameter file and leave <code>ptt=False</code>; <code>n_sweeps</code> then bounds the mixing-time measurement and <code>mixing_multiplier</code> (default 2) sets the generation length in mixing times.</p>
+<p>To run several operations on one archive without reloading it, build the sampler once. Operations fork it and leave it untouched:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">adabmDCA</span><span class="w"> </span><span class="kn">import</span> <span class="n">PTTSampler</span><span class="p">,</span> <span class="n">estimate_ptt_entropy</span>
+
+<span class="n">backend</span> <span class="o">=</span> <span class="n">PTTSampler</span><span class="o">.</span><span class="n">from_archive</span><span class="p">(</span><span class="s2">"model/ptt.h5"</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="s2">"cuda"</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span>
+<span class="n">samples</span> <span class="o">=</span> <span class="n">sample_sequences</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">backend</span><span class="p">,</span> <span class="n">ptt</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">reference_fasta</span><span class="o">=</span><span class="n">reference</span><span class="p">,</span> <span class="n">n_sequences</span><span class="o">=</span><span class="mi">2000</span><span class="p">)</span>
+<span class="n">entropy</span> <span class="o">=</span> <span class="n">estimate_ptt_entropy</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">backend</span><span class="p">)</span>
+<span class="n">health</span>  <span class="o">=</span> <span class="n">backend</span><span class="o">.</span><span class="n">ladder_health</span><span class="p">()</span>                          <span class="c1"># per-link overlap and mobility</span>
+</code></pre></div>
+<h3 id="steered-sampling">Steered sampling</h3>
+<p><code>sample_sequences</code> can bias sampling toward sequences with a property you care about, then correct the bias. You provide a potential <span class="arithmatex">\(V(x, s)\)</span>; sampling targets <span class="arithmatex">\(p_s(x) \propto e^{-E(x) - V(x,s)}\)</span>, so low <span class="arithmatex">\(V\)</span> is favoured. The potential receives a batch of sequences and the strength <span class="arithmatex">\(s\)</span>, returns one number per sequence, and must be 0 when <span class="arithmatex">\(s = 0\)</span>.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">gc_potential</span><span class="p">(</span><span class="n">sequences</span><span class="p">,</span> <span class="n">strength</span><span class="p">):</span>
+    <span class="n">gc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">sum</span><span class="p">(</span><span class="n">c</span> <span class="ow">in</span> <span class="s2">"GC"</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">s</span><span class="p">)</span> <span class="o">/</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"-"</span><span class="p">,</span> <span class="s2">""</span><span class="p">)))</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sequences</span><span class="p">])</span>
+    <span class="k">return</span> <span class="o">-</span><span class="n">strength</span> <span class="o">*</span> <span class="n">gc</span>                                  <span class="c1"># favour GC-rich sequences</span>
+
+<span class="n">steered</span> <span class="o">=</span> <span class="n">sample_sequences</span><span class="p">(</span>
+    <span class="n">model</span><span class="o">=</span><span class="s2">"model/ptt.h5"</span><span class="p">,</span> <span class="n">ptt</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">alphabet</span><span class="o">=</span><span class="s2">"rna"</span><span class="p">,</span> <span class="n">n_sequences</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
+    <span class="n">steering_potential</span><span class="o">=</span><span class="n">gc_potential</span><span class="p">,</span> <span class="n">steering_strength</span><span class="o">=</span><span class="mf">20.0</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">steered</span><span class="o">.</span><span class="n">steering</span>                                           <span class="c1"># strength, acceptance, effective sample size, log Z ratio</span>
+<span class="n">w</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">steered</span><span class="o">.</span><span class="n">log_importance_weights</span> <span class="o">-</span> <span class="n">steered</span><span class="o">.</span><span class="n">log_importance_weights</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+<span class="n">gc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">sum</span><span class="p">(</span><span class="n">c</span> <span class="ow">in</span> <span class="s2">"GC"</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">s</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">steered</span><span class="o">.</span><span class="n">sequences</span><span class="p">])</span>
+<span class="n">model_gc_mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">gc</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">w</span><span class="p">)</span>                  <span class="c1"># estimate for the unsteered model</span>
+</code></pre></div>
+<p>By default the potential receives aligned strings, which suits external tools (folding, structure predictors). <code>steering_input="onehot"</code> passes a tensor of shape <code>(n, L, q)</code>, faster for potentials written in PyTorch.</p>
+<p>Each move proposes a block of Gibbs updates of the Potts model and accepts it with probability <span class="arithmatex">\(\min(1, e^{-\Delta V})\)</span>, so the potential is called once per chain and move; the block length adapts during warmup (<code>steering_proposal_steps</code>). With PTT, steered rungs of increasing strength are added above the trained model, keeping their swap acceptance above <code>ptt_steering_acceptance</code>, and the result reports <span class="arithmatex">\(\log Z_s - \log Z_0\)</span>.</p>
+<p>The importance weights correct averages back to the original model only while the steered and original distributions overlap. Check <code>steered.steering["effective_sample_size"]</code>: when it falls to a few sequences (a warning is then added), the corrected averages rest on those few sequences. Weaken the steering or collect more samples. See <a href="../../quantities/derived/#steering-and-importance-weights">the mathematics</a>.</p>
+<h2 id="other-workflows">Other workflows</h2>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">adabmDCA</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span><span class="n">predict_contacts</span><span class="p">,</span> <span class="n">scan_mutations</span><span class="p">,</span> <span class="n">score_sequences</span><span class="p">,</span>
+                      <span class="n">estimate_entropy</span><span class="p">,</span> <span class="n">split_alignment</span><span class="p">,</span> <span class="n">reintegrate_model</span><span class="p">)</span>
+</code></pre></div>
+<p>Each has a section on its command page: <a href="../contacts/#in-python">contacts</a>, <a href="../energies/#in-python">energies</a>, <a href="../dms/#in-python">mutations</a>, <a href="../entropy/#in-python">entropy</a>, <a href="../split-data/#in-python">split</a>, <a href="../reintegrate/#in-python">reintegration</a>.</p>
+<h2 id="results-and-files">Results and files</h2>
+<p>Every workflow returns a result object that owns its serialization:</p>
+<div class="highlight"><pre><span></span><code><span class="n">scores</span><span class="o">.</span><span class="n">to_dataframe</span><span class="p">()</span>
+<span class="n">scores</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="s2">"scores.csv"</span><span class="p">);</span> <span class="n">scores</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="s2">"scores.json"</span><span class="p">);</span> <span class="n">scores</span><span class="o">.</span><span class="n">to_fasta</span><span class="p">(</span><span class="s2">"scores.fasta"</span><span class="p">)</span>
+<span class="n">scores</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s2">"scores.json"</span><span class="p">)</span>                                 <span class="c1"># format from the suffix</span>
+<span class="n">paths</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">save_bundle</span><span class="p">(</span><span class="s2">"outputs"</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"run1"</span><span class="p">)</span>       <span class="c1"># all files, returns {kind: path}</span>
+</code></pre></div>
+<p>JSON files share an envelope <code>{"schema_version", "result_type", "data"}</code>; NumPy arrays, tensors, paths and non-finite numbers are converted to strict JSON. Bundles create their folders and write atomically.</p>
+<h2 id="errors">Errors</h2>
+<p>All expected failures raise subclasses of <code>AdabmDCAError</code> (<code>InputValidationError</code>, <code>ModelLoadError</code>, <code>ConvergenceError</code>, <code>OperationCancelledError</code>, …):</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">adabmDCA</span><span class="w"> </span><span class="kn">import</span> <span class="n">AdabmDCAError</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">compute_energies</span><span class="p">([</span><span class="s2">"INVALID"</span><span class="p">])</span>
+<span class="k">except</span> <span class="n">AdabmDCAError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">error</span><span class="o">.</span><span class="n">to_dict</span><span class="p">())</span>     <span class="c1"># code, exit_code, message, details</span>
+</code></pre></div>
+<p>The command line prints the same message and exits with code 2 for invalid input, 1 for loading, computation or convergence failures, and 130 for cancellation. Programming errors are not wrapped, so they keep their traceback.</p>
+<h2 id="low-level-functions">Low-level functions</h2>
+<p>The tensor-level building blocks remain available for custom algorithms: <code>compute_energy(one_hot, params)</code>, <code>get_freq_single_point</code>, <code>get_freq_two_points</code>, <code>get_correlation_two_points</code>, <code>compute_weights</code>, <code>get_sampler</code>, <code>init_chains</code>, <code>load_params</code>, <code>save_params</code>. Their signatures are in the <a href="../../api/">API reference</a>.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,2106 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../model/">
+      
+      
+        <link rel="next" href="../sampling/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Training quantities - adabmDCA 2.1</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#training-quantities" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="adabmDCA 2.1" class="md-header__button md-logo" aria-label="adabmDCA 2.1" data-md-component="logo">
+      
+  <img src="../../assets/images/logo-header.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            adabmDCA 2.1
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Training quantities
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="adabmDCA 2.1" class="md-nav__button md-logo" aria-label="adabmDCA 2.1" data-md-component="logo">
+      
+  <img src="../../assets/images/logo-header.png" alt="logo">
+
+    </a>
+    adabmDCA 2.1
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Use the package
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Use the package
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/choosing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Choosing settings
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/preprocess/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Prepare alignments · preprocess
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/split-data/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Split an alignment · split-data
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/train/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Train models · train
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/sample/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Generate sequences · sample
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/energies/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Score sequences · energies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/dms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mutation scan · dms
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/contacts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contact prediction · contacts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/entropy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Entropy · entropy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/reintegrate/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Experimental feedback · reintegrate
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/plot-training-log/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plot a run · plot-training-log
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/python/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python workflows
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How it works
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    How it works
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../algorithms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../algorithms/input/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Input and reweighting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../algorithms/training/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Training
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../algorithms/sampling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sampling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../algorithms/diagnostics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Diagnose a run
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../algorithms/analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../algorithms/benchmarks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Benchmarks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../algorithms/numba-swaps/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CPU PTT swap fusion
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Theory and definitions
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Theory and definitions
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Potts model and statistics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Training quantities
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Training quantities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#pearson-and-slope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pearson and slope
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#likelihood-and-entropy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Likelihood and entropy
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adaptive-optimizer-and-predicted-kl" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adaptive optimizer and predicted KL
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#chain-lag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Chain lag
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sparse-model-selection-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sparse-model selection rules
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stopping-rules-and-counters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stopping rules and counters
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sampling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sampling quantities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../derived/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Normalization, scoring and importance weights
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python API
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Python API
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/symbols/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Symbols
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.api.training/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Training
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.api.sampling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sampling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.api.ptt/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PTT workflows
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.api.model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Models
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.api.results/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Results
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.ptt.config/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PTT configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.ptt.sampler/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PTT sampler
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.steering/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Steering
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.api.scoring/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scoring
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.api.contacts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contacts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.api.mutations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mutations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.api.entropy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Entropy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.api.reintegration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reintegration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.api.splitting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Splitting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.input_loading/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Input loading
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.training_config/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Training configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#pearson-and-slope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pearson and slope
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#likelihood-and-entropy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Likelihood and entropy
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adaptive-optimizer-and-predicted-kl" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adaptive optimizer and predicted KL
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#chain-lag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Chain lag
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sparse-model-selection-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sparse-model selection rules
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stopping-rules-and-counters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stopping rules and counters
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="training-quantities">Training quantities</h1>
+<p>The columns of <code>history.csv</code> and the curves of <code>plot-training-log</code>. <a href="../../algorithms/training/#reading-the-training-plots">Training</a> shows them on a real run.</p>
+<h2 id="pearson-and-slope">Pearson and slope</h2>
+<p>Flatten the connected correlations of the data and of the endpoint chains, over all entries <span class="arithmatex">\((a,b)\)</span> of all blocks <span class="arithmatex">\(i &gt; j\)</span> (active couplings only for sparse models), into vectors <span class="arithmatex">\(d\)</span> and <span class="arithmatex">\(m\)</span>. Then</p>
+<div class="arithmatex">\[
+r = \frac{\sum_k (d_k-\bar d)(m_k-\bar m)}{\sqrt{\sum_k (d_k-\bar d)^2\,\sum_k (m_k-\bar m)^2}},
+\qquad
+s = \left|\frac{\sum_k (d_k-\bar d)(m_k-\bar m)}{\sum_k (d_k-\bar d)^2}\right| .
+\]</div>
+<p><code>pearson</code> is <span class="arithmatex">\(r\)</span>: how well the pattern of correlations is reproduced, 1 at best. <code>slope</code> is <span class="arithmatex">\(s\)</span>, the least-squares slope of model on data: whether the amplitude is right, 1 at best. A high Pearson with a slope well below 1 means the model reproduces the pattern of correlations but too weakly. <code>pearson_val</code> and <code>slope_val</code> compare the same chains with the validation data.</p>
+<p>Both are computed from a finite population of chains, so they fluctuate from update to update (standard deviation about 0.002 at 10 sweeps on bkace) and are biased low for small populations. Compare Pearson values only at equal sample size.</p>
+<h2 id="likelihood-and-entropy">Likelihood and entropy</h2>
+<p>With an estimate of <span class="arithmatex">\(\log Z\)</span> (see <a href="../derived/#normalization-and-entropy">Normalization</a>), the log-likelihood per site of an alignment is</p>
+<div class="arithmatex">\[
+\ell = \frac{1}{L}\left(-\sum_m \tilde w_m E_\theta\big(x^{(m)}\big) - \log Z_\theta\right),
+\]</div>
+<p>computed on the training data (<code>ll_train</code>) and on the validation data (<code>ll_val</code>) with their weights. The entropy is</p>
+<div class="arithmatex">\[
+S = \langle E_\theta\rangle_{p_\theta} + \log Z_\theta ,
+\]</div>
+<p>with <span class="arithmatex">\(\langle E\rangle\)</span> the mean energy of the endpoint chains, in nats per sequence (<code>entropy</code>; <code>logz</code> is <span class="arithmatex">\(\log Z\)</span>). During training <span class="arithmatex">\(\log Z\)</span> comes from the one-sided forward bridge, which is cheap but noisy: single-update spikes of up to 0.01 per site at ladder changes and slower fluctuations of about 10⁻³ per site. The validation stop uses medians to ignore them. PCD has no bridge and records neither quantity.</p>
+<h2 id="adaptive-optimizer-and-predicted-kl">Adaptive optimizer and predicted KL</h2>
+<p>For bmDCA and eaDCA, the gradient directions <span class="arithmatex">\(g_h = f^\alpha_i - p_i\)</span> and <span class="arithmatex">\(g_J = f^\alpha_{ij} - p_{ij} - \lambda_2 J\)</span> (masked) are scaled by rates <span class="arithmatex">\(\eta_h = a_h\eta\)</span> and <span class="arithmatex">\(\eta_J = a_J\eta\)</span>, with <span class="arithmatex">\(a_h, a_J \in (0, 1]\)</span> and <span class="arithmatex">\(\eta\)</span> = <code>--lr</code>. A parameter step changes the energy of a sequence by <span class="arithmatex">\(-\eta_h u_h(x) - \eta_J u_J(x)\)</span>, where <span class="arithmatex">\(u_h(x) = \sum_i g_h(i, x_i)\)</span> and <span class="arithmatex">\(u_J(x) = \sum_{i&lt;j} g_J(i,j,x_i,x_j)\)</span> are the per-sequence scores of the two directions. To second order, the KL divergence between the model before and after the step is</p>
+<div class="arithmatex">\[
+K_{\rm pred} = \tfrac12\,(\eta_h, \eta_J)\;F\;(\eta_h, \eta_J)^{\mathsf T},
+\qquad
+F = \begin{pmatrix}\operatorname{Var}u_h &amp; \operatorname{Cov}(u_h,u_J)\\ \operatorname{Cov}(u_h,u_J) &amp; \operatorname{Var}u_J\end{pmatrix},
+\]</div>
+<p>with variances over the endpoint chains: <span class="arithmatex">\(F\)</span> is the Fisher information restricted to the two directions. The predicted likelihood gain is linear in the rates, <span class="arithmatex">\(\eta_h\|g_h\|^2 + \eta_J\|g_J\|^2\)</span>. The optimizer maximizes it subject to <span class="arithmatex">\(K_{\rm pred} \le\)</span> <code>--ptt-trust-radius</code> (0.01) and <span class="arithmatex">\(a_h, a_J \le 1\)</span>. Because <span class="arithmatex">\(F\)</span> keeps the off-diagonal term, correlated field and coupling steps are treated jointly; when the directions are strongly correlated and the constraint binds, the optimum puts the whole budget on the couplings and the field rate at its floor.</p>
+<p><code>lr_bias</code> and <code>lr_coupling</code> are <span class="arithmatex">\(\eta_h\)</span> and <span class="arithmatex">\(\eta_J\)</span>; <code>kl</code> is <span class="arithmatex">\(K_{\rm pred}\)</span> of the accepted step. It is a prediction of how much the model moves, not a measured error.</p>
+<h2 id="chain-lag">Chain lag</h2>
+<p>The lag rests on <strong>linear response</strong>, the statistical-physics relation between how a system at equilibrium responds to a small perturbation and how it fluctuates without it. Perturb a Boltzmann distribution by a small energy term <span class="arithmatex">\(\lambda\, s(x)\)</span>:</p>
+<div class="arithmatex">\[
+p_\lambda(x) = \frac{e^{-E(x) - \lambda s(x)}}{Z_\lambda}.
+\]</div>
+<p>Differentiating <span class="arithmatex">\(\langle A\rangle_\lambda = \sum_x A(x)\,p_\lambda(x)\)</span> gives, for any observable <span class="arithmatex">\(A\)</span>,</p>
+<div class="arithmatex">\[
+\frac{\partial \langle A\rangle_\lambda}{\partial \lambda}\bigg|_{\lambda=0} = -\big(\langle A\, s\rangle - \langle A\rangle\langle s\rangle\big) = -\operatorname{Cov}(A, s).
+\]</div>
+<p>The response of the mean, the susceptibility, equals a covariance measured in the unperturbed system: this is the static form of the fluctuation–dissipation theorem. A parameter update is such a perturbation, with <span class="arithmatex">\(s(x) = E_{t+1}(x) - E_t(x)\)</span> and <span class="arithmatex">\(\lambda = 1\)</span>. Chains still distributed according to the old model therefore over-represent, for any observable <span class="arithmatex">\(A\)</span>, the new mean by approximately</p>
+<div class="arithmatex">\[
+\langle A\rangle_{\rm old} - \langle A\rangle_{\rm new} \approx \operatorname{Cov}_{\rm old}(A, s).
+\]</div>
+<p>The approximation holds as long as the update is small compared with the fluctuations of <span class="arithmatex">\(s\)</span>, which the trust region enforces.</p>
+<p>Local moves and swaps relax this excess. To measure what remains of the excess accumulated over many updates, each endpoint configuration <span class="arithmatex">\(n\)</span> carries a <strong>lag memory</strong></p>
+<div class="arithmatex">\[
+m_n \leftarrow \Big(1-\frac1H\Big)\,m_n + s(x_n) - \overline{s},
+\]</div>
+<p>updated at every accepted update, with <span class="arithmatex">\(\overline{s}\)</span> the mean over the endpoint population and <span class="arithmatex">\(H\)</span> = <code>--ptt-lag-horizon</code> (200). The memory travels with its configuration through swaps and permutations; configurations entering the endpoint from below start from zero. For a monitored observable <span class="arithmatex">\(A\)</span>, standardized over the endpoint population to <span class="arithmatex">\(z_A\)</span>, the lag is the covariance</p>
+<div class="arithmatex">\[
+\ell_A = \frac1N\sum_{n=1}^{N} z_A(x_n)\, m_n ,
+\]</div>
+<p>in population standard deviations. Two groups of observables are monitored: the <strong>drift</strong> <span class="arithmatex">\(A(x) = E_{\rm endpoint}(x) - E_{\rm below}(x)\)</span>, the direction the model has moved since the last snapshot (<code>lag_drift</code>), and the indicators of the drift's lower and upper 2σ tails, where a forming mode first appears (<code>lag_drift_tail</code>). The largest absolute value is compared with <code>--ptt-lag-tolerance</code> (0.25). Above it, training pauses: a snapshot is inserted below the endpoint, and the ladder evolves at fixed parameters in blocks of 10 rounds until the lag falls below half the tolerance or <code>--ptt-lag-pause-rounds</code> (100) have run; another pause cannot start for 10 updates.</p>
+<p>The lag is a linear-response quantity. A mode that the chains reach only by rare transitions can be far from equilibrium while its lag stays small.</p>
+<h2 id="sparse-model-selection-rules">Sparse-model selection rules</h2>
+<p><strong>eaDCA activation.</strong> For each inactive coupling entry, the discrepancy between data and model is the KL divergence between two Bernoulli distributions,</p>
+<div class="arithmatex">\[
+D_{ij}(a,b) = f_{ij}\log\frac{f_{ij}}{p_{ij}} + (1-f_{ij})\log\frac{1-f_{ij}}{1-p_{ij}},
+\]</div>
+<p>with pseudocounted frequencies. Each graph update activates the fraction <code>--factivate</code> of the inactive entries (counted once per symmetric pair, at least one) with the largest <span class="arithmatex">\(D\)</span>. With adaptive activation (PTT), only candidates with</p>
+<div class="arithmatex">\[
+|f - p| \ge s\,\sqrt{\frac{f(1-f)}{M_{\rm eff}} + \frac{p(1-p)}{N}}
+\]</div>
+<p>are eligible (<span class="arithmatex">\(s\)</span> = <code>--ptt-activation-significance</code>, 3; <span class="arithmatex">\(N\)</span> the number of chains), and the block takes the longest prefix of the ranked list whose first update stays within <code>--ptt-activation-kl-share</code> (0.5) of the trust radius. Each mixing recovery halves that share.</p>
+<p><strong>edDCA decimation.</strong> Removing one active coupling <span class="arithmatex">\(J = J_{ij}(a,b)\)</span> from a model with pair marginal <span class="arithmatex">\(p = p_{ij}(a,b)\)</span> changes the distribution by</p>
+<div class="arithmatex">\[
+D = p\,J + \log\!\big(p\,e^{-J} + 1 - p\big)
+\]</div>
+<p>in KL divergence. Each decimation step removes the fraction <code>--drate</code> of the active couplings with the smallest <span class="arithmatex">\(D\)</span>, then re-fits the others.</p>
+<p><strong>edgeDCA.</strong> The discrepancy of a position pair is the KL divergence of its pair distributions, <span class="arithmatex">\(D_{ij} = \sum_{a,b} f^\alpha_{ij}(a,b)\log\big[f^\alpha_{ij}(a,b)/p^\alpha_{ij}(a,b)\big]\)</span>, with both frequencies pseudocounted. The pair with the largest <span class="arithmatex">\(D_{ij}\)</span>, active or not, is updated by</p>
+<div class="arithmatex">\[
+J_{ij}(a,b) \leftarrow J_{ij}(a,b) + \log f^\alpha_{ij}(a,b) - \log p^\alpha_{ij}(a,b).
+\]</div>
+<p>As <span class="arithmatex">\(\alpha \to 1\)</span> both frequencies tend to <span class="arithmatex">\(1/q^2\)</span> and the step vanishes; the fixed point <span class="arithmatex">\(f^\alpha = p^\alpha\)</span> is equivalent to <span class="arithmatex">\(f = p\)</span>. History records the pair (<code>edge_i</code>, <code>edge_j</code>), whether it was new (<code>edge_new</code>) and the pseudocount used (<code>edge_pseudocount</code>, raised by the adaptive optimizer when the predicted KL would exceed the trust radius).</p>
+<p><strong>Density</strong> (<code>density</code>) is the fraction of coupling entries that are active; 1 for bmDCA. edgeDCA activates whole blocks, so for it this is also the fraction of active position pairs.</p>
+<h2 id="stopping-rules-and-counters">Stopping rules and counters</h2>
+<p><strong>Pearson target.</strong> Stop when <code>pearson</code> ≥ <code>--target</code> (0.95).</p>
+<p><strong>Validation plateau.</strong> With validation log-likelihoods <span class="arithmatex">\(\ell_t\)</span> at accepted updates and a window <span class="arithmatex">\(w\)</span> (<code>--ptt-validation-window</code>, 100), after at least <span class="arithmatex">\(2w\)</span> updates compute</p>
+<div class="arithmatex">\[
+g_t = \operatorname{median}(\ell_{t-w+1},\dots,\ell_t) - \operatorname{median}(\ell_{t-2w+1},\dots,\ell_{t-w}),
+\]</div>
+<p>and stop as soon as <span class="arithmatex">\(g_t &lt;\)</span> <code>--ptt-validation-min-gain</code> (0). The Pearson target is then reported but does not stop the run.</p>
+<p><strong>Counters.</strong></p>
+<table>
+<thead>
+<tr>
+<th>Counter</th>
+<th>Counts</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>gradient_steps</code></td>
+<td>Accepted parameter updates</td>
+</tr>
+<tr>
+<td><code>structure_steps</code></td>
+<td>Committed graph changes (activation blocks, decimation steps)</td>
+</tr>
+<tr>
+<td><code>steps_on_graph</code></td>
+<td>Position of an eaDCA update within its block</td>
+</tr>
+<tr>
+<td><code>sweeps</code></td>
+<td>All local sweeps per chain, including mixing checks, reservoir collection, pauses, failed updates and recovery. Cumulative across rollbacks, so it can rise while <code>step</code> stands still</td>
+</tr>
+</tbody>
+</table>
+<p><code>--nepochs</code> counts gradient steps for bmDCA and PTT edgeDCA, structure steps for eaDCA and edDCA. <code>--max-gradient-steps</code> and <code>--max-structure-steps</code> are unambiguous.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

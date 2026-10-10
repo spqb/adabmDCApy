@@ -1,0 +1,2412 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>adabmDCA.training control - adabmDCA 2.1</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#module-adabmdcatraining_control" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="adabmDCA 2.1" class="md-header__button md-logo" aria-label="adabmDCA 2.1" data-md-component="logo">
+      
+  <img src="../../assets/images/logo-header.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            adabmDCA 2.1
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              adabmDCA.training control
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="adabmDCA 2.1" class="md-nav__button md-logo" aria-label="adabmDCA 2.1" data-md-component="logo">
+      
+  <img src="../../assets/images/logo-header.png" alt="logo">
+
+    </a>
+    adabmDCA 2.1
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Use the package
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Use the package
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/choosing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Choosing settings
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/preprocess/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Prepare alignments · preprocess
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/split-data/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Split an alignment · split-data
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/train/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Train models · train
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/sample/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Generate sequences · sample
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/energies/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Score sequences · energies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/dms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mutation scan · dms
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/contacts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contact prediction · contacts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/entropy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Entropy · entropy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/reintegrate/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Experimental feedback · reintegrate
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/plot-training-log/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plot a run · plot-training-log
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/python/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python workflows
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How it works
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    How it works
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../algorithms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../algorithms/input/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Input and reweighting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../algorithms/training/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Training
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../algorithms/sampling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sampling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../algorithms/diagnostics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Diagnose a run
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../algorithms/analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../algorithms/benchmarks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Benchmarks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../algorithms/numba-swaps/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CPU PTT swap fusion
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Theory and definitions
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Theory and definitions
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quantities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quantities/model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Potts model and statistics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quantities/training/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Training quantities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quantities/sampling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sampling quantities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quantities/derived/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Normalization, scoring and importance weights
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python API
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Python API
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../symbols/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Symbols
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adabmDCA.api.training/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Training
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adabmDCA.api.sampling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sampling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adabmDCA.api.ptt/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PTT workflows
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adabmDCA.api.model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Models
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adabmDCA.api.results/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Results
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adabmDCA.ptt.config/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PTT configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adabmDCA.ptt.sampler/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PTT sampler
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adabmDCA.steering/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Steering
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adabmDCA.api.scoring/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scoring
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adabmDCA.api.contacts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contacts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adabmDCA.api.mutations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mutations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adabmDCA.api.entropy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Entropy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adabmDCA.api.reintegration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reintegration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adabmDCA.api.splitting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Splitting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adabmDCA.input_loading/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Input loading
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adabmDCA.training_config/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Training configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#global-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Global Variables
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#class-stopreason" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        class StopReason
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#class-trainingcancelled" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        class TrainingCancelled
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#class-traininglimits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        class TrainingLimits
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="class TrainingLimits">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#method-__init__" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        method __init__
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#class-trainingcounters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        class TrainingCounters
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="class TrainingCounters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#method-__init___1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        method __init__
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#class-trainingmetrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        class TrainingMetrics
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="class TrainingMetrics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#method-__init___2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        method __init__
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#method-as_record" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        method as_record
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#class-checkpointstore" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        class CheckpointStore
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="class CheckpointStore">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#method-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        method check
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#method-log" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        method log
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#method-save" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        method save
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#class-stageprogress" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        class StageProgress
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="class StageProgress">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#method-__init___3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        method __init__
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#class-trainingcontroller" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        class TrainingController
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="class TrainingController">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#method-__init___4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        method __init__
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#method-add_gradient_steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        method add_gradient_steps
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#method-add_structure_step" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        method add_structure_step
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#method-begin_stage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        method begin_stage
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#method-check_cancellation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        method check_cancellation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#method-finalize" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        method finalize
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#method-gradient_limit_reached" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        method gradient_limit_reached
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#method-history_changed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        method history_changed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#method-record" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        method record
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#method-remaining_gradient_steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        method remaining_gradient_steps
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#method-report_stage_event" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        method report_stage_event
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#method-report_stage_progress" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        method report_stage_progress
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#method-save_snapshot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        method save_snapshot
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#method-set_stop_reason" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        method set_stop_reason
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#method-structure_limit_reached" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        method structure_limit_reached
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<!-- markdownlint-disable -->
+
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training_control.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h1 id="module-adabmdcatraining_control"><kbd>module</kbd> <code>adabmDCA.training_control</code></h1>
+<p>Shared lifecycle primitives for DCA training routines.</p>
+<p>The numerical algorithms live in :mod:<code>adabmDCA.training</code>.  This module owns the algorithm-independent parts of a run: counters, limits, history, progress reporting, cancellation, and checkpoint scheduling.</p>
+<h2 id="global-variables"><strong>Global Variables</strong></h2>
+<ul>
+<li><strong>HISTORY_KEYS</strong></li>
+</ul>
+<hr />
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training_control.py#L29"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h2 id="class-stopreason"><kbd>class</kbd> <code>StopReason</code></h2>
+<p>Reason why a training strategy stopped.</p>
+<hr />
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training_control.py#L41"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h2 id="class-trainingcancelled"><kbd>class</kbd> <code>TrainingCancelled</code></h2>
+<p>Internal cancellation signal raised by the shared controller.</p>
+<hr />
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training_control.py#L45"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h2 id="class-traininglimits"><kbd>class</kbd> <code>TrainingLimits</code></h2>
+<p>Step budgets of a training run; <code>None</code> means no limit.</p>
+<p><strong>Attributes:</strong></p>
+<ul>
+<li><b><code>max_gradient_steps</code></b>:  Largest number of accepted parameter updates.</li>
+<li><b><code>max_structure_steps</code></b>:  Largest number of graph activations or decimations.</li>
+</ul>
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/\<string>"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h3 id="method-__init__"><kbd>method</kbd> <code>__init__</code></h3>
+<div class="highlight"><pre><span></span><code><span class="fm">__init__</span><span class="p">(</span>
+    <span class="n">max_gradient_steps</span><span class="p">:</span> <span class="s1">'int | None'</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">max_structure_steps</span><span class="p">:</span> <span class="s1">'int | None'</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="err">→</span> <span class="kc">None</span>
+</code></pre></div>
+<hr />
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training_control.py#L66"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h2 id="class-trainingcounters"><kbd>class</kbd> <code>TrainingCounters</code></h2>
+<p>Progress counters of a training run.</p>
+<p><strong>Attributes:</strong></p>
+<ul>
+<li><b><code>gradient_steps</code></b>:  Accepted parameter updates.</li>
+<li><b><code>structure_steps</code></b>:  Graph activations or decimations.</li>
+<li><b><code>sweeps</code></b>:  Monte Carlo sweeps performed, including diagnostics.</li>
+<li><b><code>stage</code></b>:  Current training phase.</li>
+</ul>
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/\<string>"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h3 id="method-__init___1"><kbd>method</kbd> <code>__init__</code></h3>
+<div class="highlight"><pre><span></span><code><span class="fm">__init__</span><span class="p">(</span>
+    <span class="n">gradient_steps</span><span class="p">:</span> <span class="s1">'int'</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="n">structure_steps</span><span class="p">:</span> <span class="s1">'int'</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="n">sweeps</span><span class="p">:</span> <span class="s1">'int'</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="n">stage</span><span class="p">:</span> <span class="s1">'str'</span> <span class="o">=</span> <span class="s1">'optimization'</span>
+<span class="p">)</span> <span class="err">→</span> <span class="kc">None</span>
+</code></pre></div>
+<hr />
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training_control.py#L83"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h2 id="class-trainingmetrics"><kbd>class</kbd> <code>TrainingMetrics</code></h2>
+<p>Common metrics emitted after a meaningful training step.</p>
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/\<string>"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h3 id="method-__init___2"><kbd>method</kbd> <code>__init__</code></h3>
+<div class="highlight"><pre><span></span><code><span class="fm">__init__</span><span class="p">(</span>
+    <span class="n">pearson</span><span class="p">:</span> <span class="s1">'Any'</span><span class="p">,</span>
+    <span class="n">slope</span><span class="p">:</span> <span class="s1">'Any'</span><span class="p">,</span>
+    <span class="n">pearson_val</span><span class="p">:</span> <span class="s1">'Any'</span><span class="p">,</span>
+    <span class="n">slope_val</span><span class="p">:</span> <span class="s1">'Any'</span><span class="p">,</span>
+    <span class="n">density</span><span class="p">:</span> <span class="s1">'Any'</span><span class="p">,</span>
+    <span class="n">elapsed_time</span><span class="p">:</span> <span class="s1">'float'</span><span class="p">,</span>
+    <span class="n">ll_train</span><span class="p">:</span> <span class="s1">'Any'</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">ll_val</span><span class="p">:</span> <span class="s1">'Any'</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">entropy</span><span class="p">:</span> <span class="s1">'Any'</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">extra</span><span class="p">:</span> <span class="s1">'dict[str, Any]'</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">factory</span><span class="o">&gt;</span>
+<span class="p">)</span> <span class="err">→</span> <span class="kc">None</span>
+</code></pre></div>
+<hr />
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training_control.py#L98"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h3 id="method-as_record"><kbd>method</kbd> <code>as_record</code></h3>
+<div class="highlight"><pre><span></span><code><span class="n">as_record</span><span class="p">(</span><span class="n">epoch</span><span class="p">:</span> <span class="s1">'int'</span><span class="p">)</span> <span class="err">→</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+</code></pre></div>
+<hr />
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training_control.py#L117"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h2 id="class-checkpointstore"><kbd>class</kbd> <code>CheckpointStore</code></h2>
+<p>Persistence interface used by the training controller.</p>
+<hr />
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training_control.py#L122"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h3 id="method-check"><kbd>method</kbd> <code>check</code></h3>
+<div class="highlight"><pre><span></span><code><span class="n">check</span><span class="p">(</span><span class="n">updates</span><span class="p">:</span> <span class="s1">'int'</span><span class="p">)</span> <span class="err">→</span> <span class="nb">bool</span>
+</code></pre></div>
+<hr />
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training_control.py#L120"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h3 id="method-log"><kbd>method</kbd> <code>log</code></h3>
+<div class="highlight"><pre><span></span><code><span class="n">log</span><span class="p">(</span><span class="n">record</span><span class="p">:</span> <span class="s1">'dict[str, Any]'</span><span class="p">)</span> <span class="err">→</span> <span class="kc">None</span>
+</code></pre></div>
+<hr />
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training_control.py#L124"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h3 id="method-save"><kbd>method</kbd> <code>save</code></h3>
+<div class="highlight"><pre><span></span><code><span class="n">save</span><span class="p">(</span><span class="o">**</span><span class="n">snapshot</span><span class="p">:</span> <span class="s1">'Any'</span><span class="p">)</span> <span class="err">→</span> <span class="kc">None</span>
+</code></pre></div>
+<hr />
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training_control.py#L131"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h2 id="class-stageprogress"><kbd>class</kbd> <code>StageProgress</code></h2>
+<p>Transient stage update; separate from committed metric records.</p>
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/\<string>"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h3 id="method-__init___3"><kbd>method</kbd> <code>__init__</code></h3>
+<div class="highlight"><pre><span></span><code><span class="fm">__init__</span><span class="p">(</span>
+    <span class="n">stage</span><span class="p">:</span> <span class="s1">'str'</span><span class="p">,</span>
+    <span class="n">kind</span><span class="p">:</span> <span class="s1">'str'</span><span class="p">,</span>
+    <span class="n">gradient_steps</span><span class="p">:</span> <span class="s1">'int'</span><span class="p">,</span>
+    <span class="n">current</span><span class="p">:</span> <span class="s1">'int | None'</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">total</span><span class="p">:</span> <span class="s1">'int | None'</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">details</span><span class="p">:</span> <span class="s1">'dict[str, Any]'</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">factory</span><span class="o">&gt;</span>
+<span class="p">)</span> <span class="err">→</span> <span class="kc">None</span>
+</code></pre></div>
+<hr />
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training_control.py#L146"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h2 id="class-trainingcontroller"><kbd>class</kbd> <code>TrainingController</code></h2>
+<p>Coordinate one training run without owning its numerical updates.</p>
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training_control.py#L149"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h3 id="method-__init___4"><kbd>method</kbd> <code>__init__</code></h3>
+<div class="highlight"><pre><span></span><code><span class="fm">__init__</span><span class="p">(</span>
+    <span class="n">limits</span><span class="p">:</span> <span class="s1">'TrainingLimits | None'</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">checkpoint</span><span class="p">:</span> <span class="s1">'CheckpointStore | None'</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">observer</span><span class="p">:</span> <span class="s1">'RecordObserver | None'</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">stage_observer</span><span class="p">:</span> <span class="s1">'StageObserver | None'</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">is_cancelled</span><span class="p">:</span> <span class="s1">'CancellationHook | None'</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="err">→</span> <span class="kc">None</span>
+</code></pre></div>
+<hr />
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training_control.py#L176"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h3 id="method-add_gradient_steps"><kbd>method</kbd> <code>add_gradient_steps</code></h3>
+<div class="highlight"><pre><span></span><code><span class="n">add_gradient_steps</span><span class="p">(</span><span class="n">count</span><span class="p">:</span> <span class="s1">'int'</span><span class="p">,</span> <span class="n">sweeps_per_step</span><span class="p">:</span> <span class="s1">'int'</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="err">→</span> <span class="kc">None</span>
+</code></pre></div>
+<hr />
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training_control.py#L180"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h3 id="method-add_structure_step"><kbd>method</kbd> <code>add_structure_step</code></h3>
+<div class="highlight"><pre><span></span><code><span class="n">add_structure_step</span><span class="p">(</span><span class="n">sweeps</span><span class="p">:</span> <span class="s1">'int'</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="err">→</span> <span class="kc">None</span>
+</code></pre></div>
+<hr />
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training_control.py#L184"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h3 id="method-begin_stage"><kbd>method</kbd> <code>begin_stage</code></h3>
+<div class="highlight"><pre><span></span><code><span class="n">begin_stage</span><span class="p">(</span><span class="n">stage</span><span class="p">:</span> <span class="s1">'str'</span><span class="p">,</span> <span class="o">**</span><span class="n">metadata</span><span class="p">:</span> <span class="s1">'Any'</span><span class="p">)</span> <span class="err">→</span> <span class="kc">None</span>
+</code></pre></div>
+<p>Publish a phase change without coupling algorithms to a renderer.</p>
+<hr />
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training_control.py#L171"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h3 id="method-check_cancellation"><kbd>method</kbd> <code>check_cancellation</code></h3>
+<div class="highlight"><pre><span></span><code><span class="n">check_cancellation</span><span class="p">()</span> <span class="err">→</span> <span class="kc">None</span>
+</code></pre></div>
+<hr />
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training_control.py#L275"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h3 id="method-finalize"><kbd>method</kbd> <code>finalize</code></h3>
+<div class="highlight"><pre><span></span><code><span class="n">finalize</span><span class="p">(</span><span class="n">snapshot</span><span class="p">:</span> <span class="s1">'Mapping[str, Any] | None'</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="err">→</span> <span class="kc">None</span>
+</code></pre></div>
+<p>Persist the final state once, without duplicating a history row.</p>
+<hr />
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training_control.py#L228"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h3 id="method-gradient_limit_reached"><kbd>method</kbd> <code>gradient_limit_reached</code></h3>
+<div class="highlight"><pre><span></span><code><span class="n">gradient_limit_reached</span><span class="p">()</span> <span class="err">→</span> <span class="nb">bool</span>
+</code></pre></div>
+<hr />
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training_control.py#L269"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h3 id="method-history_changed"><kbd>method</kbd> <code>history_changed</code></h3>
+<div class="highlight"><pre><span></span><code><span class="n">history_changed</span><span class="p">()</span> <span class="err">→</span> <span class="kc">None</span>
+</code></pre></div>
+<p>Propagate a retroactive history change (resume, rollback) to the saved history.</p>
+<hr />
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training_control.py#L236"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h3 id="method-record"><kbd>method</kbd> <code>record</code></h3>
+<div class="highlight"><pre><span></span><code><span class="n">record</span><span class="p">(</span>
+    <span class="n">metrics</span><span class="p">:</span> <span class="s1">'TrainingMetrics'</span><span class="p">,</span>
+    <span class="n">epoch</span><span class="p">:</span> <span class="s1">'int'</span><span class="p">,</span>
+    <span class="n">snapshot</span><span class="p">:</span> <span class="s1">'Mapping[str, Any] | None'</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="err">→</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+</code></pre></div>
+<p>Append and publish exactly one metrics record.</p>
+<hr />
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training_control.py#L222"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h3 id="method-remaining_gradient_steps"><kbd>method</kbd> <code>remaining_gradient_steps</code></h3>
+<div class="highlight"><pre><span></span><code><span class="n">remaining_gradient_steps</span><span class="p">()</span> <span class="err">→</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span>
+</code></pre></div>
+<hr />
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training_control.py#L200"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h3 id="method-report_stage_event"><kbd>method</kbd> <code>report_stage_event</code></h3>
+<div class="highlight"><pre><span></span><code><span class="n">report_stage_event</span><span class="p">(</span><span class="n">stage</span><span class="p">:</span> <span class="s1">'str'</span><span class="p">,</span> <span class="o">**</span><span class="n">details</span><span class="p">:</span> <span class="s1">'Any'</span><span class="p">)</span> <span class="err">→</span> <span class="kc">None</span>
+</code></pre></div>
+<hr />
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training_control.py#L194"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h3 id="method-report_stage_progress"><kbd>method</kbd> <code>report_stage_progress</code></h3>
+<div class="highlight"><pre><span></span><code><span class="n">report_stage_progress</span><span class="p">(</span>
+    <span class="n">stage</span><span class="p">:</span> <span class="s1">'str'</span><span class="p">,</span>
+    <span class="n">current</span><span class="p">:</span> <span class="s1">'int'</span><span class="p">,</span>
+    <span class="n">total</span><span class="p">:</span> <span class="s1">'int'</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">details</span><span class="p">:</span> <span class="s1">'Any'</span>
+<span class="p">)</span> <span class="err">→</span> <span class="kc">None</span>
+</code></pre></div>
+<p>Report completed work without modifying log rows or counters.</p>
+<hr />
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training_control.py#L204"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h3 id="method-save_snapshot"><kbd>method</kbd> <code>save_snapshot</code></h3>
+<div class="highlight"><pre><span></span><code><span class="n">save_snapshot</span><span class="p">(</span><span class="n">snapshot</span><span class="p">:</span> <span class="s1">'Mapping[str, Any]'</span><span class="p">)</span> <span class="err">→</span> <span class="kc">None</span>
+</code></pre></div>
+<p>Persist an explicit phase-boundary snapshot when configured.</p>
+<hr />
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training_control.py#L284"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h3 id="method-set_stop_reason"><kbd>method</kbd> <code>set_stop_reason</code></h3>
+<div class="highlight"><pre><span></span><code><span class="n">set_stop_reason</span><span class="p">(</span><span class="n">reason</span><span class="p">:</span> <span class="s1">'StopReason'</span><span class="p">)</span> <span class="err">→</span> <span class="n">StopReason</span>
+</code></pre></div>
+<hr />
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training_control.py#L232"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h3 id="method-structure_limit_reached"><kbd>method</kbd> <code>structure_limit_reached</code></h3>
+<div class="highlight"><pre><span></span><code><span class="n">structure_limit_reached</span><span class="p">()</span> <span class="err">→</span> <span class="nb">bool</span>
+</code></pre></div>
+<hr />
+<p><em>This file was automatically generated via <a href="https://github.com/ml-tooling/lazydocs">lazydocs</a>.</em></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

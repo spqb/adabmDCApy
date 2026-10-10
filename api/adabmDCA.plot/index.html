@@ -1,0 +1,2178 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>adabmDCA.plot - adabmDCA 2.1</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#module-adabmdcaplot" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="adabmDCA 2.1" class="md-header__button md-logo" aria-label="adabmDCA 2.1" data-md-component="logo">
+      
+  <img src="../../assets/images/logo-header.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            adabmDCA 2.1
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              adabmDCA.plot
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="adabmDCA 2.1" class="md-nav__button md-logo" aria-label="adabmDCA 2.1" data-md-component="logo">
+      
+  <img src="../../assets/images/logo-header.png" alt="logo">
+
+    </a>
+    adabmDCA 2.1
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Use the package
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Use the package
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/choosing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Choosing settings
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/preprocess/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Prepare alignments · preprocess
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/split-data/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Split an alignment · split-data
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/train/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Train models · train
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/sample/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Generate sequences · sample
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/energies/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Score sequences · energies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/dms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mutation scan · dms
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/contacts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contact prediction · contacts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/entropy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Entropy · entropy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/reintegrate/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Experimental feedback · reintegrate
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/plot-training-log/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plot a run · plot-training-log
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/python/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python workflows
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How it works
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    How it works
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../algorithms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../algorithms/input/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Input and reweighting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../algorithms/training/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Training
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../algorithms/sampling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sampling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../algorithms/diagnostics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Diagnose a run
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../algorithms/analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../algorithms/benchmarks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Benchmarks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../algorithms/numba-swaps/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CPU PTT swap fusion
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Theory and definitions
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Theory and definitions
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quantities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quantities/model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Potts model and statistics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quantities/training/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Training quantities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quantities/sampling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sampling quantities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quantities/derived/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Normalization, scoring and importance weights
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python API
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Python API
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../symbols/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Symbols
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adabmDCA.api.training/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Training
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adabmDCA.api.sampling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sampling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adabmDCA.api.ptt/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PTT workflows
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adabmDCA.api.model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Models
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adabmDCA.api.results/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Results
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adabmDCA.ptt.config/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PTT configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adabmDCA.ptt.sampler/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PTT sampler
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adabmDCA.steering/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Steering
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adabmDCA.api.scoring/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scoring
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adabmDCA.api.contacts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contacts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adabmDCA.api.mutations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mutations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adabmDCA.api.entropy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Entropy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adabmDCA.api.reintegration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reintegration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adabmDCA.api.splitting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Splitting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adabmDCA.input_loading/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Input loading
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adabmDCA.training_config/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Training configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#function-plot_pca" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function plot_PCA
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#function-plot_pearson_sampling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function plot_pearson_sampling
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#function-plot_autocorrelation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function plot_autocorrelation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#function-plot_ptt_autocorrelation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function plot_ptt_autocorrelation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#function-plot_ptt_renewal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function plot_ptt_renewal
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#function-plot_ptt_ladder_health" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function plot_ptt_ladder_health
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#function-plot_distance_comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function plot_distance_comparison
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#function-plot_privet" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function plot_privet
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#function-plot_data_comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function plot_data_comparison
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#function-plot_energy_cde_scatter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function plot_energy_cde_scatter
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#function-plot_cij_scatter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function plot_cij_scatter
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#function-plot_scatter_correlations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function plot_scatter_correlations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#function-plot_contact_map" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function plot_contact_map
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<!-- markdownlint-disable -->
+
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/plot.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h1 id="module-adabmdcaplot"><kbd>module</kbd> <code>adabmDCA.plot</code></h1>
+<hr />
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/plot.py#L114"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h2 id="function-plot_pca"><kbd>function</kbd> <code>plot_PCA</code></h2>
+<div class="highlight"><pre><span></span><code><span class="n">plot_PCA</span><span class="p">(</span>
+    <span class="n">fig</span><span class="p">:</span> <span class="n">Figure</span><span class="p">,</span>
+    <span class="n">data1</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">pc1</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="n">pc2</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="n">data2</span><span class="p">:</span> <span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">labels</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">'Natural'</span><span class="p">,</span>
+    <span class="n">colors</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">'#31688E'</span><span class="p">,</span>
+    <span class="n">title</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">explained_variance_ratio</span><span class="p">:</span> <span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="err">→</span> <span class="n">Figure</span>
+</code></pre></div>
+<p>Makes the scatter plot of the components (pc1, pc2) of the input data and shows the histograms of the components.</p>
+<p><strong>Args:</strong></p>
+<ul>
+<li><b><code>fig</code></b> (Figure):  Figure to plot the data.</li>
+<li><b><code>data1</code></b> (np.ndarray):  Data to plot.</li>
+<li><b><code>pc1</code></b> (int, optional):  First principal direction. Defaults to 0.</li>
+<li><b><code>pc2</code></b> (int, optional):  Second principal direction. Defaults to 1.</li>
+<li><b><code>data2</code></b> (Optional[np.ndarray], optional):  Data to be superimposed to data1. Defaults to None.</li>
+<li><b><code>labels</code></b> (Union[List[str], str], optional):  Labels to put in the legend. Defaults to "Data".</li>
+<li><b><code>colors</code></b> (Union[List[str], str], optional):  Colors to be used. Defaults to "black".</li>
+<li><b><code>title</code></b> (Optional[str], optional):  Title of the plot. Defaults to None.</li>
+</ul>
+<p><strong>Returns:</strong></p>
+<ul>
+<li><b><code>Figure</code></b>:  Updated figure.</li>
+</ul>
+<hr />
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/plot.py#L209"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h2 id="function-plot_pearson_sampling"><kbd>function</kbd> <code>plot_pearson_sampling</code></h2>
+<div class="highlight"><pre><span></span><code><span class="n">plot_pearson_sampling</span><span class="p">(</span>
+    <span class="n">ax</span><span class="p">:</span> <span class="n">Axes</span><span class="p">,</span>
+    <span class="n">checkpoints</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">pearsons</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">pearson_training</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="err">→</span> <span class="n">Axes</span>
+</code></pre></div>
+<p>Plots the Pearson correlation coefficient over sampling time.</p>
+<p><strong>Args:</strong></p>
+<ul>
+<li><b><code>ax</code></b> (Axes):  Axes to plot the data.</li>
+<li><b><code>checkpoints</code></b> (np.ndarray):  Checkpoints of the sampling.</li>
+<li><b><code>pearsons</code></b> (np.ndarray):  Pearson correlation coefficients at different checkpoints.</li>
+<li><b><code>pearson_training</code></b> (Optional[float], optional):  Pearson correlation coefficient obtained during training. Defaults to None.</li>
+</ul>
+<p><strong>Returns:</strong></p>
+<ul>
+<li><b><code>Axes</code></b>:  Updated axes.</li>
+</ul>
+<hr />
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/plot.py#L273"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h2 id="function-plot_autocorrelation"><kbd>function</kbd> <code>plot_autocorrelation</code></h2>
+<div class="highlight"><pre><span></span><code><span class="n">plot_autocorrelation</span><span class="p">(</span>
+    <span class="n">ax</span><span class="p">:</span> <span class="n">Axes</span><span class="p">,</span>
+    <span class="n">checkpoints</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">autocorr</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">gen_seqid</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">data_seqid</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">autocorr_std</span><span class="p">:</span> <span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">independent_std</span><span class="p">:</span> <span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="err">→</span> <span class="n">Axes</span>
+</code></pre></div>
+<p>Plots the time-autocorrelation curve of the sequence identity and the generated and data sequence identities.</p>
+<p><strong>Args:</strong></p>
+<ul>
+<li><b><code>ax</code></b> (Axes):  Axes to plot the data.</li>
+<li><b><code>checkpoints</code></b> (np.ndarray):  Checkpoints of the sampling.</li>
+<li><b><code>autocorr</code></b> (np.ndarray):  Time-autocorrelation of the sequence identity.</li>
+<li><b><code>gen_seqid</code></b> (float or np.ndarray):  Independent-chain sequence identity, either as a level or a curve.</li>
+<li><b><code>data_seqid</code></b> (float, optional):  Reference-data sequence identity level.</li>
+<li><b><code>autocorr_std</code></b> (np.ndarray, optional):  Uncertainty of the autocorrelation curve.</li>
+<li><b><code>independent_std</code></b> (np.ndarray, optional):  Uncertainty of the independent-chain curve.</li>
+</ul>
+<p><strong>Returns:</strong></p>
+<ul>
+<li><b><code>Axes</code></b>:  Updated axes.</li>
+</ul>
+<hr />
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/plot.py#L390"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h2 id="function-plot_ptt_autocorrelation"><kbd>function</kbd> <code>plot_ptt_autocorrelation</code></h2>
+<div class="highlight"><pre><span></span><code><span class="n">plot_ptt_autocorrelation</span><span class="p">(</span>
+    <span class="n">ax</span><span class="p">:</span> <span class="n">Axes</span><span class="p">,</span>
+    <span class="n">correlation</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">tau_int</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">tau_exp</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="err">→</span> <span class="n">Axes</span>
+</code></pre></div>
+<p>Plot replica-index autocorrelation and the two PTT time estimates.</p>
+<hr />
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/plot.py#L434"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h2 id="function-plot_ptt_renewal"><kbd>function</kbd> <code>plot_ptt_renewal</code></h2>
+<div class="highlight"><pre><span></span><code><span class="n">plot_ptt_renewal</span><span class="p">(</span>
+    <span class="n">figure</span><span class="p">:</span> <span class="n">Figure</span><span class="p">,</span>
+    <span class="n">history</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">ndarray</span><span class="p">],</span>
+    <span class="n">tolerance</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">n_models</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">warmup_rounds</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">renewal_rounds</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">chunk_rounds</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="n">stationary</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="p">)</span> <span class="err">→</span> <span class="n">Figure</span>
+</code></pre></div>
+<p>Plot PTT population renewal for the warmup and, if it ran, the stationary phase.</p>
+<p><code>history</code> holds per-round <code>{phase}_ladder_old</code> (G, fraction of all ladder configurations born before the phase reference) and <code>{phase}_endpoint_fresh</code> (F, fraction of endpoint configurations born after it) for <code>phase</code> in <code>warmup</code> and <code>stationary</code>. The top row shows G and F; the bottom row shows the old fractions G and 1 - F on a logarithmic scale with the stopping thresholds, and the exponential fit of G over the recent half of each phase (see <code>renewal_forecast</code>). Renewal is decided by G reaching <code>tolerance / n_models</code>; the endpoint fraction 1 - F can rise again when old configurations climb back up the ladder.</p>
+<hr />
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/plot.py#L524"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h2 id="function-plot_ptt_ladder_health"><kbd>function</kbd> <code>plot_ptt_ladder_health</code></h2>
+<div class="highlight"><pre><span></span><code><span class="n">plot_ptt_ladder_health</span><span class="p">(</span>
+    <span class="n">figure</span><span class="p">:</span> <span class="n">Figure</span><span class="p">,</span>
+    <span class="n">health</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+    <span class="n">mixing</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="err">→</span> <span class="n">Figure</span>
+</code></pre></div>
+<p>Plot how configurations move through a PTT ladder.</p>
+<p>Panels:</p>
+<ul>
+<li>swap acceptance per link: the mean and the median, 10% and 1% quantiles  of the per-configuration acceptance against random partners, for upper  configurations moving down and lower ones moving up. The ladder is built  so that means sit near the 0.25 target; low quantiles reveal  configurations that rarely cross;</li>
+<li>trapped configurations per link: mean age of the configurations that  practically cannot move down (swap probability below the immobility  threshold) divided by that of the others. Near 1, immobility is  transient; well above 1, configurations stay stuck above that link;</li>
+<li>configuration ages per replica: median and 99th percentile of the rounds  since birth at the bottom; an old tail that starts at one replica marks  a bottleneck below it;</li>
+<li>flow: the fraction of configurations at each replica that reached the top  since birth. With free diffusion it rises smoothly from 0 at the bottom  to 1 at the top; a step marks a bottleneck.</li>
+</ul>
+<p>Free energies, effective sample sizes and Crooks slopes are in the log only.</p>
+<hr />
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/plot.py#L650"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h2 id="function-plot_distance_comparison"><kbd>function</kbd> <code>plot_distance_comparison</code></h2>
+<div class="highlight"><pre><span></span><code><span class="n">plot_distance_comparison</span><span class="p">(</span><span class="n">figure</span><span class="p">:</span> <span class="n">Figure</span><span class="p">,</span> <span class="n">distances</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="err">→</span> <span class="n">Figure</span>
+</code></pre></div>
+<p>Hamming distances within and between natural and generated sequences.</p>
+<p>Left: all-pair distance distributions within the training sequences, within the samples, and between the two; matching curves mean the samples reproduce the family's diversity. Right: nearest-neighbour distances. A model that copies its training set puts generated -&gt; training below training -&gt; training and, with a held-out set, below held-out -&gt; training, the distance at which unseen members of the family sit; generated -&gt; generated near zero means the samples collapse onto few sequences. Natural sequences carry their reweighting weights.</p>
+<hr />
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/plot.py#L716"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h2 id="function-plot_privet"><kbd>function</kbd> <code>plot_privet</code></h2>
+<div class="highlight"><pre><span></span><code><span class="n">plot_privet</span><span class="p">(</span><span class="n">figure</span><span class="p">:</span> <span class="n">Figure</span><span class="p">,</span> <span class="n">privet</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="err">→</span> <span class="n">Figure</span>
+</code></pre></div>
+<p>PRIVET: the null law, the excess of samples near the training set, and per-sample scores.</p>
+<p>Left: cumulative distribution of the (reweighted) training sequences' distances to their nearest other training sequence (steps) and the fitted extreme-value law (line), on a log scale to show the lower tail; the band is the fitted window. Middle: the same law against the distances of the generated and held-out sequences to their nearest training sequence; a generated curve above the null at small distances is an excess of sequences close to the training set, scored in the title (most improbable group, log10 probability under the null). Right: per sample, <code>log10 p_train</code> against <code>log10 p_test</code>; flagged samples lie below the dashed line <code>delta_p = threshold</code>.</p>
+<hr />
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/plot.py#L802"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h2 id="function-plot_data_comparison"><kbd>function</kbd> <code>plot_data_comparison</code></h2>
+<div class="highlight"><pre><span></span><code><span class="n">plot_data_comparison</span><span class="p">(</span>
+    <span class="n">figure</span><span class="p">:</span> <span class="n">Figure</span><span class="p">,</span>
+    <span class="n">comparison</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+    <span class="n">pca_reference</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">pca_generated</span><span class="o">=</span><span class="kc">None</span>
+<span class="p">)</span> <span class="err">→</span> <span class="n">Figure</span>
+</code></pre></div>
+<p>Compare samples with the data: clusters of the data and energy distributions.</p>
+<p>Panels: the data on its first two principal components, coloured by cluster (k-means on the principal components of the PCA plots); the share of data and samples in each cluster; and the energy distributions of data and samples under the model. A cluster whose share differs is a region the model, or its sampling, over- or under-weights. Training sequences have lower energies than samples of a fitted model, so a shift of the energy distributions is expected; their shapes, and held-out sequences, are what to compare.</p>
+<hr />
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/plot.py#L868"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h2 id="function-plot_energy_cde_scatter"><kbd>function</kbd> <code>plot_energy_cde_scatter</code></h2>
+<div class="highlight"><pre><span></span><code><span class="n">plot_energy_cde_scatter</span><span class="p">(</span>
+    <span class="n">ax</span><span class="p">:</span> <span class="n">Axes</span><span class="p">,</span>
+    <span class="n">cde_sum</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">energies</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">fit</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="err">→</span> <span class="n">Axes</span>
+</code></pre></div>
+<p>Plot sequence energies against summed CDE and their fitted line.</p>
+<hr />
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/plot.py#L912"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h2 id="function-plot_cij_scatter"><kbd>function</kbd> <code>plot_cij_scatter</code></h2>
+<div class="highlight"><pre><span></span><code><span class="n">plot_cij_scatter</span><span class="p">(</span>
+    <span class="n">ax</span><span class="p">:</span> <span class="n">Axes</span><span class="p">,</span>
+    <span class="n">Cij_data</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">Cij_gen</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">pearson</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="err">→</span> <span class="n">Axes</span>
+</code></pre></div>
+<p>Plot reference versus generated connected two-site correlations.</p>
+<hr />
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/plot.py#L982"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h2 id="function-plot_scatter_correlations"><kbd>function</kbd> <code>plot_scatter_correlations</code></h2>
+<div class="highlight"><pre><span></span><code><span class="n">plot_scatter_correlations</span><span class="p">(</span>
+    <span class="n">ax</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Axes</span><span class="p">,</span> <span class="n">Axes</span><span class="p">],</span>
+    <span class="n">Cij_data</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">Cij_gen</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">Cijk_data</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">Cijk_gen</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">pearson_Cij</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">pearson_Cijk</span><span class="p">:</span> <span class="nb">float</span>
+<span class="p">)</span> <span class="err">→</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Axes</span><span class="p">,</span> <span class="n">Axes</span><span class="p">]</span>
+</code></pre></div>
+<p>Plots the scatter plot of the data and generated Cij and Cijk values.</p>
+<p><strong>Args:</strong></p>
+<ul>
+<li><b><code>ax</code></b> (Tuple[Axes, Axes]):  Tuple of 2 Axes to plot the data.</li>
+<li><b><code>Cij_data</code></b> (np.ndarray):  Data Cij values.</li>
+<li><b><code>Cij_gen</code></b> (np.ndarray):  Generated Cij values.</li>
+<li><b><code>Cijk_data</code></b> (np.ndarray):  Data Cijk values.</li>
+<li><b><code>Cijk_gen</code></b> (np.ndarray):  Generated Cijk values.</li>
+<li><b><code>pearson_Cij</code></b> (float):  Pearson correlation coefficient of Cij.</li>
+<li><b><code>pearson_Cijk</code></b> (float):  Pearson correlation coefficient of Cijk.</li>
+</ul>
+<p><strong>Returns:</strong></p>
+<ul>
+<li><b><code>Tuple[Axes, Axes]</code></b>:  Updated axes.</li>
+</ul>
+<hr />
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/plot.py#L1032"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h2 id="function-plot_contact_map"><kbd>function</kbd> <code>plot_contact_map</code></h2>
+<div class="highlight"><pre><span></span><code><span class="n">plot_contact_map</span><span class="p">(</span><span class="n">ax</span><span class="p">:</span> <span class="n">Axes</span><span class="p">,</span> <span class="n">cm</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span> <span class="n">title</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="err">→</span> <span class="n">Axes</span>
+</code></pre></div>
+<p>Plots the contact map.</p>
+<p><strong>Args:</strong></p>
+<ul>
+<li><b><code>ax</code></b> (Axes):  Axes to plot the contact map.</li>
+<li><b><code>cm</code></b> (np.ndarray):  Contact map to plot.</li>
+<li><b><code>title</code></b> (Optional[str], optional):  Title of the plot. Defaults to None.</li>
+</ul>
+<p><strong>Returns:</strong></p>
+<ul>
+<li><b><code>Axes</code></b>:  Updated axes.</li>
+</ul>
+<hr />
+<p><em>This file was automatically generated via <a href="https://github.com/ml-tooling/lazydocs">lazydocs</a>.</em></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

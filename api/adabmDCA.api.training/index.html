@@ -1,0 +1,2044 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../symbols/">
+      
+      
+        <link rel="next" href="../adabmDCA.api.sampling/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Training - adabmDCA 2.1</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#module-adabmdcaapitraining" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="adabmDCA 2.1" class="md-header__button md-logo" aria-label="adabmDCA 2.1" data-md-component="logo">
+      
+  <img src="../../assets/images/logo-header.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            adabmDCA 2.1
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Training
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="adabmDCA 2.1" class="md-nav__button md-logo" aria-label="adabmDCA 2.1" data-md-component="logo">
+      
+  <img src="../../assets/images/logo-header.png" alt="logo">
+
+    </a>
+    adabmDCA 2.1
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Use the package
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Use the package
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/choosing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Choosing settings
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/preprocess/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Prepare alignments · preprocess
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/split-data/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Split an alignment · split-data
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/train/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Train models · train
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/sample/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Generate sequences · sample
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/energies/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Score sequences · energies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/dms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mutation scan · dms
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/contacts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contact prediction · contacts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/entropy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Entropy · entropy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/reintegrate/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Experimental feedback · reintegrate
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/plot-training-log/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plot a run · plot-training-log
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/python/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python workflows
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How it works
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    How it works
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../algorithms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../algorithms/input/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Input and reweighting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../algorithms/training/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Training
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../algorithms/sampling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sampling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../algorithms/diagnostics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Diagnose a run
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../algorithms/analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../algorithms/benchmarks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Benchmarks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../algorithms/numba-swaps/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CPU PTT swap fusion
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Theory and definitions
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Theory and definitions
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quantities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quantities/model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Potts model and statistics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quantities/training/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Training quantities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quantities/sampling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sampling quantities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quantities/derived/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Normalization, scoring and importance weights
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python API
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Python API
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../symbols/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Symbols
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Training
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Training
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#global-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Global Variables
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#function-train_model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function train_model
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adabmDCA.api.sampling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sampling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adabmDCA.api.ptt/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PTT workflows
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adabmDCA.api.model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Models
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adabmDCA.api.results/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Results
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adabmDCA.ptt.config/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PTT configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adabmDCA.ptt.sampler/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PTT sampler
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adabmDCA.steering/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Steering
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adabmDCA.api.scoring/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scoring
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adabmDCA.api.contacts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contacts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adabmDCA.api.mutations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mutations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adabmDCA.api.entropy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Entropy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adabmDCA.api.reintegration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reintegration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adabmDCA.api.splitting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Splitting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adabmDCA.input_loading/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Input loading
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adabmDCA.training_config/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Training configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#global-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Global Variables
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#function-train_model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function train_model
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<!-- markdownlint-disable -->
+
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/training.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h1 id="module-adabmdcaapitraining"><kbd>module</kbd> <code>adabmDCA.api.training</code></h1>
+<p>High-level DCA training workflow.</p>
+<h2 id="global-variables"><strong>Global Variables</strong></h2>
+<ul>
+<li><strong>DEFAULT_ACTIVATION_FRACTION</strong></li>
+<li><strong>DEFAULT_ACTIVATION_STEPS</strong></li>
+<li><strong>DEFAULT_ALPHABET</strong></li>
+<li><strong>DEFAULT_CHECKPOINT_INTERVAL</strong></li>
+<li><strong>DEFAULT_CLUSTERING_SEQID</strong></li>
+<li><strong>DEFAULT_DECIMATION_RATE</strong></li>
+<li><strong>DEFAULT_DEVICE</strong></li>
+<li><strong>DEFAULT_DTYPE</strong></li>
+<li><strong>DEFAULT_L2_REGULARIZATION</strong></li>
+<li><strong>DEFAULT_LEARNING_RATE</strong></li>
+<li><strong>DEFAULT_MODEL_TYPE</strong></li>
+<li><strong>DEFAULT_SEED</strong></li>
+<li><strong>DEFAULT_TARGET_DENSITY</strong></li>
+<li><strong>DEFAULT_TARGET_PEARSON</strong></li>
+</ul>
+<hr />
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/training.py#L135"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h2 id="function-train_model"><kbd>function</kbd> <code>train_model</code></h2>
+<div class="highlight"><pre><span></span><code><span class="n">train_model</span><span class="p">(</span>
+    <span class="n">data_path</span><span class="p">:</span> <span class="s1">'AlignmentInput'</span><span class="p">,</span>
+    <span class="n">config</span><span class="p">:</span> <span class="s1">'TrainingConfig | None'</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">model_type</span><span class="p">:</span> <span class="s1">'str'</span> <span class="o">=</span> <span class="s1">'bmDCA'</span><span class="p">,</span>
+    <span class="n">ptt</span><span class="p">:</span> <span class="s1">'PTTConfig | None'</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">ptt_resume</span><span class="p">:</span> <span class="s1">'str | Path | None'</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">validation_path</span><span class="p">:</span> <span class="s1">'AlignmentInput | None'</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">weights_path</span><span class="p">:</span> <span class="s1">'WeightInput | None'</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">output_dir</span><span class="p">:</span> <span class="s1">'str | Path | None'</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">label</span><span class="p">:</span> <span class="s1">'str | None'</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">initial_params_path</span><span class="p">:</span> <span class="s1">'str | Path | None'</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">initial_chains_path</span><span class="p">:</span> <span class="s1">'str | Path | None'</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">alphabet</span><span class="p">:</span> <span class="s1">'str'</span> <span class="o">=</span> <span class="s1">'protein'</span><span class="p">,</span>
+    <span class="n">learning_rate</span><span class="p">:</span> <span class="s1">'float'</span> <span class="o">=</span> <span class="mf">0.01</span><span class="p">,</span>
+    <span class="n">n_sweeps</span><span class="p">:</span> <span class="s1">'int'</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
+    <span class="n">sampler</span><span class="p">:</span> <span class="s1">'str'</span> <span class="o">=</span> <span class="s1">'metropolized_gibbs'</span><span class="p">,</span>
+    <span class="n">n_chains</span><span class="p">:</span> <span class="s1">'int'</span> <span class="o">=</span> <span class="mi">2000</span><span class="p">,</span>
+    <span class="n">target_pearson</span><span class="p">:</span> <span class="s1">'float'</span> <span class="o">=</span> <span class="mf">0.95</span><span class="p">,</span>
+    <span class="n">max_epochs</span><span class="p">:</span> <span class="s1">'int'</span> <span class="o">=</span> <span class="mi">50000</span><span class="p">,</span>
+    <span class="n">max_gradient_steps</span><span class="p">:</span> <span class="s1">'int | None'</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">max_structure_steps</span><span class="p">:</span> <span class="s1">'int | None'</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">checkpoint_interval</span><span class="p">:</span> <span class="s1">'int | None'</span> <span class="o">=</span> <span class="mi">500</span><span class="p">,</span>
+    <span class="n">pseudocount</span><span class="p">:</span> <span class="s1">'float | None'</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">l2_regularization</span><span class="p">:</span> <span class="s1">'float'</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+    <span class="n">seed</span><span class="p">:</span> <span class="s1">'int'</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="n">clustering_seqid</span><span class="p">:</span> <span class="s1">'float'</span> <span class="o">=</span> <span class="mf">0.8</span><span class="p">,</span>
+    <span class="n">no_reweighting</span><span class="p">:</span> <span class="s1">'bool'</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">activation_steps</span><span class="p">:</span> <span class="s1">'int'</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
+    <span class="n">activation_fraction</span><span class="p">:</span> <span class="s1">'float'</span> <span class="o">=</span> <span class="mf">0.001</span><span class="p">,</span>
+    <span class="n">target_density</span><span class="p">:</span> <span class="s1">'float'</span> <span class="o">=</span> <span class="mf">0.02</span><span class="p">,</span>
+    <span class="n">decimation_rate</span><span class="p">:</span> <span class="s1">'float'</span> <span class="o">=</span> <span class="mf">0.01</span><span class="p">,</span>
+    <span class="n">device</span><span class="p">:</span> <span class="s1">'str'</span> <span class="o">=</span> <span class="s1">'auto'</span><span class="p">,</span>
+    <span class="n">dtype</span><span class="p">:</span> <span class="s1">'str'</span> <span class="o">=</span> <span class="s1">'float32'</span><span class="p">,</span>
+    <span class="n">use_wandb</span><span class="p">:</span> <span class="s1">'bool'</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">allow_signed_weights</span><span class="p">:</span> <span class="s1">'bool'</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">progress</span><span class="p">:</span> <span class="s1">'ProgressCallback | None'</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">stage_progress</span><span class="p">:</span> <span class="s1">'StageProgressCallback | None'</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">on_initialized</span><span class="p">:</span> <span class="s1">'InitializationCallback | None'</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">is_cancelled</span><span class="p">:</span> <span class="s1">'CancellationHook | None'</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="err">→</span> <span class="n">TrainingResult</span>
+</code></pre></div>
+<p>Train a DCA model from an alignment and return its in-memory result.</p>
+<p><code>data_path</code> may be an :class:<code>Alignment</code> or a FASTA, gzip-compressed FASTA, or Stockholm path. Invalid sequences are removed and duplicate sequences are collapsed. Supplied weights may match either the original rows or the retained rows. The resolved filtering decisions are available in <code>result.input_report</code>.</p>
+<p>Pass <code>config=TrainingConfig(...)</code> to specify the training policy as one object. When supplied, <code>config</code> is authoritative for training settings; the individual settings below do not override it. Input paths, output location, callbacks, and cancellation are still taken from this call.</p>
+<p><strong>Args:</strong></p>
+<ul>
+<li><b><code>data_path</code></b>:  Training alignment or path to an alignment file.</li>
+<li><b><code>config</code></b>:  Validated training settings. If omitted, the individual  training options below are used to construct a <code>TrainingConfig</code>.</li>
+<li><b><code>model_type</code></b>:  <code>"bmDCA"</code>, <code>"eaDCA"</code>, <code>"edDCA"</code>, or <code>"edgeDCA"</code>.</li>
+<li><b><code>ptt</code></b>:  Optional PTT settings for bmDCA, eaDCA or edgeDCA training. May also  be supplied through <code>config.ptt</code>.</li>
+<li><b><code>ptt_resume</code></b>:  Full HDF5 PTT archive from which to resume a compatible  run. Requires PTT settings.</li>
+<li><b><code>validation_path</code></b>:  Optional alignment used for validation metrics.</li>
+<li><b><code>weights_path</code></b>:  Optional path, sequence, NumPy array, or tensor of  training-sequence weights.</li>
+<li><b><code>output_dir</code></b>:  Directory for parameter, chain, weight, and log files.  If omitted, the result stays in memory and no files are written.</li>
+<li><b><code>label</code></b>:  Stem used for output files when <code>output_dir</code> is set.</li>
+<li><b><code>initial_params_path</code></b>:  Optional model-parameter file for a warm start.</li>
+<li><b><code>initial_chains_path</code></b>:  Optional Markov-chain file for a warm start.</li>
+<li><b><code>alphabet</code></b>:  Standard alphabet name or explicit ordered token string.</li>
+<li><b><code>learning_rate</code></b>:  Parameter-update step size.</li>
+<li><b><code>n_sweeps</code></b>:  Sampler sweeps per training update.</li>
+<li><b><code>sampler</code></b>:  <code>"metropolis"</code>, <code>"gibbs"</code> or <code>"metropolized_gibbs"</code>.</li>
+<li><b><code>n_chains</code></b>:  Number of model chains when none are loaded.</li>
+<li><b><code>target_pearson</code></b>:  Target correlation for the two-point statistics.</li>
+<li><b><code>max_epochs</code></b>:  Legacy training-step limit; use the explicit limits below  when distinguishing gradient and structure steps.</li>
+<li><b><code>max_gradient_steps</code></b>:  Optional limit on parameter updates.</li>
+<li><b><code>max_structure_steps</code></b>:  Optional limit on graph updates.</li>
+<li><b><code>checkpoint_interval</code></b>:  Steps between periodic parameter and chain saves.  The final state is saved when <code>output_dir</code> is set.</li>
+<li><b><code>pseudocount</code></b>:  Empirical-frequency pseudocount, or <code>None</code> to derive it  from the effective sequence count.</li>
+<li><b><code>l2_regularization</code></b>:  Strength of the L2 penalty on model parameters.</li>
+<li><b><code>seed</code></b>:  Random seed for initialization and sampling.</li>
+<li><b><code>clustering_seqid</code></b>:  Sequence-identity threshold used for reweighting.</li>
+<li><b><code>no_reweighting</code></b>:  Use equal weights instead of sequence-identity weights.</li>
+<li><b><code>activation_steps</code></b>:  Gradient steps per activation update in eaDCA.</li>
+<li><b><code>activation_fraction</code></b>:  Fraction of candidate couplings activated per  structure update in eaDCA.</li>
+<li><b><code>target_density</code></b>:  Target coupling density for edDCA.</li>
+<li><b><code>decimation_rate</code></b>:  Fraction of couplings removed per edDCA update.</li>
+<li><b><code>device</code></b>:  Runtime device; <code>"auto"</code> selects an available accelerator.</li>
+<li><b><code>dtype</code></b>:  Training precision, <code>"float32"</code>, <code>"float64"</code>, or  <code>"bfloat16"</code>.</li>
+<li><b><code>use_wandb</code></b>:  Enable Weights &amp; Biases logging when output is configured.</li>
+<li><b><code>allow_signed_weights</code></b>:  Permit signed input weights for experimental  reintegration workflows.</li>
+<li><b><code>progress</code></b>:  Optional callback taking exactly one</li>
+<li><b><code>:class</code></b>: <code>TrainingProgress</code> event and returning <code>None</code>. It runs synchronously after each recorded metrics update. The event has <code>epoch</code> (the reported step), <code>stage</code> (for example, <code>"optimization"</code> or <code>"activation"</code>), cumulative <code>gradient_steps</code>, <code>structure_steps</code>, and <code>sweeps</code> counters, and a <code>metrics</code> dictionary. Numeric metrics are Python floats; keys such as <code>"Pearson"</code> and <code>"Time"</code> can vary by stage. For PTT, <code>partition_estimate</code> may contain normalization diagnostics; otherwise it is <code>None</code>. Callback exceptions propagate and end the training run.</li>
+<li><b><code>stage_progress</code></b>:  Optional callback for transient PTT stage updates.</li>
+<li><b><code>It receives a</code></b>: class:<code>StageProgress</code> with <code>stage</code>, <code>kind</code>, completed and total work, and stage-specific details. These events do not add metric rows or alter the <code>progress</code> callback.</li>
+<li><b><code>on_initialized</code></b>:  Optional callback taking one</li>
+<li><b><code>:class</code></b>: <code>TrainingInitialization</code> event. It runs once after input loading and weighting, before numerical training begins.</li>
+<li><b><code>is_cancelled</code></b>:  Optional zero-argument function returning <code>True</code> to  request cancellation or <code>False</code> to continue.</li>
+</ul>
+<p><strong>Returns:</strong></p>
+<ul>
+<li><b><code>A</code></b>: class:<code>TrainingResult</code> containing the trained model, metric history, chains, stop reason, input report, and any saved artifacts.</li>
+</ul>
+<p><strong>Raises:</strong></p>
+<ul>
+<li><b><code>InputValidationError</code></b>:  If the inputs or requested settings are invalid.</li>
+<li><b><code>OperationCancelledError</code></b>:  If <code>is_cancelled</code> requests cancellation.</li>
+</ul>
+<p><strong>Example:</strong>
+ A progress function receives an event object, not separate epoch and metric arguments. Use <code>dict.get</code> because metrics may differ between stages:
+<div class="highlight"><pre><span></span><code>         from adabmDCA import train_model          from adabmDCA.api import TrainingProgress
+
+         def show_progress(event: TrainingProgress) -&gt; None:              pearson = event.metrics.get("Pearson")              if pearson is not None:                  print(                      f"{event.stage}: epoch={event.epoch}, "                      f"gradient_steps={event.gradient_steps}, "                      f"Pearson={pearson:.3f}"                  )
+
+         result = train_model("alignment.fasta", progress=show_progress)
+</code></pre></div></p>
+<p><strong>Notes:</strong></p>
+<blockquote>
+<p><code>dtype="bfloat16"</code> uses BF16 coupling copies for CUDA/Triton or MPS sampling and float32 master parameters, statistics, chains, and saved models; it requires NVIDIA Ampere or newer with Triton, or enabled MPS kernels on macOS 14 or newer. PTT requires bmDCA, eaDCA or edgeDCA with float32 or float64 and uses PTT bridges for normalization. For PTT resume, <code>max_epochs</code> is the total committed-step limit, including steps already saved: gradient steps for bmDCA and edgeDCA, graph-activation (structure) steps for eaDCA.</p>
+</blockquote>
+<hr />
+<p><em>This file was automatically generated via <a href="https://github.com/ml-tooling/lazydocs">lazydocs</a>.</em></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,2090 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../training/">
+      
+      
+        <link rel="next" href="../derived/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Sampling quantities - adabmDCA 2.1</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#sampling-quantities" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="adabmDCA 2.1" class="md-header__button md-logo" aria-label="adabmDCA 2.1" data-md-component="logo">
+      
+  <img src="../../assets/images/logo-header.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            adabmDCA 2.1
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Sampling quantities
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="adabmDCA 2.1" class="md-nav__button md-logo" aria-label="adabmDCA 2.1" data-md-component="logo">
+      
+  <img src="../../assets/images/logo-header.png" alt="logo">
+
+    </a>
+    adabmDCA 2.1
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Use the package
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Use the package
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/choosing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Choosing settings
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/preprocess/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Prepare alignments · preprocess
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/split-data/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Split an alignment · split-data
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/train/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Train models · train
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/sample/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Generate sequences · sample
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/energies/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Score sequences · energies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/dms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mutation scan · dms
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/contacts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contact prediction · contacts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/entropy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Entropy · entropy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/reintegrate/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Experimental feedback · reintegrate
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/plot-training-log/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plot a run · plot-training-log
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/python/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python workflows
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How it works
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    How it works
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../algorithms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../algorithms/input/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Input and reweighting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../algorithms/training/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Training
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../algorithms/sampling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sampling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../algorithms/diagnostics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Diagnose a run
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../algorithms/analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../algorithms/benchmarks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Benchmarks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../algorithms/numba-swaps/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CPU PTT swap fusion
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Theory and definitions
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Theory and definitions
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Potts model and statistics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../training/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Training quantities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sampling quantities
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sampling quantities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#local-moves" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Local moves
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#swap-acceptance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Swap acceptance
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#population-renewal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Population renewal
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#replica-index-autocorrelation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Replica-index autocorrelation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#plain-mcmc-mixing-time" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Plain-MCMC mixing time
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ladder-health" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ladder health
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#distances" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Distances
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../derived/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Normalization, scoring and importance weights
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python API
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Python API
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/symbols/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Symbols
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.api.training/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Training
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.api.sampling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sampling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.api.ptt/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PTT workflows
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.api.model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Models
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.api.results/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Results
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.ptt.config/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PTT configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.ptt.sampler/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PTT sampler
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.steering/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Steering
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.api.scoring/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scoring
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.api.contacts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contacts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.api.mutations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mutations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.api.entropy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Entropy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.api.reintegration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reintegration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.api.splitting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Splitting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.input_loading/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Input loading
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/adabmDCA.training_config/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Training configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#local-moves" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Local moves
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#swap-acceptance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Swap acceptance
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#population-renewal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Population renewal
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#replica-index-autocorrelation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Replica-index autocorrelation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#plain-mcmc-mixing-time" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Plain-MCMC mixing time
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ladder-health" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ladder health
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#distances" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Distances
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="sampling-quantities">Sampling quantities</h1>
+<p>Definitions behind <a href="../../algorithms/sampling/">Sampling</a> and <a href="../../algorithms/diagnostics/">Diagnose a run</a>.</p>
+<h2 id="local-moves">Local moves</h2>
+<p>At a position <span class="arithmatex">\(i\)</span> with current state <span class="arithmatex">\(a\)</span>, let <span class="arithmatex">\(\pi_b = p(x_i = b \mid x_{-i})\)</span> be the conditional probabilities of the model (or of the rung's model, in PTT).</p>
+<ul>
+<li><strong>Gibbs</strong>: draw the new state <span class="arithmatex">\(b\)</span> with probability <span class="arithmatex">\(\pi_b\)</span>.</li>
+<li><strong>Metropolis</strong>: propose <span class="arithmatex">\(b\)</span> uniformly among the <span class="arithmatex">\(q\)</span> states and accept with probability <span class="arithmatex">\(\min\{1, \pi_b/\pi_a\} = \min\{1, e^{-\Delta E}\}\)</span>.</li>
+<li><strong>Metropolized Gibbs</strong> (Liu, 1996): propose <span class="arithmatex">\(b \neq a\)</span> with probability <span class="arithmatex">\(\pi_b/(1-\pi_a)\)</span> and accept with probability</li>
+</ul>
+<div class="arithmatex">\[
+A(a\to b) = \min\!\left\{1, \frac{1-\pi_a}{1-\pi_b}\right\}.
+\]</div>
+<p>All three satisfy detailed balance with respect to the model. Metropolized Gibbs never proposes the current state, so it changes the sequence more often than Gibbs. A <strong>sweep</strong> is one update attempt at every position of every chain.</p>
+<h2 id="swap-acceptance">Swap acceptance</h2>
+<p>Rung <span class="arithmatex">\(k\)</span> samples <span class="arithmatex">\(p_k(x) = e^{-E_k(x)}/Z_k\)</span>. For neighbouring rungs write <span class="arithmatex">\(W_k(x) = E_{k+1}(x) - E_k(x)\)</span>. Exchanging configuration <span class="arithmatex">\(y\)</span> of rung <span class="arithmatex">\(k\)</span> with configuration <span class="arithmatex">\(x\)</span> of rung <span class="arithmatex">\(k+1\)</span> is accepted with probability</p>
+<div class="arithmatex">\[
+A(x, y) = \min\big\{1, \exp[W_k(x) - W_k(y)]\big\},
+\]</div>
+<p>which keeps both rungs at equilibrium. <code>acceptance_min</code> in the training history is the smallest observed acceptance fraction over the neighbouring pairs. The snapshot rules use the top link: store a temporary snapshot below <span class="arithmatex">\(2a_*\)</span>, insert it below <span class="arithmatex">\(a_*\)</span> (<code>--ptt-target-acceptance</code>, <span class="arithmatex">\(a_* = 0.25\)</span>). An observed acceptance below <code>--ptt-min-acceptance</code> (0.1) on any link requests a mixing check.</p>
+<p><code>replicas</code> counts the active rungs; <code>models</code> counts the models flagged for the sampling ladder.</p>
+<h2 id="population-renewal">Population renewal</h2>
+<p>Every configuration has a <strong>birth round</strong> <span class="arithmatex">\(b\)</span>: the round in which it was drawn exactly at the bottom of the ladder (in a compressed training ladder, the round it was emitted by the reservoir). Swaps and permutations move configurations with their birth labels; nothing copies a configuration. For a reference round <span class="arithmatex">\(r_0\)</span>, <span class="arithmatex">\(R\)</span> rungs and <span class="arithmatex">\(N\)</span> chains per rung,</p>
+<div class="arithmatex">\[
+G(t) = \frac{\#\{\text{configurations in the ladder with } b &lt; r_0\}}{RN},
+\qquad
+F(t) = \frac{\#\{\text{endpoint configurations with } b \ge r_0\}}{N}.
+\]</div>
+<p><code>ladder_old</code> is <span class="arithmatex">\(G\)</span> and <code>endpoint_fresh</code> is <span class="arithmatex">\(F\)</span>. Old configurations are destroyed at the bottom and never created, so <span class="arithmatex">\(G\)</span> is non-increasing; <span class="arithmatex">\(1-F\)</span> is not. Renewal is reached at the first round where</p>
+<div class="arithmatex">\[
+RN\,G(t) \le \varepsilon N \quad\Longleftrightarrow\quad G(t) \le \frac{\varepsilon}{R},
+\]</div>
+<p>with <span class="arithmatex">\(\varepsilon\)</span> = <code>--ptt-renewal-tolerance</code> (0.01). At that point the endpoint's old fraction is at most <span class="arithmatex">\(\varepsilon\)</span> and can never exceed it again.</p>
+<p><strong>Sampling phases.</strong> The warmup uses <span class="arithmatex">\(r_0 = 0\)</span> and lasts <span class="arithmatex">\(W\)</span> rounds (<code>warmup_rounds</code>). With <code>--ptt-stationary</code>, a second phase uses <span class="arithmatex">\(r_0 = W\)</span>. Its renewal is checked only at block ends, every <span class="arithmatex">\(\lceil W/4\rceil\)</span> rounds (<code>block_rounds</code>), and sampling stops at the first block end after renewal. Stopping at the exact round of renewal would let the population choose when sampling stops: the stop would fall right after the last old configuration happened to be redrawn at the bottom, so the returned population would be one selected by that event. Block ends are fixed in advance and do not depend on which configurations are old, so the returned population is not selected by the stopping rule. The price is at most a quarter of the warmup in extra rounds. <code>renewal_rounds</code> is the round at which the second renewal happened. Further batches are separated by one renewal time (<code>spacing_rounds</code>). <code>trapped_fraction</code> is <span class="arithmatex">\(1-F\)</span> at the end; <code>old_fraction_by_model</code> gives the old fraction per rung. All are in <code>logs/mix.log</code> and <code>sampling.json</code>.</p>
+<p><strong>Decay forecast.</strong> Every 10 rounds, a line is fitted to <span class="arithmatex">\(\log G\)</span> over the more recent half of the phase, starting from the first round with <span class="arithmatex">\(G &lt; 0.5\)</span>. Its slope gives the decay time (<code>warmup_decay_rounds</code>, <code>stationary_decay_rounds</code>), and its crossing with <span class="arithmatex">\(\varepsilon/R\)</span> the predicted renewal. The forecast drives the progress display and the warnings; it never decides the stop.</p>
+<p><strong>Training checks.</strong> During training, renewal is used in three ways, shown in the figure.</p>
+<p><a href="../../figures/training_checks_scheme_2col.png"><img alt="Mixing check, reservoir collection and failure diagnosis during PTT training" src="../../figures/training_checks_scheme_2col.png" width="900" /></a></p>
+<ol>
+<li><strong>Mixing check.</strong> It runs on a separate population of <code>--ptt-mixing-chains</code> (100) chains per rung; the production chains are not touched. It passes when the ladder is renewed twice in a row: after the first renewal, every configuration present becomes old again and must be replaced once more. If this does not happen within <code>--ptt-mixing-max-rounds</code>, the check fails and training <a href="../../algorithms/training/#mixing-checks-and-recovery">recovers</a>.</li>
+<li><strong>Reservoir collection.</strong> It works on the production chains. The ladder first runs until the rung that will become the new bottom is renewed (warm-up), then measures that rung's renewal time <span class="arithmatex">\(\tau\)</span>. Its population is then copied into the reservoir in batches spaced so that at most <span class="arithmatex">\(\varepsilon N\)</span> configurations of a batch predate the previous one, until the reservoir holds <span class="arithmatex">\(10N\)</span> configurations. The lower rungs keep supplying fresh configurations throughout. Only at the end are they dropped, and the new bottom is fed from the reservoir, with <span class="arithmatex">\(\log Z\)</span> carried forward.</li>
+<li><strong>Failure diagnosis.</strong> When a check or a collection fails, every old configuration of rung <span class="arithmatex">\(k\)</span> is tested against 8 random partners in rung <span class="arithmatex">\(k-1\)</span>. If its mean swap probability is below <span class="arithmatex">\(10^{-4}\)</span>, it is <strong>immobile</strong>: only local moves can free it. If the immobile old configurations alone exceed the tolerance <span class="arithmatex">\(\varepsilon N\)</span>, they are <strong>blocking</strong>, and the error message recommends restarting with more local sweeps. Otherwise it reports the acceptance of each link: a link below the target calls for a smaller <code>--lr</code>, while links all above it call for more sweeps.</li>
+</ol>
+<h2 id="replica-index-autocorrelation">Replica-index autocorrelation</h2>
+<p>The alternative <code>--ptt-mixing-method autocorrelation</code> follows the rung index <span class="arithmatex">\(r_t\)</span> of each tagged configuration. With the uniform mean <span class="arithmatex">\((R-1)/2\)</span> subtracted,</p>
+<div class="arithmatex">\[
+C(t) = \frac{\langle (r_s - \bar r)(r_{s+t} - \bar r)\rangle}{\langle (r_s - \bar r)^2\rangle},
+\qquad
+\tau_{\rm int} = \frac12 + \sum_{t=1}^{T} C(t),
+\]</div>
+<p>with the window <span class="arithmatex">\(T\)</span> chosen self-consistently (<span class="arithmatex">\(T \ge 6\,\tau_{\rm int}\)</span>), and <span class="arithmatex">\(\tau_{\rm exp}\)</span> from an exponential fit <span class="arithmatex">\(A e^{-t/\tau_{\rm exp}}\)</span> to the tail of <span class="arithmatex">\(C\)</span>. A check passes when the trajectory is at least <code>--ptt-mixing-window-factor</code> (20) times <span class="arithmatex">\(\max(\tau_{\rm int}, \tau_{\rm exp})\)</span> long. Generation batches are separated by <span class="arithmatex">\(2\lfloor\tau_{\rm int}\rfloor\)</span> rounds. Both times are in exchange rounds.</p>
+<h2 id="plain-mcmc-mixing-time">Plain-MCMC mixing time</h2>
+<p>Chains started from (resampled) reference sequences are run, and at each even time <span class="arithmatex">\(t\)</span> the package compares the fractional identity between each chain and itself at <span class="arithmatex">\(t/2\)</span>,</p>
+<div class="arithmatex">\[
+I_{t,t/2} = \frac1N\sum_{n}\mathrm{id}\big(x_n(t), x_n(t/2)\big),
+\]</div>
+<p>with the identity between distinct chains at time <span class="arithmatex">\(t\)</span>, <span class="arithmatex">\(I_t = \frac1N\sum_n \mathrm{id}(x_n(t), x_{\sigma(n)}(t))\)</span> for a random permutation <span class="arithmatex">\(\sigma\)</span> without fixed points, where <span class="arithmatex">\(\mathrm{id}(x,y) = \frac1L\sum_i \mathbf 1[x_i = y_i]\)</span>. The mixing time is the first <span class="arithmatex">\(t/2\)</span> at which</p>
+<div class="arithmatex">\[
+\frac{|I_{t,t/2} - I_t|}{\sqrt{\sigma_{t,t/2}^2 + \sigma_t^2}} &lt; 0.1 ,
+\]</div>
+<p>where <span class="arithmatex">\(\sigma\)</span> are the standard deviations of the identities over chains. Generation then runs fresh random chains for <code>--nmix</code> (2) mixing times. The criterion detects loss of memory of the starting point within the region the chains explore; it cannot detect a mode they never reach.</p>
+<h2 id="ladder-health">Ladder health</h2>
+<p>For each neighbouring pair <span class="arithmatex">\((k, k+1)\)</span>, with <span class="arithmatex">\(W = E_{k+1} - E_k\)</span> evaluated on both final populations and <span class="arithmatex">\(\Delta F = -\log(Z_{k+1}/Z_k)\)</span>:</p>
+<ul>
+<li><strong>Free-energy differences</strong>: forward <span class="arithmatex">\(\widehat{\Delta F}_{\rm fwd} = -\log\langle e^{-W}\rangle_k\)</span>, reverse <span class="arithmatex">\(\widehat{\Delta F}_{\rm rev} = \log\langle e^{W}\rangle_{k+1}\)</span>, and Bennett's acceptance ratio <code>dF_bar</code> (<a href="../derived/#ptt-ladder">definition</a>), each with a bootstrap error. <code>hysteresis</code> is forward minus reverse; beyond the errors it signals poor overlap.</li>
+<li><strong>Effective sample size</strong> of one reweighting step, for weights <span class="arithmatex">\(u_n\)</span>: <span class="arithmatex">\((\sum u_n)^2 / \sum u_n^2\)</span>, divided by the number of samples (<code>ess_forward</code> with <span class="arithmatex">\(u = e^{-W}\)</span> on rung <span class="arithmatex">\(k\)</span>, <code>ess_reverse</code> with <span class="arithmatex">\(u = e^{W}\)</span> on rung <span class="arithmatex">\(k+1\)</span>). Near 1: even weights; near 0: a few configurations dominate. <code>top1_share_*</code> is the weight carried by the heaviest 1%. Finite samples overestimate the ESS when overlap is poor, because they miss the extreme tail.</li>
+<li><strong>Crooks slope</strong>: at equilibrium, the histograms of <span class="arithmatex">\(W\)</span> in the two rungs satisfy <span class="arithmatex">\(\log[h_{k+1}(W)/h_k(W)] = \Delta F - W\)</span>. The slope fitted on quantile bins populated by both should be <span class="arithmatex">\(-1\)</span>; a deviation means the overlapping parts of the populations are not mutually consistent.</li>
+<li><strong>Mobility</strong>: for each upper configuration, its swap probability averaged over all lower partners (downward mobility), and conversely. Quantiles of the mobilities are plotted (<code>acceptance_down_q50/q10/q01</code>, <code>acceptance_up_*</code>), and configurations with mobility below <span class="arithmatex">\(10^{-4}\)</span> are <strong>immobile</strong> (<code>immobile_down_fraction</code>, <code>immobile_up_fraction</code>). <code>mean_acceptance</code> is the average mobility.</li>
+<li><strong>Ages</strong>: a configuration born in round <span class="arithmatex">\(b\)</span> has age <span class="arithmatex">\(t - b\)</span> at round <span class="arithmatex">\(t\)</span>. <code>immobile_mean_age</code> / <code>mobile_mean_age</code> is the ratio plotted in the trapped-configurations panel; about 1 means immobility is transient, above 2 that immobile configurations stay stuck. Per rung, <code>age_median</code>, <code>age_q99</code> and the <strong>flow</strong>, the fraction of configurations that have visited the top rung since birth, are in <code>logs/ptt_replicas.log</code>.</li>
+</ul>
+<p>These are heuristics, not calibrated tests: the threshold of 2 on the age ratio, in particular, is noisy when only a few configurations are immobile.</p>
+<p>Only the mobility, age and flow measures are plotted (<code>ptt_ladder_health.png</code>). The free-energy differences, effective sample sizes and Crooks slopes are written to <code>logs/ptt_ladder_health.log</code> and <code>sampling.json</code> but not plotted. On the families studied they mostly reflected the spacing of the snapshots and took similar values on runs that worked and runs that failed, so they did not help to detect failures.</p>
+<h2 id="distances">Distances</h2>
+<p>The fractional Hamming distance between aligned sequences is <span class="arithmatex">\(d(x,y) = \frac1L\sum_i \mathbf 1[x_i \neq y_i]\)</span>, and the nearest-neighbour distance of <span class="arithmatex">\(x\)</span> to a set <span class="arithmatex">\(T\)</span> is <span class="arithmatex">\(d(x,T) = \min_{y\in T} d(x,y)\)</span>, excluding <span class="arithmatex">\(x\)</span> itself when <span class="arithmatex">\(x \in T\)</span>. <code>distances.png</code> histograms all-pair and nearest-neighbour distances; natural sequences carry their weights, and at most <code>--nmeasure</code> sequences per set are drawn without replacement. Medians, quantiles and the fraction of generated sequences identical to a training sequence are in <code>sampling.json</code> → <code>distance_comparison.summary</code>.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

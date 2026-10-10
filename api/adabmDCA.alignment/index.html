@@ -1,0 +1,2300 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>adabmDCA.alignment - adabmDCA 2.1</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#module-adabmdcaalignment" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="adabmDCA 2.1" class="md-header__button md-logo" aria-label="adabmDCA 2.1" data-md-component="logo">
+      
+  <img src="../../assets/images/logo-header.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            adabmDCA 2.1
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              adabmDCA.alignment
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="adabmDCA 2.1" class="md-nav__button md-logo" aria-label="adabmDCA 2.1" data-md-component="logo">
+      
+  <img src="../../assets/images/logo-header.png" alt="logo">
+
+    </a>
+    adabmDCA 2.1
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Use the package
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Use the package
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/choosing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Choosing settings
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/preprocess/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Prepare alignments · preprocess
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/split-data/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Split an alignment · split-data
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/train/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Train models · train
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/sample/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Generate sequences · sample
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/energies/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Score sequences · energies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/dms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mutation scan · dms
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/contacts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contact prediction · contacts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/entropy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Entropy · entropy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/reintegrate/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Experimental feedback · reintegrate
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/plot-training-log/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plot a run · plot-training-log
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/python/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python workflows
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How it works
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    How it works
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../algorithms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../algorithms/input/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Input and reweighting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../algorithms/training/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Training
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../algorithms/sampling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sampling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../algorithms/diagnostics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Diagnose a run
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../algorithms/analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../algorithms/benchmarks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Benchmarks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../algorithms/numba-swaps/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CPU PTT swap fusion
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Theory and definitions
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Theory and definitions
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quantities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quantities/model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Potts model and statistics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quantities/training/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Training quantities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quantities/sampling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sampling quantities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quantities/derived/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Normalization, scoring and importance weights
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python API
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Python API
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../symbols/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Symbols
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adabmDCA.api.training/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Training
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adabmDCA.api.sampling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sampling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adabmDCA.api.ptt/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PTT workflows
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adabmDCA.api.model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Models
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adabmDCA.api.results/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Results
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adabmDCA.ptt.config/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PTT configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adabmDCA.ptt.sampler/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PTT sampler
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adabmDCA.steering/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Steering
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adabmDCA.api.scoring/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scoring
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adabmDCA.api.contacts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contacts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adabmDCA.api.mutations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mutations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adabmDCA.api.entropy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Entropy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adabmDCA.api.reintegration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reintegration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adabmDCA.api.splitting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Splitting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adabmDCA.input_loading/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Input loading
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adabmDCA.training_config/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Training configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#global-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Global Variables
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#function-detect_alignment_format" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function detect_alignment_format
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#function-read_alignment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function read_alignment
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#function-write_alignment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function write_alignment
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#function-normalize_gap_symbols" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function normalize_gap_symbols
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#function-convert_alignment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function convert_alignment
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#function-convert_stockholm_to_fasta" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function convert_stockholm_to_fasta
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#class-alignment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        class Alignment
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="class Alignment">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#method-__init__" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        method __init__
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="method __init__">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#property-encoded_sequences" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        property encoded_sequences
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#property-num_sequences" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        property num_sequences
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#property-sequence_length" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        property sequence_length
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#method-to_dataframe" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        method to_dataframe
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#method-to_dict" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        method to_dict
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#method-to_onehot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        method to_onehot
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#method-write_fasta" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        method write_fasta
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#class-alignmentconversionresult" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        class AlignmentConversionResult
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="class AlignmentConversionResult">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#method-__init___1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        method __init__
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#method-to_dict_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        method to_dict
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<!-- markdownlint-disable -->
+
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/alignment.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h1 id="module-adabmdcaalignment"><kbd>module</kbd> <code>adabmDCA.alignment</code></h1>
+<p>Alignment containers and FASTA/Stockholm input-output helpers.</p>
+<h2 id="global-variables"><strong>Global Variables</strong></h2>
+<ul>
+<li><strong>TYPE_CHECKING</strong></li>
+</ul>
+<hr />
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/alignment.py#L240"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h2 id="function-detect_alignment_format"><kbd>function</kbd> <code>detect_alignment_format</code></h2>
+<div class="highlight"><pre><span></span><code><span class="n">detect_alignment_format</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="s1">'str | Path'</span><span class="p">)</span> <span class="err">→</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">'fasta'</span><span class="p">,</span> <span class="s1">'stockholm'</span><span class="p">]</span>
+</code></pre></div>
+<p>Detect whether a file is FASTA or Stockholm from its first non-empty line.</p>
+<p><strong>Args:</strong></p>
+<ul>
+<li><b><code>path</code></b>:  Alignment file, optionally gzip-compressed.</li>
+</ul>
+<p><strong>Returns:</strong>
+ <code>"fasta"</code> or <code>"stockholm"</code>.</p>
+<p><strong>Raises:</strong></p>
+<ul>
+<li><b><code>AlignmentFormatError</code></b>:  If the format cannot be recognized.</li>
+</ul>
+<hr />
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/alignment.py#L274"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h2 id="function-read_alignment"><kbd>function</kbd> <code>read_alignment</code></h2>
+<div class="highlight"><pre><span></span><code><span class="n">read_alignment</span><span class="p">(</span>
+    <span class="n">path</span><span class="p">:</span> <span class="s1">'str | Path'</span><span class="p">,</span>
+    <span class="nb">format</span><span class="p">:</span> <span class="s1">'AlignmentFormat'</span> <span class="o">=</span> <span class="s1">'auto'</span><span class="p">,</span>
+    <span class="n">alignment_index</span><span class="p">:</span> <span class="s1">'int | None'</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="err">→</span> <span class="n">Alignment</span>
+</code></pre></div>
+<p>Read one aligned FASTA or Stockholm alignment, without filtering.</p>
+<p>For validation, alphabet detection and filtering use :func:<code>load_alignment</code>.</p>
+<p><strong>Args:</strong></p>
+<ul>
+<li><b><code>path</code></b>:  Alignment file, optionally gzip-compressed.</li>
+<li><b><code>format</code></b>:  <code>"auto"</code> (detected), <code>"fasta"</code> or <code>"stockholm"</code>.</li>
+<li><b><code>alignment_index</code></b>:  Which alignment of a multi-alignment Stockholm file to  read (0-based); required when there is more than one.</li>
+</ul>
+<p><strong>Returns:</strong></p>
+<ul>
+<li><b><code>The</code></b>: class:<code>Alignment</code>.</li>
+</ul>
+<p><strong>Raises:</strong></p>
+<ul>
+<li><b><code>AlignmentLoadError</code></b>:  If the file cannot be read.</li>
+<li><b><code>AlignmentFormatError</code></b>:  If the content is not a valid alignment.</li>
+<li><b><code>AlignmentLengthError</code></b>:  If the sequences have different lengths.</li>
+</ul>
+<hr />
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/alignment.py#L421"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h2 id="function-write_alignment"><kbd>function</kbd> <code>write_alignment</code></h2>
+<div class="highlight"><pre><span></span><code><span class="n">write_alignment</span><span class="p">(</span>
+    <span class="n">alignment</span><span class="p">:</span> <span class="s1">'Alignment'</span><span class="p">,</span>
+    <span class="n">path</span><span class="p">:</span> <span class="s1">'str | Path'</span><span class="p">,</span>
+    <span class="nb">format</span><span class="p">:</span> <span class="s2">"Literal['fasta']"</span> <span class="o">=</span> <span class="s1">'fasta'</span><span class="p">,</span>
+    <span class="n">line_width</span><span class="p">:</span> <span class="s1">'int'</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="p">)</span> <span class="err">→</span> <span class="n">Path</span>
+</code></pre></div>
+<p>Write an alignment to a FASTA file.</p>
+<p><strong>Args:</strong></p>
+<ul>
+<li><b><code>alignment</code></b>:  Alignment to write.</li>
+<li><b><code>path</code></b>:  Output file.</li>
+<li><b><code>format</code></b>:  Output format; only <code>"fasta"</code> is supported.</li>
+<li><b><code>line_width</code></b>:  Largest sequence-line length; <code>0</code> writes each sequence on one line.</li>
+</ul>
+<p><strong>Returns:</strong>
+ The written path.</p>
+<hr />
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/alignment.py#L458"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h2 id="function-normalize_gap_symbols"><kbd>function</kbd> <code>normalize_gap_symbols</code></h2>
+<div class="highlight"><pre><span></span><code><span class="n">normalize_gap_symbols</span><span class="p">(</span>
+    <span class="n">alignment</span><span class="p">:</span> <span class="s1">'Alignment'</span><span class="p">,</span>
+    <span class="n">source_gap</span><span class="p">:</span> <span class="s1">'str'</span> <span class="o">=</span> <span class="s1">'.'</span><span class="p">,</span>
+    <span class="n">target_gap</span><span class="p">:</span> <span class="s1">'str'</span> <span class="o">=</span> <span class="s1">'-'</span>
+<span class="p">)</span> <span class="err">→</span> <span class="n">Alignment</span>
+</code></pre></div>
+<p>Replace one alignment gap symbol with another.</p>
+<p>Stockholm permits dots as gap symbols, while adabmDCA and aligned FASTA files conventionally use hyphens. This transformation does not remove alignment columns.</p>
+<p><strong>Args:</strong></p>
+<ul>
+<li><b><code>alignment</code></b>:  Alignment to transform.</li>
+<li><b><code>source_gap</code></b>:  Gap symbol to replace.</li>
+<li><b><code>target_gap</code></b>:  Replacement gap symbol.</li>
+</ul>
+<p><strong>Returns:</strong></p>
+<ul>
+<li><b><code>A new</code></b>: class:<code>Alignment</code>.</li>
+</ul>
+<hr />
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/alignment.py#L492"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h2 id="function-convert_alignment"><kbd>function</kbd> <code>convert_alignment</code></h2>
+<div class="highlight"><pre><span></span><code><span class="n">convert_alignment</span><span class="p">(</span>
+    <span class="n">input_path</span><span class="p">:</span> <span class="s1">'str | Path'</span><span class="p">,</span>
+    <span class="n">output_path</span><span class="p">:</span> <span class="s1">'str | Path'</span><span class="p">,</span>
+    <span class="n">input_format</span><span class="p">:</span> <span class="s1">'AlignmentFormat'</span> <span class="o">=</span> <span class="s1">'auto'</span><span class="p">,</span>
+    <span class="n">output_format</span><span class="p">:</span> <span class="s2">"Literal['fasta']"</span> <span class="o">=</span> <span class="s1">'fasta'</span><span class="p">,</span>
+    <span class="n">alignment_index</span><span class="p">:</span> <span class="s1">'int | None'</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">line_width</span><span class="p">:</span> <span class="s1">'int'</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="p">)</span> <span class="err">→</span> <span class="n">AlignmentConversionResult</span>
+</code></pre></div>
+<p>Convert a FASTA or Stockholm alignment to canonical aligned FASTA.</p>
+<p>Dots accepted as gaps by Stockholm are written as hyphens, the gap token used throughout adabmDCA. Lowercase residues are preserved; callers that want to delete insertion residues should use :func:<code>preprocess_alignment</code>.</p>
+<p><strong>Args:</strong></p>
+<ul>
+<li><b><code>input_path</code></b>:  FASTA or Stockholm file.</li>
+<li><b><code>output_path</code></b>:  FASTA file to write.</li>
+<li><b><code>input_format</code></b>:  <code>"auto"</code>, <code>"fasta"</code> or <code>"stockholm"</code>.</li>
+<li><b><code>output_format</code></b>:  Only <code>"fasta"</code> is supported.</li>
+<li><b><code>alignment_index</code></b>:  Alignment to convert in a multi-alignment Stockholm file.</li>
+<li><b><code>line_width</code></b>:  Largest sequence-line length; <code>0</code> means no wrapping.</li>
+</ul>
+<p><strong>Returns:</strong></p>
+<ul>
+<li><b><code>An</code></b>: class:<code>AlignmentConversionResult</code>.</li>
+</ul>
+<hr />
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/alignment.py#L529"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h2 id="function-convert_stockholm_to_fasta"><kbd>function</kbd> <code>convert_stockholm_to_fasta</code></h2>
+<div class="highlight"><pre><span></span><code><span class="n">convert_stockholm_to_fasta</span><span class="p">(</span>
+    <span class="n">input_path</span><span class="p">:</span> <span class="s1">'str | Path'</span><span class="p">,</span>
+    <span class="n">output_path</span><span class="p">:</span> <span class="s1">'str | Path'</span><span class="p">,</span>
+    <span class="n">alignment_index</span><span class="p">:</span> <span class="s1">'int | None'</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">line_width</span><span class="p">:</span> <span class="s1">'int'</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="p">)</span> <span class="err">→</span> <span class="n">AlignmentConversionResult</span>
+</code></pre></div>
+<p>Convert one Stockholm alignment to FASTA; see :func:<code>convert_alignment</code>.</p>
+<p><strong>Args:</strong></p>
+<ul>
+<li><b><code>input_path</code></b>:  Stockholm file.</li>
+<li><b><code>output_path</code></b>:  FASTA file to write.</li>
+<li><b><code>alignment_index</code></b>:  Alignment to convert when the file contains several.</li>
+<li><b><code>line_width</code></b>:  Largest sequence-line length; <code>0</code> means no wrapping.</li>
+</ul>
+<p><strong>Returns:</strong></p>
+<ul>
+<li><b><code>An</code></b>: class:<code>AlignmentConversionResult</code>.</li>
+</ul>
+<hr />
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/alignment.py#L28"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h2 id="class-alignment"><kbd>class</kbd> <code>Alignment</code></h2>
+<p>Aligned sequences with optional alphabet and filtering provenance.</p>
+<p>Names and sequences retain their input order. The alignment must contain at least one nonempty sequence, and every sequence must have the same length. Constructing an alignment checks these structural constraints; :func:<code>adabmDCA.input_loading.load_alignment</code> additionally resolves the alphabet, validates symbols, and optionally filters rows.</p>
+<p><strong>Args:</strong></p>
+<ul>
+<li><b><code>names</code></b>:  Sequence names, one per row.</li>
+<li><b><code>sequences</code></b>:  Aligned sequence strings in the same order as <code>names</code>.</li>
+<li><b><code>source</code></b>:  Path of the source file, if known.</li>
+<li><b><code>tokens</code></b>:  Ordered alphabet used for encoding. <code>None</code> until resolved;  index <code>i</code> in an encoding corresponds to <code>tokens[i]</code>.</li>
+<li><b><code>retained_indices</code></b>:  Positions of the current rows in the original  alignment. Defaults to <code>0, 1, ..., M - 1</code>.</li>
+<li><b><code>dropped_indices</code></b>:  Original positions removed for invalid symbols.</li>
+<li><b><code>duplicate_indices</code></b>:  Original positions removed as duplicates.</li>
+<li><b><code>original_size</code></b>:  Number of rows before filtering. Defaults to <code>M</code>.</li>
+</ul>
+<p><strong>Note:</strong></p>
+<blockquote>
+<p>The provenance fields are populated by <code>load_alignment</code>. Plain <code>Alignment</code> construction does not check sequences against <code>tokens</code>.</p>
+</blockquote>
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/\<string>"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h3 id="method-__init__"><kbd>method</kbd> <code>__init__</code></h3>
+<div class="highlight"><pre><span></span><code><span class="fm">__init__</span><span class="p">(</span>
+    <span class="n">names</span><span class="p">:</span> <span class="s1">'tuple[str, ]'</span><span class="p">,</span>
+    <span class="n">sequences</span><span class="p">:</span> <span class="s1">'tuple[str, ]'</span><span class="p">,</span>
+    <span class="n">source</span><span class="p">:</span> <span class="s1">'Path | None'</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">tokens</span><span class="p">:</span> <span class="s1">'str | None'</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">retained_indices</span><span class="p">:</span> <span class="s1">'tuple[int, ]'</span> <span class="o">=</span> <span class="p">(),</span>
+    <span class="n">dropped_indices</span><span class="p">:</span> <span class="s1">'tuple[int, ]'</span> <span class="o">=</span> <span class="p">(),</span>
+    <span class="n">duplicate_indices</span><span class="p">:</span> <span class="s1">'tuple[int, ]'</span> <span class="o">=</span> <span class="p">(),</span>
+    <span class="n">original_size</span><span class="p">:</span> <span class="s1">'int'</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="p">)</span> <span class="err">→</span> <span class="kc">None</span>
+</code></pre></div>
+<hr />
+<h4 id="property-encoded_sequences"><kbd>property</kbd> encoded_sequences</h4>
+<p>Return integer token indices as a NumPy array of shape <code>(M, L)</code>.</p>
+<p>Each element is the position of its residue in <code>self.tokens</code>.</p>
+<p><strong>Raises:</strong></p>
+<ul>
+<li><b><code>InputValidationError</code></b>:  If no alphabet has been resolved. Pass the  alignment through <code>load_alignment</code> first.</li>
+</ul>
+<hr />
+<h4 id="property-num_sequences"><kbd>property</kbd> num_sequences</h4>
+<p>Number of sequences (<code>M</code>) currently in the alignment.</p>
+<hr />
+<h4 id="property-sequence_length"><kbd>property</kbd> sequence_length</h4>
+<p>Number of aligned positions (<code>L</code>) in each sequence.</p>
+<hr />
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/alignment.py#L120"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h3 id="method-to_dataframe"><kbd>method</kbd> <code>to_dataframe</code></h3>
+<div class="highlight"><pre><span></span><code><span class="n">to_dataframe</span><span class="p">()</span> <span class="err">→</span> <span class="n">DataFrame</span>
+</code></pre></div>
+<p>Return a pandas DataFrame with <code>name</code> and <code>sequence</code> columns.</p>
+<p>The DataFrame has one row per sequence and preserves alignment order.</p>
+<hr />
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/alignment.py#L175"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h3 id="method-to_dict"><kbd>method</kbd> <code>to_dict</code></h3>
+<div class="highlight"><pre><span></span><code><span class="n">to_dict</span><span class="p">()</span> <span class="err">→</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">object</span><span class="p">]</span>
+</code></pre></div>
+<p>Return a JSON-compatible loading report without sequence data.</p>
+<p>The report includes the source, original and retained row counts, filtering indices, aligned length, and tokens. For an alignment that has not been loaded, filtering indices describe its unchanged rows.</p>
+<hr />
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/alignment.py#L147"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h3 id="method-to_onehot"><kbd>method</kbd> <code>to_onehot</code></h3>
+<div class="highlight"><pre><span></span><code><span class="n">to_onehot</span><span class="p">(</span><span class="n">flatten</span><span class="p">:</span> <span class="s1">'bool'</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="err">→</span> <span class="n">Tensor</span>
+</code></pre></div>
+<p>Encode the alignment as a CPU <code>torch.float32</code> one-hot tensor.</p>
+<p><strong>Args:</strong></p>
+<ul>
+<li><b><code>flatten</code></b>:  If <code>False</code>, return shape <code>(M, L, q)</code>. If <code>True</code>,  combine the position and token dimensions into shape  <code>(M, L * q)</code>, useful for PCA.</li>
+</ul>
+<p><strong>Returns:</strong>
+ A tensor whose state features follow the order of <code>self.tokens</code> at each aligned position.</p>
+<p><strong>Raises:</strong></p>
+<ul>
+<li><b><code>InputValidationError</code></b>:  If <code>tokens</code> is unavailable. Load the  alignment with <code>load_alignment</code> first.</li>
+</ul>
+<hr />
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/alignment.py#L193"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h3 id="method-write_fasta"><kbd>method</kbd> <code>write_fasta</code></h3>
+<div class="highlight"><pre><span></span><code><span class="n">write_fasta</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="s1">'str | Path'</span><span class="p">,</span> <span class="n">line_width</span><span class="p">:</span> <span class="s1">'int'</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="err">→</span> <span class="n">Path</span>
+</code></pre></div>
+<p>Write names and sequences to an aligned FASTA file.</p>
+<p><strong>Args:</strong></p>
+<ul>
+<li><b><code>path</code></b>:  Output file path.</li>
+<li><b><code>line_width</code></b>:  Maximum sequence line length. <code>0</code> writes each  sequence on one line.</li>
+</ul>
+<p><strong>Returns:</strong></p>
+<ul>
+<li><b><code>The output path as a</code></b>: class:<code>pathlib.Path</code>.</li>
+</ul>
+<hr />
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/alignment.py#L207"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h2 id="class-alignmentconversionresult"><kbd>class</kbd> <code>AlignmentConversionResult</code></h2>
+<p>Outcome of :func:<code>convert_alignment</code>.</p>
+<p><strong>Attributes:</strong></p>
+<ul>
+<li><b><code>alignment</code></b>:  The converted alignment.</li>
+<li><b><code>input_format</code></b>:  Detected or given input format.</li>
+<li><b><code>output_format</code></b>:  Written format (<code>"fasta"</code>).</li>
+<li><b><code>output_path</code></b>:  Written file.</li>
+</ul>
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/\<string>"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h3 id="method-__init___1"><kbd>method</kbd> <code>__init__</code></h3>
+<div class="highlight"><pre><span></span><code><span class="fm">__init__</span><span class="p">(</span>
+    <span class="n">alignment</span><span class="p">:</span> <span class="s1">'Alignment'</span><span class="p">,</span>
+    <span class="n">input_format</span><span class="p">:</span> <span class="s1">'str'</span><span class="p">,</span>
+    <span class="n">output_format</span><span class="p">:</span> <span class="s1">'str'</span><span class="p">,</span>
+    <span class="n">output_path</span><span class="p">:</span> <span class="s1">'Path'</span>
+<span class="p">)</span> <span class="err">→</span> <span class="kc">None</span>
+</code></pre></div>
+<hr />
+<p><a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/alignment.py#L223"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h3 id="method-to_dict_1"><kbd>method</kbd> <code>to_dict</code></h3>
+<div class="highlight"><pre><span></span><code><span class="n">to_dict</span><span class="p">()</span> <span class="err">→</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">object</span><span class="p">]</span>
+</code></pre></div>
+<p>Return the formats, output path and alignment size as a dictionary.</p>
+<hr />
+<p><em>This file was automatically generated via <a href="https://github.com/ml-tooling/lazydocs">lazydocs</a>.</em></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>
