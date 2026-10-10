@@ -450,8 +450,14 @@ class CliTests(unittest.TestCase):
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("-v", result.stdout)
-        self.assertIn("--validation VAL", result.stdout)
-        self.assertIn("--val VAL", result.stdout)
+        # Python 3.13 displays shared metavars once for grouped aliases.
+        self.assertIn("--validation", result.stdout)
+        self.assertIn("--val", result.stdout)
+        from adabmDCA.scripts.train import create_parser
+
+        for flag in ("-v", "--validation", "--val"):
+            parsed = create_parser().parse_args(["-d", "train.fasta", flag, "validation.fasta"])
+            self.assertEqual(parsed.val, "validation.fasta")
         self.assertIn("validation", result.stdout)
         self.assertIn("metrics are computed", result.stdout)
         self.assertNotIn("--test", result.stdout)

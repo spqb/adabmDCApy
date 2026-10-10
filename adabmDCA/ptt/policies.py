@@ -19,6 +19,7 @@ from adabmDCA.graph import (
     select_inactive_elements,
 )
 from adabmDCA.ptt.optim import _PTTEdgeOptimizer, _PTTOptimizer
+from adabmDCA.ptt.precision import accumulation_dtype, device_accumulation
 from adabmDCA.stats import get_freq_two_points
 from adabmDCA.training_control import StopReason
 from adabmDCA.utils import get_mask_save
@@ -209,12 +210,12 @@ class _ElementActivationPolicy(_DensePolicy):
         i, rest = indices // (q * L * q), indices % (q * L * q)
         a, rest = rest // (L * q), rest % (L * q)
         j, b = rest // q, rest % q
-        running = torch.zeros(len(states), dtype=torch.float64, device=states.device)
+        running = torch.zeros(len(states), dtype=accumulation_dtype(states.device), device=states.device)
         kls = []
         for start in range(0, len(indices), chunk):
             part = slice(start, start + chunk)
             present = (states[:, i[part]] == a[part]) & (states[:, j[part]] == b[part])
-            scores = running.unsqueeze(1) + (present.double() * weights[part].double()).cumsum(dim=1)
+            scores = running.unsqueeze(1) + (device_accumulation(present) * device_accumulation(weights[part])).cumsum(dim=1)
             kls.append(0.5 * scores.var(dim=0, unbiased=False))
             running = scores[:, -1]
         return torch.cat(kls)
@@ -224,7 +225,7 @@ class _ElementActivationPolicy(_DensePolicy):
         inactive = len(candidates)
         requested = int(inactive * self.config.activation_fraction)
         candidates = candidates[:min(inactive, max(1, requested))]
-        f, p = fij_target.flatten()[candidates].double(), model.flatten()[candidates].double()
+        f, p = device_accumulation(fij_target.flatten()[candidates]), device_accumulation(model.flatten()[candidates])
         error = (f * (1 - f) / self.effective_size + p * (1 - p) / len(samples)).sqrt()
         significant = candidates[(f - p).abs() >= self.config.ptt.activation_significance * error]
         details = {"requested": requested, "candidates": len(candidates), "significant": len(significant),

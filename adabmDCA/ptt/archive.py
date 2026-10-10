@@ -82,7 +82,10 @@ def _read_tree(group):
 
 def _tree_to_device(value, device, key=None):
     if isinstance(value, torch.Tensor):
-        return value.to("cpu" if key == "_rng" else device)
+        return value.to(
+            device="cpu" if key == "_rng" else device,
+            dtype=torch.float32 if torch.device(device).type == "mps" and value.dtype == torch.float64 else value.dtype,
+        )
     if isinstance(value, dict):
         return {k: _tree_to_device(v, device, k) for k, v in value.items()}
     if isinstance(value, list):
@@ -257,7 +260,7 @@ def load_archive(cls, path, *, device="cpu", mode="generate", seed=None):
             estimate = result.partition_estimate()
             saved = meta["partition"]
             cross_device_float32 = (
-                meta["rng_device"].startswith("cuda")
+                meta["rng_device"].startswith(("cuda", "mps"))
                 and models[-1]["bias"].dtype == torch.float32
             )
             if cross_device_float32:
@@ -306,6 +309,10 @@ def load_archive(cls, path, *, device="cpu", mode="generate", seed=None):
             target = torch.device(device)
             if target.type == "cuda" and target.index is None:
                 target = torch.device("cuda", torch.cuda.current_device())
+            if target.type == "mps":
+                target = torch.device("mps", 0)
+                if models[0]["bias"].dtype != torch.float32:
+                    raise ValueError("PTT on MPS requires a float32 archive.")
             if str(target) != meta["rng_device"] and mode != "inspect" and (seed is None or mode == "resume"):
                 raise ValueError(
                     "Changing PTT backend requires a new seed and warmup; exact resume is unavailable."

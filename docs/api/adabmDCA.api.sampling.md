@@ -92,7 +92,7 @@ With PTT, steered rungs of increasing strength are added above the trained endpo
  - <b>`no_reweighting`</b>:  Give every reference sequence the same weight.
  - <b>`alphabet`</b>:  Alphabet of a text parameter file; ``None`` reads it from a PTT  archive and assumes ``"protein"`` for text files.
  - <b>`device`</b>:  ``"auto"``, ``"cpu"``, ``"cuda"`` or ``"mps"``.
- - <b>`dtype`</b>:  ``"float32"``, ``"float64"`` or ``"bfloat16"`` (CUDA, ordinary  unsteered sampling only); ``None`` means ``"float32"``, or the archive's precision.
+ - <b>`dtype`</b>:  ``"float32"``, ``"float64"`` or ``"bfloat16"`` (CUDA/MPS, ordinary  unsteered sampling only); ``None`` means ``"float32"``, or the archive's precision.
  - <b>`steering_potential`</b>:  Optional ``potential(batch, strength)`` added to the  DCA energy, returning one value per sequence (list, NumPy array or  tensor) and ``0`` at strength 0. ``None`` samples the model itself.
  - <b>`steering_strength`</b>:  Non-zero strength ``s`` passed to the potential.
  - <b>`steering_input`</b>:  What the potential receives: ``"sequences"`` (a list of  aligned strings, convenient for external tools) or ``"onehot"`` (a  tensor ``(n, L, q)``, fastest for potentials written in PyTorch).

@@ -33,7 +33,7 @@ An in-memory :class:`PTTSampler` is forked, so the original is not modified. An 
 **Args:**
 
  - <b>`source`</b>:  A :class:`PTTSampler` or a path to a PTT archive.
- - <b>`device`</b>:  Device to load the archive on; ``"auto"`` picks CUDA when available.  Changing device requires a new ``seed``.
+ - <b>`device`</b>:  Device to load the archive on; ``"auto"`` prefers CUDA, then MPS, then CPU.  Changing device requires a new ``seed``.
  - <b>`seed`</b>:  New random seed, or ``None`` to continue the archived random stream.
  - <b>`alphabet`</b>:  Optional alphabet; must match the archive's tokens.
 
@@ -125,7 +125,7 @@ A PTT archive already carries an estimate of log Z (bridges along its replica la
  - <b>`model`</b>:  A PTT archive path, or a :class:`PTTSampler` (it is forked, not modified).
  - <b>`n_sweeps`</b>:  Local sweeps per exchange round of the warmup.
  - <b>`seed`</b>:  Random seed of the warmup.
- - <b>`device`</b>:  ``"cpu"``, ``"cuda"`` or ``"auto"``.
+ - <b>`device`</b>:  ``"cpu"``, ``"cuda"``, ``"mps"`` (float32) or ``"auto"``.
  - <b>`alphabet`</b>:  Optional alphabet; must match the archive.
  - <b>`output_dir`</b>:  If given, the result is written to ``<output_dir>/<label>.json``.
  - <b>`label`</b>:  File-name stem of the written JSON.

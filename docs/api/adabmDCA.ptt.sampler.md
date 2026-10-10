@@ -122,7 +122,7 @@ Both replicas start at ``params``; training then moves the endpoint. To continue
 
 **Args:**
 
- - <b>`params`</b>:  ``bias`` of shape ``(L, q)`` and an all-zero ``coupling_matrix``  of shape ``(L, q, L, q)``, float32 or float64, on CPU or CUDA.
+ - <b>`params`</b>:  ``bias`` of shape ``(L, q)`` and an all-zero ``coupling_matrix``  of shape ``(L, q, L, q)``, float32 or float64, on CPU, CUDA or MPS (float32).
  - <b>`tokens`</b>:  Ordered alphabet of length ``q``.
  - <b>`n_chains`</b>:  Chains per replica.
  - <b>`sampler`</b>:  Local kernel: ``"metropolized_gibbs"``, ``"gibbs"`` or ``"metropolis"``.
@@ -156,8 +156,9 @@ advance(
     local_sweeps: 'int' = 1,
     is_cancelled: 'Callable[[], bool] | None' = None,
     on_round: 'Callable[[int, int], None] | None' = None,
-    until: 'Callable[[], bool] | None' = None
-) → Tensor
+    until: 'Callable[[], bool] | None' = None,
+    return_samples: 'bool' = True
+) → Tensor | None
 ```
 
 Run exchange rounds at fixed parameters.
@@ -173,11 +174,12 @@ Each round swaps configurations between adjacent replicas, permutes chains withi
  - <b>`is_cancelled`</b>:  Optional callable; returning ``True`` stops the run.
  - <b>`on_round`</b>:  Optional callback ``on_round(completed, rounds)`` after each round.
  - <b>`until`</b>:  Optional callable; returning ``True`` stops after the current round.
+ - <b>`return_samples`</b>:  Return one-hot endpoint chains; ``False`` skips their construction when only advancing the sampler state.
 
 
 
 **Returns:**
- A copy of the endpoint chains, one-hot, shape ``(n_chains, L, q)``.
+ A copy of the endpoint chains, one-hot, shape ``(n_chains, L, q)``, or ``None`` when ``return_samples=False``.
 
 
 
@@ -448,7 +450,7 @@ Every array is validated on load. Generation never writes the source archive. Lo
 **Args:**
 
  - <b>`path`</b>:  Archive path.
- - <b>`device`</b>:  ``"cpu"`` or a CUDA device such as ``"cuda"``.
+ - <b>`device`</b>:  ``"cpu"``, a CUDA device such as ``"cuda"``, or ``"mps"`` (float32 archives).
  - <b>`mode`</b>:  ``"generate"`` (sampling; training state dropped), ``"resume"``  (continue training exactly) or ``"inspect"`` (read only).
  - <b>`seed`</b>:  New random seed, or ``None`` to continue the archived stream.
 

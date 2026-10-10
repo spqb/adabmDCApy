@@ -84,18 +84,22 @@ def _compute_pca_scores(
     n_components: int = 4,
 ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     """Fit PCA on natural sequences and project both datasets into that basis."""
-    reference_flat = reference.reshape(reference.shape[0], -1).float()
-    generated_flat = generated.reshape(generated.shape[0], -1).float()
+    # PCA is a final plotting diagnostic. MPS lacks the SVD used by
+    # pca_lowrank, so run the diagnostic on CPU explicitly rather than relying
+    # on the process-wide unsupported-operator fallback.
+    device = torch.device("cpu") if reference.device.type == "mps" else reference.device
+    reference_flat = reference.reshape(reference.shape[0], -1).to(device=device, dtype=torch.float32)
+    generated_flat = generated.reshape(generated.shape[0], -1).to(device=device, dtype=torch.float32)
     mean = reference_flat.mean(dim=0, keepdim=True)
     centered_reference = reference_flat - mean
     available = min(n_components, max(reference_flat.shape[0] - 1, 0), reference_flat.shape[1])
     reference_scores = torch.zeros(
-        (reference_flat.shape[0], n_components), device=reference.device, dtype=reference_flat.dtype
+        (reference_flat.shape[0], n_components), device=device, dtype=reference_flat.dtype
     )
     generated_scores = torch.zeros(
-        (generated_flat.shape[0], n_components), device=generated.device, dtype=generated_flat.dtype
+        (generated_flat.shape[0], n_components), device=device, dtype=generated_flat.dtype
     )
-    explained_variance_ratio = torch.zeros(n_components, device=reference.device, dtype=reference_flat.dtype)
+    explained_variance_ratio = torch.zeros(n_components, device=device, dtype=reference_flat.dtype)
     if available == 0:
         return reference_scores, generated_scores, explained_variance_ratio
 
@@ -142,8 +146,8 @@ def _compare_with_data(reference, samples, reference_scores, generated_scores, p
     differs between data and samples is a region the model, or its sampling,
     over- or under-weights. Regions the samples never reach cannot show up.
     """
-    points = reference_scores.detach().double().cpu().numpy()
-    generated = generated_scores.detach().double().cpu().numpy()
+    points = reference_scores.detach().cpu().double().numpy()
+    generated = generated_scores.detach().cpu().double().numpy()
     n_clusters = int(min(n_clusters, len(points)))
     centres = _kmeans(points, n_clusters, seed=seed)
     data_labels = ((points[:, None, :] - centres[None]) ** 2).sum(-1).argmin(1)
@@ -151,8 +155,8 @@ def _compare_with_data(reference, samples, reference_scores, generated_scores, p
     data_fraction = np.bincount(data_labels, minlength=n_clusters) / len(points)
     sample_fraction = np.bincount(sample_labels, minlength=n_clusters) / max(len(generated), 1)
     order = np.argsort(-data_fraction)
-    data_energy = compute_energy(reference, params=params).double().cpu().numpy()
-    sample_energy = compute_energy(samples, params=params).double().cpu().numpy()
+    data_energy = compute_energy(reference, params=params).cpu().double().numpy()
+    sample_energy = compute_energy(samples, params=params).cpu().double().numpy()
     both = np.concatenate([data_energy, sample_energy])
     edges = np.linspace(np.quantile(both, 0.001), np.quantile(both, 0.999), 41)
     sorted_data, sorted_samples = np.sort(data_energy), np.sort(sample_energy)
@@ -260,11 +264,17 @@ def _distance_comparison(dataset, samples, *, test=None, n_measure: int = 10_000
     generator = torch.Generator().manual_seed(seed)
 
     def subset(states, weights, index=False):
-        weights = weights.reshape(-1).to(states.device).double()
+        weights = weights.reshape(-1).to(states.device)
         keep = torch.arange(len(states), device=states.device)
         if len(states) > n_measure:
             keep = torch.randperm(len(states), generator=generator)[:n_measure].to(states.device)
             states, weights = states[keep], weights[keep]
+        # Histogram weights/reductions use float64, which MPS cannot allocate.
+        # Transfer only the selected categorical rows before encoding chunks.
+        if states.device.type == "mps":
+            states = states.cpu()
+            weights, keep = weights.cpu(), keep.cpu()
+        weights = weights.reshape(-1).to(states.device).double()
         return (states, weights / weights.sum(), keep) if index else (states, weights / weights.sum())
 
     num_states = samples.shape[-1]
@@ -457,7 +467,7 @@ def sample_sequences(
         alphabet: Alphabet of a text parameter file; ``None`` reads it from a PTT
             archive and assumes ``"protein"`` for text files.
         device: ``"auto"``, ``"cpu"``, ``"cuda"`` or ``"mps"``.
-        dtype: ``"float32"``, ``"float64"`` or ``"bfloat16"`` (CUDA, ordinary
+        dtype: ``"float32"``, ``"float64"`` or ``"bfloat16"`` (CUDA/MPS, ordinary
             unsteered sampling only); ``None`` means ``"float32"``, or the archive's precision.
         steering_potential: Optional ``potential(batch, strength)`` added to the
             DCA energy, returning one value per sequence (list, NumPy array or

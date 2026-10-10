@@ -26,6 +26,7 @@ nav:
       - Diagnose a run: algorithms/diagnostics.md
       - Analysis: algorithms/analysis.md
       - Benchmarks: algorithms/benchmarks.md
+      - CPU PTT swap fusion: algorithms/numba-swaps.md
   - Theory and definitions:
       - Overview: quantities/index.md
       - Potts model and statistics: quantities/model.md

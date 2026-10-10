@@ -47,6 +47,8 @@ def bar(w_lower: torch.Tensor, w_upper: torch.Tensor, iterations: int = 100) -> 
     logistic function and ``M = log(n_lower / n_upper)``; the left side
     increases and the right side decreases with dF, so bisection converges.
     """
+    if w_lower.device.type == "mps":
+        w_lower, w_upper = w_lower.cpu().double(), w_upper.cpu().double()
     shift = math.log(w_lower.shape[-1] / w_upper.shape[-1])
     lo = torch.minimum(w_lower.min(-1).values, w_upper.min(-1).values) - 50.0
     hi = torch.maximum(w_lower.max(-1).values, w_upper.max(-1).values) + 50.0
@@ -80,6 +82,8 @@ def crooks_slope(w_lower: torch.Tensor, w_upper: torch.Tensor, bins: int = 30, m
     Returns ``(slope, error, used_bins)``; slope and error are None with
     fewer than three usable bins. Equilibrium populations give slope -1.
     """
+    if w_lower.device.type == "mps":
+        w_lower, w_upper = w_lower.cpu().double(), w_upper.cpu().double()
     pooled = torch.cat([w_lower, w_upper]).double()
     edges = torch.unique(torch.quantile(pooled, torch.linspace(0, 1, bins + 1, dtype=torch.float64)))
     if len(edges) < 4:
@@ -125,8 +129,8 @@ def mobility(w_lower: torch.Tensor, w_upper: torch.Tensor):
 def pair_health(w_lower: torch.Tensor, w_upper: torch.Tensor, *, bootstrap: int = 200, generator=None,
                 ages: torch.Tensor | None = None, immobile_threshold: float = IMMOBILE_THRESHOLD) -> dict:
     """All diagnostics for one adjacent pair; ``ages`` are upper-replica ages in rounds, if tracked."""
-    w_lower = w_lower.double().cpu()
-    w_upper = w_upper.double().cpu()
+    w_lower = w_lower.cpu().double()
+    w_upper = w_upper.cpu().double()
     forward, reverse = float(exp_forward(w_lower)), float(exp_reverse(w_upper))
     bennett = float(bar(w_lower, w_upper))
     lower_draw = torch.randint(len(w_lower), (bootstrap, len(w_lower)), generator=generator)
@@ -155,7 +159,7 @@ def pair_health(w_lower: torch.Tensor, w_upper: torch.Tensor, *, bootstrap: int 
         for quantile, label in ((0.5, "q50"), (0.1, "q10"), (0.01, "q01")):
             result[f"acceptance_{name}_{label}"] = float(torch.quantile(values, quantile))
     if ages is not None and immobile.any() and (~immobile).any():
-        ages = ages.double().cpu()
+        ages = ages.cpu().double()
         result["immobile_mean_age"] = float(ages[immobile].mean())
         result["mobile_mean_age"] = float(ages[~immobile].mean())
     return result

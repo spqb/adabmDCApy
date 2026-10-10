@@ -8,6 +8,7 @@ import torch
 
 from adabmDCA.exceptions import InputValidationError
 from adabmDCA.graph import compute_Dkl_edge_activation
+from adabmDCA.ptt.precision import accumulation_dtype, device_accumulation, diagnostic_double
 from adabmDCA.statmech import compute_energy
 
 
@@ -61,6 +62,20 @@ class _PTTOptimizer:
     @staticmethod
     def _directional_score_components(samples, bias_direction, coupling_direction, chunk_size=256):
         """Evaluate the two parameter-group scores without expanding pair features."""
+        if samples.device.type == "mps":
+            # PTT populations are already one-hot. GEMM avoids the N*L*L
+            # categorical gather and uses Apple's optimized matrix kernels.
+            flat = samples.flatten(1)
+            bias = bias_direction.flatten()
+            coupling = coupling_direction.reshape(flat.shape[1], flat.shape[1])
+            # Bound the projected population to 32 MiB, independently of N.
+            rows_per_chunk = max(1, (32 * 1024**2) // (flat.shape[1] * flat.element_size()))
+            bias_scores, coupling_scores = [], []
+            for batch in flat.split(rows_per_chunk):
+                bias_scores.append(batch @ bias)
+                projected = batch @ coupling
+                coupling_scores.append(projected.mul_(batch).sum(dim=1).mul_(0.5))
+            return torch.cat(bias_scores), torch.cat(coupling_scores)
         states = samples.argmax(dim=-1)
         length = states.shape[1]
         sites = torch.arange(length, device=states.device)
@@ -164,22 +179,22 @@ class _PTTOptimizer:
         bias_scores, coupling_scores = self._directional_score_components(
             samples, directions["bias"], directions["coupling_matrix"]
         )
-        bias_scores, coupling_scores = bias_scores.double(), coupling_scores.double()
+        bias_scores, coupling_scores = diagnostic_double(bias_scores), diagnostic_double(coupling_scores)
         centered_bias = bias_scores - bias_scores.mean()
         centered_coupling = coupling_scores - coupling_scores.mean()
         variance_bias = float(centered_bias.square().mean())
         variance_coupling = float(centered_coupling.square().mean())
         covariance = float((centered_bias * centered_coupling).mean())
         regularization_curvature = float(
-            0.5 * l2_regularization * directions["coupling_matrix"].double().square().sum()
+            0.5 * l2_regularization * device_accumulation(directions["coupling_matrix"]).square().sum()
         )
         linear_bias = float(
-            (gradients["bias"].double() * directions["bias"].double()).sum()
+            (device_accumulation(gradients["bias"]) * device_accumulation(directions["bias"])).sum()
         )
         linear_coupling = float(
             0.5 * (
-                gradients["coupling_matrix"].double()
-                * directions["coupling_matrix"].double()
+                device_accumulation(gradients["coupling_matrix"])
+                * device_accumulation(directions["coupling_matrix"])
             ).sum()
         )
         scales, ridge = self._solve_trust_region(
@@ -222,15 +237,15 @@ class _PTTOptimizer:
         direction is a small tail there, and its lag barely moves the mean.
         """
         endpoint, below = sampler.models[-1], sampler.models[-2]
-        drift = compute_energy(
+        drift = device_accumulation(compute_energy(
             samples, {key: endpoint[key] - below[key] for key in ("bias", "coupling_matrix")}
-        ).double()
+        ))
         names, observables = ["drift"], [drift]
         drift_spread = drift.std(unbiased=False)
         if drift_spread > 1e-12 * drift.abs().max().clamp_min(1.0):
             standardized = (drift - drift.mean()) / drift_spread
             names += ["drift_low", "drift_high"]
-            observables += [(standardized < -2.0).double(), (standardized > 2.0).double()]
+            observables += [device_accumulation(standardized < -2.0), device_accumulation(standardized > 2.0)]
         values = torch.stack(observables)
         spread = values.std(1, unbiased=False)
         keep = spread > 1e-12 * values.abs().amax(1).clamp_min(1.0)
@@ -242,7 +257,7 @@ class _PTTOptimizer:
         """Current lag of each standardized observable: its covariance with the lag memory."""
         memory = sampler.lag_memory
         if memory is None or memory.shape != (len(sampler.chains), z.shape[1]):
-            return torch.zeros(len(z), dtype=torch.float64, device=z.device)
+            return torch.zeros(len(z), dtype=accumulation_dtype(z.device), device=z.device)
         return z @ memory[-1].to(z) / z.shape[1]
 
     @staticmethod
@@ -380,13 +395,13 @@ class _PTTEdgeOptimizer(_PTTOptimizer):
     @staticmethod
     def _candidate_kl(pair, correction):
         """Exact one-edge tilt KL given the old model's pair marginal."""
-        pair = pair.double().clamp_min(1e-12)
+        pair = diagnostic_double(pair).clamp_min(1e-12)
         pair = pair / pair.sum()
         log_pair = pair.log()
-        tilted_log = log_pair + correction.double()
+        tilted_log = log_pair + diagnostic_double(correction)
         log_normalizer = torch.logsumexp(tilted_log.reshape(-1), dim=0)
         tilted = (tilted_log - log_normalizer).exp()
-        return float((tilted * (correction.double() - log_normalizer)).sum())
+        return float((tilted * (diagnostic_double(correction) - log_normalizer)).sum())
 
     def step(self, *, fij_raw, pij_raw, params, mask, sampler=None):
         alpha = self.nominal_pseudocount
@@ -435,5 +450,4 @@ class _PTTEdgeOptimizer(_PTTOptimizer):
         self.last_edge_new = was_new
         self.trust_diagnostics = {"predicted_kl": kl}
         return updated, updated_mask
-
 

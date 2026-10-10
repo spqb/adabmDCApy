@@ -93,7 +93,7 @@ class TrainingConfig:
         target_density: edDCA: coupling density at which decimation stops.
         decimation_rate: edDCA: fraction of active couplings removed per decimation.
         device: ``"auto"``, ``"cpu"``, ``"cuda"`` or ``"mps"``.
-        dtype: ``"float32"``, ``"float64"`` or ``"bfloat16"`` (CUDA, PCD only).
+        dtype: ``"float32"``, ``"float64"`` or ``"bfloat16"`` (CUDA/MPS, PCD only).
         use_wandb: Log to Weights & Biases.
         checkpoint_interval: Updates between saved checkpoints; ``None`` uses the default.
         inner_gradient_steps: edDCA: largest number of gradient updates to
