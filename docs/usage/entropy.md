@@ -25,7 +25,7 @@ adabmDCA entropy --strategy pcd -p model/params.dat.gz \
     -d train.fasta -t target.fasta -o entropy_ti
 ```
 
-For models without an archive (PCD-trained, sparse PCD, reintegrated), the command adds a field that rewards similarity to a target sequence and raises it until the chains sit on the target about 10% of the time. There, \(\log Z\) follows from the observed target probability. The field is then lowered back to zero in `--nsteps` steps while the mean identity to the target is measured, and the integral of that curve gives the change of \(\log Z\). Any sequence of the family can serve as target (`-t`, first valid sequence used).
+For models without an archive (PCD-trained, including PCD reintegration, and sparse PCD), the command adds a field that rewards similarity to a target sequence and raises it until the chains sit on the target about 10% of the time. There, \(\log Z\) follows from the observed target probability. The field is then lowered back to zero in `--nsteps` steps while the mean identity to the target is measured, and the integral of that curve gives the change of \(\log Z\). Any sequence of the family can serve as target (`-t`, first valid sequence used).
 
 | Option | Default | Meaning |
 | --- | --- | --- |
