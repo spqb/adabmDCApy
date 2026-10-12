@@ -31,8 +31,8 @@ def create_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--max-gap-fraction",
         type=float,
-        default=None,
-        help="Remove sequences with a gap fraction greater than this value.",
+        default=0.2,
+        help="Remove sequences with a gap fraction greater than this value (default: 0.2). Use 1.0 to disable gap filtering.",
     )
     parser.add_argument(
         "--remove-duplicates",

@@ -18,7 +18,7 @@ Without any transformation flag, it only converts the format. Reading an alignme
 | `-o`, `--output` | Output FASTA path |
 | `--alignment-index N` | Which alignment to read when a Stockholm file contains several |
 | `--remove-insertions` | Delete lowercase residues and `.` characters, the insertion columns of Stockholm and HMMER/Infernal output. `ACd.-E` becomes `AC-E` |
-| `--max-gap-fraction F` | Drop sequences with **more than** a fraction `F` of gaps (a sequence with exactly 20% gaps survives `0.2`) |
+| `--max-gap-fraction F` | Drop sequences with **more than** a fraction `F` of gaps (a sequence with exactly 20% gaps survives `0.2`). Default: `0.2`; pass `1.0` to disable |
 | `--remove-duplicates` | Keep only the first copy of identical sequences |
 | `--alphabet` | `auto` (default), `protein`, `rna`, `dna`, or a custom token string |
 | `--unknown-tokens` | What to do with characters outside the alphabet: `gap` (default) replaces them with `-`, `remove` drops their sequences, `error` stops and lists them |

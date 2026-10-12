@@ -247,7 +247,8 @@ s2 D-
                     output = Path(directory) / f"{mode}.fasta"
                     report = Path(directory) / f"{mode}.json"
                     command = [sys.executable, "-m", "adabmDCA.cli", "preprocess", str(source),
-                               "--output", str(output), "--alphabet", "dna", "--report", str(report)]
+                               "--output", str(output), "--alphabet", "dna", "--report", str(report),
+                               "--max-gap-fraction", "1.0"]
                     if mode != "gap":
                         command.extend(("--unknown-tokens", mode))
                     completed = subprocess.run(command, text=True, capture_output=True, check=False)
