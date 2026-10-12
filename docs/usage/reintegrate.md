@@ -36,7 +36,7 @@ adabmDCA reintegrate --strategy ptt -d natural.fasta --reint tested.fasta --adj 
     -o reintegrated --nsweeps 100 --target 0.9
 ```
 
-[![Chorismate mutase: generated sequences on the PCA of the natural alignment](../figures/chorismate_mutase/pca_comparison.png){ width="860" }](../figures/chorismate_mutase/pca_comparison.png)
+[![Chorismate mutase: generated sequences on the PCA of the natural alignment](../figures/chorismate_mutase/pca_comparison.png){ width="760" }](../figures/chorismate_mutase/pca_comparison.png)
 
 In the natural alignment, functional sequences gather in the central cluster and the island on the left, while non-functional ones dominate the upper region and the small cluster at the top. The model trained on the natural sequences alone covers every cluster, non-functional regions included. The reintegrated model concentrates on the central functional cluster and the left island and nearly abandons the upper region. As a consequence, its samples reproduce the statistics of the natural alignment less closely (Pearson 0.63 against 0.91): it no longer models the non-functional part of the family.
 

@@ -675,6 +675,14 @@ def test_validation_early_stop_resume_and_progress(training_case, tmp_path, monk
     assert events[0].partition_estimate["method"] == "ptt_bridge"
     with pytest.raises(InputValidationError, match="configuration"):
         train_model(data, config=replace(config, learning_rate=0.04), ptt_resume=stopped.artifacts["ptt_archive"])
+    # Stopping criteria may change: the stopped run continues towards a higher target.
+    continued = train_model(
+        data, config=replace(config, target_pearson=0.999999, max_epochs=2,
+                             ptt=replace(config.ptt, validation_window=7, validation_min_gain=0.5)),
+        ptt_resume=stopped.artifacts["ptt_archive"], output_dir=tmp_path / "continued",
+    )
+    assert continued.gradient_steps == 2
+    assert PTTSampler.from_archive(continued.artifacts["ptt_archive"], mode="resume").config.validation_window == 7
     with pytest.raises(InputValidationError, match="warm starts"):
         train_model(data, config=config, initial_params_path=stopped.artifacts["params"])
     with pytest.raises(InputValidationError, match="seed"):

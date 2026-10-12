@@ -140,6 +140,18 @@ The [benchmarks](benchmarks.md#bmdca-vs-edgedca) found bmDCA preferable to edgeD
 
 On RF00379 (three seeds), the rule stopped within 40 updates of the maximum of the smoothed validation curve, at most 4·10⁻⁵ nats per site below it. Stopping at Pearson 0.95 instead gave about 10⁻³ less, and training on to 6,000 updates about 9·10⁻³ less. The stop also adapts to the family: on the benchmark families it ended at training Pearson values between 0.918 and 0.968.
 
+**Training past the plateau.** Continuing another RF00379 run (10 sweeps) from its validation stop at update 2,475 to 20,000 updates shows what a late stop costs. The training Pearson keeps creeping up (0.952 to 0.967) while the validation Pearson stays at about 0.80, so neither warns that anything is wrong. The validation log-likelihood, in contrast, falls steadily from −0.711 to −0.762 per site, and the mixing time of the model, measured as in `sample --strategy pcd`, grows about sevenfold, from about 220 to 1,650 sweeps. The longer-trained model is worse on held-out sequences and much more expensive to sample.
+
+[![RF00379 trained past the validation plateau](../figures/benchmarks/rf00379_overtraining.png){ width="660" }](../figures/benchmarks/rf00379_overtraining.png)
+
+*RF00379, 10 sweeps, resumed from its validation stop without validation stop up to 20,000 updates. Top: training and validation log-likelihood per site. Middle: training and validation Pearson. Bottom: mixing time of the models stored along the run, mean and standard deviation over three sets of starting sequences. Dashed: the validation stop; dotted: the best validation log-likelihood.*
+
+[![RF00379: validation log-likelihood against mixing time](../figures/benchmarks/rf00379_overtraining_tradeoff.png){ width="560" }](../figures/benchmarks/rf00379_overtraining_tradeoff.png)
+
+*The same models, validation log-likelihood against mixing time, coloured by update. Up to the validation stop (circled) both grow together; afterwards the mixing time keeps growing while the held-out likelihood declines.*
+
+A Pearson target chosen in advance cannot tell where this turning point lies: it depends on the family and on the training data. When a validation set is available, rely on the validation stop rather than on `--target`.
+
 **Budgets.** `--max-gradient-steps`, `--max-structure-steps` and `--nepochs` stop training before convergence, with a stop reason that says so.
 
 ## Reading the training plots
