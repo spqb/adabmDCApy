@@ -97,7 +97,7 @@ def add_args_dca(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         "--nchains",
         type=int,
         default=DEFAULT_N_CHAINS,
-        help="(Defaults to 2000). Number of Markov chains to run in parallel.",
+        help="(Defaults to 2048). Number of Markov chains to run in parallel.",
     )
     dca_args.add_argument(
         "--target",
@@ -224,7 +224,7 @@ def add_args_edDCA(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
 def add_args_ptt(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     ptt_args = parser.add_argument_group(
         "Parallel Trajectory Tempering arguments",
-        "PTT defaults: Metropolized Gibbs, 10 sweeps per exchange round, 2000 chains, 50000 updates.",
+        "PTT defaults: Metropolized Gibbs, 10 sweeps per exchange round, 2048 chains, 50000 updates.",
     )
     parser.add_argument("--strategy", choices=("ptt", "pcd"), default="ptt",
                         help="Training strategy (default: ptt).")
@@ -430,7 +430,7 @@ def add_args_sample(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     io_args.add_argument(
         "--ngen", type=int, default=None,
         help=("Number of sequences to be generated. Defaults to the number of chains per model used in "
-              "training with --strategy ptt, and to 2000 with --strategy pcd."),
+              "training with --strategy ptt, and to 2048 with --strategy pcd."),
     )
     io_args.add_argument(
         "-l", "--label", type=str, default=None, help="(Defaults to None). Label to be used for the output files."
@@ -593,8 +593,8 @@ def add_args_tdint(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         default="entropy",
         help="(Defaults to 'entropy'). Label to be used for the output files.",
     )
-    parser.add_argument("--nchains", type=int, default=10000,
-                        help="(Defaults to 10000). Integration chain count; ignored with --strategy ptt because the archive owns the chains.")
+    parser.add_argument("--nchains", type=int, default=8192,
+                        help="(Defaults to 8192). Integration chain count; ignored with --strategy ptt because the archive owns the chains.")
     parser.add_argument("--theta_max", type=float, default=5, help="(Defaults to 5). Maximum integration strength")
     parser.add_argument("--nsteps", type=int, default=100, help="(Defaults to 100). Number of integration steps.")
     parser.add_argument(

@@ -269,7 +269,7 @@ Across the six benchmark families, generated sequences sat farther from the trai
 | `--ptt-mixing-max-rounds` | 20000 | F8, or renewal forecast slightly beyond the budget | — | Longer stalls before a failure; does not fix F1 |
 | `--ptt-lag-tolerance` | 0.25 | `1e9` disables pausing but still logs the lag (experiments) | — | — |
 | `--ptt-trust-radius` | 0.01 | — | Steps too aggressive | More updates |
-| `--nchains` | 2000 | Noisy statistics | — | Does **not** help F1: entering or leaving a basin is a per-chain rate, so 10,000 chains relax the basin fraction no faster |
+| `--nchains` | 2048 | Noisy statistics | — | Does **not** help F1: entering or leaving a basin is a per-chain rate, so 10,000 chains relax the basin fraction no faster |
 
 `--ptt-optimizer sgd` disables both the trust region and the lag pause; use it only for comparisons.
 

@@ -11,7 +11,7 @@ from adabmDCA.exceptions import InputValidationError
 # One local sampler call is one Potts sweep. PTT and standard PCD share the
 # same sampling defaults unless the caller provides an explicit override.
 DEFAULT_PTT_N_SWEEPS = 10
-DEFAULT_PTT_N_CHAINS = 2_000
+DEFAULT_PTT_N_CHAINS = 2_048
 DEFAULT_PTT_SAMPLER = "metropolized_gibbs"
 DEFAULT_PTT_MAX_EPOCHS = 50_000
 PTT_OPTIMIZERS = ("sgd", "adaptive")

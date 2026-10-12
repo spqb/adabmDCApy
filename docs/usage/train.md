@@ -45,7 +45,7 @@ adabmDCA train -d train.fasta -v validation.fasta -o model --plot-training-logs
 | `-m`, `--model` | `bmDCA` | `bmDCA`, `eaDCA`, `edDCA` (PCD only) or `edgeDCA` |
 | `--strategy` | `ptt` | `ptt` or `pcd` |
 | `--alphabet` | `auto` | `protein`, `rna`, `dna`, or custom tokens |
-| `--nchains` | 2000 | Number of Markov chains (per replica with PTT) |
+| `--nchains` | 2048 | Number of Markov chains (per replica with PTT) |
 | `--nsweeps` | 10 | Local sweeps per update (PCD) or per exchange round and replica (PTT) |
 | `--sampler` | `metropolized_gibbs` | Local move: `metropolized_gibbs`, `gibbs` or `metropolis` |
 | `--lr` | 0.01 | Learning rate; an upper bound for the adaptive PTT optimizer. Ignored by `edgeDCA` |

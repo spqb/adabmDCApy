@@ -71,7 +71,7 @@ All training settings can be gathered in an immutable, validated `TrainingConfig
 ```python
 from adabmDCA import TrainingConfig, PTTConfig
 
-config = TrainingConfig(model_type="eaDCA", n_chains=2000, n_sweeps=10,
+config = TrainingConfig(model_type="eaDCA", n_chains=2048, n_sweeps=10,
                         max_gradient_steps=20000, checkpoint_interval=200,
                         ptt=PTTConfig(validation_stop=True, activation="adaptive"))
 result = train_model("train.fasta", config=config, validation_path="validation.fasta",
@@ -140,7 +140,7 @@ reference = load_alignment("train.fasta")
 result = sample_sequences(
     model="model/ptt.h5", ptt=True,
     reference_fasta=reference, test_fasta="validation.fasta",
-    n_sequences=2000, collect_diagnostics=True, seed=0,
+    n_sequences=2048, collect_diagnostics=True, seed=0,
 )
 result.sequences, result.energies
 df = result.to_dataframe()                                 # sequence, energy, cde_sum
@@ -157,7 +157,7 @@ To run several operations on one archive without reloading it, build the sampler
 from adabmDCA import PTTSampler, estimate_ptt_entropy
 
 backend = PTTSampler.from_archive("model/ptt.h5", device="cuda", seed=7)
-samples = sample_sequences(model=backend, ptt=True, reference_fasta=reference, n_sequences=2000)
+samples = sample_sequences(model=backend, ptt=True, reference_fasta=reference, n_sequences=2048)
 entropy = estimate_ptt_entropy(model=backend)
 health  = backend.ladder_health()                          # per-link overlap and mobility
 ```

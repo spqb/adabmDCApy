@@ -26,7 +26,7 @@ Both commands also **check the model**: they verify that the chains have equilib
 | --- | --- | --- |
 | `-p`, `--path_params` | required | `ptt.h5` (PTT) or a parameter file / `ptt.h5` (plain MCMC, which then reads the final model) |
 | `-o`, `--output` | required | Output folder |
-| `--ngen` | chains per model in training (PTT), 2000 (plain MCMC) | Number of sequences |
+| `--ngen` | chains per model in training (PTT), 2048 (plain MCMC) | Number of sequences |
 | `-d`, `--data` | none (required for PTT) | Natural alignment used as reference for mixing, comparisons and likelihoods; normally the training set |
 | `-v`, `--validation` | none | Held-out alignment, normally the validation set of training. With `--plot`, enables the overfitting checks (`--test` is an older alias) |
 | `--plot` | off | Write the diagnostic figures. Requires `-d` |
@@ -90,7 +90,7 @@ from adabmDCA import load_alignment, sample_sequences
 reference = load_alignment("train.fasta")
 result = sample_sequences(
     model="model/ptt.h5", ptt=True, reference_fasta=reference,
-    n_sequences=2000, collect_diagnostics=True,       # n_sequences is required in Python
+    n_sequences=2048, collect_diagnostics=True,       # n_sequences is required in Python
 )
 result.save_bundle("samples")
 result.save_diagnostic_plots("samples")

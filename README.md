@@ -94,7 +94,7 @@ result = train_model(train, validation_path=validation, alphabet="rna",
 print(result.stop_reason, result.history_dataframe().tail())
 
 samples = sample_sequences(model="model/ptt.h5", ptt=True, reference_fasta=train,
-                           n_sequences=2000, collect_diagnostics=True)
+                           n_sequences=2048, collect_diagnostics=True)
 samples.save_bundle("samples")
 samples.save_diagnostic_plots("samples")
 

@@ -31,7 +31,7 @@ For models without an archive (PCD-trained, sparse PCD, reintegrated), the comma
 | --- | --- | --- |
 | `-d` | required | Natural alignment, for the alphabet and initial chains |
 | `-t`, `--path_targetseq` | required | FASTA whose first sequence is the target |
-| `--nchains` | 10000 | Chains used at every step |
+| `--nchains` | 8192 | Chains used at every step |
 | `--nsteps` | 100 | Integration points |
 | `--nsweeps` | 100 | Sweeps per integration point |
 | `--theta_max` | 5 | Initial maximum field, raised automatically if the target is too rare |

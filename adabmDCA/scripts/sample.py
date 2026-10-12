@@ -13,11 +13,11 @@ def create_parser() -> argparse.ArgumentParser:
                       "sampling strategy; PCD uses normal MCMC sampling.")))
 
 
-DEFAULT_PCD_SEQUENCES = 2000
+DEFAULT_PCD_SEQUENCES = 2048
 
 
 def resolve_ngen(args) -> None:
-    """Default --ngen: the training chains per model of a PTT archive, or 2000 for ordinary sampling."""
+    """Default --ngen: the training chains per model of a PTT archive, or 2048 for ordinary sampling."""
     if args.ngen is not None:
         return
     if args.strategy != "ptt":

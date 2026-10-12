@@ -41,7 +41,7 @@ def estimate_entropy(
     natural_alignment: AlignmentInput,
     target_alignment: AlignmentInput,
     initial_chains_path: str | Path | None = None,
-    n_chains: int = 10_000,
+    n_chains: int = 8_192,
     n_sweeps: int = 100,
     n_steps: int = 100,
     theta_max: float = 5.0,

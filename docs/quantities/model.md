@@ -94,4 +94,4 @@ J \leftarrow J + \eta\,(f^\alpha_{ij} - p_{ij} - \lambda_2 J),
 
 with \(\eta\) = `--lr`, and with sparse models masking inactive couplings. The adaptive PTT optimizer chooses separate rates for fields and couplings ([Training quantities](training.md#adaptive-optimizer-and-predicted-kl)).
 
-The model frequencies \(p\) are estimated from 2,000 chains, so the gradient has sampling noise of order \(1/\sqrt{2000}\) on each frequency, and, more importantly, a bias whenever the chains are not at equilibrium.
+The model frequencies \(p\) are estimated from 2,048 chains, so the gradient has sampling noise of order \(1/\sqrt{2048}\) on each frequency, and, more importantly, a bias whenever the chains are not at equilibrium.

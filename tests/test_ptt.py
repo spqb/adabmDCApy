@@ -472,14 +472,14 @@ def test_ptt_chain_default_matches_standard_training():
 
     standard = TrainingConfig()
     ptt = TrainingConfig(ptt=PTTConfig())
-    assert standard.n_chains == ptt.n_chains == 2_000
+    assert standard.n_chains == ptt.n_chains == 2_048
     assert ptt.n_sweeps == 10
     assert ptt.sampler == "metropolized_gibbs"
     assert ptt.max_epochs == 50_000
     assert ptt.ptt.optimizer == "adaptive"
     assert ptt.ptt.mixing_method == "renewal"
     parsed = create_parser().parse_args(["--strategy", "ptt", "--data", "unused.fasta"])
-    assert parsed.nchains == 2_000
+    assert parsed.nchains == 2_048
     assert parsed.nsweeps == 10
     assert parsed.sampler == "metropolized_gibbs"
     assert parsed.nepochs == 50_000
@@ -500,7 +500,7 @@ def test_ptt_swaps_factor_cli_name_and_help_order():
         "Parallel Trajectory Tempering arguments:"
     )
     assert "Parallel Trajectory Tempering" in help_text
-    for expected in ("Metropolized", "10 sweeps per exchange round", "2000 chains", "50000 updates"):
+    for expected in ("Metropolized", "10 sweeps per exchange round", "2048 chains", "50000 updates"):
         assert expected in " ".join(help_text.split())
 
 
