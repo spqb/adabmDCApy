@@ -2,7 +2,7 @@ from importlib import import_module
 
 from adabmDCA.api import _EXPORTS as _API_EXPORTS
 
-__version__ = "1.0.0"
+__version__ = "2.0.0"
 
 # Everything in adabmDCA.api, plus the lower-level building blocks.
 _EXPORTS = {
