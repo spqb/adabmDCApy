@@ -49,7 +49,7 @@ adabmDCA train -d train.fasta -v validation.fasta -o model --plot-training-logs
 | `--nsweeps` | 10 | Local sweeps per update (PCD) or per exchange round and replica (PTT) |
 | `--sampler` | `metropolized_gibbs` | Local move: `metropolized_gibbs`, `gibbs` or `metropolis` |
 | `--lr` | 0.01 | Learning rate; an upper bound for the adaptive PTT optimizer. Ignored by `edgeDCA` |
-| `--target` | 0.95 | Pearson target on the connected correlations |
+| `--target` | 0.95 | Pearson target on the connected correlations. With a validation set (`-v`), prefer the validation stop: training on to a fixed target can lower the held-out likelihood and slow mixing ([details](../algorithms/training.md#when-training-stops)) |
 | `--pseudocount` | 1/M_eff (0.1 for edgeDCA) | Regularization of the data frequencies |
 | `--l2_reg` | 0 | L2 penalty on the couplings |
 | `-w`, `--weights` | computed | File with one weight per sequence |

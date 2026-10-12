@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import statistics
 import time
+from dataclasses import replace
 
 from adabmDCA.exceptions import ConvergenceError, InputValidationError
 from adabmDCA.graph import compute_density
@@ -34,6 +35,20 @@ def _resume_settings(config_or_settings):
     for name in ("max_epochs", "max_gradient_steps", "max_structure_steps", "checkpoint_interval", "use_wandb",
                  "alphabet", "slope_tolerance"):
         settings.pop(name, None)
+    return settings
+
+
+# Stopping criteria may change on resume, like step budgets: a run stopped on a
+# plateau can be continued with validation stopping off or a higher target.
+_RESUMABLE_STOP_SETTINGS = ("target_pearson",)
+_RESUMABLE_PTT_STOP_SETTINGS = ("validation_stop", "validation_window", "validation_min_gain")
+
+
+def _without_stop_settings(settings):
+    settings = {key: value for key, value in settings.items() if key not in _RESUMABLE_STOP_SETTINGS}
+    if isinstance(settings.get("ptt"), dict):
+        settings["ptt"] = {key: value for key, value in settings["ptt"].items()
+                           if key not in _RESUMABLE_PTT_STOP_SETTINGS}
     return settings
 
 
@@ -154,6 +169,10 @@ class _PTTTrainer:
         self.policy = _make_policy(config, mask, fij_raw=fij_raw, edge_pseudocount=edge_pseudocount,
                                    activation_pseudocount=activation_pseudocount, effective_size=effective_size)
         self.optimizer = self.policy.optimizer
+        if sampler.training_state and config.ptt is not None:
+            # On resume the requested stopping criteria replace the archived ones.
+            sampler.config = replace(sampler.config, **{
+                name: getattr(config.ptt, name) for name in _RESUMABLE_PTT_STOP_SETTINGS})
         if sampler.config.validation_stop and (fi_val is None or fij_val is None):
             raise InputValidationError("Stopping on the validation log-likelihood requires a validation set.")
         self.stage_progress = controller.report_stage_progress if controller.stage_observer is not None else None
@@ -173,11 +192,12 @@ class _PTTTrainer:
     def _resume(self):
         sampler, controller, policy = self.sampler, self.controller, self.policy
         state = sampler.training_state
-        archived_settings = _resume_settings(state["settings"])
+        archived_settings = _without_stop_settings(_resume_settings(state["settings"]))
+        current_settings = _without_stop_settings(self.settings)
         target_mismatch = state["target_id"] != self.target_id
         differing_settings = sorted(
-            key for key in set(archived_settings) | set(self.settings)
-            if archived_settings.get(key) != self.settings.get(key)
+            key for key in set(archived_settings) | set(current_settings)
+            if archived_settings.get(key) != current_settings.get(key)
         )
         if target_mismatch or differing_settings:
             reasons = []
@@ -187,7 +207,7 @@ class _PTTTrainer:
                 reasons.append("settings: " + ", ".join(differing_settings))
             raise InputValidationError(
                 "PTT resume targets or configuration differ from the archive in " + "; ".join(reasons)
-                + " (only step budgets/checkpoint/logging may change).",
+                + " (only step budgets, stopping criteria, checkpoint and logging may change).",
                 details={"target_mismatch": target_mismatch, "differing_settings": differing_settings},
             )
         controller.history = state["history"]
