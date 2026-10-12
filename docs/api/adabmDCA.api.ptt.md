@@ -97,7 +97,7 @@ Equilibrate the ladder in place, then collect endpoint samples.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/ptt.py#L441"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/ptt.py#L445"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `estimate_ptt_entropy`
 
@@ -147,7 +147,7 @@ A PTT archive already carries an estimate of log Z (bridges along its replica la
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/ptt.py#L401"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/ptt.py#L405"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `PTTEntropyResult`
 Entropy of a PTT model, returned by :func:`estimate_ptt_entropy`.
@@ -197,7 +197,7 @@ __init__(
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/ptt.py#L432"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/ptt.py#L436"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `to_dict`
 
@@ -209,7 +209,7 @@ Return a JSON-compatible document with the result type and schema version.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/ptt.py#L436"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/ptt.py#L440"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `to_json`
 

@@ -81,7 +81,7 @@ Pass it as ``config=`` to :func:`train_model`; it then takes precedence over the
  - <b>`target_density`</b>:  edDCA: coupling density at which decimation stops.
  - <b>`decimation_rate`</b>:  edDCA: fraction of active couplings removed per decimation.
  - <b>`device`</b>:  ``"auto"``, ``"cpu"``, ``"cuda"`` or ``"mps"``.
- - <b>`dtype`</b>:  ``"float32"``, ``"float64"`` or ``"bfloat16"`` (CUDA/MPS, PCD only).
+ - <b>`dtype`</b>:  ``"float32"``, ``"float64"`` or ``"bfloat16"`` (CUDA/MPS; CUDA only with PTT).
  - <b>`use_wandb`</b>:  Log to Weights & Biases.
  - <b>`checkpoint_interval`</b>:  Updates between saved checkpoints; ``None`` uses the default.
  - <b>`inner_gradient_steps`</b>:  edDCA: largest number of gradient updates to  re-converge the model after each decimation.
@@ -113,7 +113,7 @@ __init__(
     learning_rate: 'float' = 0.01,
     n_sweeps: 'int' = 10,
     sampler: 'str' = 'metropolized_gibbs',
-    n_chains: 'int' = 2000,
+    n_chains: 'int' = 2048,
     target_pearson: 'float' = 0.95,
     max_epochs: 'int' = 50000,
     max_gradient_steps: 'int | None' = None,
