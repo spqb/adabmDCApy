@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import functools
 import time
 from contextlib import contextmanager
 
@@ -31,7 +32,25 @@ def _numba_categorical_sampler(name, device):
     return categorical_sampler(name) if is_numba_available() else None
 
 
-def _prepare_categorical_sampler(name, device):
+def _bfloat16_categorical_sampler(name):
+    """Triton kernel for ``name`` reading a BF16 copy of the couplings (CUDA)."""
+    from adabmDCA.sampling_triton import (
+        gibbs_sampling_categorical_triton,
+        metropolis_sampling_categorical_triton,
+        metropolized_gibbs_sampling_categorical_triton,
+    )
+
+    function = {
+        "gibbs": gibbs_sampling_categorical_triton,
+        "metropolis": metropolis_sampling_categorical_triton,
+        "metropolized_gibbs": metropolized_gibbs_sampling_categorical_triton,
+    }[name]
+    return functools.partial(function, coupling_dtype=torch.bfloat16)
+
+
+def _prepare_categorical_sampler(name, device, coupling_dtype=None):
+    if coupling_dtype == torch.bfloat16:
+        return _bfloat16_categorical_sampler(name)
     if device.type == "mps":
         from adabmDCA.mps_kernels import categorical_sampler, is_mps_available
         from adabmDCA.mps_kernels.sampling import _supported
@@ -127,7 +146,7 @@ class _ReplicaKernel:
         return self.function(*args, **kwargs)
 
 
-def _prepare_replica_sampler(name, device):
+def _prepare_replica_sampler(name, device, coupling_dtype=None):
     if device.type == "mps":
         from adabmDCA.mps_kernels import is_mps_available, replica_sampler
         if is_mps_available():
@@ -164,10 +183,13 @@ def _prepare_replica_sampler(name, device):
         )
         if not is_triton_available():
             return None
+        # BF16 couplings are rounded once per replica, before stacking.
+        transform = None if coupling_dtype is None else (lambda couplings: couplings.to(coupling_dtype))
         if name == "metropolis":
-            return _ReplicaKernel(metropolis_sampling_replicas_categorical_triton, min_length=200)
+            return _ReplicaKernel(metropolis_sampling_replicas_categorical_triton, transform_couplings=transform,
+                                  min_length=200)
         # Takes the stacked couplings as they are and prepares a dense or sparse layout itself.
-        return _ReplicaKernel(metropolized_gibbs_sampling_replicas_triton)
+        return _ReplicaKernel(metropolized_gibbs_sampling_replicas_triton, transform_couplings=transform)
     except ImportError:
         pass
     return None

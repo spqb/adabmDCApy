@@ -788,8 +788,8 @@ def metropolis_sampling_replicas_categorical_triton(
         raise ValueError("Replica couplings must have shape (R, L, q, L, q)")
     if biases.device != states.device or couplings.device != states.device:
         raise ValueError("Replica states and parameters must be on the same CUDA device")
-    if biases.dtype != couplings.dtype:
-        raise ValueError("Replica biases and couplings must use the same dtype")
+    if couplings.dtype not in (biases.dtype, torch.bfloat16):
+        raise ValueError("Replica couplings must use the bias dtype or bfloat16")
     block_n, num_warps, default_steps = _replica_metropolis_launch(num_states)
     steps_per_launch = default_steps if steps_per_launch is None else steps_per_launch
     if steps_per_launch < 1:

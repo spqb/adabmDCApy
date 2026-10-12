@@ -62,16 +62,11 @@ def assert_block_positions(history):
 # Configuration and selection
 
 
-@pytest.mark.parametrize("dtype", ["float32", "float64"])
+@pytest.mark.parametrize("dtype", ["float32", "float64", "bfloat16"])
 def test_config_accepts_ptt_eadca(dtype):
     config = TrainingConfig(model_type="eaDCA", dtype=dtype, ptt=PTTConfig())
     assert config.limits.max_structure_steps == config.max_epochs
     assert config.limits.max_gradient_steps is None
-
-
-def test_config_rejects_bfloat16_ptt_eadca():
-    with pytest.raises(InputValidationError):
-        TrainingConfig(model_type="eaDCA", dtype="bfloat16", ptt=PTTConfig())
 
 
 def test_selector_picks_only_inactive_off_diagonal_entries():

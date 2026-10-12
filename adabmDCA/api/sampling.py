@@ -467,8 +467,8 @@ def sample_sequences(
         alphabet: Alphabet of a text parameter file; ``None`` reads it from a PTT
             archive and assumes ``"protein"`` for text files.
         device: ``"auto"``, ``"cpu"``, ``"cuda"`` or ``"mps"``.
-        dtype: ``"float32"``, ``"float64"`` or ``"bfloat16"`` (CUDA/MPS, ordinary
-            unsteered sampling only); ``None`` means ``"float32"``, or the archive's precision.
+        dtype: ``"float32"``, ``"float64"`` or ``"bfloat16"`` (CUDA/MPS, unsteered
+            sampling only; CUDA only with PTT); ``None`` means ``"float32"``, or the archive's precision.
         steering_potential: Optional ``potential(batch, strength)`` added to the
             DCA energy, returning one value per sequence (list, NumPy array or
             tensor) and ``0`` at strength 0. ``None`` samples the model itself.
@@ -510,12 +510,8 @@ def sample_sequences(
     from adabmDCA.ptt import PTTSampler
 
     if ptt or isinstance(model, PTTSampler):
-        if (
-            beta != 1.0 or dtype == "bfloat16"
-        ):
-            raise InputValidationError(
-                "PTT generation supports beta=1 and full precision only."
-            )
+        if beta != 1.0:
+            raise InputValidationError("PTT generation supports beta=1 only.")
         from adabmDCA.api.ptt import sample_ptt_sequences
 
         _check_cancelled(is_cancelled)

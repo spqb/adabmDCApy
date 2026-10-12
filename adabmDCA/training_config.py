@@ -93,7 +93,7 @@ class TrainingConfig:
         target_density: edDCA: coupling density at which decimation stops.
         decimation_rate: edDCA: fraction of active couplings removed per decimation.
         device: ``"auto"``, ``"cpu"``, ``"cuda"`` or ``"mps"``.
-        dtype: ``"float32"``, ``"float64"`` or ``"bfloat16"`` (CUDA/MPS, PCD only).
+        dtype: ``"float32"``, ``"float64"`` or ``"bfloat16"`` (CUDA/MPS; CUDA only with PTT).
         use_wandb: Log to Weights & Biases.
         checkpoint_interval: Updates between saved checkpoints; ``None`` uses the default.
         inner_gradient_steps: edDCA: largest number of gradient updates to
@@ -150,8 +150,8 @@ class TrainingConfig:
             ):
                 if isinstance(getattr(self, name), (_DefaultInt, _DefaultStr)):
                     object.__setattr__(self, name, default)
-            if self.model_type not in ("bmDCA", "eaDCA", "edgeDCA") or self.dtype == "bfloat16":
-                raise ConfigurationError("PTT currently supports bmDCA, eaDCA and edgeDCA with float32/float64 only.")
+            if self.model_type not in ("bmDCA", "eaDCA", "edgeDCA"):
+                raise ConfigurationError("PTT currently supports bmDCA, eaDCA and edgeDCA only.")
             if self.ptt.activation != "fixed" and self.model_type != "eaDCA":
                 raise ConfigurationError("PTT adaptive activation applies to eaDCA only.")
             if self.model_type == "edgeDCA" and self.pseudocount is not None and not 0.0 < self.pseudocount < 1.0:

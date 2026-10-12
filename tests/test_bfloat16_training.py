@@ -1,6 +1,7 @@
 """BF16 sampling storage with FP32 training state and arithmetic."""
 
 import argparse
+from dataclasses import replace
 from unittest.mock import patch
 
 import pytest
@@ -201,3 +202,119 @@ def test_training_state_stays_fp32_and_sampler_uses_bf16(model_type, sampler, tm
 
     loaded = load_model(result.artifacts["params"], alphabet="ABC", device="cuda")
     torch.testing.assert_close(loaded.params["bias"], result.model.params["bias"], atol=1e-5, rtol=1e-5)
+
+
+# PTT
+
+
+def ptt_profile(length, q, device):
+    torch.manual_seed(29)
+    return {"bias": torch.randn(length, q, device=device) * 0.3,
+            "coupling_matrix": torch.zeros(length, q, length, q, device=device)}
+
+
+def couple(sampler, *, sparse=False, scale=0.1):
+    """Give every replica above the profile the same random symmetric couplings.
+
+    ``sparse`` couples only neighbouring sites, so the sparse kernels are used.
+    """
+    length, q = sampler.models[0]["bias"].shape
+    device = sampler.models[0]["bias"].device
+    couplings = torch.randn(length, q, length, q, device=device) * scale
+    couplings = (couplings + couplings.permute(2, 3, 0, 1)) / 2
+    sites = torch.arange(length, device=device)
+    distance = (sites[:, None] - sites[None, :]).abs()
+    keep = distance == 1 if sparse else distance > 0
+    couplings *= keep[:, None, :, None]
+    for model in sampler.models[1:]:
+        model["coupling_matrix"].copy_(couplings)
+
+
+def test_ptt_bfloat16_requires_cuda():
+    from adabmDCA.ptt import PTTConfig, PTTSampler
+
+    sampler = PTTSampler(ptt_profile(3, 2, "cpu"), tokens="AB", n_chains=4)
+    with pytest.raises(InputValidationError, match="CUDA"):
+        sampler.set_coupling_dtype(torch.bfloat16)
+    assert TrainingConfig(dtype="bfloat16", ptt=PTTConfig()).dtype == "bfloat16"
+    with pytest.raises(InputValidationError, match="CUDA"):
+        train_model(alignment(), dtype="bfloat16", device="cpu", alphabet="ABC", ptt=PTTConfig())
+
+
+@gpu
+@pytest.mark.parametrize("name", ["gibbs", "metropolis", "metropolized_gibbs"])
+@pytest.mark.parametrize("length", [9, 240])
+@pytest.mark.parametrize("sparse", [False, True])
+def test_ptt_bf16_kernels_match_fp32_for_rounded_couplings(name, length, sparse):
+    from adabmDCA.ptt import PTTSampler
+
+    sampler = PTTSampler(ptt_profile(length, 5, "cuda"), tokens="ABCDE", n_chains=33, sampler=name)
+    sampler.models.append({key: value.clone() for key, value in sampler.models[-1].items()})
+    sampler.chains.append(sampler.chains[-1].clone())
+    couple(sampler, sparse=sparse)
+    rounded = sampler.fork()
+    for model in rounded.models:
+        model["coupling_matrix"].copy_(model["coupling_matrix"].bfloat16().float())
+    sampler.set_coupling_dtype(torch.bfloat16)
+    copy = sampler.fork()
+    assert copy.coupling_dtype == torch.bfloat16
+    masters = [model["coupling_matrix"].clone() for model in sampler.models]
+    for mode in ("train", "generate"):
+        expected, actual = rounded.fork(seed=7), copy.fork(seed=7)
+        for current in (expected, actual):
+            current.mode = mode
+        local = [1, 2]
+        torch.manual_seed(5)
+        if mode == "train" or expected._replica_kernel is None:
+            reference = [expected._local_kernel(expected.chains[k], expected.models[k], 3) for k in local]
+            torch.manual_seed(5)
+            result = [actual._local_kernel(actual.chains[k], actual.models[k], 3) for k in local]
+        else:
+            stack = torch.stack([expected.chains[k] for k in local])
+            reference = expected._replica_kernel(stack, *expected._stacked_replica_params(local), nsweeps=3)
+            torch.manual_seed(5)
+            biases, couplings = actual._stacked_replica_params(local)
+            assert couplings.dtype == torch.bfloat16 and biases.dtype == torch.float32
+            result = actual._replica_kernel(stack, biases, couplings, nsweeps=3)
+        for left, right in zip(result, reference):
+            torch.testing.assert_close(left, right, rtol=0, atol=0)
+    for model, master in zip(sampler.models, masters):
+        assert model["coupling_matrix"].dtype == torch.float32
+        torch.testing.assert_close(model["coupling_matrix"], master, rtol=0, atol=0)
+
+
+@gpu
+def test_ptt_training_and_generation_use_bf16_couplings(tmp_path):
+    from adabmDCA.ptt import PTTConfig, PTTSampler
+
+    original = kernels.metropolized_gibbs_sampling_categorical_triton
+    observed = []
+
+    def check(states, params, nsweeps, beta=1.0, *, coupling_dtype=None, **kwargs):
+        observed.append(coupling_dtype)
+        assert params["bias"].dtype == params["coupling_matrix"].dtype == torch.float32
+        return original(states, params, nsweeps, beta, coupling_dtype=coupling_dtype, **kwargs)
+
+    config = TrainingConfig(
+        dtype="bfloat16", device="cuda", alphabet="ABC", n_chains=64, n_sweeps=1, max_epochs=2,
+        target_pearson=0.99999, no_reweighting=True, pseudocount=0.1, checkpoint_interval=1,
+        ptt=PTTConfig(equilibration_rounds=2, initialization_rounds=2, swaps=1,
+                      mixing_thermalization_rounds=2, mixing_chains=20),
+    )
+    with patch.object(kernels, "metropolized_gibbs_sampling_categorical_triton", check):
+        partial = train_model(alignment(), config=replace(config, max_epochs=1), output_dir=tmp_path / "partial")
+    assert observed and all(dtype == torch.bfloat16 for dtype in observed)
+    assert partial.config.dtype == "bfloat16"
+    for param in partial.model.params.values():
+        assert param.dtype == torch.float32 and torch.isfinite(param).all()
+    archive = partial.artifacts["ptt_archive"]
+    # The archive keeps float32 parameters; BF16 is a runtime choice.
+    assert PTTSampler.from_archive(archive, device="cuda", mode="resume").coupling_dtype is None
+    resumed = train_model(alignment(), config=config, ptt_resume=archive, output_dir=tmp_path / "resumed")
+    assert resumed.config.dtype == "bfloat16"
+
+    reference = tmp_path / "data.fasta"
+    alignment().write_fasta(reference)
+    result = sample_sequences(model=archive, ptt=True, n_sequences=16, dtype="bfloat16", device="cuda",
+                              alphabet="ABC", reference_fasta=reference, seed=3)
+    assert len(result.sequences) == 16

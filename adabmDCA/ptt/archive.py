@@ -15,11 +15,6 @@ import torch
 from adabmDCA._validation import validate_integer, validate_seed
 from adabmDCA.exceptions import InputValidationError
 from adabmDCA.ptt.config import PTTConfig
-from adabmDCA.ptt.kernels import (
-    _prepare_categorical_sampler,
-    _prepare_exchange_kernel,
-    _prepare_replica_sampler,
-)
 
 # Format of the archives written and read by this version. Archives of the
 # unreleased development formats 1-7 are no longer read.
@@ -30,6 +25,11 @@ _ALGORITHM_KEYS = frozenset({
     "events", "recovery_points", "profile_params", "total_models", "optimizer_state", "timings",
     "last_advance_timing", "lag_memory",
 })
+
+
+def _master_dtype(dtype):
+    """Parameter dtype of a training precision: BF16 training keeps float32 parameters."""
+    return "float32" if dtype == "bfloat16" else dtype
 
 
 def _check_schema(meta):
@@ -303,7 +303,7 @@ def load_archive(cls, path, *, device="cpu", mode="generate", seed=None):
                     or state["settings"]["ptt"] != asdict(result.config)
                     or state["settings"]["sampler"] != result.local_sampler
                     or state["settings"]["n_chains"] != len(result.chains[0])
-                    or state["settings"]["dtype"] != str(result.models[0]["bias"].dtype).removeprefix("torch.")
+                    or _master_dtype(state["settings"]["dtype"]) != str(result.models[0]["bias"].dtype).removeprefix("torch.")
                 ):
                     raise ValueError("PTT training checkpoint does not match the sampler state.")
             target = torch.device(device)
@@ -336,10 +336,7 @@ def load_archive(cls, path, *, device="cpu", mode="generate", seed=None):
                 validate_seed(seed)
                 result.seed = seed
                 result._rng = torch.Generator(device=target).manual_seed(seed).get_state()
-            result._local_kernel = _prepare_categorical_sampler(result.local_sampler, target)
-            result._replica_kernel = _prepare_replica_sampler(result.local_sampler, target)
-            result._replica_params_cache = None
-            result._exchange_kernel = _prepare_exchange_kernel(target)
+            result._install_kernels()
             return result
     except (OSError, KeyError, IndexError, ValueError, RuntimeError, TypeError) as exc:
         raise InputValidationError(f"Invalid PTT archive '{path}': {exc}") from exc

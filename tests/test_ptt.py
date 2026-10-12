@@ -459,12 +459,9 @@ def test_recovery_halves_both_ptt_optimizer_rates(training_case, tmp_path, monke
     assert saved.optimizer_state["rates"] == rates
 
 
-@pytest.mark.parametrize(
-    "kwargs", [{"model_type": "edDCA"}, {"dtype": "bfloat16"}, {"model_type": "eaDCA", "dtype": "bfloat16"}]
-)
-def test_unsupported_training_modes(kwargs):
+def test_unsupported_training_modes():
     with pytest.raises(InputValidationError):
-        TrainingConfig(ptt=PTTConfig(), **kwargs)
+        TrainingConfig(ptt=PTTConfig(), model_type="edDCA")
 
 
 def test_ptt_chain_default_matches_standard_training():

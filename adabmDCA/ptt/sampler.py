@@ -191,10 +191,9 @@ class PTTSampler:
         self.optimizer_state = None
         self.total_models = 2
         self.device = params["bias"].device
-        self._local_kernel = _prepare_categorical_sampler(self.local_sampler, self.device)
-        self._replica_kernel = _prepare_replica_sampler(self.local_sampler, self.device)
-        self._replica_params_cache = None
-        self._exchange_kernel = _prepare_exchange_kernel(self.device)
+        self.generation_kernel = None
+        self.coupling_dtype = None
+        self._install_kernels()
         self.seed = seed
         self._rng = torch.Generator(device=self.device).manual_seed(seed).get_state()
         self.model_version = 0
@@ -229,7 +228,6 @@ class PTTSampler:
         # endpoint, decayed over ``config.lag_horizon`` updates. Carried with
         # configurations like lineages; see ``_record_endpoint_update``.
         self.lag_memory = None
-        self.generation_kernel = None
         # Generation-only steering (see ``prepare_steering``): rungs from
         # ``steering_base`` up carry the endpoint parameters plus the potential
         # at ``steering_strengths[k]``; ``steering_values[k]`` caches its value
@@ -399,12 +397,7 @@ class PTTSampler:
         result.steering = getattr(self, "steering", None)
         kernels = getattr(self, "_steering_kernels", None)
         result._steering_kernels = None if kernels is None else [copy.copy(kernel) for kernel in kernels]
-        kernel = getattr(result, "generation_kernel", None) or result.local_sampler
-        result._local_kernel = _prepare_categorical_sampler(kernel, result.device)
-        result._replica_kernel = _prepare_replica_sampler(kernel, result.device)
-        result._replica_params_cache = None
-        result._endpoint_samples_cache = None
-        result._exchange_kernel = _prepare_exchange_kernel(result.device)
+        result._install_kernels()
         result.ptt_checkpoints = list(self.ptt_checkpoints)
         result.recovery_points = []
         if seed is not None:
@@ -426,11 +419,49 @@ class PTTSampler:
         if name is not None and name not in LOCAL_KERNELS:
             raise InputValidationError(f"PTT local kernel must be one of {', '.join(LOCAL_KERNELS)}.")
         self.generation_kernel = name
-        kernel = name or self.local_sampler
-        self._local_kernel = _prepare_categorical_sampler(kernel, self.device)
-        self._replica_kernel = _prepare_replica_sampler(kernel, self.device)
+        self._install_kernels()
+
+    def set_coupling_dtype(self, dtype: torch.dtype | None = None) -> None:
+        """Select the precision of the couplings read by the local kernels.
+
+        ``torch.bfloat16`` makes the local sweeps read a BF16 copy of each
+        replica's couplings, refreshed whenever the couplings change; biases,
+        fields, acceptance, exchanges and every stored state stay in the
+        parameter precision. This reduces memory traffic, which speeds up large
+        protein models. The setting is not archived. ``None`` restores full precision.
+
+        Args:
+            dtype: ``torch.bfloat16`` or ``None``.
+
+        Raises:
+            InputValidationError: If BF16 is requested without float32 parameters
+                on an Ampere-or-newer CUDA GPU with Triton.
+        """
+        if dtype is not None:
+            if dtype != torch.bfloat16:
+                raise InputValidationError("PTT coupling dtype must be torch.bfloat16 or None.")
+            if self.device.type != "cuda":
+                raise InputValidationError("BF16 PTT sampling requires CUDA.")
+            if self.models[0]["bias"].dtype != torch.float32:
+                raise InputValidationError("BF16 PTT sampling requires float32 parameters.")
+            from adabmDCA.sampling import _validate_bfloat16_sampling
+
+            try:
+                _validate_bfloat16_sampling(self.device)
+            except ValueError as exc:
+                raise InputValidationError(str(exc).replace("sampling", "PTT sampling", 1)) from exc
+        self.coupling_dtype = dtype
+        self._install_kernels()
+
+    def _install_kernels(self) -> None:
+        """Build the local, stacked-replica and exchange kernels for the current settings."""
+        kernel = getattr(self, "generation_kernel", None) or self.local_sampler
+        coupling_dtype = getattr(self, "coupling_dtype", None)
+        self._local_kernel = _prepare_categorical_sampler(kernel, self.device, coupling_dtype)
+        self._replica_kernel = _prepare_replica_sampler(kernel, self.device, coupling_dtype)
         self._replica_params_cache = None
         self._endpoint_samples_cache = None
+        self._exchange_kernel = _prepare_exchange_kernel(self.device)
 
     @property
     def n_active(self) -> int:

@@ -284,8 +284,8 @@ def train_model(
         ``dtype="bfloat16"`` uses BF16 coupling copies for CUDA/Triton or MPS
         sampling and float32 master parameters, statistics, chains, and saved
         models; it requires NVIDIA Ampere or newer with Triton, or enabled MPS
-        kernels on macOS 14 or newer. PTT requires bmDCA, eaDCA or edgeDCA
-        with float32 or float64 and uses PTT bridges for normalization. For PTT resume, ``max_epochs`` is the
+        kernels on macOS 14 or newer; with PTT it requires CUDA. PTT requires bmDCA, eaDCA or edgeDCA
+        and uses PTT bridges for normalization. For PTT resume, ``max_epochs`` is the
         total committed-step limit, including steps already saved: gradient steps for bmDCA and
         edgeDCA, graph-activation (structure) steps for eaDCA.
     """
@@ -432,6 +432,8 @@ def train_model(
         else:
             ptt_sampler = PTTSampler(params, tokens=tokens, n_chains=n_chains, sampler=sampler,
                                      config=training_config.ptt, seed=seed)
+        if dtype == "bfloat16":
+            ptt_sampler.set_coupling_dtype(torch.bfloat16)
 
     initialization = TrainingInitialization(
         training=_dataset_summary(dataset, loaded_inputs.training_alignment),

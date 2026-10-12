@@ -172,8 +172,12 @@ def sample_ptt_sequences(
             "PTT generation ignores the ordinary sampler option; select its local update with local_kernel "
             "(--ptt-local-kernel)."
         )
-    if dtype is not None and dtype != str(backend.models[0]["bias"].dtype).removeprefix("torch."):
-        raise InputValidationError("PTT generation uses the archived precision; conflicting overrides are unsupported.")
+    if dtype == "bfloat16":
+        if steering_potential is not None:
+            raise InputValidationError("Steered sampling supports float32 and float64 only.")
+        backend.set_coupling_dtype(torch.bfloat16)
+    elif dtype is not None and dtype != str(backend.models[0]["bias"].dtype).removeprefix("torch."):
+        raise InputValidationError("PTT generation uses the archived precision, optionally with BF16 couplings.")
     dataset = DatasetDCA.from_alignment(
         reference_fasta, weights=weights_path,
         load_config=AlignmentLoadConfig(alphabet=backend.tokens, invalid_sequences="drop",
