@@ -11,7 +11,7 @@ import numpy as np
 import torch
 
 from adabmDCA.alignment import Alignment
-from adabmDCA.api.results import ReintegrationResult, TrainingProgress
+from adabmDCA.api.results import ReintegrationResult, TrainingInitialization, TrainingProgress
 from adabmDCA.api.training import train_model
 from adabmDCA.dataset import DatasetDCA
 from adabmDCA.exceptions import InputValidationError
@@ -23,6 +23,7 @@ from adabmDCA.input_loading import (
     load_sequence_weights,
 )
 from adabmDCA.training_config import TrainingConfig
+from adabmDCA.training_control import StageProgress
 from adabmDCA.utils import get_device, get_dtype
 
 
@@ -38,7 +39,10 @@ def reintegrate_model(
     label: str | None = None,
     initial_params_path: str | Path | None = None,
     initial_chains_path: str | Path | None = None,
+    ptt_resume: str | Path | None = None,
     progress: Callable[[TrainingProgress], None] | None = None,
+    stage_progress: Callable[[StageProgress], None] | None = None,
+    on_initialized: Callable[[TrainingInitialization], None] | None = None,
     is_cancelled: Callable[[], bool] | None = None,
 ) -> ReintegrationResult:
     """Train a model on natural sequences plus experimentally scored ones.
@@ -48,14 +52,15 @@ def reintegrate_model(
     towards a sequence, negative values push it away. The experimental weights
     are scaled by ``lambda_value * Meff / n_experimental``, so ``lambda_value``
     sets the weight of the experimental data relative to the natural alignment.
-    Training uses PCD (PTT does not support signed weights).
+    Training uses PTT when ``config.ptt`` is set, and PCD otherwise.
 
     Args:
         natural_alignment: Natural sequences (path, :class:`Alignment` or sequences).
         experimental_alignment: Tested sequences, aligned like the natural ones.
         adjustments: One signed score per experimental sequence (path, array or
             sequence of numbers), e.g. +1 for functional and -1 for non-functional.
-        config: Training settings; defaults to ``TrainingConfig()``.
+        config: Training settings; defaults to ``TrainingConfig()`` (PCD); set
+            ``ptt=PTTConfig()`` to train with PTT.
             A pseudocount of 1e-6 (0.1 for edgeDCA) is used unless set.
         natural_weights: Optional weights of the natural sequences; computed
             by sequence-identity reweighting otherwise.
@@ -65,7 +70,11 @@ def reintegrate_model(
         label: File-name prefix; the written label is ``<label>-lambda_<value>``.
         initial_params_path: Optional parameter file to start from.
         initial_chains_path: Optional FASTA of starting chains.
+        ptt_resume: Optional PTT archive of an interrupted reintegration run
+            with the same data and settings.
         progress: Optional callback receiving a :class:`TrainingProgress` per update.
+        stage_progress: Optional callback for transient PTT stage updates.
+        on_initialized: Optional callback receiving the :class:`TrainingInitialization`.
         is_cancelled: Optional callable; returning ``True`` stops training.
 
     Returns:
@@ -139,8 +148,11 @@ def reintegrate_model(
         label=resolved_label,
         initial_params_path=initial_params_path,
         initial_chains_path=initial_chains_path,
+        ptt_resume=ptt_resume,
         allow_signed_weights=True,
         progress=progress,
+        stage_progress=stage_progress,
+        on_initialized=on_initialized,
         is_cancelled=is_cancelled,
     )
     result = ReintegrationResult(

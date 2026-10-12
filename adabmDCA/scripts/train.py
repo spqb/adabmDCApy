@@ -360,15 +360,14 @@ def _print_initialization(args: argparse.Namespace, initialized) -> None:
     print_configuration(values)
 
 
-def run(args: argparse.Namespace, *, progress: Any = None, stage_progress: Any = None, on_initialized: Any = None):
-    """Execute training from parsed CLI arguments and return its result."""
-    from adabmDCA.scripts._frontend import resolve_alphabet
+def ptt_config_from_args(args: argparse.Namespace, *, validation: bool = False):
+    """The PTTConfig selected by the PTT options, or ``None`` with ``--strategy pcd``.
 
-    resolve_alphabet(args)
+    With a validation set, PTT stops on its log-likelihood unless --no-ptt-validation-stop is given.
+    """
     from dataclasses import fields
 
     from adabmDCA.exceptions import InputValidationError
-    from adabmDCA.api.training import train_model
     from adabmDCA.ptt import PTTConfig
 
     ptt_options = {key: getattr(args, "ptt_" + key, None)
@@ -376,13 +375,24 @@ def run(args: argparse.Namespace, *, progress: Any = None, stage_progress: Any =
     ptt_options = {key: value for key, value in ptt_options.items() if value is not None}
     if args.strategy != "ptt" and (ptt_options or args.ptt_resume):
         raise InputValidationError("PTT tuning and resume options require --strategy ptt.")
-    if args.strategy == "ptt" and args.val is not None and "validation_stop" not in ptt_options:
-        # With a validation set, stop on its log-likelihood unless --no-ptt-validation-stop is given.
+    if args.strategy != "ptt":
+        return None
+    if validation and "validation_stop" not in ptt_options:
         ptt_options["validation_stop"] = True
+    return PTTConfig(**ptt_options)
+
+
+def run(args: argparse.Namespace, *, progress: Any = None, stage_progress: Any = None, on_initialized: Any = None):
+    """Execute training from parsed CLI arguments and return its result."""
+    from adabmDCA.scripts._frontend import resolve_alphabet
+
+    resolve_alphabet(args)
+    from adabmDCA.api.training import train_model
+
     return train_model(
         args.data,
         model_type=args.model,
-        ptt=PTTConfig(**ptt_options) if args.strategy == "ptt" else None,
+        ptt=ptt_config_from_args(args, validation=args.val is not None),
         ptt_resume=args.ptt_resume,
         validation_path=args.val,
         weights_path=args.weights,
@@ -427,41 +437,11 @@ def main(args: argparse.Namespace | None = None) -> int:
     from adabmDCA.scripts._frontend import print_completion, print_header
 
     print_header(f"Training {args.model} model")
-    epoch_limit = DEFAULT_PTT_MAX_EPOCHS if args.strategy == "ptt" and args.nepochs is DEFAULT_MAX_EPOCHS else args.nepochs
-    max_steps = (
-        args.max_gradient_steps or epoch_limit
-        if args.model == "bmDCA" or (args.model == "edgeDCA" and args.strategy == "ptt")
-        else args.max_structure_steps or epoch_limit
-    )
-    if args.no_progress:
-        renderer = None
-    elif args.strategy == "ptt":
-        renderer = _PTTProgressRenderer(
-            target_pearson=args.target,
-            max_steps=max_steps,
-            diagnostic=getattr(args, "diagnostic", False),
-            structure_budget=args.model == "eaDCA",
-        )
-    else:
-        renderer = _TrainingProgressRenderer(
-            model_type=args.model,
-            target_pearson=args.target,
-            max_steps=max_steps,
-        )
-    def initialized(info) -> None:
-        _print_initialization(args, info)
-        if isinstance(renderer, _PTTProgressRenderer):
-            from adabmDCA.training_log import columns_for_config
-
-            renderer.set_columns(columns_for_config(info.config, validation=info.validation is not None))
-            ptt = info.config.ptt
-            if ptt is not None and ptt.validation_stop:
-                renderer.set_validation_stop(ptt.validation_window, ptt.validation_min_gain)
+    renderer = make_renderer(args)
 
     try:
-        result = run(args, progress=renderer,
-                     stage_progress=(renderer.on_stage if args.strategy == "ptt" and renderer is not None else None),
-                     on_initialized=initialized)
+        result = run(args, progress=renderer, stage_progress=stage_callback(renderer),
+                     on_initialized=initialization_callback(args, renderer))
     finally:
         if renderer is not None:
             renderer.close()
@@ -475,6 +455,47 @@ def main(args: argparse.Namespace | None = None) -> int:
         artifacts["training plots"] = plots["overview"].parent
     print_completion("Training completed successfully.", metrics=_final_summary(result), artifacts=artifacts)
     return 0
+
+
+def make_renderer(args: argparse.Namespace):
+    """The terminal progress renderer for ``args``, or ``None`` with --no-progress."""
+    strategy = getattr(args, "strategy", "pcd")
+    epoch_limit = DEFAULT_PTT_MAX_EPOCHS if strategy == "ptt" and args.nepochs is DEFAULT_MAX_EPOCHS else args.nepochs
+    max_steps = (
+        args.max_gradient_steps or epoch_limit
+        if args.model == "bmDCA" or (args.model == "edgeDCA" and strategy == "ptt")
+        else args.max_structure_steps or epoch_limit
+    )
+    if args.no_progress:
+        return None
+    if strategy == "ptt":
+        return _PTTProgressRenderer(
+            target_pearson=args.target,
+            max_steps=max_steps,
+            diagnostic=getattr(args, "diagnostic", False),
+            structure_budget=args.model == "eaDCA",
+        )
+    return _TrainingProgressRenderer(model_type=args.model, target_pearson=args.target, max_steps=max_steps)
+
+
+def stage_callback(renderer):
+    """The PTT stage callback of ``renderer``, if it renders PTT stages."""
+    return renderer.on_stage if isinstance(renderer, _PTTProgressRenderer) else None
+
+
+def initialization_callback(args: argparse.Namespace, renderer):
+    """Print the resolved configuration and set up the PTT table columns."""
+    def initialized(info) -> None:
+        _print_initialization(args, info)
+        if isinstance(renderer, _PTTProgressRenderer):
+            from adabmDCA.training_log import columns_for_config
+
+            renderer.set_columns(columns_for_config(info.config, validation=info.validation is not None))
+            ptt = info.config.ptt
+            if ptt is not None and ptt.validation_stop:
+                renderer.set_validation_stop(ptt.validation_window, ptt.validation_min_gain)
+
+    return initialized
 
 
 def _final_summary(result) -> dict[str, Any]:

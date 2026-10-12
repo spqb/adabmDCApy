@@ -317,8 +317,8 @@ def train_model(
     )
     if ptt_resume is not None and training_config.ptt is None:
         raise InputValidationError("ptt_resume requires a PTTConfig.")
-    if training_config.ptt is not None and (initial_params_path is not None or initial_chains_path is not None or allow_signed_weights):
-        raise InputValidationError("PTT does not support parameter/chain warm starts or signed-weight reintegration; resume from a PTT archive.")
+    if training_config.ptt is not None and (initial_params_path is not None or initial_chains_path is not None):
+        raise InputValidationError("PTT does not support parameter/chain warm starts; resume from a PTT archive.")
     model_type = training_config.model_type
     alphabet = training_config.alphabet
     learning_rate = training_config.learning_rate

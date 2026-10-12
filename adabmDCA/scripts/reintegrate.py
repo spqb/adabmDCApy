@@ -10,18 +10,26 @@ from adabmDCA.parser import add_args_reintegration, add_args_train
 def create_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
-            "Train a DCA model with experimental reintegration. Training uses PCD (Persistent Contrastive "
-            "Divergence), because the signed weights of the tested sequences are not supported by PTT."
-        )
+            "Train a DCA model with experimental reintegration, using PCD (Persistent Contrastive Divergence, "
+            "default) or PTT (Parallel Trajectory Tempering, --strategy ptt) for bmDCA, eaDCA and edgeDCA."
+        ),
+        allow_abbrev=False,
     )
-    return add_args_reintegration(add_args_train(parser, ptt=False))
+    parser = add_args_reintegration(add_args_train(parser))
+    parser.set_defaults(strategy="pcd")
+    for action in parser._actions:
+        if action.dest == "strategy":
+            action.help = "Training strategy (default: pcd)."
+    return parser
 
 
 def _config_from_args(args):
+    from adabmDCA.scripts.train import ptt_config_from_args
     from adabmDCA.training_config import TrainingConfig
 
     return TrainingConfig(
         model_type=args.model,
+        ptt=ptt_config_from_args(args),
         alphabet=args.alphabet,
         learning_rate=args.lr,
         n_sweeps=args.nsweeps,
@@ -31,6 +39,7 @@ def _config_from_args(args):
         max_epochs=args.nepochs,
         max_gradient_steps=args.max_gradient_steps,
         max_structure_steps=args.max_structure_steps,
+        checkpoint_interval=args.checkpoint_interval,
         pseudocount=args.pseudocount,
         l2_regularization=args.l2_reg,
         seed=args.seed,
@@ -46,7 +55,7 @@ def _config_from_args(args):
     )
 
 
-def run(args, *, progress=None):
+def run(args, *, progress=None, stage_progress=None, on_initialized=None):
     """Execute reintegration from parsed CLI arguments and return its result."""
     from adabmDCA.scripts._frontend import resolve_alphabet
 
@@ -64,7 +73,10 @@ def run(args, *, progress=None):
         label=args.label,
         initial_params_path=args.path_params,
         initial_chains_path=args.path_chains,
+        ptt_resume=args.ptt_resume,
         progress=progress,
+        stage_progress=stage_progress,
+        on_initialized=on_initialized,
     )
 
 
@@ -75,7 +87,7 @@ def main(args=None) -> int:
     resolve_alphabet(args)
 
     from adabmDCA.scripts._frontend import print_completion, print_configuration, print_header
-    from adabmDCA.scripts.train import _TrainingProgressRenderer
+    from adabmDCA.scripts.train import initialization_callback, make_renderer, stage_callback
 
     print_header("Reintegrated DCA model training")
     print_configuration(
@@ -84,29 +96,13 @@ def main(args=None) -> int:
             "experimental alignment": args.reint,
             "adjustments": args.adj,
             "lambda": args.lambda_,
-            "output": args.output,
-            "model": args.model,
-            "sampler": args.sampler,
-            "alphabet": args.alphabet,
-            "device": args.device,
-            "dtype": args.dtype,
+            "strategy": args.strategy,
         }
     )
-    renderer = (
-        None
-        if args.no_progress
-        else _TrainingProgressRenderer(
-            model_type=args.model,
-            target_pearson=args.target,
-            max_steps=(
-                args.max_gradient_steps or args.nepochs
-                if args.model == "bmDCA"
-                else args.max_structure_steps or args.nepochs
-            ),
-        )
-    )
+    renderer = make_renderer(args)
     try:
-        result = run(args, progress=renderer)
+        result = run(args, progress=renderer, stage_progress=stage_callback(renderer),
+                     on_initialized=initialization_callback(args, renderer))
     finally:
         if renderer is not None:
             renderer.close()
