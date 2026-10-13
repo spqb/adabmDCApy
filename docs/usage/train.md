@@ -4,7 +4,7 @@
 adabmDCA train -d train.fasta -v validation.fasta -o model
 ```
 
-This trains a fully connected Potts model (`bmDCA`) with Parallel Trajectory Tempering, the default strategy: 2,000 chains, 10 local Metropolized Gibbs sweeps per exchange round, learning rate 0.01, and the adaptive optimizer. Because a validation set is given, training stops when the validation log-likelihood per site stops improving. Without `-v`, it stops when the Pearson correlation between the connected correlations of the data and of the model reaches 0.95.
+This trains a fully connected Potts model (`bmDCA`) with Parallel Trajectory Tempering, the default strategy: 2,048 chains, 10 local Metropolized Gibbs sweeps per exchange round, learning rate 0.01, and the adaptive optimizer. Because a validation set is given, training stops when the validation log-likelihood per site stops improving. Without `-v`, it stops when the Pearson correlation between the connected correlations of the data and of the model reaches 0.95.
 
 Sequences are reweighted by default so that clusters of close homologues count less: each sequence gets a weight inversely proportional to the number of sequences within 80% identity of it.
 
@@ -22,7 +22,7 @@ adabmDCA train -d train.fasta -v validation.fasta -o model --nsweeps 100
 
 # Sparse models
 adabmDCA train -m eaDCA   -d train.fasta -v validation.fasta -o model_ea
-adabmDCA train -m edgeDCA -d train.fasta -v validation.fasta -o model_edge
+adabmDCA train --strategy pcd -m edgeDCA -d train.fasta -o model_edge
 adabmDCA train --strategy pcd -m edDCA -d train.fasta -o model_ed --density 0.02
 
 # Equal weights for all sequences, for instance when the alignment is not redundant
@@ -42,7 +42,7 @@ adabmDCA train -d train.fasta -v validation.fasta -o model --plot-training-logs
 | `-v`, `--validation` | none | Validation alignment. Enables validation metrics and, with PTT, the validation stop (`--val` is an older alias) |
 | `-o`, `--output` | `DCA_model` | Output folder |
 | `-l`, `--label` | none | Prefix of the output files, to keep several runs in one folder |
-| `-m`, `--model` | `bmDCA` | `bmDCA`, `eaDCA`, `edDCA` (PCD only) or `edgeDCA` |
+| `-m`, `--model` | `bmDCA` | `bmDCA`, `eaDCA`, `edDCA` or `edgeDCA` (the last two with PCD only) |
 | `--strategy` | `ptt` | `ptt` or `pcd` |
 | `--alphabet` | `auto` | `protein`, `rna`, `dna`, or custom tokens |
 | `--nchains` | 2048 | Number of Markov chains (per replica with PTT) |
@@ -57,7 +57,7 @@ adabmDCA train -d train.fasta -v validation.fasta -o model --plot-training-logs
 | `--no_reweighting` | off | Give every sequence weight 1 |
 | `--max-gradient-steps` | none | Maximum number of parameter updates |
 | `--max-structure-steps` | none | Maximum number of graph activations or decimations (sparse models) |
-| `--nepochs` | 50000 | Older budget: gradient steps for bmDCA and PTT edgeDCA, graph steps for eaDCA and edDCA |
+| `--nepochs` | 50000 | Older budget: gradient steps for bmDCA, graph steps for eaDCA, edDCA and edgeDCA |
 | `--checkpoint-interval` | 500 | Updates between saved checkpoints |
 | `--device`, `--dtype` | `auto`, `float32` | See [Installation](../installation.md#choose-a-device) |
 | `--seed` | 0 | Random seed |
@@ -89,7 +89,7 @@ The command first prints the resolved configuration and the input summary: retai
 
 With `-l name`, every file is prefixed with `name_`. [The training pipeline](../algorithms/training.md#outputs-and-logs) lists every column of `history.csv` and every event.
 
-A PTT log looks like this (RF00379):
+A PTT log looks like this (RF00379, from a run with the earlier 100-update validation window; the default is now 200):
 
 ```text
    step   sweeps      time  pearson      val    ll/L  ll_val  reps   acc     lr_h     lr_J   lag  tail
@@ -134,7 +134,7 @@ adabmDCA train -d train.fasta -v validation.fasta -o model \
     --ptt-resume model/ptt.h5 --max-gradient-steps 20000
 ```
 
-The archive restores the ladder, the chains, the optimizer and the random state, so a resumed run continues exactly. Only the update budget, the checkpoint interval and the logging options may change. `history.csv` is rewritten from the archive, and the log and events are appended. Do not resume a run that failed because configurations were trapped: restart it from scratch with more sweeps instead.
+The archive restores the ladder, the chains, the optimizer and the random state, so a resumed run continues exactly. Only the update budget, the stopping criteria (`--target` and the `--ptt-validation-*` options), the checkpoint interval and the logging options may change; a run stopped on the validation plateau can thus be continued with `--no-ptt-validation-stop`. `history.csv` is rewritten from the archive, and the log and events are appended. Do not resume a run that failed because configurations were trapped: restart it from scratch with more sweeps instead.
 
 **PCD.** Start from the saved parameters and chains:
 

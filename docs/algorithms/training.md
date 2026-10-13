@@ -12,7 +12,7 @@ When a residue pair is more frequent in the data than in the model, its coupling
 
 ## PCD: persistent chains
 
-Persistent contrastive divergence keeps one population of 2,000 chains across the whole training. Each update runs `--nsweeps` sweeps (default 10) of every chain on the current model, computes \(p\) from the chains, and updates the parameters with learning rate `--lr`. Because the model changes little between updates, the chains stay close to equilibrium as long as they decorrelate faster than the model moves.
+Persistent contrastive divergence keeps one population of chains (2,048 by default) across the whole training. Each update runs `--nsweeps` sweeps (default 10) of every chain on the current model, computes \(p\) from the chains, and updates the parameters with learning rate `--lr`. Because the model changes little between updates, the chains stay close to equilibrium as long as they decorrelate faster than the model moves.
 
 PCD is fast and works well on families without strong cluster structure. Its weakness is silent: when the model develops separated modes, chains stop moving between them, the estimate of \(p\) is biased toward the modes the chains happen to occupy, and the reported Pearson, computed from the same chains, still looks good. In the [benchmarks](benchmarks.md), PCD models of three large protein families could not even be checked, because plain MCMC sampling of the finished models did not mix within 10,000 sweeps.
 
@@ -76,7 +76,7 @@ The temporary snapshots are scaffolding. The flagged models form the sampling la
 
 High swap acceptance between neighbours does not guarantee that configurations travel along the whole ladder. PTT therefore runs explicit **mixing checks**: at initialization, before every reservoir collection, and whenever the swap acceptance of some link falls below `--ptt-min-acceptance` (0.1). The default check, *population renewal*, labels every configuration with the round it entered the ladder and waits until all configurations present at the start have been replaced by newer ones, twice, within `--ptt-mixing-max-rounds` (20,000) rounds. Reservoir batches are spaced by the measured renewal time, so they are independent.
 
-When a check fails, PTT **recovers**: it searches the saved checkpoints backward for the newest one whose mixing check passes, restores it, halves both learning rates (for edgeDCA, it raises the pseudocount instead), and continues. After `--ptt-max-recoveries` (3) recoveries, training stops with an error that names the likely cause:
+When a check fails, PTT **recovers**: it searches the saved checkpoints backward for the newest one whose mixing check passes, restores it, halves both learning rates, and continues. After `--ptt-max-recoveries` (3) recoveries, training stops with an error that names the likely cause:
 
 - configurations that practically cannot swap toward the bottom (a narrow basin the model has learned; the remedy is to restart with more local sweeps);
 - a link whose acceptance is below the target (rungs too far apart; a smaller learning rate or a higher target acceptance);
@@ -124,7 +124,7 @@ A fully connected model has \(\binom{L}{2} q^2\) couplings, most of them small. 
 
 **edDCA** (element decimation, PCD only) goes the other way. Starting from a converged bmDCA model (supplied with `-p` and `-c`, or trained first), it repeatedly removes the fraction `--drate` (0.01) of the remaining couplings whose removal changes the model least, then re-fits the rest, until the density reaches `--density` (0.02).
 
-**edgeDCA** (edge activation) works on whole position pairs. At each step it picks the pair with the largest KL divergence between data and model pair distributions, including pairs already active, and sets its couplings directly, \(J_{ij}(a,b) \mathrel{+}= \log f^\alpha_{ij}(a,b) - \log p^\alpha_{ij}(a,b)\), where both frequencies are smoothed with the pseudocount \(\alpha\). There is no learning rate: the pseudocount sets the step size. With \(\alpha\) close to 1 both frequencies approach the uniform value and the step becomes small. The fixed point is still \(f = p\) for the unsmoothed frequencies, so the pseudocount does not limit what the model can represent. The default is 0.1, and values up to 0.95 help on difficult datasets. With PTT's adaptive optimizer, the pseudocount of each step is raised as needed to keep its predicted KL within the trust region.
+**edgeDCA** (edge activation) works on whole position pairs. At each step it picks the pair with the largest KL divergence between data and model pair distributions, including pairs already active, and sets its couplings directly, \(J_{ij}(a,b) \mathrel{+}= \log f^\alpha_{ij}(a,b) - \log p^\alpha_{ij}(a,b)\), where both frequencies are smoothed with the pseudocount \(\alpha\). There is no learning rate: the pseudocount sets the step size. With \(\alpha\) close to 1 both frequencies approach the uniform value and the step becomes small. The fixed point is still \(f = p\) for the unsmoothed frequencies, so the pseudocount does not limit what the model can represent. The default is 0.1, and values up to 0.95 help on difficult datasets. edgeDCA trains with PCD only: with PTT, its block updates kept moving the model at full speed, so the ladder kept growing (see [Diagnose a run](diagnostics.md#open-problems)).
 
 The [benchmarks](benchmarks.md#bmdca-vs-edgedca) found bmDCA preferable to edgeDCA in accuracy, robustness and cost on all six families. Use sparse models when sparsity itself is the goal.
 
@@ -132,13 +132,13 @@ The [benchmarks](benchmarks.md#bmdca-vs-edgedca) found bmDCA preferable to edgeD
 
 **Pearson target.** Without a validation set, training stops when the Pearson correlation between the connected correlations \(C_{ij}(a,b) = f_{ij}(a,b) - f_i(a)f_j(b)\) of data and chains reaches `--target` (0.95). Connected correlations are used rather than raw pair frequencies because the latter are dominated by the single-site frequencies, which are easy to fit.
 
-**Validation plateau** (PTT, default when `-v` is given). After every update, training compares the median validation log-likelihood of the last 100 updates with the median of the 100 before. It stops as soon as the recent median is lower (`--ptt-validation-min-gain`, default 0), that is, when the held-out curve no longer rises. Medians make the rule insensitive to the spikes of the \(\log Z\) estimate at ladder changes; windows of 100 updates average over its slower fluctuations.
+**Validation plateau** (PTT, default when `-v` is given). After every update, training compares the median validation log-likelihood of the last 200 updates with the median of the 200 before. It stops as soon as the recent median is lower (`--ptt-validation-min-gain`, default 0), that is, when the held-out curve no longer rises. Medians make the rule insensitive to the spikes of the \(\log Z\) estimate at ladder changes; windows of 200 updates average over its slower fluctuations and over the short flat stretches of the curve. Windows of 100, the earlier default, stopped some runs too early: replayed on continued RF00023 and edgeDCA histories, they lost up to 5·10⁻³ nats per site, against at most 10⁻³ for windows of 200.
 
 [![Validation stop on RF00379](../figures/benchmarks/rf00379_validation_stop.png){ width="1040" }](../figures/benchmarks/rf00379_validation_stop.png)
 
 *RF00379, 10 sweeps. Left: training and validation log-likelihood per site; the faint continuation is the same seed trained to 6,000 updates without stopping. Right: the validation curve, zoomed. The validation stop (dashed, update 2,695) fires near the maximum of the held-out likelihood, which then declines while the training likelihood keeps rising. The Pearson target (dotted) would have stopped earlier.*
 
-On RF00379 (three seeds), the rule stopped within 40 updates of the maximum of the smoothed validation curve, at most 4·10⁻⁵ nats per site below it. Stopping at Pearson 0.95 instead gave about 10⁻³ less, and training on to 6,000 updates about 9·10⁻³ less. The stop also adapts to the family: on the benchmark families it ended at training Pearson values between 0.918 and 0.968.
+With windows of 100 on RF00379 (three seeds, as in the figure), the rule stopped within 40 updates of the maximum of the smoothed validation curve, at most 4·10⁻⁵ nats per site below it. Stopping at Pearson 0.95 instead gave about 10⁻³ less, and training on to 6,000 updates about 9·10⁻³ less. The stop also adapts to the family: on the benchmark families it ended at training Pearson values between 0.918 and 0.968.
 
 **Training past the plateau.** Continuing another RF00379 run (10 sweeps) from its validation stop at update 2,475 to 20,000 updates shows what a late stop costs. The training Pearson keeps creeping up (0.952 to 0.967) while the validation Pearson stays at about 0.80, so neither warns that anything is wrong. The validation log-likelihood, in contrast, falls steadily from −0.711 to −0.762 per site, and the mixing time of the model, measured as in `sample --strategy pcd`, grows about sevenfold, from about 220 to 1,650 sweeps. The longer-trained model is worse on held-out sequences and much more expensive to sample.
 
@@ -214,7 +214,6 @@ One row per update. Columns present depend on the strategy and model.
 | `lag_drift`, `lag_drift_tail` | Lag of the chains along the drift and its tails (adaptive optimizer) |
 | `gradient_steps`, `stage`, `density` | Sparse models: parameter updates, current phase, fraction of active couplings |
 | `structure_steps`, `steps_on_graph`, `activated_entries`, `active_entries` | eaDCA with PTT: activation blocks and couplings |
-| `edge_i`, `edge_j`, `edge_new`, `edge_pseudocount` | edgeDCA with PTT: the selected pair, whether it was new, the pseudocount used |
 
 ### `events.jsonl` and the `»` lines of the log
 

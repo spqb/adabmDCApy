@@ -65,32 +65,23 @@ def history_columns(*, model_type: str, ptt_optimizer: str | None, validation: b
             Column("ptt_total_models", "models"),
             Column("ptt_acceptance", "acceptance_min", "acc", "f2", 4),
         ]
-        if model_type == "edgeDCA":
+        if model_type == "eaDCA":
             columns += [
-                Column("edge_pseudocount", "edge_pseudocount", "pseudo", "g3", 7),
-                Column("edge_i", "edge_i"),
-                Column("edge_j", "edge_j"),
-                Column("edge_new", "edge_new"),
-                Column("ptt_predicted_kl", "kl"),
+                Column("Structure_steps", "structure_steps", "graph", "int", 5),
+                Column("steps_on_graph", "steps_on_graph"),
+                Column("activated_entries", "activated_entries"),
+                Column("active_entries", "active_entries"),
             ]
-        else:
-            if model_type == "eaDCA":
-                columns += [
-                    Column("Structure_steps", "structure_steps", "graph", "int", 5),
-                    Column("steps_on_graph", "steps_on_graph"),
-                    Column("activated_entries", "activated_entries"),
-                    Column("active_entries", "active_entries"),
-                ]
-            columns += [
-                Column("bias_learning_rate", "lr_bias", "lr_h", "g3", 7),
-                Column("coupling_learning_rate", "lr_coupling", "lr_J", "g3", 7),
-            ]
+        columns += [
+            Column("bias_learning_rate", "lr_bias", "lr_h", "g3", 7),
+            Column("coupling_learning_rate", "lr_coupling", "lr_J", "g3", 7),
+        ]
         if ptt_optimizer == "adaptive":
-            columns += (
-                ([] if model_type == "edgeDCA" else [Column("ptt_predicted_kl", "kl")]) + [
+            columns += [
+                Column("ptt_predicted_kl", "kl"),
                 Column("ptt_lag_drift", "lag_drift", "lag", "f2", 4),
                 Column("ptt_lag_drift_tail", "lag_drift_tail", "tail", "f2", 4),
-            ])
+            ]
     return tuple(columns)
 
 

@@ -11,7 +11,7 @@ def create_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
             "Train a DCA model with experimental reintegration, using PCD (Persistent Contrastive Divergence, "
-            "default) or PTT (Parallel Trajectory Tempering, --strategy ptt) for bmDCA, eaDCA and edgeDCA."
+            "default) or PTT (Parallel Trajectory Tempering, --strategy ptt) for bmDCA and eaDCA."
         ),
         allow_abbrev=False,
     )

@@ -109,7 +109,7 @@ def add_args_dca(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         "--nepochs",
         type=int,
         default=DEFAULT_MAX_EPOCHS,
-        help="(Defaults to 50000). Compatibility limit: gradient steps for bmDCA and PTT edgeDCA; structure steps (graph activations/decimations) for eaDCA, including PTT eaDCA, and edDCA.",
+        help="(Defaults to 50000). Compatibility limit: gradient steps for bmDCA; structure steps (graph activations/decimations) for eaDCA, including PTT eaDCA, and edDCA.",
     )
     dca_args.add_argument(
         "--max-gradient-steps",
@@ -261,11 +261,10 @@ def add_args_ptt(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
               "diagnostics, train/validation LL per residue, and adjacent swap acceptance rates."),
     )
     ptt_args.add_argument("--ptt-max-recoveries", type=int, default=None, help="Maximum learning-rate reductions after mixing failures (default: 3).")
-    ptt_args.add_argument("--ptt-min-learning-rate", type=float, default=None, help="Effective-step floor during mixing recovery: learning rate for bmDCA, 1 - pseudocount for edgeDCA (default: 1e-8).")
+    ptt_args.add_argument("--ptt-min-learning-rate", type=float, default=None, help="Learning-rate floor during mixing recovery (default: 1e-8).")
     ptt_args.add_argument("--ptt-optimizer", choices=("adaptive", "sgd"), default=None,
                           help=("PTT optimizer: adaptive bounds each update by a KL trust radius and pauses when endpoint "
-                                "chains lag; sgd uses fixed --lr for bmDCA or fixed --pseudocount for edgeDCA "
-                                "(default: adaptive)."))
+                                "chains lag; sgd uses the fixed --lr (default: adaptive)."))
     ptt_args.add_argument("--ptt-trust-radius", type=float, default=None,
                         help="Adaptive optimizer: maximum local KL divergence per update (default: 0.01).")
     ptt_args.add_argument("--ptt-lag-tolerance", type=float, default=None,
@@ -291,7 +290,7 @@ def add_args_ptt(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
                         help=("Stop when the validation log-likelihood per site plateaus instead of at --target; "
                               "requires --validation. Default: on when --validation is given, off otherwise."))
     ptt_args.add_argument("--ptt-validation-window", type=int, default=None,
-                        help="Validation stop: updates per window of the compared medians (default: 100).")
+                        help="Validation stop: updates per window of the compared medians (default: 200).")
     ptt_args.add_argument("--ptt-validation-min-gain", type=float, default=None,
                         help=("Validation stop: stop when the median validation log-likelihood per site of the last "
                               "window exceeds that of the window before by less than this (default: 0)."))

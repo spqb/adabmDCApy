@@ -1013,3 +1013,9 @@ def test_failure_message_recommends_more_sweeps_only_for_immobile_configurations
     message = _mixing_failure_summary(reservoir, config, 10)
     assert message.startswith("At step 9 a new reservoir could not be collected") and "--nsweeps 100" in message
 
+
+
+def test_ptt_rejects_edgedca():
+    with pytest.raises(InputValidationError, match="does not support edgeDCA"):
+        TrainingConfig(model_type="edgeDCA", ptt=PTTConfig())
+    assert TrainingConfig(model_type="edgeDCA").ptt is None

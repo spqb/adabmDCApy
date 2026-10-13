@@ -18,7 +18,7 @@ from adabmDCA.graph import (
     rank_inactive_elements,
     select_inactive_elements,
 )
-from adabmDCA.ptt.optim import _PTTEdgeOptimizer, _PTTOptimizer
+from adabmDCA.ptt.optim import _PTTOptimizer
 from adabmDCA.ptt.precision import accumulation_dtype, device_accumulation
 from adabmDCA.stats import get_freq_two_points
 from adabmDCA.training_control import StopReason
@@ -290,67 +290,7 @@ class _ElementActivationPolicy(_DensePolicy):
         self.pending = None
 
 
-class _EdgePolicy(_DensePolicy):
-    """edgeDCA: one edge correction per update; new edges are structure steps."""
-
-    def __init__(self, config, mask, pseudocount, fij_raw):
-        self.config = config
-        self.mask = mask
-        self.fij_raw = fij_raw
-        self.optimizer = _PTTEdgeOptimizer(config, pseudocount)
-
-    def rates(self):
-        return {"edge": self.optimizer.minimum_rate}
-
-    def rate_details(self):
-        return {"edge_pseudocount": self.optimizer.nominal_pseudocount}
-
-    def recovery_details(self):
-        return {"pseudocount": self.optimizer.nominal_pseudocount}
-
-    def optimizer_summary(self):
-        return {"kind": self.optimizer.kind, "pseudocount": self.optimizer.pseudocount}
-
-    def graph_state(self, controller):
-        return {"structure_steps": controller.counters.structure_steps, "active_edges": _edge_pairs(self.mask)}
-
-    def restore_graph(self, state, controller):
-        self.mask = _mask_from_edges(state["active_edges"], self.mask)
-        controller.counters.structure_steps = int(state["structure_steps"])
-
-    def stop_reason(self, controller):
-        return StopReason.MAX_STRUCTURE_STEPS if controller.structure_limit_reached() else None
-
-    def history_extra(self):
-        optimizer = self.optimizer
-        return {
-            "edge_pseudocount": optimizer.pseudocount,
-            "edge_i": None if optimizer.last_edge is None else optimizer.last_edge[0],
-            "edge_j": None if optimizer.last_edge is None else optimizer.last_edge[1],
-            "edge_new": optimizer.last_edge_new,
-            "ptt_predicted_kl": None if optimizer.trust_diagnostics is None else
-                optimizer.trust_diagnostics["predicted_kl"],
-        }
-
-    def snapshot_mask(self, mask_save):
-        return torch.logical_and(self.mask, mask_save)
-
-    def propose(self, *, fi_target, fij_target, pi, pij, sampler):
-        return self.optimizer.step(
-            fij_raw=self.fij_raw, pij_raw=pij, params=sampler.endpoint_params(), mask=self.mask, sampler=sampler,
-        )
-
-    def commit(self, candidate_mask, controller):
-        self.mask = candidate_mask
-        if self.optimizer.last_edge_new:
-            controller.add_structure_step()
-
-
-def _make_policy(config, mask, *, fij_raw, edge_pseudocount, activation_pseudocount, effective_size):
-    if config.model_type == "edgeDCA":
-        if fij_raw is None or edge_pseudocount is None:
-            raise InputValidationError("PTT edgeDCA requires raw pair frequencies and a pseudocount.")
-        return _EdgePolicy(config, mask, edge_pseudocount, fij_raw)
+def _make_policy(config, mask, *, activation_pseudocount, effective_size):
     if config.model_type == "eaDCA":
         if activation_pseudocount is None:
             raise InputValidationError("PTT eaDCA requires the pseudocount used to select new couplings.")

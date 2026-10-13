@@ -1,4 +1,4 @@
-"""bmDCA, eaDCA and edgeDCA optimization using the shared PTT sampler."""
+"""bmDCA and eaDCA optimization using the shared PTT sampler."""
 
 from __future__ import annotations
 
@@ -78,7 +78,7 @@ def validation_plateau(values, window, min_gain):
 
 
 def train_ptt(*, ptt_sampler, fi_target, fij_target, mask, config, controller, fi_val=None, fij_val=None,
-              fij_raw=None, edge_pseudocount=None, activation_pseudocount=None, effective_size=None):
+              activation_pseudocount=None, effective_size=None):
     """Train with PTT snapshots, reservoirs and recovery based on mixing time.
 
     A failed mixing experiment restores the newest checkpoint that passes
@@ -86,7 +86,7 @@ def train_ptt(*, ptt_sampler, fi_target, fij_target, mask, config, controller, f
     """
     return _PTTTrainer(
         sampler=ptt_sampler, fi_target=fi_target, fij_target=fij_target, mask=mask, config=config,
-        controller=controller, fi_val=fi_val, fij_val=fij_val, fij_raw=fij_raw, edge_pseudocount=edge_pseudocount,
+        controller=controller, fi_val=fi_val, fij_val=fij_val,
         activation_pseudocount=activation_pseudocount, effective_size=effective_size,
     ).run()
 
@@ -163,11 +163,11 @@ class _PTTTrainer:
     """
 
     def __init__(self, *, sampler, fi_target, fij_target, mask, config, controller, fi_val, fij_val,
-                 fij_raw, edge_pseudocount, activation_pseudocount, effective_size):
+                 activation_pseudocount, effective_size):
         self.sampler, self.config, self.controller = sampler, config, controller
         self.fi_target, self.fij_target, self.fi_val, self.fij_val = fi_target, fij_target, fi_val, fij_val
-        self.policy = _make_policy(config, mask, fij_raw=fij_raw, edge_pseudocount=edge_pseudocount,
-                                   activation_pseudocount=activation_pseudocount, effective_size=effective_size)
+        self.policy = _make_policy(config, mask, activation_pseudocount=activation_pseudocount,
+                                   effective_size=effective_size)
         self.optimizer = self.policy.optimizer
         if sampler.training_state and config.ptt is not None:
             # On resume the requested stopping criteria replace the archived ones.

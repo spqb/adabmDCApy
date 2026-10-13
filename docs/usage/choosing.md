@@ -35,9 +35,9 @@ So: use PCD freely to explore, but train the final model with PTT, or at least s
 | `bmDCA` | All fields and couplings | PTT, PCD |
 | `eaDCA` | Starts with no couplings and activates individual coupling entries where the model disagrees most with the data | PTT, PCD |
 | `edDCA` | Starts from a dense model and removes the least informative couplings until a target density | PCD only |
-| `edgeDCA` | Starts with no couplings and activates whole position pairs, one at a time | PTT, PCD |
+| `edgeDCA` | Starts with no couplings and activates whole position pairs, one at a time | PCD only |
 
-In the benchmarks `bmDCA` was better than `edgeDCA` on every count. With PTT, `edgeDCA` took as long or longer, stopped at a lower Pearson, and had an equal or lower validation likelihood; its archives also accumulated long ladders that made sampling slow. With PCD at bmDCA-level targets, `edgeDCA` often exhausted its 50,000 graph updates, and its models did not mix: their resampled Pearson fell to 0.5–0.7 while training reported 0.92–0.96.
+In the benchmarks `bmDCA` was better than `edgeDCA` on every count. With PTT, `edgeDCA` took as long or longer, stopped at a lower Pearson, and had an equal or lower validation likelihood; its archives also accumulated long ladders that made sampling slow, so PTT no longer accepts `edgeDCA`. With PCD at bmDCA-level targets, `edgeDCA` often exhausted its 50,000 graph updates, and its models did not mix: their resampled Pearson fell to 0.5–0.7 while training reported 0.92–0.96.
 
 Choose a sparse model when you need a sparse interaction graph (to interpret, or to keep a small parameter file), and then prefer PTT and check the model by sampling.
 

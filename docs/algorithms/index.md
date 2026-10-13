@@ -8,7 +8,7 @@ A Potts model assigns every aligned sequence \(x = (x_1, \dots, x_L)\) an energy
 
 ## The one thing that can go wrong
 
-The model's frequencies cannot be computed exactly: they are averages over \(q^L\) sequences. They are estimated from a population of Markov chains (2,000 by default) that sample the current model. **Training and every quality metric it reports rest on the assumption that these chains are at equilibrium.** If they are not, for instance because the family has subfamilies the chains rarely move between, the gradient points in the wrong direction, and the metrics, computed from the same chains, cannot show it.
+The model's frequencies cannot be computed exactly: they are averages over \(q^L\) sequences. They are estimated from a population of Markov chains (2,048 by default) that sample the current model. **Training and every quality metric it reports rest on the assumption that these chains are at equilibrium.** If they are not, for instance because the family has subfamilies the chains rarely move between, the gradient points in the wrong direction, and the metrics, computed from the same chains, cannot show it.
 
 Most of the machinery of adabmDCA exists to protect that assumption or to check it afterwards:
 

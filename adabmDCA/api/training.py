@@ -191,7 +191,7 @@ def train_model(
         config: Validated training settings. If omitted, the individual
             training options below are used to construct a ``TrainingConfig``.
         model_type: ``"bmDCA"``, ``"eaDCA"``, ``"edDCA"``, or ``"edgeDCA"``.
-        ptt: Optional PTT settings for bmDCA, eaDCA or edgeDCA training. May also
+        ptt: Optional PTT settings for bmDCA or eaDCA training. May also
             be supplied through ``config.ptt``.
         ptt_resume: Full HDF5 PTT archive from which to resume a compatible
             run. Requires PTT settings.
@@ -284,7 +284,7 @@ def train_model(
         ``dtype="bfloat16"`` uses BF16 coupling copies for CUDA/Triton or MPS
         sampling and float32 master parameters, statistics, chains, and saved
         models; it requires NVIDIA Ampere or newer with Triton, or enabled MPS
-        kernels on macOS 14 or newer; with PTT it requires CUDA. PTT requires bmDCA, eaDCA or edgeDCA
+        kernels on macOS 14 or newer; with PTT it requires CUDA. PTT requires bmDCA or eaDCA
         and uses PTT bridges for normalization. For PTT resume, ``max_epochs`` is the
         total committed-step limit, including steps already saved: gradient steps for bmDCA and
         edgeDCA, graph-activation (structure) steps for eaDCA.
@@ -534,8 +534,6 @@ def train_model(
             chains, params, history = train_ptt(
                 ptt_sampler=ptt_sampler, fi_target=fi_target, fij_target=fij_target, mask=mask,
                 config=training_config, controller=controller, fi_val=fi_val, fij_val=fij_val,
-                fij_raw=(dataset.get_frequencies(pseudocount=0.0)[1] if model_type == "edgeDCA" else None),
-                edge_pseudocount=(effective_pseudocount if model_type == "edgeDCA" else None),
                 activation_pseudocount=(effective_pseudocount if model_type == "eaDCA" else None),
                 effective_size=effective_size,
             )
