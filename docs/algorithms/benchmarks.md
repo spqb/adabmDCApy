@@ -138,8 +138,6 @@ For these families, bmDCA is better than edgeDCA in accuracy, robustness and tot
 ## Sampling kernels
 
 For Apple GPUs, see [MPS vs CPU](#mps-vs-cpu) below.
-For fixed seven-model CPU PTT generation, see the separate
-[Numba swap-fusion measurements](numba-swaps.md).
 
 Time per sweep, 2,000 chains, comparing the original PyTorch samplers with the current ones (Triton on GPU, Numba on CPU):
 
