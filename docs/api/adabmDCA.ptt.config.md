@@ -45,7 +45,7 @@ Pass an instance as ``ptt=`` to :func:`train_model` (or through ``TrainingConfig
  - <b>`mixing_method`</b>:  Training mixing check: ``"renewal"`` (the ladder is  repopulated by fresh configurations) or ``"autocorrelation"``.
  - <b>`renewal_tolerance`</b>:  Fraction of old configurations, per replica, below which  the ladder counts as renewed.
  - <b>`max_recoveries`</b>:  Largest number of learning-rate halvings after mixing failures.
- - <b>`min_learning_rate`</b>:  Learning-rate floor of recovery (``1 - pseudocount`` for edgeDCA).
+ - <b>`min_learning_rate`</b>:  Learning-rate floor of recovery.
  - <b>`optimizer`</b>:  ``"adaptive"`` (steps bounded by a KL trust region, training  paused while the endpoint chains lag behind the model) or ``"sgd"``  (fixed learning rate).
  - <b>`trust_radius`</b>:  Adaptive optimizer: largest predicted KL divergence of one update.
  - <b>`lag_tolerance`</b>:  Adaptive optimizer: largest lag of the endpoint chains, in  population standard deviations, before training pauses.
@@ -96,7 +96,7 @@ __init__(
     lag_horizon: 'int' = 200,
     lag_pause_rounds: 'int' = 100,
     validation_stop: 'bool' = False,
-    validation_window: 'int' = 100,
+    validation_window: 'int' = 200,
     validation_min_gain: 'float' = 0.0,
     activation: 'str' = 'fixed',
     activation_kl_share: 'float' = 0.5,

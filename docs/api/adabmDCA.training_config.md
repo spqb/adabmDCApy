@@ -68,7 +68,7 @@ Pass it as ``config=`` to :func:`train_model`; it then takes precedence over the
  - <b>`sampler`</b>:  ``"metropolized_gibbs"``, ``"gibbs"`` or ``"metropolis"``.
  - <b>`n_chains`</b>:  Number of Markov chains.
  - <b>`target_pearson`</b>:  Training stops when the Pearson correlation between data and  model connected correlations reaches this value.
- - <b>`max_epochs`</b>:  Step budget: gradient steps for bmDCA and PTT edgeDCA, graph  steps for the other sparse models. Superseded by the two limits below.
+ - <b>`max_epochs`</b>:  Step budget: gradient steps for bmDCA, graph steps for the  sparse models. Superseded by the two limits below.
  - <b>`max_gradient_steps`</b>:  Optional limit on parameter updates.
  - <b>`max_structure_steps`</b>:  Optional limit on graph activations or decimations.
  - <b>`pseudocount`</b>:  Pseudocount of the training statistics; ``None`` means ``1/Meff``  (0.1 for edgeDCA).
@@ -164,7 +164,7 @@ Checkpoint interval in updates, with the default filled in.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training_config.py#L281"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training_config.py#L282"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `as_dict`
 
@@ -176,7 +176,7 @@ Return a serializable snapshot suitable for run metadata.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training_config.py#L260"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training_config.py#L261"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `resolve_pseudocount`
 

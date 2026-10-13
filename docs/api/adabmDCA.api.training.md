@@ -84,7 +84,7 @@ Pass ``config=TrainingConfig(...)`` to specify the training policy as one object
  - <b>`data_path`</b>:  Training alignment or path to an alignment file.
  - <b>`config`</b>:  Validated training settings. If omitted, the individual  training options below are used to construct a ``TrainingConfig``.
  - <b>`model_type`</b>:  ``"bmDCA"``, ``"eaDCA"``, ``"edDCA"``, or ``"edgeDCA"``.
- - <b>`ptt`</b>:  Optional PTT settings for bmDCA, eaDCA or edgeDCA training. May also  be supplied through ``config.ptt``.
+ - <b>`ptt`</b>:  Optional PTT settings for bmDCA or eaDCA training. May also  be supplied through ``config.ptt``.
  - <b>`ptt_resume`</b>:  Full HDF5 PTT archive from which to resume a compatible  run. Requires PTT settings.
  - <b>`validation_path`</b>:  Optional alignment used for validation metrics.
  - <b>`weights_path`</b>:  Optional path, sequence, NumPy array, or tensor of  training-sequence weights.
@@ -153,7 +153,7 @@ Pass ``config=TrainingConfig(...)`` to specify the training policy as one object
 
 **Notes:**
 
-> ``dtype="bfloat16"`` uses BF16 coupling copies for CUDA/Triton or MPS sampling and float32 master parameters, statistics, chains, and saved models; it requires NVIDIA Ampere or newer with Triton, or enabled MPS kernels on macOS 14 or newer; with PTT it requires CUDA. PTT requires bmDCA, eaDCA or edgeDCA and uses PTT bridges for normalization. For PTT resume, ``max_epochs`` is the total committed-step limit, including steps already saved: gradient steps for bmDCA and edgeDCA, graph-activation (structure) steps for eaDCA.
+> ``dtype="bfloat16"`` uses BF16 coupling copies for CUDA/Triton or MPS sampling and float32 master parameters, statistics, chains, and saved models; it requires NVIDIA Ampere or newer with Triton, or enabled MPS kernels on macOS 14 or newer; with PTT it requires CUDA. PTT requires bmDCA or eaDCA and uses PTT bridges for normalization. For PTT resume, ``max_epochs`` is the total committed-step limit, including steps already saved: gradient steps for bmDCA and edgeDCA, graph-activation (structure) steps for eaDCA.
 
 
 
