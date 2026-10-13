@@ -53,7 +53,7 @@ class PTTConfig:
         renewal_tolerance: Fraction of old configurations, per replica, below which
             the ladder counts as renewed.
         max_recoveries: Largest number of learning-rate halvings after mixing failures.
-        min_learning_rate: Learning-rate floor of recovery (``1 - pseudocount`` for edgeDCA).
+        min_learning_rate: Learning-rate floor of recovery.
         optimizer: ``"adaptive"`` (steps bounded by a KL trust region, training
             paused while the endpoint chains lag behind the model) or ``"sgd"``
             (fixed learning rate).
@@ -106,7 +106,7 @@ class PTTConfig:
     lag_horizon: int = 200
     lag_pause_rounds: int = 100
     validation_stop: bool = False
-    validation_window: int = 100
+    validation_window: int = 200
     validation_min_gain: float = 0.0
     activation: str = "fixed"
     activation_kl_share: float = 0.5

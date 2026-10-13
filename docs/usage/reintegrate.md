@@ -18,7 +18,7 @@ adabmDCA reintegrate -d natural.fasta --reint tested.fasta --adj adjustments.txt
 The training options of [`train`](train.md) are accepted (model type, sweeps, chains, validation set, …). A good starting point is ±1 adjustments with `--lambda_ 1`; raise \(\lambda\) to give the experiments more influence over the natural data.
 
 !!! note "Reintegration trains with PCD by default"
-    Unlike `train`, `reintegrate` uses PCD unless `--strategy ptt` is given; the `--ptt-*` options of `train` then apply, for bmDCA, eaDCA and edgeDCA. Check a PCD result by sampling it with `sample --strategy pcd` and making sure it mixes.
+    Unlike `train`, `reintegrate` uses PCD unless `--strategy ptt` is given; the `--ptt-*` options of `train` then apply, for bmDCA and eaDCA. Check a PCD result by sampling it with `sample --strategy pcd` and making sure it mixes.
 
 ## What it does
 

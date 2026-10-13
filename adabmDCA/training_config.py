@@ -77,8 +77,8 @@ class TrainingConfig:
         n_chains: Number of Markov chains.
         target_pearson: Training stops when the Pearson correlation between data and
             model connected correlations reaches this value.
-        max_epochs: Step budget: gradient steps for bmDCA and PTT edgeDCA, graph
-            steps for the other sparse models. Superseded by the two limits below.
+        max_epochs: Step budget: gradient steps for bmDCA, graph steps for the
+            sparse models. Superseded by the two limits below.
         max_gradient_steps: Optional limit on parameter updates.
         max_structure_steps: Optional limit on graph activations or decimations.
         pseudocount: Pseudocount of the training statistics; ``None`` means ``1/Meff``
@@ -150,12 +150,17 @@ class TrainingConfig:
             ):
                 if isinstance(getattr(self, name), (_DefaultInt, _DefaultStr)):
                     object.__setattr__(self, name, default)
-            if self.model_type not in ("bmDCA", "eaDCA", "edgeDCA"):
-                raise ConfigurationError("PTT currently supports bmDCA, eaDCA and edgeDCA only.")
+            if self.model_type == "edgeDCA":
+                # Edge updates move the model by whole q x q blocks without slowing down,
+                # so the PTT ladder keeps growing and training stops early at a worse model.
+                raise ConfigurationError(
+                    "PTT does not support edgeDCA. Train edgeDCA with PCD (--strategy pcd), "
+                    "or a sparse model with PTT using eaDCA."
+                )
+            if self.model_type not in ("bmDCA", "eaDCA"):
+                raise ConfigurationError("PTT currently supports bmDCA and eaDCA only.")
             if self.ptt.activation != "fixed" and self.model_type != "eaDCA":
                 raise ConfigurationError("PTT adaptive activation applies to eaDCA only.")
-            if self.model_type == "edgeDCA" and self.pseudocount is not None and not 0.0 < self.pseudocount < 1.0:
-                raise ConfigurationError("PTT edgeDCA pseudocount must be strictly between 0 and 1.")
         if self.dtype not in ("float32", "float64", "bfloat16"):
             raise ConfigurationError("dtype must be float32, float64 or bfloat16.")
         if self.model_type not in MODEL_TYPES:
@@ -201,12 +206,8 @@ class TrainingConfig:
         self._positive("activation_steps", self.activation_steps)
         validate_seed(self.seed, error_type=ConfigurationError)
 
-        if self.ptt is not None:
-            if self.model_type == "edgeDCA":
-                if 1.0 - self.resolve_pseudocount(1.0) < self.ptt.min_learning_rate:
-                    raise ConfigurationError("PTT edgeDCA effective step cannot start below min_learning_rate.")
-            elif self.learning_rate < self.ptt.min_learning_rate:
-                raise ConfigurationError("PTT learning rates cannot start below min_learning_rate.")
+        if self.ptt is not None and self.learning_rate < self.ptt.min_learning_rate:
+            raise ConfigurationError("PTT learning rates cannot start below min_learning_rate.")
         if self.model_type != "edgeDCA" and self.learning_rate <= 0.0:
             raise ConfigurationError("learning_rate must be positive.")
         if self.model_type != "edgeDCA" and self.l2_regularization < 0.0:
@@ -233,7 +234,7 @@ class TrainingConfig:
     @property
     def limits(self) -> TrainingLimits:
         """Resolve the legacy epoch limit into explicit model-aware limits."""
-        if self.model_type == "bmDCA" or (self.model_type == "edgeDCA" and self.ptt is not None):
+        if self.model_type == "bmDCA":
             return TrainingLimits(
                 max_gradient_steps=self.max_gradient_steps or self.max_epochs,
                 max_structure_steps=self.max_structure_steps,

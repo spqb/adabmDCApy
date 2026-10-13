@@ -114,7 +114,7 @@ in KL divergence. Each decimation step removes the fraction `--drate` of the act
 J_{ij}(a,b) \leftarrow J_{ij}(a,b) + \log f^\alpha_{ij}(a,b) - \log p^\alpha_{ij}(a,b).
 \]
 
-As \(\alpha \to 1\) both frequencies tend to \(1/q^2\) and the step vanishes; the fixed point \(f^\alpha = p^\alpha\) is equivalent to \(f = p\). History records the pair (`edge_i`, `edge_j`), whether it was new (`edge_new`) and the pseudocount used (`edge_pseudocount`, raised by the adaptive optimizer when the predicted KL would exceed the trust radius).
+As \(\alpha \to 1\) both frequencies tend to \(1/q^2\) and the step vanishes; the fixed point \(f^\alpha = p^\alpha\) is equivalent to \(f = p\).
 
 **Density** (`density`) is the fraction of coupling entries that are active; 1 for bmDCA. edgeDCA activates whole blocks, so for it this is also the fraction of active position pairs.
 
@@ -122,7 +122,7 @@ As \(\alpha \to 1\) both frequencies tend to \(1/q^2\) and the step vanishes; th
 
 **Pearson target.** Stop when `pearson` ≥ `--target` (0.95).
 
-**Validation plateau.** With validation log-likelihoods \(\ell_t\) at accepted updates and a window \(w\) (`--ptt-validation-window`, 100), after at least \(2w\) updates compute
+**Validation plateau.** With validation log-likelihoods \(\ell_t\) at accepted updates and a window \(w\) (`--ptt-validation-window`, 200), after at least \(2w\) updates compute
 
 \[
 g_t = \operatorname{median}(\ell_{t-w+1},\dots,\ell_t) - \operatorname{median}(\ell_{t-2w+1},\dots,\ell_{t-w}),
@@ -139,4 +139,4 @@ and stop as soon as \(g_t <\) `--ptt-validation-min-gain` (0). The Pearson targe
 | `steps_on_graph` | Position of an eaDCA update within its block |
 | `sweeps` | All local sweeps per chain, including mixing checks, reservoir collection, pauses, failed updates and recovery. Cumulative across rollbacks, so it can rise while `step` stands still |
 
-`--nepochs` counts gradient steps for bmDCA and PTT edgeDCA, structure steps for eaDCA and edDCA. `--max-gradient-steps` and `--max-structure-steps` are unambiguous.
+`--nepochs` counts gradient steps for bmDCA, structure steps for eaDCA, edDCA and edgeDCA. `--max-gradient-steps` and `--max-structure-steps` are unambiguous.

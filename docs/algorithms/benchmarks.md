@@ -133,7 +133,7 @@ Runs whose smoothed Pearson dropped by at least 0.005 after a peak:
 - **edgeDCA with PTT** took as long as bmDCA or longer, stopped at a lower Pearson, and had an equal or lower validation likelihood. Its archives accumulated many models, which made PTT sampling expensive: on RF00023, 47 models and 89 minutes of sampling without reaching renewal.
 - **edgeDCA with PCD** is very fast to a moderate target. At bmDCA-level targets, 4 of 6 families exhausted the step budget (beta_lactamase stalled at 0.84 with 3% density), and **the models did not mix**: their resampled Pearsons fell far below training (bkace 0.51 vs 0.96, LBD 0.55 vs 0.96, cm_russ 0.70 vs 0.92). Their energy scales were extreme (mean training energy from −100 to −9,200, against +50 to +300 for every other model) and thermodynamic integration returned meaningless \(\log Z\) values. The good training Pearson was a property of the persistent chains, not of the model's equilibrium. The cm_russ model also generated sequences unusually close to the training data (median nearest-training distance 0.23 vs 0.40 for held-out sequences), the only sign of collapse in the whole study.
 
-For these families, bmDCA is better than edgeDCA in accuracy, robustness and total cost. Sparse models are worth it only when sparsity itself is the goal, and then with PTT and on small families.
+For these families, bmDCA is better than edgeDCA in accuracy, robustness and total cost. Sparse models are worth it only when sparsity itself is the goal. PTT no longer accepts edgeDCA.
 
 ## Sampling kernels
 

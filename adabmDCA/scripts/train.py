@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 
 
 def create_parser() -> argparse.ArgumentParser:
-    parser = add_args_train(argparse.ArgumentParser(description=("Train a DCA model. PTT (Parallel Trajectory Tempering) supports bmDCA, eaDCA and edgeDCA; "
+    parser = add_args_train(argparse.ArgumentParser(description=("Train a DCA model. PTT (Parallel Trajectory Tempering) supports bmDCA and eaDCA; "
                      "PCD (Persistent Contrastive Divergence) is faster and can work well for datasets that are "
                      "not too clustered. PTT: Béreux et al. (2026), arXiv:2607.27077, "
                      "https://doi.org/10.48550/arXiv.2607.27077."), allow_abbrev=False))
@@ -463,7 +463,7 @@ def make_renderer(args: argparse.Namespace):
     epoch_limit = DEFAULT_PTT_MAX_EPOCHS if strategy == "ptt" and args.nepochs is DEFAULT_MAX_EPOCHS else args.nepochs
     max_steps = (
         args.max_gradient_steps or epoch_limit
-        if args.model == "bmDCA" or (args.model == "edgeDCA" and strategy == "ptt")
+        if args.model == "bmDCA"
         else args.max_structure_steps or epoch_limit
     )
     if args.no_progress:
