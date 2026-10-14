@@ -144,7 +144,9 @@ Pass ``config=TrainingConfig(...)`` to specify the training policy as one object
 >>> from adabmDCA.api import TrainingProgress
 ```
 
-A progress function receives an event object, not separate epoch and metric arguments. Use ``dict.get`` because metrics may differ between stages:
+A progress function receives an event object, not separate epoch and
+metric arguments. Use ``dict.get`` because metrics may differ between
+stages:
 
 ```python
 >>> def show_progress(event: TrainingProgress) -> None:
@@ -161,7 +163,15 @@ A progress function receives an event object, not separate epoch and metric argu
 
 **Notes:**
 
-> ``dtype="bfloat16"`` uses BF16 coupling copies for CUDA/Triton or MPS sampling and float32 master parameters, statistics, chains, and saved models; it requires NVIDIA Ampere or newer with Triton, or enabled MPS kernels on macOS 14 or newer; with PTT it requires CUDA. PTT requires bmDCA or eaDCA and uses PTT bridges for normalization. For PTT resume, ``max_epochs`` is the total committed-step limit, including steps already saved: gradient steps for bmDCA and edgeDCA, graph-activation (structure) steps for eaDCA.
+>
+``dtype="bfloat16"`` uses BF16 coupling copies for CUDA/Triton or MPS
+sampling and float32 master parameters, statistics, chains, and saved
+models; it requires NVIDIA Ampere or newer with Triton, or enabled MPS
+kernels on macOS 14 or newer; with PTT it requires CUDA. PTT requires bmDCA or eaDCA
+and uses PTT bridges for normalization. For PTT resume, ``max_epochs`` is the
+total committed-step limit, including steps already saved: gradient steps for bmDCA and
+edgeDCA, graph-activation (structure) steps for eaDCA.
+
 
 
 

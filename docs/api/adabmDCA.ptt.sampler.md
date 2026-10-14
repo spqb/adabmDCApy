@@ -93,11 +93,11 @@ The remaining public methods (``transition_target``, ``update_replica_chain``, `
 **Example:**
 ```python
 >>> sampler = PTTSampler.from_archive("model/ptt.h5", device="cuda")
->>> sampler.prepare_sampling_ladder(2000)
->>> sampler.measure_renewal(local_sweeps=10).status
-'converged'
->>> sequences = sampler.draw(1000, local_sweeps=10)   # one-hot, (1000, L, q)
->>> sampler.entropy()["entropy"]
+ >>> sampler.prepare_sampling_ladder(2000)
+ >>> sampler.measure_renewal(local_sweeps=10).status
+ 'converged'
+ >>> sequences = sampler.draw(1000, local_sweeps=10)   # one-hot, (1000, L, q)
+ >>> sampler.entropy()["entropy"]
 ```
 
 

@@ -129,7 +129,7 @@ Takes the same arguments as `score_sequences` except ``local_lambda``.
 **Example:**
 ```python
 >>> compute_energies(["ACGU...", "ACGA..."], model=model)
-array([-212.4, -208.9])
+ array([-212.4, -208.9])
 ```
 
 
