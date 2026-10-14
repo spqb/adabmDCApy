@@ -66,7 +66,7 @@ gibbs_sampling_categorical_triton(
 
 Run Gibbs sampling directly on contiguous int32 categorical states.
 
-Each step updates one uniformly drawn site, shared by all chains, for ``nsweeps * L`` steps. ``sites`` instead gives the site of every step (its length then sets the number of steps and ``nsweeps`` is ignored). Sparse graphs (see :func:`sparse_coupling_layout`) read only the coupled pairs.
+Each step updates one uniformly drawn site, shared by all chains, for ``nsweeps * L`` steps. ``sites`` instead gives the site of every step (its length then sets the number of steps and ``nsweeps`` is ignored). Sparse graphs (see `sparse_coupling_layout`) read only the coupled pairs.
 
 
 ---
@@ -138,7 +138,7 @@ metropolis_sampling_categorical_triton(
 
 Run Metropolis sampling directly on contiguous int32 categorical states.
 
-Sparse graphs (see :func:`sparse_coupling_layout`) read only the coupled pairs.
+Sparse graphs (see `sparse_coupling_layout`) read only the coupled pairs.
 
 
 ---
@@ -160,7 +160,7 @@ metropolis_sampling_replicas_categorical_triton(
 
 Sample a stack of PTT replicas in one sequence of Triton launches.
 
-``steps_per_launch=None`` uses the tuned default for the alphabet size. Sparse graphs (see :func:`sparse_coupling_layout`) read only the coupled pairs.
+``steps_per_launch=None`` uses the tuned default for the alphabet size. Sparse graphs (see `sparse_coupling_layout`) read only the coupled pairs.
 
 
 ---
@@ -239,7 +239,7 @@ metropolized_gibbs_sampling_replicas_triton(
 
 Metropolized Gibbs sampling of a stack of replicas, from couplings in their original layout.
 
-``couplings`` has shape (R, L, q, L, q). Sparse graphs use the sparse kernel; otherwise the transposed copy of :func:`metropolized_gibbs_sampling_replicas_categorical_triton` is made. Either layout is cached and reused while ``couplings`` is unchanged.
+``couplings`` has shape (R, L, q, L, q). Sparse graphs use the sparse kernel; otherwise the transposed copy of `metropolized_gibbs_sampling_replicas_categorical_triton` is made. Either layout is cached and reused while ``couplings`` is unchanged.
 
 
 ---
@@ -281,7 +281,7 @@ metropolized_gibbs_sampling_categorical_triton(
 
 Metropolized Gibbs sampling of contiguous CUDA int32 states (N, L).
 
-Each update draws one site shared by all chains. A new state b != a is proposed from the site conditional restricted to the other states and accepted with min(1, (1 - p_a) / (1 - p_b)) (Liu 1996). One program owns a chain and reads, for every source position, a contiguous row of candidate couplings from a transposed copy made once per call. Sparse graphs (see :func:`sparse_coupling_layout`) read only each site's coupled neighbours instead. ``coupling_dtype=torch.bfloat16`` stores that copy in BF16. Fields and acceptance use the bias precision, or FP32 for BF16 biases, as do the uniform random numbers. Couplings must have zero within-site blocks.
+Each update draws one site shared by all chains. A new state b != a is proposed from the site conditional restricted to the other states and accepted with min(1, (1 - p_a) / (1 - p_b)) (Liu 1996). One program owns a chain and reads, for every source position, a contiguous row of candidate couplings from a transposed copy made once per call. Sparse graphs (see `sparse_coupling_layout`) read only each site's coupled neighbours instead. ``coupling_dtype=torch.bfloat16`` stores that copy in BF16. Fields and acceptance use the bias precision, or FP32 for BF16 biases, as do the uniform random numbers. Couplings must have zero within-site blocks.
 
 
 ---

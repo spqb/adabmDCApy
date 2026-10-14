@@ -33,7 +33,7 @@ For each position and each alternative token, the mutant's energy is compared wi
 **Args:**
 
  - <b>`wild_type`</b>:  Aligned sequence of length ``L`` using the model's tokens.
- - <b>`model`</b>:  A :class:`DCAModel`, or a path to a parameter file or PTT archive.
+ - <b>`model`</b>:  A `DCAModel`, or a path to a parameter file or PTT archive.
  - <b>`name`</b>:  Label stored in the result and used in exported files.
  - <b>`alphabet`</b>:  Alphabet of a text parameter file: ``"protein"``, ``"rna"``,  ``"dna"`` or an ordered custom token string. ``None`` reads it from a  PTT archive and assumes ``"protein"`` for text files. Ignored when
  - <b>```model`` is already a `</b>: class:`DCAModel`.
@@ -57,11 +57,10 @@ For each position and each alternative token, the mutant's energy is compared wi
 
 
 **Example:**
- ``` scan = scan_mutations("MKT...", model="params.dat.gz")```
-    >>> scan.to_dataframe().sort_values("delta_energy").head()
-
-
-
+```python
+>>> scan = scan_mutations("MKT...", model="params.dat.gz")
+>>> scan.to_dataframe().sort_values("delta_energy").head()
+```
 
 
 ---

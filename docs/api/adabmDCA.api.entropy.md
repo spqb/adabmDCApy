@@ -40,7 +40,7 @@ estimate_entropy(
 
 Estimate the entropy of a DCA model by thermodynamic integration.
 
-A field ``theta * x_target`` biases the model towards a target sequence. ``theta_max`` is first increased (by 1% per 100 sweeps) until more than ``target_fraction`` of the chains coincide with the target, which fixes the free energy at ``theta_max``. The free energy at ``theta = 0`` then follows by integrating the mean sequence identity over ``n_steps`` values of ``theta`` (trapezoidal rule), and the entropy is ``<E> - F``. For PTT archives, :func:`adabmDCA.api.ptt.estimate_ptt_entropy` is cheaper and needs no integration.
+A field ``theta * x_target`` biases the model towards a target sequence. ``theta_max`` is first increased (by 1% per 100 sweeps) until more than ``target_fraction`` of the chains coincide with the target, which fixes the free energy at ``theta_max``. The free energy at ``theta = 0`` then follows by integrating the mean sequence identity over ``n_steps`` values of ``theta`` (trapezoidal rule), and the entropy is ``<E> - F``. For PTT archives, `adabmDCA.api.ptt.estimate_ptt_entropy` is cheaper and needs no integration.
 
 
 

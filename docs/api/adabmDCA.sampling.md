@@ -388,7 +388,7 @@ prepare_sampler(sampling_method: str, device: device) → Callable
 
 Select the fastest sampler for ``device``.
 
-CUDA uses the fused Triton kernels when Triton is installed. MPS uses the fused Metal kernels when ``torch.mps.compile_shader`` is available, unless disabled with ``ADABMDCA_MPS=0`` (unsupported shapes/dtypes use PyTorch). CPU uses the multithreaded Numba kernels of :mod:`adabmDCA.numba_kernels` when Numba is installed (``pip install adabmDCA[cpu]``) and not disabled with ``ADABMDCA_NUMBA=0``. Otherwise the TorchScript samplers of this module run. All of them perform the same random-site updates and sample the same distribution.
+CUDA uses the fused Triton kernels when Triton is installed. MPS uses the fused Metal kernels when ``torch.mps.compile_shader`` is available, unless disabled with ``ADABMDCA_MPS=0`` (unsupported shapes/dtypes use PyTorch). CPU uses the multithreaded Numba kernels of `adabmDCA.numba_kernels` when Numba is installed (``pip install adabmDCA[cpu]``) and not disabled with ``ADABMDCA_NUMBA=0``. Otherwise the TorchScript samplers of this module run. All of them perform the same random-site updates and sample the same distribution.
 
 
 ---
@@ -408,7 +408,7 @@ prepare_fixed_model_sampler(
 
 Prepare a sampler and parameters for a model that will not be updated.
 
-BF16 mode keeps biases, chains, statistics, and energy calculations in float32. Only the fixed coupling matrix is rounded to BF16, once, before sampling. This is the inference counterpart of :func:`prepare_training_sampler`, where the coupling copy must instead be refreshed after every parameter update.
+BF16 mode keeps biases, chains, statistics, and energy calculations in float32. Only the fixed coupling matrix is rounded to BF16, once, before sampling. This is the inference counterpart of `prepare_training_sampler`, where the coupling copy must instead be refreshed after every parameter update.
 
 
 ---

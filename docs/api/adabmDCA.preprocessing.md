@@ -92,7 +92,7 @@ preprocess_alignment(
 
 Clean a raw alignment for DCA: read, transform, filter and optionally write it.
 
-Steps, each optional: remove insertions (or normalize dots to ``"-"``), check tokens against an alphabet, drop gappy sequences, drop duplicates. Keyword options override the corresponding :class:`AlignmentProcessingConfig` fields.
+Steps, each optional: remove insertions (or normalize dots to ``"-"``), check tokens against an alphabet, drop gappy sequences, drop duplicates. Keyword options override the corresponding `AlignmentProcessingConfig` fields.
 
 
 
@@ -102,7 +102,7 @@ Steps, each optional: remove insertions (or normalize dots to ``"-"``), check to
  - <b>`output_path`</b>:  FASTA file to write, or ``None``.
  - <b>`input_format`</b>:  ``"auto"``, ``"fasta"`` or ``"stockholm"``.
  - <b>`alignment_index`</b>:  Alignment to read from a multi-alignment Stockholm file.
- - <b>`config`</b>:  Base settings; see :class:`AlignmentProcessingConfig`.
+ - <b>`config`</b>:  Base settings; see `AlignmentProcessingConfig`.
  - <b>`remove_insertions`</b>:  Overrides ``config.remove_insertions``.
  - <b>`max_gap_fraction`</b>:  Overrides ``config.max_gap_fraction``.
  - <b>`remove_duplicates`</b>:  Overrides ``config.remove_duplicates``.
@@ -126,10 +126,11 @@ Steps, each optional: remove insertions (or normalize dots to ``"-"``), check to
 
 
 **Example:**
- ``` result = preprocess_alignment("RF00379.sto", output_path="clean.fasta",```
-    ...                               remove_insertions=True, max_gap_fraction=0.2)
-    >>> result.report.output_sequences
-
+```python
+>>> result = preprocess_alignment("RF00379.sto", output_path="clean.fasta",
+...                               remove_insertions=True, max_gap_fraction=0.2)
+>>> result.report.output_sequences
+```
 
 
 ---
@@ -137,7 +138,7 @@ Steps, each optional: remove insertions (or normalize dots to ``"-"``), check to
 <a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/preprocessing.py#L19"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `AlignmentProcessingConfig`
-Transformations applied by :func:`preprocess_alignment`, in this order.
+Transformations applied by `preprocess_alignment`, in this order.
 
 
 
@@ -178,7 +179,7 @@ __init__(
 <a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/preprocessing.py#L43"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `AlignmentProcessingReport`
-What :func:`preprocess_alignment` changed.
+What `preprocess_alignment` changed.
 
 
 
@@ -267,7 +268,7 @@ Write the report as a versioned JSON document.
 <a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/preprocessing.py#L100"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `AlignmentFilterResult`
-Outcome of :func:`filter_gap_fraction`.
+Outcome of `filter_gap_fraction`.
 
 
 
@@ -306,7 +307,7 @@ __init__(
 <a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/preprocessing.py#L119"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `AlignmentProcessingResult`
-Outcome of :func:`preprocess_alignment`.
+Outcome of `preprocess_alignment`.
 
 
 
@@ -314,7 +315,7 @@ Outcome of :func:`preprocess_alignment`.
 
  - <b>`alignment`</b>:  Processed alignment.
  - <b>`keep_mask`</b>:  For each input sequence, whether it was kept.
- - <b>`report`</b>:  What was changed, see :class:`AlignmentProcessingReport`.
+ - <b>`report`</b>:  What was changed, see `AlignmentProcessingReport`.
  - <b>`output_path`</b>:  Written FASTA file, if ``output_path`` was given.
 
 <a href="https://github.com/spqb/adabmDCApy/blob/main/<string>"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>

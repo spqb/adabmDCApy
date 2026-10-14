@@ -84,6 +84,7 @@ jobs:
           adabmDCA.utils
 
         sed -i 's/Overview: symbols.md/Overview: index.md/' docs/api/.pages
+        python tools/postprocess_api_docs.py docs/api
         python - <<'PY'
         from pathlib import Path
 

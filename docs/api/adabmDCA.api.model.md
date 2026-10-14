@@ -53,10 +53,11 @@ The file type is detected from its content. For a PTT archive (``.h5``), the fin
 
 
 **Example:**
- ``` model = load_model("output/params.dat.gz", alphabet="rna")```
-    >>> model
-    DCAModel(L=136, q=5, tokens='-ACGU', ...)
-
+```python
+>>> model = load_model("output/params.dat.gz", alphabet="rna")
+>>> model
+DCAModel(L=136, q=5, tokens='-ACGU', ...)
+```
 
 
 ---
@@ -80,7 +81,7 @@ Describe a model without using it: length, alphabet, device and precision.
 
 **Args:**
 
- - <b>`model`</b>:  A :class:`DCAModel`, or a path to a parameter file or PTT archive.
+ - <b>`model`</b>:  A `DCAModel`, or a path to a parameter file or PTT archive.
  - <b>`alphabet`</b>:  Alphabet of a text parameter file: ``"protein"``, ``"rna"``,  ``"dna"`` or an ordered custom token string. ``None`` reads it from a  PTT archive and assumes ``"protein"`` for text files. Ignored when
  - <b>```model`` is already a `</b>: class:`DCAModel`.
  - <b>`device`</b>:  ``"auto"`` (CUDA when available, else CPU), ``"cpu"``,  ``"cuda"`` or ``"mps"``. Ignored for an in-memory model.
@@ -100,7 +101,7 @@ Describe a model without using it: length, alphabet, device and precision.
 ## <kbd>class</kbd> `DCAModel`
 DCA parameters and convenience methods for scoring and sampling.
 
-Use :func:`load_model` for a saved model. Construct ``DCAModel`` directly when parameter tensors are already in memory. The bias tensor determines the model length ``L``, number of states ``q``, device, and dtype. The ordered ``tokens`` string maps state indices to residue symbols.
+Use `load_model` for a saved model. Construct ``DCAModel`` directly when parameter tensors are already in memory. The bias tensor determines the model length ``L``, number of states ``q``, device, and dtype. The ordered ``tokens`` string maps state indices to residue symbols.
 
 
 

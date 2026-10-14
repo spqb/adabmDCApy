@@ -26,7 +26,7 @@ load_training_inputs(
 ) → TrainingInputs
 ```
 
-Load the training inputs of :func:`train_model` and check they fit together.
+Load the training inputs of `train_model` and check they fit together.
 
 Sequences with unknown tokens are dropped and duplicates removed. The validation alignment, initial parameters and initial chains must have the training alignment's length and alphabet.
 
@@ -34,7 +34,7 @@ Sequences with unknown tokens are dropped and duplicates removed. The validation
 
 **Args:**
 
- - <b>`training`</b>:  Training alignment (path, :class:`Alignment` or sequences).
+ - <b>`training`</b>:  Training alignment (path, `Alignment` or sequences).
  - <b>`config`</b>:  Training settings; provides alphabet and reweighting options.
  - <b>`device`</b>:  Device of the loaded tensors.
  - <b>`dtype`</b>:  Precision of the loaded tensors.

@@ -262,23 +262,22 @@ def train_model(
         OperationCancelledError: If ``is_cancelled`` requests cancellation.
 
     Example:
+        >>> from adabmDCA import train_model
+        >>> from adabmDCA.api import TrainingProgress
+
         A progress function receives an event object, not separate epoch and
         metric arguments. Use ``dict.get`` because metrics may differ between
-        stages::
+        stages:
 
-            from adabmDCA import train_model
-            from adabmDCA.api import TrainingProgress
-
-            def show_progress(event: TrainingProgress) -> None:
-                pearson = event.metrics.get("Pearson")
-                if pearson is not None:
-                    print(
-                        f"{event.stage}: epoch={event.epoch}, "
-                        f"gradient_steps={event.gradient_steps}, "
-                        f"Pearson={pearson:.3f}"
-                    )
-
-            result = train_model("alignment.fasta", progress=show_progress)
+        >>> def show_progress(event: TrainingProgress) -> None:
+        ...     pearson = event.metrics.get("Pearson")
+        ...     if pearson is not None:
+        ...         print(
+        ...             f"{event.stage}: epoch={event.epoch}, "
+        ...             f"gradient_steps={event.gradient_steps}, "
+        ...             f"Pearson={pearson:.3f}"
+        ...         )
+        >>> result = train_model("alignment.fasta", progress=show_progress)
 
     Notes:
         ``dtype="bfloat16"`` uses BF16 coupling copies for CUDA/Triton or MPS

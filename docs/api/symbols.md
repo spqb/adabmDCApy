@@ -48,12 +48,12 @@
 ## Classes
 
 - [`alignment.Alignment`](./adabmDCA.alignment.md#class-alignment): Aligned sequences with optional alphabet and filtering provenance.
-- [`alignment.AlignmentConversionResult`](./adabmDCA.alignment.md#class-alignmentconversionresult): Outcome of :func:`convert_alignment`.
-- [`input_loading.AlignmentLoadConfig`](./adabmDCA.input_loading.md#class-alignmentloadconfig): How :func:`load_alignment` reads, validates and filters an alignment.
-- [`preprocessing.AlignmentFilterResult`](./adabmDCA.preprocessing.md#class-alignmentfilterresult): Outcome of :func:`filter_gap_fraction`.
-- [`preprocessing.AlignmentProcessingConfig`](./adabmDCA.preprocessing.md#class-alignmentprocessingconfig): Transformations applied by :func:`preprocess_alignment`, in this order.
-- [`preprocessing.AlignmentProcessingReport`](./adabmDCA.preprocessing.md#class-alignmentprocessingreport): What :func:`preprocess_alignment` changed.
-- [`preprocessing.AlignmentProcessingResult`](./adabmDCA.preprocessing.md#class-alignmentprocessingresult): Outcome of :func:`preprocess_alignment`.
+- [`alignment.AlignmentConversionResult`](./adabmDCA.alignment.md#class-alignmentconversionresult): Outcome of `convert_alignment`.
+- [`input_loading.AlignmentLoadConfig`](./adabmDCA.input_loading.md#class-alignmentloadconfig): How `load_alignment` reads, validates and filters an alignment.
+- [`preprocessing.AlignmentFilterResult`](./adabmDCA.preprocessing.md#class-alignmentfilterresult): Outcome of `filter_gap_fraction`.
+- [`preprocessing.AlignmentProcessingConfig`](./adabmDCA.preprocessing.md#class-alignmentprocessingconfig): Transformations applied by `preprocess_alignment`, in this order.
+- [`preprocessing.AlignmentProcessingReport`](./adabmDCA.preprocessing.md#class-alignmentprocessingreport): What `preprocess_alignment` changed.
+- [`preprocessing.AlignmentProcessingResult`](./adabmDCA.preprocessing.md#class-alignmentprocessingresult): Outcome of `preprocess_alignment`.
 - [`training_config.ConfigurationError`](./adabmDCA.training_config.md#class-configurationerror): Raised when a training configuration is internally inconsistent.
 - [`training_config.TrainingConfig`](./adabmDCA.training_config.md#class-trainingconfig): All settings of one training run, validated on construction.
 - [`training_control.CheckpointStore`](./adabmDCA.training_control.md#class-checkpointstore): Persistence interface used by the training controller.
@@ -81,22 +81,22 @@
 - [`exceptions.WeightLoadError`](./adabmDCA.exceptions.md#class-weightloaderror): Raised when sequence weights cannot be loaded or aligned.
 - [`input_loading.TrainingInputs`](./adabmDCA.api.input_loading.md#class-traininginputs): Loaded and cross-checked inputs of one training run.
 - [`model.DCAModel`](./adabmDCA.api.model.md#class-dcamodel): DCA parameters and convenience methods for scoring and sampling.
-- [`ptt.PTTEntropyResult`](./adabmDCA.api.ptt.md#class-pttentropyresult): Entropy of a PTT model, returned by :func:`estimate_ptt_entropy`.
-- [`results.ContactMapResult`](./adabmDCA.api.results.md#class-contactmapresult): Contact scores returned by :func:`predict_contacts`.
-- [`results.EnergyResult`](./adabmDCA.api.results.md#class-energyresult): DCA energies of scored sequences, returned by :func:`score_sequences`.
+- [`ptt.PTTEntropyResult`](./adabmDCA.api.ptt.md#class-pttentropyresult): Entropy of a PTT model, returned by `estimate_ptt_entropy`.
+- [`results.ContactMapResult`](./adabmDCA.api.results.md#class-contactmapresult): Contact scores returned by `predict_contacts`.
+- [`results.EnergyResult`](./adabmDCA.api.results.md#class-energyresult): DCA energies of scored sequences, returned by `score_sequences`.
 - [`results.ModelMetadata`](./adabmDCA.api.results.md#class-modelmetadata): Portable description of a loaded DCA model.
-- [`results.MutationRecord`](./adabmDCA.api.results.md#class-mutationrecord): One single-site mutant from :func:`scan_mutations`.
-- [`results.MutationScanResult`](./adabmDCA.api.results.md#class-mutationscanresult): All single-site mutants of a sequence, returned by :func:`scan_mutations`.
-- [`results.ProfileSplitResult`](./adabmDCA.api.results.md#class-profilesplitresult): Training/test split of an alignment, returned by :func:`split_alignment`.
-- [`results.ReintegrationResult`](./adabmDCA.api.results.md#class-reintegrationresult): Outcome of :func:`reintegrate_model`.
-- [`results.SamplingProgress`](./adabmDCA.api.results.md#class-samplingprogress): Progress event passed to the ``progress`` callback of :func:`sample_sequences`.
-- [`results.SamplingResult`](./adabmDCA.api.results.md#class-samplingresult): Generated sequences and diagnostics, returned by :func:`sample_sequences`.
-- [`results.ThermodynamicIntegrationProgress`](./adabmDCA.api.results.md#class-thermodynamicintegrationprogress): Progress event passed to the ``progress`` callback of :func:`estimate_entropy`.
-- [`results.ThermodynamicIntegrationResult`](./adabmDCA.api.results.md#class-thermodynamicintegrationresult): Outcome of :func:`estimate_entropy`.
+- [`results.MutationRecord`](./adabmDCA.api.results.md#class-mutationrecord): One single-site mutant from `scan_mutations`.
+- [`results.MutationScanResult`](./adabmDCA.api.results.md#class-mutationscanresult): All single-site mutants of a sequence, returned by `scan_mutations`.
+- [`results.ProfileSplitResult`](./adabmDCA.api.results.md#class-profilesplitresult): Training/test split of an alignment, returned by `split_alignment`.
+- [`results.ReintegrationResult`](./adabmDCA.api.results.md#class-reintegrationresult): Outcome of `reintegrate_model`.
+- [`results.SamplingProgress`](./adabmDCA.api.results.md#class-samplingprogress): Progress event passed to the ``progress`` callback of `sample_sequences`.
+- [`results.SamplingResult`](./adabmDCA.api.results.md#class-samplingresult): Generated sequences and diagnostics, returned by `sample_sequences`.
+- [`results.ThermodynamicIntegrationProgress`](./adabmDCA.api.results.md#class-thermodynamicintegrationprogress): Progress event passed to the ``progress`` callback of `estimate_entropy`.
+- [`results.ThermodynamicIntegrationResult`](./adabmDCA.api.results.md#class-thermodynamicintegrationresult): Outcome of `estimate_entropy`.
 - [`results.TrainingDatasetSummary`](./adabmDCA.api.results.md#class-trainingdatasetsummary): Size and filtering of one training or validation alignment.
-- [`results.TrainingInitialization`](./adabmDCA.api.results.md#class-traininginitialization): Resolved training setup, passed to ``on_initialized`` of :func:`train_model`.
-- [`results.TrainingProgress`](./adabmDCA.api.results.md#class-trainingprogress): One accepted update, passed to the ``progress`` callback of :func:`train_model`.
-- [`results.TrainingResult`](./adabmDCA.api.results.md#class-trainingresult): Outcome of :func:`train_model`.
+- [`results.TrainingInitialization`](./adabmDCA.api.results.md#class-traininginitialization): Resolved training setup, passed to ``on_initialized`` of `train_model`.
+- [`results.TrainingProgress`](./adabmDCA.api.results.md#class-trainingprogress): One accepted update, passed to the ``progress`` callback of `train_model`.
+- [`results.TrainingResult`](./adabmDCA.api.results.md#class-trainingresult): Outcome of `train_model`.
 - [`checkpoint.Checkpoint`](./adabmDCA.checkpoint.md#class-checkpoint): Save model state and write the training history, events and readable log.
 - [`dataset.DatasetDCA`](./adabmDCA.dataset.md#class-datasetdca): Encoded alignment with sequence weights, as a PyTorch dataset.
 - [`config.PTTConfig`](./adabmDCA.ptt.config.md#class-pttconfig): Settings of Parallel Trajectory Tempering, for training and sampling.
@@ -113,7 +113,7 @@
 - [`alphabet.detect_alphabet`](./adabmDCA.alphabet.md#function-detect_alphabet): Select the smallest compatible standard alphabet (DNA wins ties).
 - [`alphabet.get_tokens`](./adabmDCA.alphabet.md#function-get_tokens): Return the ordered token string of an alphabet.
 - [`alignment.convert_alignment`](./adabmDCA.alignment.md#function-convert_alignment): Convert a FASTA or Stockholm alignment to canonical aligned FASTA.
-- [`alignment.convert_stockholm_to_fasta`](./adabmDCA.alignment.md#function-convert_stockholm_to_fasta): Convert one Stockholm alignment to FASTA; see :func:`convert_alignment`.
+- [`alignment.convert_stockholm_to_fasta`](./adabmDCA.alignment.md#function-convert_stockholm_to_fasta): Convert one Stockholm alignment to FASTA; see `convert_alignment`.
 - [`alignment.detect_alignment_format`](./adabmDCA.alignment.md#function-detect_alignment_format): Detect whether a file is FASTA or Stockholm from its first non-empty line.
 - [`alignment.normalize_gap_symbols`](./adabmDCA.alignment.md#function-normalize_gap_symbols): Replace one alignment gap symbol with another.
 - [`alignment.read_alignment`](./adabmDCA.alignment.md#function-read_alignment): Read one aligned FASTA or Stockholm alignment, without filtering.
@@ -123,10 +123,10 @@
 - [`preprocessing.filter_gap_fraction`](./adabmDCA.preprocessing.md#function-filter_gap_fraction): Remove sequences whose gap fraction is greater than the threshold.
 - [`preprocessing.preprocess_alignment`](./adabmDCA.preprocessing.md#function-preprocess_alignment): Clean a raw alignment for DCA: read, transform, filter and optionally write it.
 - [`preprocessing.remove_insertions`](./adabmDCA.preprocessing.md#function-remove_insertions): Remove dots and lowercase insertion residues from every sequence.
-- [`contacts.compute_contact_map`](./adabmDCA.api.contacts.md#function-compute_contact_map): Return only the ``(L, L)`` contact-score matrix of :func:`predict_contacts`.
+- [`contacts.compute_contact_map`](./adabmDCA.api.contacts.md#function-compute_contact_map): Return only the ``(L, L)`` contact-score matrix of `predict_contacts`.
 - [`contacts.predict_contacts`](./adabmDCA.api.contacts.md#function-predict_contacts): Predict residue contacts from a DCA model or directly from an alignment.
 - [`entropy.estimate_entropy`](./adabmDCA.api.entropy.md#function-estimate_entropy): Estimate the entropy of a DCA model by thermodynamic integration.
-- [`input_loading.load_training_inputs`](./adabmDCA.api.input_loading.md#function-load_training_inputs): Load the training inputs of :func:`train_model` and check they fit together.
+- [`input_loading.load_training_inputs`](./adabmDCA.api.input_loading.md#function-load_training_inputs): Load the training inputs of `train_model` and check they fit together.
 - [`model.inspect_model`](./adabmDCA.api.model.md#function-inspect_model): Describe a model without using it: length, alphabet, device and precision.
 - [`model.load_model`](./adabmDCA.api.model.md#function-load_model): Load DCA parameters from a text parameter file or a PTT archive.
 - [`ptt.estimate_ptt_entropy`](./adabmDCA.api.ptt.md#function-estimate_ptt_entropy): Estimate the entropy of a PTT-trained model as ``<E> + log Z``.
@@ -134,9 +134,9 @@
 - [`ptt.sample_ptt_sequences`](./adabmDCA.api.ptt.md#function-sample_ptt_sequences): Equilibrate the ladder in place, then collect endpoint samples.
 - [`mutations.scan_mutations`](./adabmDCA.api.mutations.md#function-scan_mutations): Score every single-site substitution of an aligned wild-type sequence.
 - [`reintegration.reintegrate_model`](./adabmDCA.api.reintegration.md#function-reintegrate_model): Train a model on natural sequences plus experimentally scored ones.
-- [`sampling.generate_sequences`](./adabmDCA.api.sampling.md#function-generate_sequences): Return only the sequences of :func:`sample_sequences`.
+- [`sampling.generate_sequences`](./adabmDCA.api.sampling.md#function-generate_sequences): Return only the sequences of `sample_sequences`.
 - [`sampling.sample_sequences`](./adabmDCA.api.sampling.md#function-sample_sequences): Generate sequences from a DCA model, with an energy for each.
-- [`scoring.compute_energies`](./adabmDCA.api.scoring.md#function-compute_energies): Return only the DCA energies of :func:`score_sequences`, without CDE.
+- [`scoring.compute_energies`](./adabmDCA.api.scoring.md#function-compute_energies): Return only the DCA energies of `score_sequences`, without CDE.
 - [`scoring.fit_local_lambda`](./adabmDCA.api.scoring.md#function-fit_local_lambda): Fit E = intercept + lambda * summed CDE by ordinary least squares.
 - [`scoring.score_sequences`](./adabmDCA.api.scoring.md#function-score_sequences): Compute DCA energies of aligned sequences, with their local free energies.
 - [`scoring.summed_cde`](./adabmDCA.api.scoring.md#function-summed_cde): Return summed conditional entropy for each one-hot sequence, in nats.

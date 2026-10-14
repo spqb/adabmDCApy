@@ -73,7 +73,7 @@ train_model(
 
 Train a DCA model from an alignment and return its in-memory result.
 
-``data_path`` may be an :class:`Alignment` or a FASTA, gzip-compressed FASTA, or Stockholm path. Invalid sequences are removed and duplicate sequences are collapsed. Supplied weights may match either the original rows or the retained rows. The resolved filtering decisions are available in ``result.input_report``.
+``data_path`` may be an `Alignment` or a FASTA, gzip-compressed FASTA, or Stockholm path. Invalid sequences are removed and duplicate sequences are collapsed. Supplied weights may match either the original rows or the retained rows. The resolved filtering decisions are available in ``result.input_report``.
 
 Pass ``config=TrainingConfig(...)`` to specify the training policy as one object. When supplied, ``config`` is authoritative for training settings; the individual settings below do not override it. Input paths, output location, callbacks, and cancellation are still taken from this call.
 
@@ -139,15 +139,23 @@ Pass ``config=TrainingConfig(...)`` to specify the training policy as one object
 
 
 **Example:**
- A progress function receives an event object, not separate epoch and metric arguments. Use ``dict.get`` because metrics may differ between stages:
+```python
+>>> from adabmDCA import train_model
+>>> from adabmDCA.api import TrainingProgress
 ```
 
-         from adabmDCA import train_model          from adabmDCA.api import TrainingProgress
+A progress function receives an event object, not separate epoch and metric arguments. Use ``dict.get`` because metrics may differ between stages:
 
-         def show_progress(event: TrainingProgress) -> None:              pearson = event.metrics.get("Pearson")              if pearson is not None:                  print(                      f"{event.stage}: epoch={event.epoch}, "                      f"gradient_steps={event.gradient_steps}, "                      f"Pearson={pearson:.3f}"                  )
-
-         result = train_model("alignment.fasta", progress=show_progress)
-
+```python
+>>> def show_progress(event: TrainingProgress) -> None:
+...     pearson = event.metrics.get("Pearson")
+...     if pearson is not None:
+...         print(
+...             f"{event.stage}: epoch={event.epoch}, "
+...             f"gradient_steps={event.gradient_steps}, "
+...             f"Pearson={pearson:.3f}"
+...         )
+>>> result = train_model("alignment.fasta", progress=show_progress)
 ```
 
 

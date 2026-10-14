@@ -67,8 +67,8 @@ Energies follow ``E(s) = -sum_i h_i(s_i) - sum_{i<j} J_ij(s_i, s_j)``: lower is 
 **Args:**
 
  - <b>`sequences`</b>:  One aligned sequence or an iterable of them, each of length  ``L`` over the model's tokens. Provide exactly one of ``sequences``  and ``fasta_path``.
- - <b>`model`</b>:  A :class:`DCAModel`, or a path to a parameter file or PTT archive.
- - <b>`fasta_path`</b>:  Alignment to score (path, :class:`Alignment` or sequences);  sequence names are kept in the result.
+ - <b>`model`</b>:  A `DCAModel`, or a path to a parameter file or PTT archive.
+ - <b>`fasta_path`</b>:  Alignment to score (path, `Alignment` or sequences);  sequence names are kept in the result.
  - <b>`alphabet`</b>:  Alphabet of a text parameter file: ``"protein"``, ``"rna"``,  ``"dna"`` or an ordered custom token string. ``None`` reads it from a  PTT archive and assumes ``"protein"`` for text files. Ignored when
  - <b>```model`` is already a `</b>: class:`DCAModel`.
  - <b>`device`</b>:  ``"auto"`` (CUDA when available, else CPU), ``"cpu"``,  ``"cuda"`` or ``"mps"``. Ignored for an in-memory model.
@@ -91,9 +91,10 @@ Energies follow ``E(s) = -sum_i h_i(s_i) - sum_{i<j} J_ij(s_i, s_j)``: lower is 
 
 
 **Example:**
- ``` result = score_sequences(fasta_path="designs.fasta", model="params.dat.gz")```
-    >>> result.to_dataframe().sort_values("energy").head()
-
+```python
+>>> result = score_sequences(fasta_path="designs.fasta", model="params.dat.gz")
+>>> result.to_dataframe().sort_values("energy").head()
+```
 
 
 ---
@@ -114,9 +115,9 @@ compute_energies(
 ) → ndarray
 ```
 
-Return only the DCA energies of :func:`score_sequences`, without CDE.
+Return only the DCA energies of `score_sequences`, without CDE.
 
-Takes the same arguments as :func:`score_sequences` except ``local_lambda``.
+Takes the same arguments as `score_sequences` except ``local_lambda``.
 
 
 
@@ -126,11 +127,10 @@ Takes the same arguments as :func:`score_sequences` except ``local_lambda``.
 
 
 **Example:**
- ``` compute_energies(["ACGU...", "ACGA..."], model=model)```
-     array([-212.4, -208.9])
-
-
-
+```python
+>>> compute_energies(["ACGU...", "ACGA..."], model=model)
+array([-212.4, -208.9])
+```
 
 
 ---

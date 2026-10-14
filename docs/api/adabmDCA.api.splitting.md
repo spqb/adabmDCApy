@@ -38,7 +38,7 @@ Split an alignment into training and test sets that are not too similar.
 
 **Args:**
 
- - <b>`alignment`</b>:  Alignment to split (path, :class:`Alignment` or sequences).
+ - <b>`alignment`</b>:  Alignment to split (path, `Alignment` or sequences).
  - <b>`method`</b>:  ``"clustering"`` or ``"cobalt"``.
  - <b>`identity`</b>:  Clustering: sequence identity, in ``(0, 1]``, that joins two  sequences into one cluster.
  - <b>`train_fraction`</b>:  Clustering: target fraction of sequences in the training set.
@@ -68,11 +68,10 @@ Split an alignment into training and test sets that are not too similar.
 
 
 **Example:**
- ``` split = split_alignment("family.fasta", alphabet="rna", identity=0.8)```
-    >>> split.save_bundle("splits/family")
-
-
-
+```python
+>>> split = split_alignment("family.fasta", alphabet="rna", identity=0.8)
+>>> split.save_bundle("splits/family")
+```
 
 
 ---

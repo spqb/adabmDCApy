@@ -31,8 +31,8 @@ With ``model``, scores are the average-product-corrected (APC) Frobenius norms o
 
 **Args:**
 
- - <b>`model`</b>:  A :class:`DCAModel`, or a path to a parameter file or PTT archive.
- - <b>`fasta_path`</b>:  Aligned sequences (path, :class:`Alignment` or sequence  strings) for mean-field prediction. Provide exactly one of ``model``  and ``fasta_path``.
+ - <b>`model`</b>:  A `DCAModel`, or a path to a parameter file or PTT archive.
+ - <b>`fasta_path`</b>:  Aligned sequences (path, `Alignment` or sequence  strings) for mean-field prediction. Provide exactly one of ``model``  and ``fasta_path``.
  - <b>`alphabet`</b>:  ``"protein"``, ``"rna"``, ``"dna"`` or an ordered custom token  string, for the alignment or a text parameter file. ``None`` reads it  from a PTT archive and otherwise means ``"protein"``. Ignored when
  - <b>```model`` is already a `</b>: class:`DCAModel`. Must contain ``"-"``.
  - <b>`pseudocount`</b>:  Mean-field only: pseudocount in ``[0, 1]`` that regularizes the  covariance matrix before inversion.
@@ -54,9 +54,10 @@ With ``model``, scores are the average-product-corrected (APC) Frobenius norms o
 
 
 **Example:**
- ``` result = predict_contacts(model="params.dat.gz", alphabet="rna")```
-    >>> top = result.to_long_dataframe().nlargest(20, "score")  # 0-based positions
-
+```python
+>>> result = predict_contacts(model="params.dat.gz", alphabet="rna")
+>>> top = result.to_long_dataframe().nlargest(20, "score")  # 0-based positions
+```
 
 
 ---
@@ -76,9 +77,9 @@ compute_contact_map(
 ) → ndarray
 ```
 
-Return only the ``(L, L)`` contact-score matrix of :func:`predict_contacts`.
+Return only the ``(L, L)`` contact-score matrix of `predict_contacts`.
 
-Takes the same arguments as :func:`predict_contacts`; see it for details.
+Takes the same arguments as `predict_contacts`; see it for details.
 
 
 

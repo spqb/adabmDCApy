@@ -19,7 +19,7 @@
 ## <kbd>class</kbd> `DatasetDCA`
 Encoded alignment with sequence weights, as a PyTorch dataset.
 
-Build one with :meth:`from_alignment`. Items are ``(sequence, weight)`` pairs of encoded sequences.
+Build one with `from_alignment`. Items are ``(sequence, weight)`` pairs of encoded sequences.
 
 
 
@@ -66,15 +66,15 @@ from_alignment(
 
 Load an alignment and its weights into a dataset.
 
-An ``Alignment`` already returned by :func:`load_alignment` is reused when ``load_config`` is omitted, preserving its filtering provenance. Pass ``load_config`` to apply a new loading policy.
+An ``Alignment`` already returned by `load_alignment` is reused when ``load_config`` is omitted, preserving its filtering provenance. Pass ``load_config`` to apply a new loading policy.
 
 
 
 **Args:**
 
- - <b>`alignment`</b>:  Path, :class:`Alignment` or sequences.
+ - <b>`alignment`</b>:  Path, `Alignment` or sequences.
  - <b>`weights`</b>:  Sequence weights (file, array or tensor), or ``None`` to compute them.
- - <b>`load_config`</b>:  Loading policy; see :class:`AlignmentLoadConfig`.
+ - <b>`load_config`</b>:  Loading policy; see `AlignmentLoadConfig`.
  - <b>`clustering_th`</b>:  Identity threshold of the computed weights.
  - <b>`no_reweighting`</b>:  Give every sequence weight 1.
  - <b>`device`</b>:  Device of the tensors.
@@ -90,8 +90,10 @@ An ``Alignment`` already returned by :func:`load_alignment` is reused when ``loa
 
 
 **Example:**
- ``` dataset = DatasetDCA.from_alignment("family.fasta", load_config=AlignmentLoadConfig(alphabet="rna"))```
-    >>> fi, fij = dataset.get_frequencies(pseudocount=1 / dataset.get_effective_size())
+```python
+>>> dataset = DatasetDCA.from_alignment("family.fasta", load_config=AlignmentLoadConfig(alphabet="rna"))
+>>> fi, fij = dataset.get_frequencies(pseudocount=1 / dataset.get_effective_size())
+```
 
 
 ---

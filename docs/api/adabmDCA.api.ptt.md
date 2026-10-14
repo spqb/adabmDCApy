@@ -26,13 +26,13 @@ load_ptt_backend(
 
 Return a PTT sampler ready for generation, loaded or forked from ``source``.
 
-An in-memory :class:`PTTSampler` is forked, so the original is not modified. An archive keeps its precision and alphabet.
+An in-memory `PTTSampler` is forked, so the original is not modified. An archive keeps its precision and alphabet.
 
 
 
 **Args:**
 
- - <b>`source`</b>:  A :class:`PTTSampler` or a path to a PTT archive.
+ - <b>`source`</b>:  A `PTTSampler` or a path to a PTT archive.
  - <b>`device`</b>:  Device to load the archive on; ``"auto"`` prefers CUDA, then MPS, then CPU.  Changing device requires a new ``seed``.
  - <b>`seed`</b>:  New random seed, or ``None`` to continue the archived random stream.
  - <b>`alphabet`</b>:  Optional alphabet; must match the archive's tokens.
@@ -93,7 +93,7 @@ sample_ptt_sequences(
 
 Equilibrate the ladder in place, then collect endpoint samples.
 
-``mixing_method='renewal'`` (default) tracks the birth round of every configuration and waits until the ladder has twice been repopulated by exact rung-0 draws (see ``PTTSampler.measure_renewal``); extra batches are spaced by the measured renewal time. By default the renewal runs only the warmup, which replaces the initial populations once; ``stationary=True`` adds the stationary renewal, which certifies that the returned population descends from draws made after the ladder had forgotten its start. ``'autocorrelation'`` keeps the replica-index TRWA estimate of tau_int and tau_exp. Each round runs one pass of adjacent exchanges and population permutations, then the local sweeps, as in training. ``local_kernel`` selects the local update ('metropolized_gibbs' by default, 'metropolis' or 'gibbs'); ``None`` keeps the archived training kernel. All of them leave every replica's distribution invariant. The ladder is the training ladder (see ``PTTSampler.prepare_sampling_ladder``). With ``steering_potential``, steered rungs are added on top of it (``PTTSampler.prepare_steering``) and the samples come from the top one; see :func:`adabmDCA.api.sampling.sample_sequences` for the steering arguments. With ``return_full_ladder``, every rung's chains are kept at the same rounds as the endpoint batches, in the result's ``ladder_samples``.
+``mixing_method='renewal'`` (default) tracks the birth round of every configuration and waits until the ladder has twice been repopulated by exact rung-0 draws (see ``PTTSampler.measure_renewal``); extra batches are spaced by the measured renewal time. By default the renewal runs only the warmup, which replaces the initial populations once; ``stationary=True`` adds the stationary renewal, which certifies that the returned population descends from draws made after the ladder had forgotten its start. ``'autocorrelation'`` keeps the replica-index TRWA estimate of tau_int and tau_exp. Each round runs one pass of adjacent exchanges and population permutations, then the local sweeps, as in training. ``local_kernel`` selects the local update ('metropolized_gibbs' by default, 'metropolis' or 'gibbs'); ``None`` keeps the archived training kernel. All of them leave every replica's distribution invariant. The ladder is the training ladder (see ``PTTSampler.prepare_sampling_ladder``). With ``steering_potential``, steered rungs are added on top of it (``PTTSampler.prepare_steering``) and the samples come from the top one; see `adabmDCA.api.sampling.sample_sequences` for the steering arguments. With ``return_full_ladder``, every rung's chains are kept at the same rounds as the endpoint batches, in the result's ``ladder_samples``.
 
 
 ---
@@ -123,7 +123,7 @@ A PTT archive already carries an estimate of log Z (bridges along its replica la
 
 **Args:**
 
- - <b>`model`</b>:  A PTT archive path, or a :class:`PTTSampler` (it is forked, not modified).
+ - <b>`model`</b>:  A PTT archive path, or a `PTTSampler` (it is forked, not modified).
  - <b>`n_sweeps`</b>:  Local sweeps per exchange round of the warmup.
  - <b>`seed`</b>:  Random seed of the warmup.
  - <b>`device`</b>:  ``"cpu"``, ``"cuda"``, ``"mps"`` (float32) or ``"auto"``.
@@ -141,9 +141,10 @@ A PTT archive already carries an estimate of log Z (bridges along its replica la
 
 
 **Example:**
- ``` estimate_ptt_entropy(model="output/ptt.h5", device="cuda").entropy```
-    131.2
-
+```python
+>>> estimate_ptt_entropy(model="output/ptt.h5", device="cuda").entropy
+131.2
+```
 
 
 ---
@@ -151,7 +152,7 @@ A PTT archive already carries an estimate of log Z (bridges along its replica la
 <a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/ptt.py#L437"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `PTTEntropyResult`
-Entropy of a PTT model, returned by :func:`estimate_ptt_entropy`.
+Entropy of a PTT model, returned by `estimate_ptt_entropy`.
 
 
 
@@ -218,7 +219,7 @@ Return a JSON-compatible document with the result type and schema version.
 to_json(path: 'str | Path') → Path
 ```
 
-Write :meth:`to_dict` as JSON and return the written path.
+Write `to_dict` as JSON and return the written path.
 
 
 

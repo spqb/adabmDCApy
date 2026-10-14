@@ -65,7 +65,7 @@ get_cde(x: Tensor, params: dict[str, Tensor]) → Tensor
 
 Compute per-site context-dependent entropy of one-hot sequences.
 
-For each site ``i``, hold all other residues fixed, evaluate the model probability of every state at ``i``, and return the Shannon entropy of that conditional distribution in nats. The conditional probabilities follow the same energy convention as :func:`compute_energy`, including asymmetric couplings and nonzero same-site terms.
+For each site ``i``, hold all other residues fixed, evaluate the model probability of every state at ``i``, and return the Shannon entropy of that conditional distribution in nats. The conditional probabilities follow the same energy convention as `compute_energy`, including asymmetric couplings and nonzero same-site terms.
 
 
 

@@ -102,7 +102,7 @@ Write the metadata as a versioned JSON document.
 <a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L79"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `EnergyResult`
-DCA energies of scored sequences, returned by :func:`score_sequences`.
+DCA energies of scored sequences, returned by `score_sequences`.
 
 
 
@@ -200,7 +200,7 @@ Write ``<stem>.fasta``, ``<stem>.csv`` and ``<stem>.json`` to ``directory``.
 to_csv(path: 'str | Path') → Path
 ```
 
-Write :meth:`to_dataframe` as CSV.
+Write `to_dataframe` as CSV.
 
 
 
@@ -270,7 +270,7 @@ Write the sequences to FASTA, with energies in the headers.
 to_json(path: 'str | Path', indent: 'int' = 2) → Path
 ```
 
-Write :meth:`to_dict` as JSON.
+Write `to_dict` as JSON.
 
 
 
@@ -290,7 +290,7 @@ Write :meth:`to_dict` as JSON.
 <a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L207"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `ContactMapResult`
-Contact scores returned by :func:`predict_contacts`.
+Contact scores returned by `predict_contacts`.
 
 
 
@@ -410,7 +410,7 @@ Write the scores as headerless ``i,j,score`` lines, the format of ``adabmDCA con
 to_csv(path: 'str | Path') → Path
 ```
 
-Write :meth:`to_long_dataframe` as CSV with a header.
+Write `to_long_dataframe` as CSV with a header.
 
 
 
@@ -445,7 +445,7 @@ Return a JSON-compatible document with the result type and schema version.
 to_json(path: 'str | Path', indent: 'int' = 2) → Path
 ```
 
-Write :meth:`to_dict` as JSON.
+Write `to_dict` as JSON.
 
 
 
@@ -500,7 +500,7 @@ Write the ``(L, L)`` score matrix as a NumPy ``.npy`` file.
 <a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L332"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `MutationRecord`
-One single-site mutant from :func:`scan_mutations`.
+One single-site mutant from `scan_mutations`.
 
 
 
@@ -555,7 +555,7 @@ Historical, zero-based mutation label used by the CLI.
 to_dict() → dict[str, Any]
 ```
 
-Return the record as a flat dictionary, one row of :meth:`MutationScanResult.to_dataframe`.
+Return the record as a flat dictionary, one row of `MutationScanResult.to_dataframe`.
 
 
 ---
@@ -563,7 +563,7 @@ Return the record as a flat dictionary, one row of :meth:`MutationScanResult.to_
 <a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L373"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `MutationScanResult`
-All single-site mutants of a sequence, returned by :func:`scan_mutations`.
+All single-site mutants of a sequence, returned by `scan_mutations`.
 
 
 
@@ -571,7 +571,7 @@ All single-site mutants of a sequence, returned by :func:`scan_mutations`.
 
  - <b>`wild_type`</b>:  The scanned sequence.
  - <b>`wild_type_energy`</b>:  Its DCA energy.
- - <b>`mutations`</b>:  One :class:`MutationRecord` per mutant, by site then token.
+ - <b>`mutations`</b>:  One `MutationRecord` per mutant, by site then token.
  - <b>`model`</b>:  Metadata of the scoring model.
  - <b>`name`</b>:  Label of the scan, used in file names.
  - <b>`warnings`</b>:  Non-fatal issues found while scoring.
@@ -666,7 +666,7 @@ Write the FASTA library, CSV table and JSON summary to ``directory``.
 to_csv(path: 'str | Path') → Path
 ```
 
-Write :meth:`to_dataframe` as CSV.
+Write `to_dataframe` as CSV.
 
 
 
@@ -738,7 +738,7 @@ Positions in the headers are 0-based, as in ``adabmDCA dms``.
 to_json(path: 'str | Path', indent: 'int' = 2) → Path
 ```
 
-Write :meth:`to_dict` as JSON.
+Write `to_dict` as JSON.
 
 
 
@@ -758,7 +758,7 @@ Write :meth:`to_dict` as JSON.
 <a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L489"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `SamplingProgress`
-Progress event passed to the ``progress`` callback of :func:`sample_sequences`.
+Progress event passed to the ``progress`` callback of `sample_sequences`.
 
 
 
@@ -799,7 +799,7 @@ __init__(
 <a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L510"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `ProfileSplitResult`
-Training/test split of an alignment, returned by :func:`split_alignment`.
+Training/test split of an alignment, returned by `split_alignment`.
 
 
 
@@ -886,7 +886,7 @@ Return a JSON-compatible document with the result type and schema version.
 to_json(path: 'str | Path', indent: 'int' = 2) → Path
 ```
 
-Write :meth:`to_dict` as JSON.
+Write `to_dict` as JSON.
 
 
 
@@ -906,7 +906,7 @@ Write :meth:`to_dict` as JSON.
 <a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L588"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `SamplingResult`
-Generated sequences and diagnostics, returned by :func:`sample_sequences`.
+Generated sequences and diagnostics, returned by `sample_sequences`.
 
 
 
@@ -1049,7 +1049,7 @@ save_diagnostic_plots(
 
 Save diagnostic plots as PNG files: mixing, Cij scatter, PCA and energy against CDE.
 
-Plots whose data were not collected (see ``collect_diagnostics`` of :func:`sample_sequences`) are skipped.
+Plots whose data were not collected (see ``collect_diagnostics`` of `sample_sequences`) are skipped.
 
 
 
@@ -1073,7 +1073,7 @@ Plots whose data were not collected (see ``collect_diagnostics`` of :func:`sampl
 to_csv(path: 'str | Path') → Path
 ```
 
-Write :meth:`to_dataframe` as CSV.
+Write `to_dataframe` as CSV.
 
 
 
@@ -1145,7 +1145,7 @@ Write the sequences as FASTA, with energies in the headers.
 to_json(path: 'str | Path', indent: 'int' = 2) → Path
 ```
 
-Write :meth:`to_dict` as JSON.
+Write `to_dict` as JSON.
 
 
 
@@ -1196,7 +1196,7 @@ The file holds ``sequences`` (uint8 token indices, ``(models, n, L)``), ``energi
 <a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L1168"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `TrainingProgress`
-One accepted update, passed to the ``progress`` callback of :func:`train_model`.
+One accepted update, passed to the ``progress`` callback of `train_model`.
 
 
 
@@ -1284,7 +1284,7 @@ __init__(
 <a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L1216"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `TrainingInitialization`
-Resolved training setup, passed to ``on_initialized`` of :func:`train_model`.
+Resolved training setup, passed to ``on_initialized`` of `train_model`.
 
 
 
@@ -1296,7 +1296,7 @@ Resolved training setup, passed to ``on_initialized`` of :func:`train_model`.
  - <b>`dtype`</b>:  Precision of the parameters.
  - <b>`n_chains`</b>:  Number of Markov chains.
  - <b>`effective_pseudocount`</b>:  Pseudocount applied to the statistics.
- - <b>`config`</b>:  The validated :class:`TrainingConfig`.
+ - <b>`config`</b>:  The validated `TrainingConfig`.
 
 <a href="https://github.com/spqb/adabmDCApy/blob/main/<string>"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
@@ -1327,13 +1327,13 @@ __init__(
 <a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L1239"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `TrainingResult`
-Outcome of :func:`train_model`.
+Outcome of `train_model`.
 
 
 
 **Attributes:**
 
- - <b>`model`</b>:  The trained :class:`DCAModel`.
+ - <b>`model`</b>:  The trained `DCAModel`.
  - <b>`history`</b>:  One list per quantity, one entry per recorded update (see
  - <b>`:meth`</b>: `history_dataframe`).
  - <b>`chains`</b>:  Final Markov chains, one-hot, shape ``(n_chains, L, q)``.
@@ -1347,9 +1347,9 @@ Outcome of :func:`train_model`.
  - <b>`gradient_steps`</b>:  Accepted parameter updates.
  - <b>`structure_steps`</b>:  Graph activations or decimations.
  - <b>`sweeps`</b>:  Monte Carlo sweeps performed.
- - <b>`config`</b>:  The validated :class:`TrainingConfig`.
+ - <b>`config`</b>:  The validated `TrainingConfig`.
  - <b>`input_report`</b>:  Filtering report of the training alignment.
- - <b>`initialization`</b>:  Resolved setup, see :class:`TrainingInitialization`.
+ - <b>`initialization`</b>:  Resolved setup, see `TrainingInitialization`.
  - <b>`partition_estimate`</b>:  PTT only: estimate of log Z for the final model.
  - <b>`ptt_sampler`</b>:  PTT only: the sampler, usable to draw more sequences.
 
@@ -1478,7 +1478,7 @@ Return a portable summary without embedding model or chain tensors.
 to_json(path: 'str | Path', indent: 'int' = 2) → Path
 ```
 
-Write :meth:`to_dict` as JSON.
+Write `to_dict` as JSON.
 
 
 
@@ -1498,7 +1498,7 @@ Write :meth:`to_dict` as JSON.
 <a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L1379"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `ReintegrationResult`
-Outcome of :func:`reintegrate_model`.
+Outcome of `reintegrate_model`.
 
 
 
@@ -1583,7 +1583,7 @@ Return a JSON-compatible document with the result type and schema version.
 to_json(path: 'str | Path', indent: 'int' = 2) → Path
 ```
 
-Write :meth:`to_dict` as JSON.
+Write `to_dict` as JSON.
 
 
 
@@ -1603,7 +1603,7 @@ Write :meth:`to_dict` as JSON.
 <a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L1451"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `ThermodynamicIntegrationProgress`
-Progress event passed to the ``progress`` callback of :func:`estimate_entropy`.
+Progress event passed to the ``progress`` callback of `estimate_entropy`.
 
 
 
@@ -1644,7 +1644,7 @@ __init__(
 <a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L1472"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `ThermodynamicIntegrationResult`
-Outcome of :func:`estimate_entropy`.
+Outcome of `estimate_entropy`.
 
 
 
@@ -1763,7 +1763,7 @@ Return a JSON-compatible document with the result type and schema version.
 to_json(path: 'str | Path', indent: 'int' = 2) → Path
 ```
 
-Write :meth:`to_dict` as JSON.
+Write `to_dict` as JSON.
 
 
 

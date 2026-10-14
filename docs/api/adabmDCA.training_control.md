@@ -5,7 +5,7 @@
 # <kbd>module</kbd> `adabmDCA.training_control`
 Shared lifecycle primitives for DCA training routines.
 
-The numerical algorithms live in :mod:`adabmDCA.training`.  This module owns the algorithm-independent parts of a run: counters, limits, history, progress reporting, cancellation, and checkpoint scheduling.
+The numerical algorithms live in `adabmDCA.training`.  This module owns the algorithm-independent parts of a run: counters, limits, history, progress reporting, cancellation, and checkpoint scheduling.
 
 **Global Variables**
 ---------------

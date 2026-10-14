@@ -22,7 +22,7 @@ Configuration for PTT snapshot retention, reservoirs and mixing analysis.
 ## <kbd>class</kbd> `PTTConfig`
 Settings of Parallel Trajectory Tempering, for training and sampling.
 
-Pass an instance as ``ptt=`` to :func:`train_model` (or through ``TrainingConfig(ptt=...)``) to train with PTT. The defaults suit most families; see ``docs/ptt.md`` for the method. Round counts are exchange rounds: one pass of replica exchanges followed by the local sweeps.
+Pass an instance as ``ptt=`` to `train_model` (or through ``TrainingConfig(ptt=...)``) to train with PTT. The defaults suit most families; see ``docs/ptt.md`` for the method. Round counts are exchange rounds: one pass of replica exchanges followed by the local sweeps.
 
 
 
@@ -61,9 +61,11 @@ Pass an instance as ``ptt=`` to :func:`train_model` (or through ``TrainingConfig
 
 
 **Example:**
- ``` from adabmDCA import PTTConfig, train_model```
-    >>> train_model("family.fasta", alphabet="rna", ptt=PTTConfig(validation_stop=True),
-    ...             validation_path="validation.fasta", output_dir="model")
+```python
+>>> from adabmDCA import PTTConfig, train_model
+>>> train_model("family.fasta", alphabet="rna", ptt=PTTConfig(validation_stop=True),
+...             validation_path="validation.fasta", output_dir="model")
+```
 
 
 <a href="https://github.com/spqb/adabmDCApy/blob/main/<string>"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>

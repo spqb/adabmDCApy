@@ -55,7 +55,7 @@ Raised when a training configuration is internally inconsistent.
 ## <kbd>class</kbd> `TrainingConfig`
 All settings of one training run, validated on construction.
 
-Pass it as ``config=`` to :func:`train_model`; it then takes precedence over the function's individual keyword arguments. Settings that do not apply to the chosen ``model_type`` are ignored.
+Pass it as ``config=`` to `train_model`; it then takes precedence over the function's individual keyword arguments. Settings that do not apply to the chosen ``model_type`` are ignored.
 
 
 
@@ -86,7 +86,7 @@ Pass it as ``config=`` to :func:`train_model`; it then takes precedence over the
  - <b>`checkpoint_interval`</b>:  Updates between saved checkpoints; ``None`` uses the default.
  - <b>`inner_gradient_steps`</b>:  edDCA: largest number of gradient updates to  re-converge the model after each decimation.
  - <b>`edge_empirical_pseudocount`</b>:  edgeDCA: small pseudocount of the target  statistics, which avoids zero frequencies.
- - <b>`ptt`</b>:  :class:`PTTConfig` to train with PTT, or ``None`` for PCD.
+ - <b>`ptt`</b>:  `PTTConfig` to train with PTT, or ``None`` for PCD.
 
 
 
@@ -97,9 +97,11 @@ Pass it as ``config=`` to :func:`train_model`; it then takes precedence over the
 
 
 **Example:**
- ``` config = TrainingConfig(model_type="eaDCA", alphabet="rna",```
-    ...                         ptt=PTTConfig(activation="adaptive"))
-    >>> train_model("family.fasta", config=config, output_dir="model")
+```python
+>>> config = TrainingConfig(model_type="eaDCA", alphabet="rna",
+...                         ptt=PTTConfig(activation="adaptive"))
+>>> train_model("family.fasta", config=config, output_dir="model")
+```
 
 
 <a href="https://github.com/spqb/adabmDCApy/blob/main/<string>"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>

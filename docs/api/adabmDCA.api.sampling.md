@@ -58,7 +58,7 @@ Generate sequences from a DCA model, with an energy for each.
 
 Ordinary sampling runs ``n_sequences`` independent Markov chains. With ``reference_fasta``, their mixing time is first measured (up to ``n_sweeps`` sweeps) and generation runs for ``mixing_multiplier`` mixing times; otherwise it runs for exactly ``n_sweeps`` sweeps.
 
-PTT sampling (``ptt=True``, a PTT archive, or a :class:`PTTSampler` as ``model``) instead uses the replica ladder saved during training: the exact profile, the models flagged during training and the endpoint. It runs at ``beta=1``, ignores ``n_sweeps``, and equilibrates until its mixing check passes. A :class:`PTTSampler` passed as ``model`` is forked, not modified. Every result includes the summed context-dependent entropy (CDE) of each sequence and, when identifiable, a least-squares fit of energy against it.
+PTT sampling (``ptt=True``, a PTT archive, or a `PTTSampler` as ``model``) instead uses the replica ladder saved during training: the exact profile, the models flagged during training and the endpoint. It runs at ``beta=1``, ignores ``n_sweeps``, and equilibrates until its mixing check passes. A `PTTSampler` passed as ``model`` is forked, not modified. Every result includes the summed context-dependent entropy (CDE) of each sequence and, when identifiable, a least-squares fit of energy against it.
 
 **Steered (importance) sampling.** With ``steering_potential``, sequences are drawn from ``p_s(x) ∝ exp(-beta * H(x) - V(x, s))`` instead, where ``V(x, s) = steering_potential(x, s)`` and ``s = steering_strength``: low ``V`` is favoured, so return ``-s * score`` to favour high scores. ``V`` is called on batches: a list of aligned sequence strings (``steering_input="sequences"``) or a one-hot tensor ``(n, L, q)`` on the model's device and precision (``"onehot"``), and must return one number per sequence, and ``0`` when ``s == 0``. Each Monte Carlo move proposes ``steering_proposal_steps`` Gibbs updates under the DCA model, at random sites visited in palindromic order (which makes the proposal reversible), and accepts them with probability ``min(1, exp(-ΔV))``. This samples ``p_s`` exactly while calling ``V`` once per chain and move; ``sampler`` and ``ptt_local_kernel`` do not apply to steered moves.
 
@@ -68,7 +68,7 @@ With PTT, steered rungs of increasing strength are added above the trained endpo
 
 **Args:**
 
- - <b>`model`</b>:  A :class:`DCAModel`, a path to a parameter file or PTT archive, or
+ - <b>`model`</b>:  A `DCAModel`, a path to a parameter file or PTT archive, or
  - <b>`a `</b>: class:`PTTSampler`.
  - <b>`n_sequences`</b>:  Number of sequences to generate.
  - <b>`ptt`</b>:  Sample with PTT from the archive given as ``model``.
@@ -103,7 +103,7 @@ With PTT, steered rungs of increasing strength are added above the trained endpo
  - <b>`:meth`</b>: `SamplingResult.save_diagnostic_plots`.
  - <b>`ptt_return_full_ladder`</b>:  PTT: also keep ``n_sequences`` samples of every  model of the ladder, from the profile to the endpoint, in the result's
  - <b>```ladder_samples`` (written by `</b>: meth:`SamplingResult.to_ladder_hdf5`).
- - <b>`progress`</b>:  Optional callback receiving :class:`SamplingProgress` events.
+ - <b>`progress`</b>:  Optional callback receiving `SamplingProgress` events.
  - <b>`is_cancelled`</b>:  Optional callable; returning ``True`` stops sampling.
 
 
@@ -122,18 +122,21 @@ With PTT, steered rungs of increasing strength are added above the trained endpo
 
 
 **Example:**
- ``` result = sample_sequences(model="params.dat.gz", n_sequences=1000,```
-    ...                           reference_fasta="family.fasta")
-    >>> result.to_fasta("samples.fasta")
+```python
+>>> result = sample_sequences(model="params.dat.gz", n_sequences=1000,
+...                           reference_fasta="family.fasta")
+>>> result.to_fasta("samples.fasta")
+```
 
-    Steering towards sequences with a high GC content (RNA), as strings:
+Steering towards sequences with a high GC content (RNA), as strings:
 
-    >>> def gc_potential(sequences, strength):
-    ...     return [-strength * sum(c in "GC" for c in s) / len(s) for s in sequences]
-    >>> steered = sample_sequences(model="params.dat.gz", alphabet="rna", n_sequences=500,
-    ...                            steering_potential=gc_potential, steering_strength=20.0)
-    >>> steered.steering["effective_sample_size"], steered.log_importance_weights[:3]
-
+```python
+>>> def gc_potential(sequences, strength):
+...     return [-strength * sum(c in "GC" for c in s) / len(s) for s in sequences]
+>>> steered = sample_sequences(model="params.dat.gz", alphabet="rna", n_sequences=500,
+...                            steering_potential=gc_potential, steering_strength=20.0)
+>>> steered.steering["effective_sample_size"], steered.log_importance_weights[:3]
+```
 
 
 ---
@@ -146,13 +149,13 @@ With PTT, steered rungs of increasing strength are added above the trained endpo
 generate_sequences(**kwargs: 'Any') → tuple[str, ]
 ```
 
-Return only the sequences of :func:`sample_sequences`.
+Return only the sequences of `sample_sequences`.
 
 
 
 **Args:**
 
- - <b>`**kwargs`</b>:  Keyword arguments of :func:`sample_sequences`; ``model`` and  ``n_sequences`` are required.
+ - <b>`**kwargs`</b>:  Keyword arguments of `sample_sequences`; ``model`` and  ``n_sequences`` are required.
 
 
 
@@ -162,10 +165,9 @@ Return only the sequences of :func:`sample_sequences`.
 
 
 **Example:**
- ``` generate_sequences(model="params.dat.gz", n_sequences=10, n_sweeps=500)```
-
-
-
+```python
+>>> generate_sequences(model="params.dat.gz", n_sequences=10, n_sweeps=500)
+```
 
 
 ---

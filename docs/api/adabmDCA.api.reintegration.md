@@ -40,7 +40,7 @@ Experimental sequences enter the training statistics with signed weights proport
 
 **Args:**
 
- - <b>`natural_alignment`</b>:  Natural sequences (path, :class:`Alignment` or sequences).
+ - <b>`natural_alignment`</b>:  Natural sequences (path, `Alignment` or sequences).
  - <b>`experimental_alignment`</b>:  Tested sequences, aligned like the natural ones.
  - <b>`adjustments`</b>:  One signed score per experimental sequence (path, array or  sequence of numbers), e.g. +1 for functional and -1 for non-functional.
  - <b>`config`</b>:  Training settings; defaults to ``TrainingConfig()`` (PCD); set  ``ptt=PTTConfig()`` to train with PTT.  A pseudocount of 1e-6 (0.1 for edgeDCA) is used unless set.
@@ -51,9 +51,9 @@ Experimental sequences enter the training statistics with signed weights proport
  - <b>`initial_params_path`</b>:  Optional parameter file to start from.
  - <b>`initial_chains_path`</b>:  Optional FASTA of starting chains.
  - <b>`ptt_resume`</b>:  Optional PTT archive of an interrupted reintegration run  with the same data and settings.
- - <b>`progress`</b>:  Optional callback receiving a :class:`TrainingProgress` per update.
+ - <b>`progress`</b>:  Optional callback receiving a `TrainingProgress` per update.
  - <b>`stage_progress`</b>:  Optional callback for transient PTT stage updates.
- - <b>`on_initialized`</b>:  Optional callback receiving the :class:`TrainingInitialization`.
+ - <b>`on_initialized`</b>:  Optional callback receiving the `TrainingInitialization`.
  - <b>`is_cancelled`</b>:  Optional callable; returning ``True`` stops training.
 
 

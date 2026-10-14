@@ -11,7 +11,7 @@ A steering potential ``V(x, s)`` of strength ``s`` changes the sampled distribut
 
 so sequences with low ``V`` are favoured. Samples of ``p_s`` are turned back into averages under ``p`` with the importance weights ``w(x) ∝ exp(V(x, s))``.
 
-The potential is a black box evaluated on whole sequences, so it cannot enter the site-by-site conditional distributions of the fast DCA kernels. Instead, :class:`SteeredKernel` proposes a block of ``proposal_steps`` Gibbs updates under ``H`` alone and accepts the block with probability ``min(1, exp(-[V(x') - V(x)]))``.
+The potential is a black box evaluated on whole sequences, so it cannot enter the site-by-site conditional distributions of the fast DCA kernels. Instead, `SteeredKernel` proposes a block of ``proposal_steps`` Gibbs updates under ``H`` alone and accepts the block with probability ``min(1, exp(-[V(x') - V(x)]))``.
 
 For this Metropolis-Hastings correction to be exact, the proposal must be reversible with respect to ``exp(-beta * H)``. A Gibbs update of one site is; a sequence of them in a fixed site order is not, but a palindromic one (``s1 s2 ... sm ... s2 s1``) is, for every choice of sites. The sites of each block are therefore drawn at random, shared by all chains so the block runs as one fused kernel, and visited in palindromic order. (Sharing a non-palindromic random order across chains would leave each chain correct on average but bias the population as a whole.) The potential is called once per chain and block.
 
@@ -128,7 +128,7 @@ Metropolis-Hastings kernel for ``exp(-beta * H - V(·, strength))``.
 
 Each proposal is ``proposal_steps`` Gibbs updates under the DCA Hamiltonian, at random sites shared by all chains and visited in palindromic order; it is accepted with probability ``min(1, exp(-ΔV))``. One call with ``nsweeps`` performs ``nsweeps * L`` site updates; its last block is shortened when needed.
 
-With ``proposal_steps=None`` the block length adapts while ``adapting`` is true (doubling when acceptance exceeds 0.5, halving below 0.2, at most 16 sweeps); call :meth:`freeze` before collecting samples so the kernel is a fixed, exactly invariant Markov chain.
+With ``proposal_steps=None`` the block length adapts while ``adapting`` is true (doubling when acceptance exceeds 0.5, halving below 0.2, at most 16 sweeps); call `freeze` before collecting samples so the kernel is a fixed, exactly invariant Markov chain.
 
 
 

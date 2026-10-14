@@ -28,14 +28,14 @@ load_alignment(
 
 Parse, validate, filter, and deduplicate an alignment.
 
-The alphabet is detected from standard DNA, RNA, or protein tokens by default; pass ``alphabet`` for ambiguous or custom alignments. Direct keyword options override the corresponding fields in ``config``. The returned :class:`Alignment` contains its selected encoding tokens and filtering provenance, so callers do not need a separate wrapper type.
+The alphabet is detected from standard DNA, RNA, or protein tokens by default; pass ``alphabet`` for ambiguous or custom alignments. Direct keyword options override the corresponding fields in ``config``. The returned `Alignment` contains its selected encoding tokens and filtering provenance, so callers do not need a separate wrapper type.
 
 
 
 **Args:**
 
- - <b>`source`</b>:  Path, :class:`Alignment` or sequences.
- - <b>`config`</b>:  Loading policy; see :class:`AlignmentLoadConfig`.
+ - <b>`source`</b>:  Path, `Alignment` or sequences.
+ - <b>`config`</b>:  Loading policy; see `AlignmentLoadConfig`.
  - <b>`alphabet`</b>:  Overrides ``config.alphabet``.
  - <b>`invalid_sequences`</b>:  Overrides ``config.invalid_sequences``.
  - <b>`remove_duplicates`</b>:  Overrides ``config.remove_duplicates``.
@@ -60,9 +60,10 @@ The alphabet is detected from standard DNA, RNA, or protein tokens by default; p
 
 
 **Example:**
- ``` alignment = load_alignment("family.fasta", invalid_sequences="drop")```
-    >>> alignment.tokens, alignment.num_sequences
-
+```python
+>>> alignment = load_alignment("family.fasta", invalid_sequences="drop")
+>>> alignment.tokens, alignment.num_sequences
+```
 
 
 ---
@@ -93,7 +94,7 @@ Load or calculate weights and align them with retained sequences.
 **Args:**
 
  - <b>`source`</b>:  Weights file (one number per line), sequence, array or tensor, or  ``None`` to compute them. Their count may match the original or the  retained sequences.
- - <b>`loaded_alignment`</b>:  Alignment returned by :func:`load_alignment`.
+ - <b>`loaded_alignment`</b>:  Alignment returned by `load_alignment`.
  - <b>`no_reweighting`</b>:  Give every sequence weight 1 (``source`` is ignored).
  - <b>`clustering_seqid`</b>:  Computed weights: each sequence gets  ``1 / (number of sequences more than this identical to it)``,  itself included.
  - <b>`device`</b>:  Device of the returned tensor.
@@ -118,7 +119,7 @@ Load or calculate weights and align them with retained sequences.
 <a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/input_loading.py#L32"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `AlignmentLoadConfig`
-How :func:`load_alignment` reads, validates and filters an alignment.
+How `load_alignment` reads, validates and filters an alignment.
 
 
 

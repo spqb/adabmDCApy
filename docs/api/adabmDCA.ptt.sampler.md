@@ -77,26 +77,28 @@ __init__(
 ## <kbd>class</kbd> `PTTSampler`
 A Parallel Trajectory Tempering ladder: models, their chains and its own RNG.
 
-During training (see :func:`train_model` with ``ptt=``) the ladder runs from an exactly normalized profile model to the model being trained, and snapshots of the training trajectory are kept as intermediate replicas. Each exchange round swaps configurations between adjacent replicas and then runs local Monte Carlo sweeps. The same ladder is saved in the PTT archive and reused to sample the trained model and to estimate its log Z.
+During training (see `train_model` with ``ptt=``) the ladder runs from an exactly normalized profile model to the model being trained, and snapshots of the training trajectory are kept as intermediate replicas. Each exchange round swaps configurations between adjacent replicas and then runs local Monte Carlo sweeps. The same ladder is saved in the PTT archive and reused to sample the trained model and to estimate its log Z.
 
 Most users only load an archive and sample or measure it:
 
 
-- :meth:`from_archive`, :meth:`save_archive`, :meth:`fork`;
-- :meth:`draw`, :meth:`endpoint_samples`, :meth:`endpoint_params`;
-- :meth:`partition_estimate`, :meth:`entropy`, :meth:`ladder_statistics`,  :meth:`ladder_health`, :meth:`measure_renewal`.
+- `from_archive`, `save_archive`, `fork`;
+- `draw`, `endpoint_samples`, `endpoint_params`;
+- `partition_estimate`, `entropy`, `ladder_statistics`,  `ladder_health`, `measure_renewal`.
 
 The remaining public methods (``transition_target``, ``update_replica_chain``, ``refresh_reservoir``, ...) are the training machinery used by the PTT trainer. Mutating the ladder directly is unsupported. Archives contain arrays and JSON only, never pickled objects.
 
 
 
 **Example:**
- ``` sampler = PTTSampler.from_archive("model/ptt.h5", device="cuda")```
-     >>> sampler.prepare_sampling_ladder(2000)
-     >>> sampler.measure_renewal(local_sweeps=10).status
-     'converged'
-     >>> sequences = sampler.draw(1000, local_sweeps=10)   # one-hot, (1000, L, q)
-     >>> sampler.entropy()["entropy"]
+```python
+>>> sampler = PTTSampler.from_archive("model/ptt.h5", device="cuda")
+>>> sampler.prepare_sampling_ladder(2000)
+>>> sampler.measure_renewal(local_sweeps=10).status
+'converged'
+>>> sequences = sampler.draw(1000, local_sweeps=10)   # one-hot, (1000, L, q)
+>>> sampler.entropy()["entropy"]
+```
 
 
 <a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler.py#L145"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
@@ -116,7 +118,7 @@ __init__(
 
 Start a two-replica ladder at an uncoupled (profile) model.
 
-Both replicas start at ``params``; training then moves the endpoint. To continue from a saved state use :meth:`from_archive`.
+Both replicas start at ``params``; training then moves the endpoint. To continue from a saved state use `from_archive`.
 
 
 
@@ -199,7 +201,7 @@ capture_state() → dict[str, Any]
 
 Return a deep copy of the numerical state, for a recovery checkpoint.
 
-Training history and recovery points are excluded; see :meth:`restore_state`.
+Training history and recovery points are excluded; see `restore_state`.
 
 ---
 
@@ -218,7 +220,7 @@ draw(
 
 Collect endpoint samples, taking a batch of chains every ``spacing`` rounds.
 
-Samples are only as good as the ladder's equilibration: run :meth:`measure_renewal` (or use :func:`sample_sequences`) first.
+Samples are only as good as the ladder's equilibration: run `measure_renewal` (or use `sample_sequences`) first.
 
 
 
@@ -280,7 +282,7 @@ Estimate the endpoint entropy as ``<E> + log Z`` from the current chains.
 
 **Args:**
 
- - <b>`estimator`</b>:  log Z estimator, ``"bar"`` or ``"forward"`` (see :meth:`partition_estimate`).
+ - <b>`estimator`</b>:  log Z estimator, ``"bar"`` or ``"forward"`` (see `partition_estimate`).
 
 
 
@@ -303,7 +305,7 @@ equilibrate(
 ) → Tensor
 ```
 
-Run a fixed warmup of :meth:`advance`; this does not certify equilibrium.
+Run a fixed warmup of `advance`; this does not certify equilibrium.
 
 
 
@@ -441,7 +443,7 @@ from_archive(
 ) → PTTSampler
 ```
 
-Load a sampler from an HDF5 archive written by training or :meth:`save_archive`.
+Load a sampler from an HDF5 archive written by training or `save_archive`.
 
 Every array is validated on load. Generation never writes the source archive. Loading on a different device than the one that saved the archive requires a new ``seed`` (and then a warmup): the random stream cannot be continued exactly across devices.
 
@@ -606,7 +608,7 @@ prepare_sampling_ladder(n_chains: 'int') → None
 
 Rebuild the full ladder for generation, with fresh chains drawn from the profile.
 
-The generation ladder is the training ladder: the exact profile, every update flagged ``ptt`` during training, and the final endpoint. This switches the sampler to generation mode and starts birth tracking, as :meth:`measure_renewal` requires.
+The generation ladder is the training ladder: the exact profile, every update flagged ``ptt`` during training, and the final endpoint. This switches the sampler to generation mode and starts birth tracking, as `measure_renewal` requires.
 
 
 
@@ -644,7 +646,7 @@ Extend the generation ladder with steered rungs up to ``strength``.
 
 Every new rung has the endpoint's DCA parameters plus the steering potential at a strength between 0 and ``strength``; the last one is at ``strength`` and becomes the sampled endpoint. Rungs are placed one at a time: a candidate strength is kept when, after ``trial_rounds`` rounds of warmup and ``trial_rounds`` of measurement, the swap acceptance with the rung below is at least ``target_acceptance``; otherwise the step is halved. The bottom of the ladder, the exact profile, is unchanged, so population renewal still certifies mixing. Proposal blocks of the steered rungs adapt during placement and are then frozen.
 
-Call after :meth:`prepare_sampling_ladder`. A steered ladder cannot be saved with :meth:`save_archive`.
+Call after `prepare_sampling_ladder`. A steered ladder cannot be saved with `save_archive`.
 
 
 
@@ -703,7 +705,7 @@ Training: collect a new reservoir from the ladder and shorten the active ladder.
 restore_state(state: 'Mapping[str, Any]') → None
 ```
 
-Restore a state returned by :meth:`capture_state`, clearing the training state.
+Restore a state returned by `capture_state`, clearing the training state.
 
 ---
 

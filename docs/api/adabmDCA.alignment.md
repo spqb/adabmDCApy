@@ -55,7 +55,7 @@ read_alignment(
 
 Read one aligned FASTA or Stockholm alignment, without filtering.
 
-For validation, alphabet detection and filtering use :func:`load_alignment`.
+For validation, alphabet detection and filtering use `load_alignment`.
 
 
 
@@ -164,7 +164,7 @@ convert_alignment(
 
 Convert a FASTA or Stockholm alignment to canonical aligned FASTA.
 
-Dots accepted as gaps by Stockholm are written as hyphens, the gap token used throughout adabmDCA. Lowercase residues are preserved; callers that want to delete insertion residues should use :func:`preprocess_alignment`.
+Dots accepted as gaps by Stockholm are written as hyphens, the gap token used throughout adabmDCA. Lowercase residues are preserved; callers that want to delete insertion residues should use `preprocess_alignment`.
 
 
 
@@ -199,7 +199,7 @@ convert_stockholm_to_fasta(
 ) → AlignmentConversionResult
 ```
 
-Convert one Stockholm alignment to FASTA; see :func:`convert_alignment`.
+Convert one Stockholm alignment to FASTA; see `convert_alignment`.
 
 
 
@@ -224,7 +224,7 @@ Convert one Stockholm alignment to FASTA; see :func:`convert_alignment`.
 ## <kbd>class</kbd> `Alignment`
 Aligned sequences with optional alphabet and filtering provenance.
 
-Names and sequences retain their input order. The alignment must contain at least one nonempty sequence, and every sequence must have the same length. Constructing an alignment checks these structural constraints; :func:`adabmDCA.input_loading.load_alignment` additionally resolves the alphabet, validates symbols, and optionally filters rows.
+Names and sequences retain their input order. The alignment must contain at least one nonempty sequence, and every sequence must have the same length. Constructing an alignment checks these structural constraints; `adabmDCA.input_loading.load_alignment` additionally resolves the alphabet, validates symbols, and optionally filters rows.
 
 
 
@@ -383,7 +383,7 @@ Write names and sequences to an aligned FASTA file.
 <a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/alignment.py#L207"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `AlignmentConversionResult`
-Outcome of :func:`convert_alignment`.
+Outcome of `convert_alignment`.
 
 
 
