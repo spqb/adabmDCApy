@@ -36,6 +36,7 @@ Both commands also **check the model**: they verify that the chains have equilib
 | `--ptt-stationary` | off | Renew the ladder a second time before returning samples |
 | `--ptt-max-rounds` | 20000 | Budget of exchange rounds |
 | `--ptt-renewal-tolerance` | 0.01 | Largest fraction of old configurations allowed at renewal |
+| `--ptt-return-full-ladder` | off | Also save `ladder_samples.h5`, with samples of every model of the ladder |
 | `--sampler` | `metropolized_gibbs` | Local move for plain MCMC |
 | `--beta` | 1.0 | Inverse temperature (plain MCMC). Values above 1 concentrate on low-energy sequences |
 | `--nmix` | 2 | Mixing times to run (plain MCMC) |
@@ -55,6 +56,7 @@ Samples and summary at the top of the output folder:
 | `samples.fasta` | The generated sequences |
 | `samples.csv` | One row per sequence: energy and summed context-dependent entropy |
 | `sampling.json` | Settings, mixing outcome, all diagnostics as numbers |
+| `ladder_samples.h5` | With `--ptt-return-full-ladder`: `--ngen` samples of every ladder model, from the profile (first) to the endpoint (last), drawn at the same rounds. Datasets `sequences` (token indices, models × sequences × sites, tokens in the `tokens` attribute), `energies` (each under its own model) and `models/` (the columns of `ptt.log`) |
 
 Figures, with `--plot`:
 

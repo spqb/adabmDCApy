@@ -628,6 +628,12 @@ class SamplingResult:
         steering: Steered sampling only: ``strength``, ``input``, proposal block
             length and acceptance, ``effective_sample_size`` of the weights, and for
             PTT ``log_z_ratio`` and the rung ``strengths``.
+        ladder_samples: PTT with ``ptt_return_full_ladder`` only: ``sequences``
+            ``(models, n, L)`` token indices of every ladder model, from the profile
+            (first) to the endpoint (last, the same samples as ``sequences``),
+            their ``energies`` ``(models, n)`` under their own model, ``tokens``,
+            the ``models`` rows of ``ptt_diagnostics`` and, when steered,
+            ``steering_potentials``. Written by :meth:`to_ladder_hdf5`.
     """
 
     sequences: tuple[str, ...]
@@ -654,6 +660,7 @@ class SamplingResult:
     steering_potentials: np.ndarray | None = None
     log_importance_weights: np.ndarray | None = None
     steering: dict[str, Any] = field(default_factory=dict)
+    ladder_samples: dict[str, Any] | None = field(default=None, repr=False, compare=False)
 
     def to_dict(self) -> dict[str, Any]:
         """Return a JSON-compatible document with the result type and schema version."""
@@ -759,11 +766,60 @@ class SamplingResult:
         selected = resolve_format(path, format, {"csv", "fasta", "json"})
         return getattr(self, f"to_{selected}")(path)
 
+    def to_ladder_hdf5(self, path: str | Path) -> Path:
+        """Write the samples of every PTT ladder model as HDF5.
+
+        The file holds ``sequences`` (uint8 token indices, ``(models, n, L)``),
+        ``energies`` (``(models, n)``, each under its own model) and, when
+        steered, ``steering_potentials``; the ``models`` group has one dataset
+        per column of the ladder table (``training_step``, ``flag``, ``log_z``,
+        ``log_likelihood``, ...), with ``NaN`` for missing values. Model 0 is the
+        profile and the last model the endpoint. The root attributes give
+        ``tokens``, ``n_models`` and ``n_sequences``.
+
+        Args:
+            path: Output file.
+
+        Returns:
+            The written path.
+
+        Raises:
+            OutputSerializationError: If the result has no ladder samples.
+        """
+        if self.ladder_samples is None:
+            raise OutputSerializationError(
+                "This result has no ladder samples; sample with PTT and ptt_return_full_ladder=True."
+            )
+        import h5py
+
+        ladder = self.ladder_samples
+
+        def writer(temporary: Path) -> None:
+            with h5py.File(temporary, "w") as handle:
+                handle.attrs["result_type"] = "ptt_ladder_samples"
+                handle.attrs["tokens"] = ladder["tokens"]
+                handle.attrs["n_models"] = ladder["sequences"].shape[0]
+                handle.attrs["n_sequences"] = ladder["sequences"].shape[1]
+                for key in ("sequences", "energies", "steering_potentials"):
+                    if key in ladder:
+                        handle.create_dataset(key, data=ladder[key], compression="gzip")
+                models = handle.create_group("models")
+                for column in ladder["models"][0]:
+                    values = [row[column] for row in ladder["models"]]
+                    if all(isinstance(value, str) for value in values):
+                        models.create_dataset(column, data=values, dtype=h5py.string_dtype())
+                    else:
+                        models.create_dataset(column, data=np.array(
+                            [np.nan if value is None else value for value in values]))
+
+        return _atomic_write(path, writer)
+
     def save_bundle(self, directory: str | Path, *, label: str | None = None) -> dict[str, Path]:
         """Write samples (FASTA and CSV), a JSON summary and, in ``logs/``, the mixing/sampling logs.
 
         PTT results also get ``logs/ptt.log`` and, when available, ladder-health
         and renewal logs; diagnostics add the data-comparison and distance logs.
+        Results with ladder samples also get ``<label>_ladder_samples.h5``.
 
         Args:
             directory: Output folder.
@@ -840,6 +896,8 @@ class SamplingResult:
                     logs / f"{prefix}ptt_renewal.log",
                     pd.DataFrame(rows, columns=["phase", "round", "ladder_old", "endpoint_fresh"]), index=False,
                 )
+        if self.ladder_samples is not None:
+            artifacts["ladder_samples"] = self.to_ladder_hdf5(folder / f"{prefix}ladder_samples.h5")
         return artifacts
 
     def _save_energy_cde_plot(self, folder: Path, prefix: str) -> Path | None:

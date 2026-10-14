@@ -7,6 +7,7 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
 
+import numpy as np
 import torch
 
 from adabmDCA._validation import validate_integer
@@ -104,6 +105,7 @@ def sample_ptt_sequences(
     steering_proposal_steps: int | None = None,
     steering_acceptance: float = 0.3,
     collect_diagnostics: bool = False,
+    return_full_ladder: bool = False,
     progress: Callable[[SamplingProgress], None] | None = None,
     is_cancelled: Callable[[], bool] | None = None,
 ) -> SamplingResult:
@@ -127,6 +129,8 @@ def sample_ptt_sequences(
     With ``steering_potential``, steered rungs are added on top of it
     (``PTTSampler.prepare_steering``) and the samples come from the top one; see
     :func:`adabmDCA.api.sampling.sample_sequences` for the steering arguments.
+    With ``return_full_ladder``, every rung's chains are kept at the same
+    rounds as the endpoint batches, in the result's ``ladder_samples``.
     """
     from adabmDCA.api.results import SamplingProgress
     from adabmDCA.api.sampling import (
@@ -227,6 +231,7 @@ def sample_ptt_sequences(
     batches = []
     batch_potentials = []
     batch_endpoint_fresh = []
+    ladder_batches = [] if return_full_ladder else None
     collected = 0
     report("generation", 0, n_sequences)
     while collected < n_sequences:
@@ -237,6 +242,8 @@ def sample_ptt_sequences(
         batches.append(backend.endpoint_samples()[:count])
         if backend.steering is not None:
             batch_potentials.append(backend.steering_values[-1][:count].clone())
+        if ladder_batches is not None:
+            ladder_batches.append(_ladder_batch(backend, count))
         collected += count
         report("generation", collected, n_sequences)
         if collected < n_sequences:
@@ -299,6 +306,11 @@ def sample_ptt_sequences(
     health = backend.ladder_health(seed=seed)
     report("ladder_health", len(health["pairs"]), len(health["pairs"]), **health)
     model = DCAModel(backend.endpoint_params(), alphabet=backend.tokens)
+    ladder_samples = None
+    if ladder_batches is not None:
+        ladder_samples = {"tokens": backend.tokens, "models": rows,
+                          **{key: np.concatenate([batch[key] for batch in ladder_batches], axis=1)
+                             for key in ladder_batches[0]}}
     if renewal is not None:
         result_warnings = ["PTT population renewal diagnostics are not a certificate of equilibrium."]
         if not renewal.converged:
@@ -398,8 +410,28 @@ def sample_ptt_sequences(
         steering_potentials=steering_potentials,
         log_importance_weights=log_weights,
         steering=steering_summary,
+        ladder_samples=ladder_samples,
         warnings=tuple(result_warnings),
     )
+
+
+def _ladder_batch(backend: PTTSampler, count: int) -> dict[str, np.ndarray]:
+    """The first ``count`` chains of every active rung, with their energies, as ``(models, count, ...)`` arrays."""
+    sequences, energies, potentials = [], [], []
+    for k in range(backend.active_start, len(backend.models)):
+        chains = backend.chains[k][:count]
+        states = chains.argmax(-1) if chains.ndim == 3 else chains
+        sequences.append(states.to(torch.uint8).cpu().numpy())
+        (energy,) = backend._energies(states, [backend.models[k]])
+        energies.append(energy.cpu().numpy())
+        if backend.steering is not None:
+            values = backend._rung_values(k)
+            potentials.append(values[:count].cpu().numpy() if isinstance(values, torch.Tensor)
+                              else np.zeros(len(states)))
+    batch = {"sequences": np.stack(sequences), "energies": np.stack(energies)}
+    if potentials:
+        batch["steering_potentials"] = np.stack(potentials)
+    return batch
 
 
 @dataclass(frozen=True)

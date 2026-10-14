@@ -510,6 +510,11 @@ def add_args_sample(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         help=("Maximum PTT equilibration rounds (default: 20000). With --ptt-mixing-method autocorrelation, "
               "the budget excludes its 1000 warm-up rounds."),
     )
+    ptt_args.add_argument(
+        "--ptt-return-full-ladder", action="store_true",
+        help=("Also save ladder_samples.h5 with --ngen samples of every model of the ladder, from the "
+              "profile to the endpoint, drawn at the same rounds as the endpoint samples."),
+    )
 
     reference_args = parser.add_argument_group("Reference alignment")
     reference_args.add_argument(

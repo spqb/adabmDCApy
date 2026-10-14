@@ -537,7 +537,7 @@ def test_cli_training_sampling_entropy(training_case, tmp_path):
     generated = sample_run(
         sample_parser().parse_args(
             ["-p", archive, "-o", str(tmp_path), "--strategy", "ptt", "--ngen", "17", "--data", str(data), "--max_nsweeps", "1000",
-             "--device", "cpu", "--ptt-stationary"]
+             "--device", "cpu", "--ptt-stationary", "--ptt-return-full-ladder"]
         )
     )
     assert len(generated.sequences) == 17
@@ -547,6 +547,13 @@ def test_cli_training_sampling_entropy(training_case, tmp_path):
     ladder_log = pd.read_csv(artifacts["ptt_log"])
     assert len(ladder_log) == len(result.ptt_sampler.models)
     assert {"entropy", "log_likelihood", "log_z", "model_id"}.issubset(ladder_log.columns)
+    with h5py.File(artifacts["ladder_samples"], "r") as handle:
+        assert handle.attrs["tokens"] == "AB"
+        assert handle["sequences"].shape == (len(ladder_log), 17, len(generated.sequences[0]))
+        endpoint = ["".join("AB"[i] for i in row) for row in handle["sequences"][-1]]
+        assert tuple(endpoint) == generated.sequences
+        assert np.allclose(handle["energies"][-1], generated.energies)
+        assert [flag.decode() for flag in handle["models/flag"][:]] == list(ladder_log["flag"])
     assert artifacts["samples"].read_text().count(">sequence ") == 17
     mixing_log = pd.read_csv(artifacts["mixing_log"])
     assert mixing_log["warmup_rounds"][0] > 0

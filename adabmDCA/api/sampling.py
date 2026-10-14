@@ -388,6 +388,7 @@ def sample_sequences(
     steering_proposal_steps: int | None = None,
     ptt_steering_acceptance: float = 0.3,
     collect_diagnostics: bool = False,
+    ptt_return_full_ladder: bool = False,
     progress: ProgressCallback | None = None,
     is_cancelled: CancellationHook | None = None,
 ) -> SamplingResult:
@@ -484,6 +485,9 @@ def sample_sequences(
             adjacent steered rungs; higher values place more rungs.
         collect_diagnostics: Keep the correlations and PCA projections needed by
             :meth:`SamplingResult.save_diagnostic_plots`.
+        ptt_return_full_ladder: PTT: also keep ``n_sequences`` samples of every
+            model of the ladder, from the profile to the endpoint, in the result's
+            ``ladder_samples`` (written by :meth:`SamplingResult.to_ladder_hdf5`).
         progress: Optional callback receiving :class:`SamplingProgress` events.
         is_cancelled: Optional callable; returning ``True`` stops sampling.
 
@@ -530,9 +534,11 @@ def sample_sequences(
             steering_potential=steering_potential, steering_strength=steering_strength,
             steering_input=steering_input, steering_proposal_steps=steering_proposal_steps,
             steering_acceptance=ptt_steering_acceptance,
-            collect_diagnostics=collect_diagnostics,
+            collect_diagnostics=collect_diagnostics, return_full_ladder=ptt_return_full_ladder,
             progress=progress, is_cancelled=is_cancelled,
         )
+    if ptt_return_full_ladder:
+        raise InputValidationError("ptt_return_full_ladder requires PTT sampling (--strategy ptt).")
     sampler = "metropolized_gibbs" if sampler is None or sampler is _DEFAULT_SAMPLER else sampler
     dtype = "float32" if dtype is None else dtype
     validate_integer("n_sequences", n_sequences)

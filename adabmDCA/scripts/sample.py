@@ -70,6 +70,7 @@ def run(args, *, progress=None):
         clustering_seqid=args.clustering_seqid,
         no_reweighting=args.no_reweighting,
         collect_diagnostics=args.plot,
+        ptt_return_full_ladder=args.ptt_return_full_ladder,
         progress=progress,
     )
 
@@ -131,6 +132,7 @@ def _configuration(args) -> dict:
         "PTT renewal tolerance": args.ptt_renewal_tolerance if renewal else None,
         "PTT renewal phases": ("warmup and stationary" if args.ptt_stationary else "warmup only") if renewal else None,
         "PTT round budget": args.ptt_max_rounds if ptt else None,
+        "PTT full ladder samples": True if ptt and args.ptt_return_full_ladder else None,
         "alphabet": args.alphabet,
         "beta": args.beta,
         "seed": args.seed,
