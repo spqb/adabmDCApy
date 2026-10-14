@@ -48,6 +48,7 @@ sample_sequences(
     steering_proposal_steps: 'int | None' = None,
     ptt_steering_acceptance: 'float' = 0.3,
     collect_diagnostics: 'bool' = False,
+    ptt_return_full_ladder: 'bool' = False,
     progress: 'ProgressCallback | None' = None,
     is_cancelled: 'CancellationHook | None' = None
 ) → SamplingResult
@@ -100,6 +101,8 @@ With PTT, steered rungs of increasing strength are added above the trained endpo
  - <b>`ptt_steering_acceptance`</b>:  PTT steering: smallest swap acceptance between  adjacent steered rungs; higher values place more rungs.
  - <b>`collect_diagnostics`</b>:  Keep the correlations and PCA projections needed by
  - <b>`:meth`</b>: `SamplingResult.save_diagnostic_plots`.
+ - <b>`ptt_return_full_ladder`</b>:  PTT: also keep ``n_sequences`` samples of every  model of the ladder, from the profile to the endpoint, in the result's
+ - <b>```ladder_samples`` (written by `</b>: meth:`SamplingResult.to_ladder_hdf5`).
  - <b>`progress`</b>:  Optional callback receiving :class:`SamplingProgress` events.
  - <b>`is_cancelled`</b>:  Optional callable; returning ``True`` stops sampling.
 
@@ -135,7 +138,7 @@ With PTT, steered rungs of increasing strength are added above the trained endpo
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/sampling.py#L761"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/sampling.py#L767"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `generate_sequences`
 
