@@ -11,6 +11,7 @@
 - [`adabmDCA.training_config`](./adabmDCA.training_config.md#module-adabmdcatraining_config): Canonical configuration values and validation for DCA training.
 - [`adabmDCA.training_control`](./adabmDCA.training_control.md#module-adabmdcatraining_control): Shared lifecycle primitives for DCA training routines.
 - [`adabmDCA.api.contacts`](./adabmDCA.api.contacts.md#module-adabmdcaapicontacts): High-level contact-prediction operations.
+- [`adabmDCA.api.diagnostics`](./adabmDCA.api.diagnostics.md#module-adabmdcaapidiagnostics): Turn the files of a training run (and optionally a sampling check) into a verdict.
 - [`adabmDCA.api.entropy`](./adabmDCA.api.entropy.md#module-adabmdcaapientropy): High-level thermodynamic-integration entropy estimation.
 - [`adabmDCA.exceptions`](./adabmDCA.exceptions.md#module-adabmdcaexceptions): Structured exceptions shared by every adabmDCA layer.
 - [`adabmDCA.api.input_loading`](./adabmDCA.api.input_loading.md#module-adabmdcaapiinput_loading): Aggregate input loading for high-level workflows.
@@ -125,6 +126,7 @@
 - [`preprocessing.remove_insertions`](./adabmDCA.preprocessing.md#function-remove_insertions): Remove dots and lowercase insertion residues from every sequence.
 - [`contacts.compute_contact_map`](./adabmDCA.api.contacts.md#function-compute_contact_map): Return only the ``(L, L)`` contact-score matrix of `predict_contacts`.
 - [`contacts.predict_contacts`](./adabmDCA.api.contacts.md#function-predict_contacts): Predict residue contacts from a DCA model or directly from an alignment.
+- [`diagnostics.diagnose_run`](./adabmDCA.api.diagnostics.md#function-diagnose_run): Indicators and findings for a training run directory, and optionally a sampling check.
 - [`entropy.estimate_entropy`](./adabmDCA.api.entropy.md#function-estimate_entropy): Estimate the entropy of a DCA model by thermodynamic integration.
 - [`input_loading.load_training_inputs`](./adabmDCA.api.input_loading.md#function-load_training_inputs): Load the training inputs of `train_model` and check they fit together.
 - [`model.inspect_model`](./adabmDCA.api.model.md#function-inspect_model): Describe a model without using it: length, alphabet, device and precision.
