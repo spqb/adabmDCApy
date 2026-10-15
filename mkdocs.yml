@@ -48,6 +48,7 @@ nav:
       - Contacts: api/adabmDCA.api.contacts.md
       - Mutations: api/adabmDCA.api.mutations.md
       - Entropy: api/adabmDCA.api.entropy.md
+      - Diagnostics: api/adabmDCA.api.diagnostics.md
       - Reintegration: api/adabmDCA.api.reintegration.md
       - Splitting: api/adabmDCA.api.splitting.md
       - Input loading: api/adabmDCA.input_loading.md

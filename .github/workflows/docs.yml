@@ -49,6 +49,7 @@ jobs:
           adabmDCA.training_config \
           adabmDCA.training_control \
           adabmDCA.api.contacts \
+          adabmDCA.api.diagnostics \
           adabmDCA.api.entropy \
           adabmDCA.exceptions \
           adabmDCA.api.input_loading \
