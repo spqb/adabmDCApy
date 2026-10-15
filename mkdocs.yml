@@ -17,6 +17,7 @@ nav:
       - Entropy · entropy: usage/entropy.md
       - Experimental feedback · reintegrate: usage/reintegrate.md
       - Plot a run · plot-training-log: usage/plot-training-log.md
+      - Diagnose a run · diagnose: usage/diagnose.md
       - Python workflows: usage/python.md
   - How it works:
       - Overview: algorithms/index.md

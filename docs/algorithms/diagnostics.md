@@ -42,6 +42,8 @@ The failures observed so far fall into three groups:
 
 ## Triage procedure
 
+`adabmDCA diagnose model` (with `-s check/sampling.json` once the model has been sampled) runs steps 1, 3, 4 and the comparisons of step 5 and prints the verdict with the matching failure below; see [`diagnose`](../usage/diagnose.md). The steps explain what it reads.
+
 **1. How did the run end?** Read `training.json` (`data.stop_reason`, `data.converged`, `data.warnings`) or the `[END]` section of the log.
 
 - `validation_plateau`, `target_pearson`, or a budget: the run finished. Go to step 4.

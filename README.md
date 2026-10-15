@@ -103,6 +103,10 @@ energies = model.compute_energies(list(validation.sequences))
 contacts = model.compute_contact_map()
 ```
 
+## Use with AI agents
+
+[`skills/adabmdca`](skills/) is an Agent Skill that teaches coding agents such as Claude Code or Codex to run adabmDCA and check its results. Copy it to `~/.claude/skills/` (or your agent's skills folder); see [skills/README.md](skills/README.md).
+
 ## Documentation
 
 The [documentation](https://spqb.github.io/adabmDCApy/) explains:
