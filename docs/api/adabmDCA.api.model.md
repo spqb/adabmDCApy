@@ -54,9 +54,8 @@ The file type is detected from its content. For a PTT archive (``.h5``), the fin
 
 **Example:**
 ```python
->>> model = load_model("output/params.dat.gz", alphabet="rna")
->>> model
-DCAModel(L=136, q=5, tokens='-ACGU', ...)
+model = load_model("output/params.dat.gz", alphabet="rna")
+model  # DCAModel(L=136, q=5, tokens='-ACGU', ...)
 ```
 
 

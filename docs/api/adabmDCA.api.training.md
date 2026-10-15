@@ -140,24 +140,22 @@ Pass ``config=TrainingConfig(...)`` to specify the training policy as one object
 
 **Example:**
 ```python
->>> from adabmDCA import train_model
->>> from adabmDCA.api import TrainingProgress
+from adabmDCA import train_model
+from adabmDCA.api import TrainingProgress
 ```
 
-A progress function receives an event object, not separate epoch and
-metric arguments. Use ``dict.get`` because metrics may differ between
-stages:
+A progress function receives an event object, not separate epoch and metric arguments. Use ``dict.get`` because metrics may differ between stages:
 
 ```python
->>> def show_progress(event: TrainingProgress) -> None:
-...     pearson = event.metrics.get("Pearson")
-...     if pearson is not None:
-...         print(
-...             f"{event.stage}: epoch={event.epoch}, "
-...             f"gradient_steps={event.gradient_steps}, "
-...             f"Pearson={pearson:.3f}"
-...         )
->>> result = train_model("alignment.fasta", progress=show_progress)
+def show_progress(event: TrainingProgress) -> None:
+    pearson = event.metrics.get("Pearson")
+    if pearson is not None:
+        print(
+            f"{event.stage}: epoch={event.epoch}, "
+            f"gradient_steps={event.gradient_steps}, "
+            f"Pearson={pearson:.3f}"
+        )
+result = train_model("alignment.fasta", progress=show_progress)
 ```
 
 

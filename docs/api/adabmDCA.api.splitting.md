@@ -69,8 +69,8 @@ Split an alignment into training and test sets that are not too similar.
 
 **Example:**
 ```python
->>> split = split_alignment("family.fasta", alphabet="rna", identity=0.8)
->>> split.save_bundle("splits/family")
+split = split_alignment("family.fasta", alphabet="rna", identity=0.8)
+split.save_bundle("splits/family")
 ```
 
 

@@ -142,8 +142,7 @@ A PTT archive already carries an estimate of log Z (bridges along its replica la
 
 **Example:**
 ```python
->>> estimate_ptt_entropy(model="output/ptt.h5", device="cuda").entropy
-131.2
+estimate_ptt_entropy(model="output/ptt.h5", device="cuda").entropy  # 131.2
 ```
 
 

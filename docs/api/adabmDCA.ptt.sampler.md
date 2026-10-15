@@ -92,12 +92,11 @@ The remaining public methods (``transition_target``, ``update_replica_chain``, `
 
 **Example:**
 ```python
->>> sampler = PTTSampler.from_archive("model/ptt.h5", device="cuda")
- >>> sampler.prepare_sampling_ladder(2000)
- >>> sampler.measure_renewal(local_sweeps=10).status
- 'converged'
- >>> sequences = sampler.draw(1000, local_sweeps=10)   # one-hot, (1000, L, q)
- >>> sampler.entropy()["entropy"]
+sampler = PTTSampler.from_archive("model/ptt.h5", device="cuda")
+sampler.prepare_sampling_ladder(2000)
+sampler.measure_renewal(local_sweeps=10).status  # 'converged'
+sequences = sampler.draw(1000, local_sweeps=10)   # one-hot, (1000, L, q)
+sampler.entropy()["entropy"]
 ```
 
 
@@ -148,7 +147,7 @@ Number of replicas in the active ladder (above the reservoir, if any).
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler/advance#L496"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/.venv/lib/python3.13/site-packages/torch/utils/_contextlib.py#L496"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `advance`
 
@@ -470,7 +469,7 @@ Every array is validated on load. Generation never writes the source archive. Lo
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler/ladder_health#L822"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/.venv/lib/python3.13/site-packages/torch/utils/_contextlib.py#L822"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `ladder_health`
 
@@ -496,7 +495,7 @@ See ``adabmDCA.ptt.health``. Per pair: forward, reverse and BAR free energies wi
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/sampler/ladder_statistics#L1801"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/.venv/lib/python3.13/site-packages/torch/utils/_contextlib.py#L1801"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `ladder_statistics`
 

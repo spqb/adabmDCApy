@@ -98,9 +98,9 @@ Pass it as ``config=`` to `train_model`; it then takes precedence over the funct
 
 **Example:**
 ```python
->>> config = TrainingConfig(model_type="eaDCA", alphabet="rna",
-...                         ptt=PTTConfig(activation="adaptive"))
->>> train_model("family.fasta", config=config, output_dir="model")
+config = TrainingConfig(model_type="eaDCA", alphabet="rna",
+                        ptt=PTTConfig(activation="adaptive"))
+train_model("family.fasta", config=config, output_dir="model")
 ```
 
 

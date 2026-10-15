@@ -61,8 +61,8 @@ The alphabet is detected from standard DNA, RNA, or protein tokens by default; p
 
 **Example:**
 ```python
->>> alignment = load_alignment("family.fasta", invalid_sequences="drop")
->>> alignment.tokens, alignment.num_sequences
+alignment = load_alignment("family.fasta", invalid_sequences="drop")
+alignment.tokens, alignment.num_sequences
 ```
 
 

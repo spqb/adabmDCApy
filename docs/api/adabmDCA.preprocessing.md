@@ -127,9 +127,9 @@ Steps, each optional: remove insertions (or normalize dots to ``"-"``), check to
 
 **Example:**
 ```python
->>> result = preprocess_alignment("RF00379.sto", output_path="clean.fasta",
-...                               remove_insertions=True, max_gap_fraction=0.2)
->>> result.report.output_sequences
+result = preprocess_alignment("RF00379.sto", output_path="clean.fasta",
+                              remove_insertions=True, max_gap_fraction=0.2)
+result.report.output_sequences
 ```
 
 

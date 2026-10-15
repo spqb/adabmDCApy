@@ -58,8 +58,8 @@ For each position and each alternative token, the mutant's energy is compared wi
 
 **Example:**
 ```python
->>> scan = scan_mutations("MKT...", model="params.dat.gz")
->>> scan.to_dataframe().sort_values("delta_energy").head()
+scan = scan_mutations("MKT...", model="params.dat.gz")
+scan.to_dataframe().sort_values("delta_energy").head()
 ```
 
 

@@ -92,8 +92,8 @@ Energies follow ``E(s) = -sum_i h_i(s_i) - sum_{i<j} J_ij(s_i, s_j)``: lower is 
 
 **Example:**
 ```python
->>> result = score_sequences(fasta_path="designs.fasta", model="params.dat.gz")
->>> result.to_dataframe().sort_values("energy").head()
+result = score_sequences(fasta_path="designs.fasta", model="params.dat.gz")
+result.to_dataframe().sort_values("energy").head()
 ```
 
 
@@ -128,8 +128,7 @@ Takes the same arguments as `score_sequences` except ``local_lambda``.
 
 **Example:**
 ```python
->>> compute_energies(["ACGU...", "ACGA..."], model=model)
- array([-212.4, -208.9])
+compute_energies(["ACGU...", "ACGA..."], model=model)  # array([-212.4, -208.9])
 ```
 
 

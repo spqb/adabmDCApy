@@ -62,9 +62,9 @@ Pass an instance as ``ptt=`` to `train_model` (or through ``TrainingConfig(ptt=.
 
 **Example:**
 ```python
->>> from adabmDCA import PTTConfig, train_model
->>> train_model("family.fasta", alphabet="rna", ptt=PTTConfig(validation_stop=True),
-...             validation_path="validation.fasta", output_dir="model")
+from adabmDCA import PTTConfig, train_model
+train_model("family.fasta", alphabet="rna", ptt=PTTConfig(validation_stop=True),
+            validation_path="validation.fasta", output_dir="model")
 ```
 
 

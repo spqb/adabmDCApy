@@ -55,8 +55,8 @@ With ``model``, scores are the average-product-corrected (APC) Frobenius norms o
 
 **Example:**
 ```python
->>> result = predict_contacts(model="params.dat.gz", alphabet="rna")
->>> top = result.to_long_dataframe().nlargest(20, "score")  # 0-based positions
+result = predict_contacts(model="params.dat.gz", alphabet="rna")
+top = result.to_long_dataframe().nlargest(20, "score")  # 0-based positions
 ```
 
 

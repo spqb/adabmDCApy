@@ -91,8 +91,8 @@ An ``Alignment`` already returned by `load_alignment` is reused when ``load_conf
 
 **Example:**
 ```python
->>> dataset = DatasetDCA.from_alignment("family.fasta", load_config=AlignmentLoadConfig(alphabet="rna"))
->>> fi, fij = dataset.get_frequencies(pseudocount=1 / dataset.get_effective_size())
+dataset = DatasetDCA.from_alignment("family.fasta", load_config=AlignmentLoadConfig(alphabet="rna"))
+fi, fij = dataset.get_frequencies(pseudocount=1 / dataset.get_effective_size())
 ```
 
 

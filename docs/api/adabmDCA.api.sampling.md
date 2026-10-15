@@ -123,19 +123,19 @@ With PTT, steered rungs of increasing strength are added above the trained endpo
 
 **Example:**
 ```python
->>> result = sample_sequences(model="params.dat.gz", n_sequences=1000,
-...                           reference_fasta="family.fasta")
->>> result.to_fasta("samples.fasta")
+result = sample_sequences(model="params.dat.gz", n_sequences=1000,
+                          reference_fasta="family.fasta")
+result.to_fasta("samples.fasta")
 ```
 
 Steering towards sequences with a high GC content (RNA), as strings:
 
 ```python
->>> def gc_potential(sequences, strength):
-...     return [-strength * sum(c in "GC" for c in s) / len(s) for s in sequences]
->>> steered = sample_sequences(model="params.dat.gz", alphabet="rna", n_sequences=500,
-...                            steering_potential=gc_potential, steering_strength=20.0)
->>> steered.steering["effective_sample_size"], steered.log_importance_weights[:3]
+def gc_potential(sequences, strength):
+    return [-strength * sum(c in "GC" for c in s) / len(s) for s in sequences]
+steered = sample_sequences(model="params.dat.gz", alphabet="rna", n_sequences=500,
+                           steering_potential=gc_potential, steering_strength=20.0)
+steered.steering["effective_sample_size"], steered.log_importance_weights[:3]
 ```
 
 
@@ -166,7 +166,7 @@ Return only the sequences of `sample_sequences`.
 
 **Example:**
 ```python
->>> generate_sequences(model="params.dat.gz", n_sequences=10, n_sweeps=500)
+generate_sequences(model="params.dat.gz", n_sequences=10, n_sweeps=500)
 ```
 
 
