@@ -533,8 +533,12 @@ def diagnose_run(
             "info",
             "unchecked_model",
             "Training metrics alone cannot show a miscalibrated model.",
-            "Sample it with sample -p ptt.h5 -d train.fasta -v test.fasta --plot -o check, "
-            "then diagnose again with that sampling.json.",
+            (
+                "Sample it with sample -p ptt.h5 -d train.fasta -v test.fasta --plot -o check, "
+                if ptt
+                else "Sample it with sample --strategy pcd -p params.dat.gz -d train.fasta -v test.fasta --plot -o check, "
+            )
+            + "then diagnose again with that sampling.json.",
             "F6",
         )
 
