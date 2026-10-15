@@ -22,7 +22,7 @@ family.sto ──preprocess──► family.fasta ──split-data──► trai
 4. **Check the model** by sampling from it with [`sample`](sample.md) and reading its diagnostic plots. A clean training run is not, by itself, proof of a good model.
 5. **Use the model**: [score sequences](energies.md), [scan single mutations](dms.md), [predict contacts](contacts.md), [estimate the entropy](entropy.md), or [retrain with experimental feedback](reintegrate.md).
 
-[`plot-training-log`](plot-training-log.md) redraws the training curves of a finished or running job. [Choosing settings](choosing.md) summarizes which strategy, model type, sampler and device to use, and [Python workflows](python.md) shows the same steps from Python.
+[`plot-training-log`](plot-training-log.md) redraws the training curves of a finished or running job. [`diagnose`](diagnose.md) reads a run's files and says whether it is healthy and what to change. [Choosing settings](choosing.md) summarizes which strategy, model type, sampler and device to use, and [Python workflows](python.md) shows the same steps from Python.
 
 ## Command quick reference
 
@@ -51,6 +51,7 @@ adabmDCA entropy  -p model/ptt.h5 -o entropy
 # Other
 adabmDCA reintegrate -d natural.fasta --reint tested.fasta --adj adjustments.txt -o reintegrated
 adabmDCA plot-training-log model/history.csv
+adabmDCA diagnose model -s samples/sampling.json
 ```
 
 ## Alphabets

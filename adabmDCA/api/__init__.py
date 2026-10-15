@@ -21,6 +21,7 @@ _EXPORTS = {
     "split_alignment": "adabmDCA.api.splitting",
     "reintegrate_model": "adabmDCA.api.reintegration",
     "estimate_entropy": "adabmDCA.api.entropy",
+    "diagnose_run": "adabmDCA.api.diagnostics",
     "StopReason": "adabmDCA.training_control",
     "TrainingLimits": "adabmDCA.training_control",
     "TrainingCounters": "adabmDCA.training_control",

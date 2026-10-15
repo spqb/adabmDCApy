@@ -17,6 +17,7 @@ COMMANDS = {
     "plot-training-log": "adabmDCA.plot_training_log",
     "plot_training_log": "adabmDCA.plot_training_log",
     "preprocess": "adabmDCA.scripts.preprocess",
+    "diagnose": "adabmDCA.scripts.diagnose",
 }
 
 COMMAND_DESCRIPTIONS = {
@@ -30,6 +31,7 @@ COMMAND_DESCRIPTIONS = {
     "split-data": "Split an alignment into training and test sets with reduced homology correlation",
     "plot-training-log": "Plot metrics from a training log.",
     "preprocess": "Convert and preprocess sequence alignments.",
+    "diagnose": "Diagnose a training run and say what to change.",
 }
 
 
