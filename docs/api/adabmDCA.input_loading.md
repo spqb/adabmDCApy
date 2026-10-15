@@ -28,7 +28,7 @@ load_alignment(
 
 Parse, validate, filter, and deduplicate an alignment.
 
-The alphabet is detected from standard DNA, RNA, or protein tokens by default; pass ``alphabet`` for ambiguous or custom alignments. Direct keyword options override the corresponding fields in ``config``. The returned `Alignment` contains its selected encoding tokens and filtering provenance, so callers do not need a separate wrapper type.
+The alphabet is detected from standard DNA, RNA, or protein tokens by default; pass `alphabet` for ambiguous or custom alignments. Direct keyword options override the corresponding fields in `config`. The returned `Alignment` contains its selected encoding tokens and filtering provenance, so callers do not need a separate wrapper type.
 
 
 
@@ -36,26 +36,25 @@ The alphabet is detected from standard DNA, RNA, or protein tokens by default; p
 
  - <b>`source`</b>:  Path, `Alignment` or sequences.
  - <b>`config`</b>:  Loading policy; see `AlignmentLoadConfig`.
- - <b>`alphabet`</b>:  Overrides ``config.alphabet``.
- - <b>`invalid_sequences`</b>:  Overrides ``config.invalid_sequences``.
- - <b>`remove_duplicates`</b>:  Overrides ``config.remove_duplicates``.
- - <b>`expected_length`</b>:  Overrides ``config.expected_length``.
- - <b>`format`</b>:  Overrides ``config.format``.
- - <b>`alignment_index`</b>:  Overrides ``config.alignment_index``.
- - <b>`normalize_dots`</b>:  Overrides ``config.normalize_dots``.
+ - <b>`alphabet`</b>:  Overrides `config.alphabet`.
+ - <b>`invalid_sequences`</b>:  Overrides `config.invalid_sequences`.
+ - <b>`remove_duplicates`</b>:  Overrides `config.remove_duplicates`.
+ - <b>`expected_length`</b>:  Overrides `config.expected_length`.
+ - <b>`format`</b>:  Overrides `config.format`.
+ - <b>`alignment_index`</b>:  Overrides `config.alignment_index`.
+ - <b>`normalize_dots`</b>:  Overrides `config.normalize_dots`.
 
 
 
 **Returns:**
-
- - <b>`The filtered `</b>: class:`Alignment`, with ``tokens``, ``encoded_sequences`` and the indices of the retained sequences.
+ The filtered `Alignment`, with `tokens`, `encoded_sequences` and the indices of the retained sequences.
 
 
 
 **Raises:**
 
  - <b>`AlignmentLoadError`</b>:  If the file cannot be read.
- - <b>`InputValidationError`</b>:  If sequences are invalid under ``"error"``, the  length is wrong, or no sequence remains.
+ - <b>`InputValidationError`</b>:  If sequences are invalid under `"error"`, the  length is wrong, or no sequence remains.
 
 
 
@@ -87,16 +86,16 @@ load_sequence_weights(
 
 Load or calculate weights and align them with retained sequences.
 
-``allow_negative`` and ``require_positive_sum`` are intended for signed experimental adjustment vectors; ordinary statistical weights should keep their safe defaults.
+`allow_negative` and `require_positive_sum` are intended for signed experimental adjustment vectors; ordinary statistical weights should keep their safe defaults.
 
 
 
 **Args:**
 
- - <b>`source`</b>:  Weights file (one number per line), sequence, array or tensor, or  ``None`` to compute them. Their count may match the original or the  retained sequences.
+ - <b>`source`</b>:  Weights file (one number per line), sequence, array or tensor, or  `None` to compute them. Their count may match the original or the  retained sequences.
  - <b>`loaded_alignment`</b>:  Alignment returned by `load_alignment`.
- - <b>`no_reweighting`</b>:  Give every sequence weight 1 (``source`` is ignored).
- - <b>`clustering_seqid`</b>:  Computed weights: each sequence gets  ``1 / (number of sequences more than this identical to it)``,  itself included.
+ - <b>`no_reweighting`</b>:  Give every sequence weight 1 (`source` is ignored).
+ - <b>`clustering_seqid`</b>:  Computed weights: each sequence gets  `1 / (number of sequences more than this identical to it)`,  itself included.
  - <b>`device`</b>:  Device of the returned tensor.
  - <b>`dtype`</b>:  Precision of the returned tensor.
  - <b>`allow_negative`</b>:  Accept negative weights.
@@ -125,13 +124,13 @@ How `load_alignment` reads, validates and filters an alignment.
 
 **Attributes:**
 
- - <b>`alphabet`</b>:  ``"auto"`` (detect DNA, RNA or protein), a built-in name, or a  custom token string.
- - <b>`invalid_sequences`</b>:  ``"error"`` to reject, or ``"drop"`` to remove,  sequences with tokens outside the alphabet.
+ - <b>`alphabet`</b>:  `"auto"` (detect DNA, RNA or protein), a built-in name, or a  custom token string.
+ - <b>`invalid_sequences`</b>:  `"error"` to reject, or `"drop"` to remove,  sequences with tokens outside the alphabet.
  - <b>`remove_duplicates`</b>:  Keep only the first copy of identical sequences.
- - <b>`expected_length`</b>:  Required alignment length, or ``None``.
- - <b>`format`</b>:  ``"auto"``, ``"fasta"`` or ``"stockholm"``.
+ - <b>`expected_length`</b>:  Required alignment length, or `None`.
+ - <b>`format`</b>:  `"auto"`, `"fasta"` or `"stockholm"`.
  - <b>`alignment_index`</b>:  Alignment to read from a multi-alignment Stockholm file.
- - <b>`normalize_dots`</b>:  Turn ``"."`` gaps into ``"-"``.
+ - <b>`normalize_dots`</b>:  Turn `"."` gaps into `"-"`.
 
 <a href="https://github.com/spqb/adabmDCApy/blob/main/<string>"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 

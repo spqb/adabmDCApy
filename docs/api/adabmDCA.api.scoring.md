@@ -60,33 +60,31 @@ score_sequences(
 
 Compute DCA energies of aligned sequences, with their local free energies.
 
-Energies follow ``E(s) = -sum_i h_i(s_i) - sum_{i<j} J_ij(s_i, s_j)``: lower is more probable under the model. Unless ``local_lambda`` is ``None``, each sequence also gets its summed context-dependent entropy (CDE) and the local free energy ``E - local_lambda * CDE``.
+Energies follow `E(s) = -sum_i h_i(s_i) - sum_{i<j} J_ij(s_i, s_j)`: lower is more probable under the model. Unless `local_lambda` is `None`, each sequence also gets its summed context-dependent entropy (CDE) and the local free energy `E - local_lambda * CDE`.
 
 
 
 **Args:**
 
- - <b>`sequences`</b>:  One aligned sequence or an iterable of them, each of length  ``L`` over the model's tokens. Provide exactly one of ``sequences``  and ``fasta_path``.
+ - <b>`sequences`</b>:  One aligned sequence or an iterable of them, each of length  `L` over the model's tokens. Provide exactly one of `sequences`  and `fasta_path`.
  - <b>`model`</b>:  A `DCAModel`, or a path to a parameter file or PTT archive.
  - <b>`fasta_path`</b>:  Alignment to score (path, `Alignment` or sequences);  sequence names are kept in the result.
- - <b>`alphabet`</b>:  Alphabet of a text parameter file: ``"protein"``, ``"rna"``,  ``"dna"`` or an ordered custom token string. ``None`` reads it from a  PTT archive and assumes ``"protein"`` for text files. Ignored when
- - <b>```model`` is already a `</b>: class:`DCAModel`.
- - <b>`device`</b>:  ``"auto"`` (CUDA when available, else CPU), ``"cpu"``,  ``"cuda"`` or ``"mps"``. Ignored for an in-memory model.
- - <b>`dtype`</b>:  ``"float32"`` or ``"float64"`` for loaded parameters. Ignored for an  in-memory model.
- - <b>`remove_duplicates`</b>:  With ``fasta_path``, score each distinct sequence once.
- - <b>`local_lambda`</b>:  Weight of the summed CDE in the local free energy, or  ``None`` to skip the CDE computation.
+ - <b>`alphabet`</b>:  Alphabet of a text parameter file: `"protein"`, `"rna"`,  `"dna"` or an ordered custom token string. `None` reads it from a  PTT archive and assumes `"protein"` for text files. Ignored when  `model` is already a `DCAModel`.
+ - <b>`device`</b>:  `"auto"` (CUDA when available, else CPU), `"cpu"`,  `"cuda"` or `"mps"`. Ignored for an in-memory model.
+ - <b>`dtype`</b>:  `"float32"` or `"float64"` for loaded parameters. Ignored for an  in-memory model.
+ - <b>`remove_duplicates`</b>:  With `fasta_path`, score each distinct sequence once.
+ - <b>`local_lambda`</b>:  Weight of the summed CDE in the local free energy, or  `None` to skip the CDE computation.
 
 
 
 **Returns:**
-
- - <b>`An `</b>: class:`EnergyResult` with one energy per sequence, in input order.
+ An `EnergyResult` with one energy per sequence, in input order.
 
 
 
 **Raises:**
 
- - <b>`InputValidationError`</b>:  If both or neither of ``sequences`` and  ``fasta_path`` are given, a sequence is incompatible with the model,  or ``local_lambda`` is not finite.
+ - <b>`InputValidationError`</b>:  If both or neither of `sequences` and  `fasta_path` are given, a sequence is incompatible with the model,  or `local_lambda` is not finite.
 
 
 
@@ -117,7 +115,7 @@ compute_energies(
 
 Return only the DCA energies of `score_sequences`, without CDE.
 
-Takes the same arguments as `score_sequences` except ``local_lambda``.
+Takes the same arguments as `score_sequences` except `local_lambda`.
 
 
 

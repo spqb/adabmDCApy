@@ -63,7 +63,7 @@
 - [`training_control.TrainingCancelled`](./adabmDCA.training_control.md#class-trainingcancelled): Internal cancellation signal raised by the shared controller.
 - [`training_control.TrainingController`](./adabmDCA.training_control.md#class-trainingcontroller): Coordinate one training run without owning its numerical updates.
 - [`training_control.TrainingCounters`](./adabmDCA.training_control.md#class-trainingcounters): Progress counters of a training run.
-- [`training_control.TrainingLimits`](./adabmDCA.training_control.md#class-traininglimits): Step budgets of a training run; ``None`` means no limit.
+- [`training_control.TrainingLimits`](./adabmDCA.training_control.md#class-traininglimits): Step budgets of a training run; `None` means no limit.
 - [`training_control.TrainingMetrics`](./adabmDCA.training_control.md#class-trainingmetrics): Common metrics emitted after a meaningful training step.
 - [`exceptions.AdabmDCAError`](./adabmDCA.exceptions.md#class-adabmdcaerror): Base class for recoverable errors raised by adabmDCA.
 - [`exceptions.AlignmentError`](./adabmDCA.exceptions.md#class-alignmenterror): Base class for alignment input and processing errors.
@@ -90,13 +90,13 @@
 - [`results.MutationScanResult`](./adabmDCA.api.results.md#class-mutationscanresult): All single-site mutants of a sequence, returned by `scan_mutations`.
 - [`results.ProfileSplitResult`](./adabmDCA.api.results.md#class-profilesplitresult): Training/test split of an alignment, returned by `split_alignment`.
 - [`results.ReintegrationResult`](./adabmDCA.api.results.md#class-reintegrationresult): Outcome of `reintegrate_model`.
-- [`results.SamplingProgress`](./adabmDCA.api.results.md#class-samplingprogress): Progress event passed to the ``progress`` callback of `sample_sequences`.
+- [`results.SamplingProgress`](./adabmDCA.api.results.md#class-samplingprogress): Progress event passed to the `progress` callback of `sample_sequences`.
 - [`results.SamplingResult`](./adabmDCA.api.results.md#class-samplingresult): Generated sequences and diagnostics, returned by `sample_sequences`.
-- [`results.ThermodynamicIntegrationProgress`](./adabmDCA.api.results.md#class-thermodynamicintegrationprogress): Progress event passed to the ``progress`` callback of `estimate_entropy`.
+- [`results.ThermodynamicIntegrationProgress`](./adabmDCA.api.results.md#class-thermodynamicintegrationprogress): Progress event passed to the `progress` callback of `estimate_entropy`.
 - [`results.ThermodynamicIntegrationResult`](./adabmDCA.api.results.md#class-thermodynamicintegrationresult): Outcome of `estimate_entropy`.
 - [`results.TrainingDatasetSummary`](./adabmDCA.api.results.md#class-trainingdatasetsummary): Size and filtering of one training or validation alignment.
-- [`results.TrainingInitialization`](./adabmDCA.api.results.md#class-traininginitialization): Resolved training setup, passed to ``on_initialized`` of `train_model`.
-- [`results.TrainingProgress`](./adabmDCA.api.results.md#class-trainingprogress): One accepted update, passed to the ``progress`` callback of `train_model`.
+- [`results.TrainingInitialization`](./adabmDCA.api.results.md#class-traininginitialization): Resolved training setup, passed to `on_initialized` of `train_model`.
+- [`results.TrainingProgress`](./adabmDCA.api.results.md#class-trainingprogress): One accepted update, passed to the `progress` callback of `train_model`.
 - [`results.TrainingResult`](./adabmDCA.api.results.md#class-trainingresult): Outcome of `train_model`.
 - [`checkpoint.Checkpoint`](./adabmDCA.checkpoint.md#class-checkpoint): Save model state and write the training history, events and readable log.
 - [`dataset.DatasetDCA`](./adabmDCA.dataset.md#class-datasetdca): Encoded alignment with sequence weights, as a PyTorch dataset.
@@ -106,7 +106,7 @@
 - [`mixing.RenewalForecast`](./adabmDCA.ptt.mixing.md#class-renewalforecast): Exponential fit of the old fraction G(t) of a renewal phase.
 - [`sampler.PTTSampler`](./adabmDCA.ptt.sampler.md#class-pttsampler): A Parallel Trajectory Tempering ladder: models, their chains and its own RNG.
 - [`sampler.PartitionEstimate`](./adabmDCA.ptt.sampler.md#class-partitionestimate): Estimate of the endpoint's log partition function, with its provenance.
-- [`steering.SteeredKernel`](./adabmDCA.steering.md#class-steeredkernel): Metropolis-Hastings kernel for ``exp(-beta * H - V(·, strength))``.
+- [`steering.SteeredKernel`](./adabmDCA.steering.md#class-steeredkernel): Metropolis-Hastings kernel for `exp(-beta * H - V(·, strength))`.
 - [`steering.Steering`](./adabmDCA.steering.md#class-steering): A validated steering potential, evaluated on batches of chains.
 
 ## Functions
@@ -124,15 +124,15 @@
 - [`preprocessing.filter_gap_fraction`](./adabmDCA.preprocessing.md#function-filter_gap_fraction): Remove sequences whose gap fraction is greater than the threshold.
 - [`preprocessing.preprocess_alignment`](./adabmDCA.preprocessing.md#function-preprocess_alignment): Clean a raw alignment for DCA: read, transform, filter and optionally write it.
 - [`preprocessing.remove_insertions`](./adabmDCA.preprocessing.md#function-remove_insertions): Remove dots and lowercase insertion residues from every sequence.
-- [`contacts.compute_contact_map`](./adabmDCA.api.contacts.md#function-compute_contact_map): Return only the ``(L, L)`` contact-score matrix of `predict_contacts`.
+- [`contacts.compute_contact_map`](./adabmDCA.api.contacts.md#function-compute_contact_map): Return only the `(L, L)` contact-score matrix of `predict_contacts`.
 - [`contacts.predict_contacts`](./adabmDCA.api.contacts.md#function-predict_contacts): Predict residue contacts from a DCA model or directly from an alignment.
 - [`diagnostics.diagnose_run`](./adabmDCA.api.diagnostics.md#function-diagnose_run): Indicators and findings for a training run directory, and optionally a sampling check.
 - [`entropy.estimate_entropy`](./adabmDCA.api.entropy.md#function-estimate_entropy): Estimate the entropy of a DCA model by thermodynamic integration.
 - [`input_loading.load_training_inputs`](./adabmDCA.api.input_loading.md#function-load_training_inputs): Load the training inputs of `train_model` and check they fit together.
 - [`model.inspect_model`](./adabmDCA.api.model.md#function-inspect_model): Describe a model without using it: length, alphabet, device and precision.
 - [`model.load_model`](./adabmDCA.api.model.md#function-load_model): Load DCA parameters from a text parameter file or a PTT archive.
-- [`ptt.estimate_ptt_entropy`](./adabmDCA.api.ptt.md#function-estimate_ptt_entropy): Estimate the entropy of a PTT-trained model as ``<E> + log Z``.
-- [`ptt.load_ptt_backend`](./adabmDCA.api.ptt.md#function-load_ptt_backend): Return a PTT sampler ready for generation, loaded or forked from ``source``.
+- [`ptt.estimate_ptt_entropy`](./adabmDCA.api.ptt.md#function-estimate_ptt_entropy): Estimate the entropy of a PTT-trained model as `<E> + log Z`.
+- [`ptt.load_ptt_backend`](./adabmDCA.api.ptt.md#function-load_ptt_backend): Return a PTT sampler ready for generation, loaded or forked from `source`.
 - [`ptt.sample_ptt_sequences`](./adabmDCA.api.ptt.md#function-sample_ptt_sequences): Equilibrate the ladder in place, then collect endpoint samples.
 - [`mutations.scan_mutations`](./adabmDCA.api.mutations.md#function-scan_mutations): Score every single-site substitution of an aligned wild-type sequence.
 - [`reintegration.reintegrate_model`](./adabmDCA.api.reintegration.md#function-reintegrate_model): Train a model on natural sequences plus experimentally scored ones.
@@ -166,7 +166,7 @@
 - [`fasta.encode_sequence`](./adabmDCA.fasta.md#function-encode_sequence): Encodes a sequence or a list of sequences into a numeric format.
 - [`fasta.validate_alphabet`](./adabmDCA.fasta.md#function-validate_alphabet): Validates that all characters in the sequences are present in the provided alphabet.
 - [`functional.one_hot`](./adabmDCA.functional.md#function-one_hot): A fast one-hot encoding function faster than the PyTorch one working with torch.int32 and returning a float Tensor.
-- [`graph.activate_elements`](./adabmDCA.graph.md#function-activate_elements): Activates the unique entries at the flat ``indices`` together with their transposes.
+- [`graph.activate_elements`](./adabmDCA.graph.md#function-activate_elements): Activates the unique entries at the flat `indices` together with their transposes.
 - [`graph.activate_graph_elements`](./adabmDCA.graph.md#function-activate_graph_elements): Updates the interaction graph by activating a fraction of the inactive couplings.
 - [`graph.compute_Dkl_decimation`](./adabmDCA.graph.md#function-compute_dkl_decimation): Computes the Kullback-Leibler divergence matrix between the initial distribution and the same
 - [`graph.compute_Dkl_edge_activation`](./adabmDCA.graph.md#function-compute_dkl_edge_activation): Computes the Kullback-Leibler divergence matrix of all the possible edges.
@@ -179,12 +179,12 @@
 - [`graph.update_mask_decimation`](./adabmDCA.graph.md#function-update_mask_decimation): Updates the mask by removing the n_remove couplings with the smallest Dkl.
 - [`io.is_gzip`](./adabmDCA.io.md#function-is_gzip): Whether a file is gzip-compressed, judged by its content rather than its name.
 - [`io.load_chains`](./adabmDCA.io.md#function-load_chains): Load chain sequences from FASTA and return their one-hot encoding.
-- [`io.load_params`](./adabmDCA.io.md#function-load_params): Import parameters from the established ``J``/``h`` text format.
+- [`io.load_params`](./adabmDCA.io.md#function-load_params): Import parameters from the established `J`/`h` text format.
 - [`io.load_params_old`](./adabmDCA.io.md#function-load_params_old): Import the parameters of the model from a file.
 - [`io.load_params_oldformat`](./adabmDCA.io.md#function-load_params_oldformat): Import the parameters of the model from a file. Assumes the old DCA format.
-- [`io.open_params`](./adabmDCA.io.md#function-open_params): Open a parameter file as text; gzip is detected on reading and chosen by a ``.gz`` name on writing.
+- [`io.open_params`](./adabmDCA.io.md#function-open_params): Open a parameter file as text; gzip is detected on reading and chosen by a `.gz` name on writing.
 - [`io.save_chains`](./adabmDCA.io.md#function-save_chains): Saves the chains in a fasta file.
-- [`io.save_params`](./adabmDCA.io.md#function-save_params): Save parameters in the established ``J``/``h`` text format.
+- [`io.save_params`](./adabmDCA.io.md#function-save_params): Save parameters in the established `J`/`h` text format.
 - [`io.save_params_oldformat`](./adabmDCA.io.md#function-save_params_oldformat): Saves the parameters of the model in a file. Assumes the old DCA format.
 - [`plot.plot_PCA`](./adabmDCA.plot.md#function-plot_pca): Makes the scatter plot of the components (pc1, pc2) of the input data and shows the histograms of the components.
 - [`plot.plot_autocorrelation`](./adabmDCA.plot.md#function-plot_autocorrelation): Plots the time-autocorrelation curve of the sequence identity and the generated and data sequence identities.
@@ -203,7 +203,7 @@
 - [`mixing.exponential_decay`](./adabmDCA.ptt.mixing.md#function-exponential_decay)
 - [`mixing.integrated_autocorrelation_time`](./adabmDCA.ptt.mixing.md#function-integrated_autocorrelation_time): Self-consistent window t >= 6 tau_int(t), with C(0)/2.
 - [`mixing.process_replica_experiment`](./adabmDCA.ptt.mixing.md#function-process_replica_experiment): Return (tau_int, tau_exp, C) without changing the recorded labels.
-- [`mixing.renewal_forecast`](./adabmDCA.ptt.mixing.md#function-renewal_forecast): Fit ``log G`` against rounds over the recent half of the decay and predict the renewal round.
+- [`mixing.renewal_forecast`](./adabmDCA.ptt.mixing.md#function-renewal_forecast): Fit `log G` against rounds over the recent half of the decay and predict the renewal round.
 - [`mixing.replica_autocorrelation`](./adabmDCA.ptt.mixing.md#function-replica_autocorrelation): Normalized C(t) for (rounds, replicas, chains) origin labels.
 - [`sampler.bridge_increment`](./adabmDCA.ptt.sampler.md#function-bridge_increment): Return log(Z_upper/Z_lower) from samples of the lower Hamiltonian.
 - [`resampling.compute_mixing_time`](./adabmDCA.resampling.md#function-compute_mixing_time): Computes the mixing time using the t and t/2 method. The sampling will halt when the mixing time is reached or
@@ -218,31 +218,31 @@
 - [`sampling.metropolized_gibbs_sampling_categorical`](./adabmDCA.sampling.md#function-metropolized_gibbs_sampling_categorical): Metropolized Gibbs sampling of integer states of shape (N, L).
 - [`sampling.metropolized_gibbs_step_uniform_sites`](./adabmDCA.sampling.md#function-metropolized_gibbs_step_uniform_sites): Performs a single Metropolized Gibbs update at the same site for all chains.
 - [`sampling.prepare_fixed_model_sampler`](./adabmDCA.sampling.md#function-prepare_fixed_model_sampler): Prepare a sampler and parameters for a model that will not be updated.
-- [`sampling.prepare_sampler`](./adabmDCA.sampling.md#function-prepare_sampler): Select the fastest sampler for ``device``.
+- [`sampling.prepare_sampler`](./adabmDCA.sampling.md#function-prepare_sampler): Select the fastest sampler for `device`.
 - [`sampling.prepare_training_sampler`](./adabmDCA.sampling.md#function-prepare_training_sampler): Prepare sampling for training with optional BF16 coupling storage.
 - [`sampling.sampling_profile`](./adabmDCA.sampling.md#function-sampling_profile): Samples from the profile model defined by the local biases only.
 - [`sampling.sampling_profile_categorical`](./adabmDCA.sampling.md#function-sampling_profile_categorical): Sample integer states (N,L) from the uncoupled profile, without encoding.
 - [`sampling_triton.exchange_log_acceptance_categorical_triton`](./adabmDCA.sampling_triton.md#function-exchange_log_acceptance_categorical_triton): Compute Hamiltonian-exchange log acceptance from categorical states.
-- [`sampling_triton.exchange_log_acceptance_sparse_triton`](./adabmDCA.sampling_triton.md#function-exchange_log_acceptance_sparse_triton): Hamiltonian-exchange log acceptance from sparse coupling layouts, or ``None`` if a graph is dense.
+- [`sampling_triton.exchange_log_acceptance_sparse_triton`](./adabmDCA.sampling_triton.md#function-exchange_log_acceptance_sparse_triton): Hamiltonian-exchange log acceptance from sparse coupling layouts, or `None` if a graph is dense.
 - [`sampling_triton.gibbs_sampling_categorical_triton`](./adabmDCA.sampling_triton.md#function-gibbs_sampling_categorical_triton): Run Gibbs sampling directly on contiguous int32 categorical states.
 - [`sampling_triton.gibbs_sampling_triton`](./adabmDCA.sampling_triton.md#function-gibbs_sampling_triton): Run Gibbs updates, keeping each chain in registers across short chunks.
 - [`sampling_triton.gibbs_step_independent_sites_triton`](./adabmDCA.sampling_triton.md#function-gibbs_step_independent_sites_triton): Apply one fused Gibbs update at an independently drawn site per chain (CUDA, Triton).
 - [`sampling_triton.is_triton_available`](./adabmDCA.sampling_triton.md#function-is_triton_available): Return whether Triton was imported successfully.
 - [`sampling_triton.metropolis_sampling_categorical_triton`](./adabmDCA.sampling_triton.md#function-metropolis_sampling_categorical_triton): Run Metropolis sampling directly on contiguous int32 categorical states.
 - [`sampling_triton.metropolis_sampling_replicas_categorical_triton`](./adabmDCA.sampling_triton.md#function-metropolis_sampling_replicas_categorical_triton): Sample a stack of PTT replicas in one sequence of Triton launches.
-- [`sampling_triton.metropolis_sampling_triton`](./adabmDCA.sampling_triton.md#function-metropolis_sampling_triton): Run Metropolis updates with ``steps_per_launch`` updates per kernel.
+- [`sampling_triton.metropolis_sampling_triton`](./adabmDCA.sampling_triton.md#function-metropolis_sampling_triton): Run Metropolis updates with `steps_per_launch` updates per kernel.
 - [`sampling_triton.metropolis_step_independent_sites_triton`](./adabmDCA.sampling_triton.md#function-metropolis_step_independent_sites_triton): Apply one fused Metropolis update at an independently drawn site per chain (CUDA, Triton).
 - [`sampling_triton.metropolized_gibbs_sampling_categorical_triton`](./adabmDCA.sampling_triton.md#function-metropolized_gibbs_sampling_categorical_triton): Metropolized Gibbs sampling of contiguous CUDA int32 states (N, L).
 - [`sampling_triton.metropolized_gibbs_sampling_replicas_categorical_triton`](./adabmDCA.sampling_triton.md#function-metropolized_gibbs_sampling_replicas_categorical_triton): Metropolized Gibbs sampling of a stack of replicas in one sequence of launches.
 - [`sampling_triton.metropolized_gibbs_sampling_replicas_triton`](./adabmDCA.sampling_triton.md#function-metropolized_gibbs_sampling_replicas_triton): Metropolized Gibbs sampling of a stack of replicas, from couplings in their original layout.
-- [`sampling_triton.metropolized_gibbs_sampling_triton`](./adabmDCA.sampling_triton.md#function-metropolized_gibbs_sampling_triton): Metropolized Gibbs sampling of one-hot chains; see ``metropolized_gibbs_sampling_categorical_triton``.
-- [`sampling_triton.sparse_coupling_layout`](./adabmDCA.sampling_triton.md#function-sparse_coupling_layout): The sparse layout of stacked couplings ``(R, L, q, L, q)`` if it pays off for ``method``, else ``None``.
+- [`sampling_triton.metropolized_gibbs_sampling_triton`](./adabmDCA.sampling_triton.md#function-metropolized_gibbs_sampling_triton): Metropolized Gibbs sampling of one-hot chains; see `metropolized_gibbs_sampling_categorical_triton`.
+- [`sampling_triton.sparse_coupling_layout`](./adabmDCA.sampling_triton.md#function-sparse_coupling_layout): The sparse layout of stacked couplings `(R, L, q, L, q)` if it pays off for `method`, else `None`.
 - [`sampling_triton.transpose_couplings_for_metropolized_gibbs`](./adabmDCA.sampling_triton.md#function-transpose_couplings_for_metropolized_gibbs): View (L, q, L, q) couplings as (site, source_site, source_state, state).
 - [`statmech.compute_energy`](./adabmDCA.statmech.md#function-compute_energy): Compute the DCA energy for a batch of sequences.
 - [`statmech.compute_entropy`](./adabmDCA.statmech.md#function-compute_entropy): Compute the entropy of the DCA model.
 - [`statmech.compute_logZ_exact`](./adabmDCA.statmech.md#function-compute_logz_exact): Compute the log-partition function of the model.
 - [`statmech.compute_log_likelihood`](./adabmDCA.statmech.md#function-compute_log_likelihood): Compute the log-likelihood per residue of the model.
-- [`statmech.couplings_are_symmetric`](./adabmDCA.statmech.md#function-couplings_are_symmetric): Whether ``J[i, a, j, b] == J[j, b, i, a]`` exactly, as for every trained Potts model.
+- [`statmech.couplings_are_symmetric`](./adabmDCA.statmech.md#function-couplings_are_symmetric): Whether `J[i, a, j, b] == J[j, b, i, a]` exactly, as for every trained Potts model.
 - [`statmech.enumerate_states`](./adabmDCA.statmech.md#function-enumerate_states): Enumerate all possible states of a system of L sites and q states.
 - [`statmech.exchange_log_acceptance`](./adabmDCA.statmech.md#function-exchange_log_acceptance): Deterministic log Metropolis acceptance for Hamiltonian exchange.
 - [`statmech.get_cde`](./adabmDCA.statmech.md#function-get_cde): Compute per-site context-dependent entropy of one-hot sequences.

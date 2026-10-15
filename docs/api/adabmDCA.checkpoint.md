@@ -20,7 +20,7 @@ Training checkpoints and the versioned human-readable training log.
 ## <kbd>class</kbd> `Checkpoint`
 Save model state and write the training history, events and readable log.
 
-``history.csv`` gains one row per update and is rewritten whenever the history changes retroactively (resume, recovery). ``events.jsonl`` gains one JSON object per event. The readable log holds the run metadata, a narrow progress table with events as ``»`` lines, and the end summary.
+`history.csv` gains one row per update and is rewritten whenever the history changes retroactively (resume, recovery). `events.jsonl` gains one JSON object per event. The readable log holds the run metadata, a narrow progress table with events as `»` lines, and the end summary.
 
 <a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/checkpoint.py#L65"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
@@ -90,7 +90,7 @@ Return whether this update requires a persisted checkpoint.
 event(name: 'str', details: 'Mapping[str, Any]') → None
 ```
 
-Record one event in ``events.jsonl`` and, if describable, as a ``»`` log line.
+Record one event in `events.jsonl` and, if describable, as a `»` log line.
 
 ---
 
@@ -152,7 +152,7 @@ resumed(step: 'int') → None
 rewrite_history(history: 'Mapping[str, list[Any]]') → None
 ```
 
-Replace ``history.csv`` after the history changed retroactively (resume, recovery).
+Replace `history.csv` after the history changed retroactively (resume, recovery).
 
 ---
 

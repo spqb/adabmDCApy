@@ -386,9 +386,9 @@ Returns the sampling function corresponding to the chosen method.
 prepare_sampler(sampling_method: str, device: device) → Callable
 ```
 
-Select the fastest sampler for ``device``.
+Select the fastest sampler for `device`.
 
-CUDA uses the fused Triton kernels when Triton is installed. MPS uses the fused Metal kernels when ``torch.mps.compile_shader`` is available, unless disabled with ``ADABMDCA_MPS=0`` (unsupported shapes/dtypes use PyTorch). CPU uses the multithreaded Numba kernels of `adabmDCA.numba_kernels` when Numba is installed (``pip install adabmDCA[cpu]``) and not disabled with ``ADABMDCA_NUMBA=0``. Otherwise the TorchScript samplers of this module run. All of them perform the same random-site updates and sample the same distribution.
+CUDA uses the fused Triton kernels when Triton is installed. MPS uses the fused Metal kernels when `torch.mps.compile_shader` is available, unless disabled with `ADABMDCA_MPS=0` (unsupported shapes/dtypes use PyTorch). CPU uses the multithreaded Numba kernels of `adabmDCA.numba_kernels` when Numba is installed (`pip install adabmDCA[cpu]`) and not disabled with `ADABMDCA_NUMBA=0`. Otherwise the TorchScript samplers of this module run. All of them perform the same random-site updates and sample the same distribution.
 
 
 ---

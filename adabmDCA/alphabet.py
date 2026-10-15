@@ -13,8 +13,8 @@ def get_tokens(alphabet: str) -> str:
             which is returned unchanged.
 
     Returns:
-        The tokens, gap first for the built-in alphabets: ``"-ACDEFGHIKLMNPQRSTVWY"``,
-        ``"-ACGU"`` or ``"-ACGT"``.
+        The tokens, gap first for the built-in alphabets (``"-ACDEFGHIKLMNPQRSTVWY"``,
+        ``"-ACGU"`` or ``"-ACGT"``).
 
     Raises:
         TypeError: If ``alphabet`` is not a string.

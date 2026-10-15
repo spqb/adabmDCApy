@@ -34,7 +34,7 @@ reintegrate_model(
 
 Train a model on natural sequences plus experimentally scored ones.
 
-Experimental sequences enter the training statistics with signed weights proportional to their ``adjustments``: positive values pull the model towards a sequence, negative values push it away. The experimental weights are scaled by ``lambda_value * Meff / n_experimental``, so ``lambda_value`` sets the weight of the experimental data relative to the natural alignment. Training uses PTT when ``config.ptt`` is set, and PCD otherwise.
+Experimental sequences enter the training statistics with signed weights proportional to their `adjustments`: positive values pull the model towards a sequence, negative values push it away. The experimental weights are scaled by `lambda_value * Meff / n_experimental`, so `lambda_value` sets the weight of the experimental data relative to the natural alignment. Training uses PTT when `config.ptt` is set, and PCD otherwise.
 
 
 
@@ -43,30 +43,29 @@ Experimental sequences enter the training statistics with signed weights proport
  - <b>`natural_alignment`</b>:  Natural sequences (path, `Alignment` or sequences).
  - <b>`experimental_alignment`</b>:  Tested sequences, aligned like the natural ones.
  - <b>`adjustments`</b>:  One signed score per experimental sequence (path, array or  sequence of numbers), e.g. +1 for functional and -1 for non-functional.
- - <b>`config`</b>:  Training settings; defaults to ``TrainingConfig()`` (PCD); set  ``ptt=PTTConfig()`` to train with PTT.  A pseudocount of 1e-6 (0.1 for edgeDCA) is used unless set.
+ - <b>`config`</b>:  Training settings; defaults to `TrainingConfig()` (PCD); set  `ptt=PTTConfig()` to train with PTT.  A pseudocount of 1e-6 (0.1 for edgeDCA) is used unless set.
  - <b>`natural_weights`</b>:  Optional weights of the natural sequences; computed  by sequence-identity reweighting otherwise.
- - <b>`lambda_value`</b>:  Relative weight of the experimental data; defaults to  ``1 / max(|adjustments|)``.
+ - <b>`lambda_value`</b>:  Relative weight of the experimental data; defaults to  `1 / max(|adjustments|)`.
  - <b>`output_dir`</b>:  If given, training files and the combined alignment are written there.
- - <b>`label`</b>:  File-name prefix; the written label is ``<label>-lambda_<value>``.
+ - <b>`label`</b>:  File-name prefix; the written label is `<label>-lambda_<value>`.
  - <b>`initial_params_path`</b>:  Optional parameter file to start from.
  - <b>`initial_chains_path`</b>:  Optional FASTA of starting chains.
  - <b>`ptt_resume`</b>:  Optional PTT archive of an interrupted reintegration run  with the same data and settings.
  - <b>`progress`</b>:  Optional callback receiving a `TrainingProgress` per update.
  - <b>`stage_progress`</b>:  Optional callback for transient PTT stage updates.
  - <b>`on_initialized`</b>:  Optional callback receiving the `TrainingInitialization`.
- - <b>`is_cancelled`</b>:  Optional callable; returning ``True`` stops training.
+ - <b>`is_cancelled`</b>:  Optional callable; returning `True` stops training.
 
 
 
 **Returns:**
-
- - <b>`A `</b>: class:`ReintegrationResult` with the training result, the combined alignment and its weights.
+ A `ReintegrationResult` with the training result, the combined alignment and its weights.
 
 
 
 **Raises:**
 
- - <b>`InputValidationError`</b>:  If all adjustments are zero, ``lambda_value`` is  not positive, or the alignments are incompatible.
+ - <b>`InputValidationError`</b>:  If all adjustments are zero, `lambda_value` is  not positive, or the alignments are incompatible.
 
 
 

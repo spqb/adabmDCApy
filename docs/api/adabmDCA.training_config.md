@@ -55,23 +55,23 @@ Raised when a training configuration is internally inconsistent.
 ## <kbd>class</kbd> `TrainingConfig`
 All settings of one training run, validated on construction.
 
-Pass it as ``config=`` to `train_model`; it then takes precedence over the function's individual keyword arguments. Settings that do not apply to the chosen ``model_type`` are ignored.
+Pass it as `config=` to `train_model`; it then takes precedence over the function's individual keyword arguments. Settings that do not apply to the chosen `model_type` are ignored.
 
 
 
 **Attributes:**
 
- - <b>`model_type`</b>:  ``"bmDCA"`` (fully connected), ``"eaDCA"`` (coupling  activation), ``"edDCA"`` (decimation) or ``"edgeDCA"`` (edge activation).
- - <b>`alphabet`</b>:  ``"protein"``, ``"rna"``, ``"dna"`` or an ordered custom token string.
+ - <b>`model_type`</b>:  `"bmDCA"` (fully connected), `"eaDCA"` (coupling  activation), `"edDCA"` (decimation) or `"edgeDCA"` (edge activation).
+ - <b>`alphabet`</b>:  `"protein"`, `"rna"`, `"dna"` or an ordered custom token string.
  - <b>`learning_rate`</b>:  Step size of the parameter updates (ignored by edgeDCA).
  - <b>`n_sweeps`</b>:  Monte Carlo sweeps per update.
- - <b>`sampler`</b>:  ``"metropolized_gibbs"``, ``"gibbs"`` or ``"metropolis"``.
+ - <b>`sampler`</b>:  `"metropolized_gibbs"`, `"gibbs"` or `"metropolis"`.
  - <b>`n_chains`</b>:  Number of Markov chains.
  - <b>`target_pearson`</b>:  Training stops when the Pearson correlation between data and  model connected correlations reaches this value.
  - <b>`max_epochs`</b>:  Step budget: gradient steps for bmDCA, graph steps for the  sparse models. Superseded by the two limits below.
  - <b>`max_gradient_steps`</b>:  Optional limit on parameter updates.
  - <b>`max_structure_steps`</b>:  Optional limit on graph activations or decimations.
- - <b>`pseudocount`</b>:  Pseudocount of the training statistics; ``None`` means ``1/Meff``  (0.1 for edgeDCA).
+ - <b>`pseudocount`</b>:  Pseudocount of the training statistics; `None` means `1/Meff`  (0.1 for edgeDCA).
  - <b>`l2_regularization`</b>:  Strength of the L2 penalty on the couplings.
  - <b>`seed`</b>:  Random seed.
  - <b>`clustering_seqid`</b>:  Sequence identity above which sequences share weight.
@@ -80,13 +80,13 @@ Pass it as ``config=`` to `train_model`; it then takes precedence over the funct
  - <b>`activation_fraction`</b>:  eaDCA: fraction of the inactive couplings activated  per graph update (the upper limit for PTT adaptive activation).
  - <b>`target_density`</b>:  edDCA: coupling density at which decimation stops.
  - <b>`decimation_rate`</b>:  edDCA: fraction of active couplings removed per decimation.
- - <b>`device`</b>:  ``"auto"``, ``"cpu"``, ``"cuda"`` or ``"mps"``.
- - <b>`dtype`</b>:  ``"float32"``, ``"float64"`` or ``"bfloat16"`` (CUDA/MPS; CUDA only with PTT).
+ - <b>`device`</b>:  `"auto"`, `"cpu"`, `"cuda"` or `"mps"`.
+ - <b>`dtype`</b>:  `"float32"`, `"float64"` or `"bfloat16"` (CUDA/MPS; CUDA only with PTT).
  - <b>`use_wandb`</b>:  Log to Weights & Biases.
- - <b>`checkpoint_interval`</b>:  Updates between saved checkpoints; ``None`` uses the default.
+ - <b>`checkpoint_interval`</b>:  Updates between saved checkpoints; `None` uses the default.
  - <b>`inner_gradient_steps`</b>:  edDCA: largest number of gradient updates to  re-converge the model after each decimation.
  - <b>`edge_empirical_pseudocount`</b>:  edgeDCA: small pseudocount of the target  statistics, which avoids zero frequencies.
- - <b>`ptt`</b>:  `PTTConfig` to train with PTT, or ``None`` for PCD.
+ - <b>`ptt`</b>:  `PTTConfig` to train with PTT, or `None` for PCD.
 
 
 
@@ -186,7 +186,7 @@ Return a serializable snapshot suitable for run metadata.
 resolve_pseudocount(effective_size: 'float') → float
 ```
 
-Return the pseudocount to use for a training set of ``effective_size`` (``Meff``).
+Return the pseudocount to use for a training set of `effective_size` (`Meff`).
 
 
 
@@ -197,13 +197,13 @@ Return the pseudocount to use for a training set of ``effective_size`` (``Meff``
 
 
 **Returns:**
- ``pseudocount`` if set; otherwise 0.1 for edgeDCA and ``1/Meff`` for the other models.
+ `pseudocount` if set; otherwise 0.1 for edgeDCA and `1/Meff` for the other models.
 
 
 
 **Raises:**
 
- - <b>`ConfigurationError`</b>:  If ``effective_size`` is not positive.
+ - <b>`ConfigurationError`</b>:  If `effective_size` is not positive.
 
 
 

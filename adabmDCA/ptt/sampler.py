@@ -1712,8 +1712,8 @@ class PTTSampler:
             on_progress: Optional progress callback.
 
         Returns:
-            ``(accepted, work)``: whether the transition was committed and the
-            local sweeps it used.
+            A pair ``(accepted, work)``, whether the transition was committed and
+            the local sweeps it used.
         """
         if self.mode != "train":
             raise InputValidationError("Generation freezes the archived Hamiltonians; target transitions are disabled.")
@@ -1815,7 +1815,7 @@ class PTTSampler:
             estimator: ``"bar"`` or ``"forward"``.
 
         Returns:
-            One dictionary per active replica: ``log_z``, ``mean_energy``,
+            One dictionary per active replica, with ``log_z``, ``mean_energy``,
             ``entropy``, ``log_likelihood``, ``log_likelihood_per_residue``, ...
         """
         if estimator not in ("forward", "bar"):

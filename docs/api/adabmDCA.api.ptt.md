@@ -24,7 +24,7 @@ load_ptt_backend(
 ) → PTTSampler
 ```
 
-Return a PTT sampler ready for generation, loaded or forked from ``source``.
+Return a PTT sampler ready for generation, loaded or forked from `source`.
 
 An in-memory `PTTSampler` is forked, so the original is not modified. An archive keeps its precision and alphabet.
 
@@ -33,21 +33,20 @@ An in-memory `PTTSampler` is forked, so the original is not modified. An archive
 **Args:**
 
  - <b>`source`</b>:  A `PTTSampler` or a path to a PTT archive.
- - <b>`device`</b>:  Device to load the archive on; ``"auto"`` prefers CUDA, then MPS, then CPU.  Changing device requires a new ``seed``.
- - <b>`seed`</b>:  New random seed, or ``None`` to continue the archived random stream.
+ - <b>`device`</b>:  Device to load the archive on; `"auto"` prefers CUDA, then MPS, then CPU.  Changing device requires a new `seed`.
+ - <b>`seed`</b>:  New random seed, or `None` to continue the archived random stream.
  - <b>`alphabet`</b>:  Optional alphabet; must match the archive's tokens.
 
 
 
 **Returns:**
-
- - <b>`A `</b>: class:`PTTSampler` in generation mode.
+ A `PTTSampler` in generation mode.
 
 
 
 **Raises:**
 
- - <b>`InputValidationError`</b>:  If the archive is invalid or ``alphabet`` conflicts with it.
+ - <b>`InputValidationError`</b>:  If the archive is invalid or `alphabet` conflicts with it.
 
 
 ---
@@ -93,7 +92,7 @@ sample_ptt_sequences(
 
 Equilibrate the ladder in place, then collect endpoint samples.
 
-``mixing_method='renewal'`` (default) tracks the birth round of every configuration and waits until the ladder has twice been repopulated by exact rung-0 draws (see ``PTTSampler.measure_renewal``); extra batches are spaced by the measured renewal time. By default the renewal runs only the warmup, which replaces the initial populations once; ``stationary=True`` adds the stationary renewal, which certifies that the returned population descends from draws made after the ladder had forgotten its start. ``'autocorrelation'`` keeps the replica-index TRWA estimate of tau_int and tau_exp. Each round runs one pass of adjacent exchanges and population permutations, then the local sweeps, as in training. ``local_kernel`` selects the local update ('metropolized_gibbs' by default, 'metropolis' or 'gibbs'); ``None`` keeps the archived training kernel. All of them leave every replica's distribution invariant. The ladder is the training ladder (see ``PTTSampler.prepare_sampling_ladder``). With ``steering_potential``, steered rungs are added on top of it (``PTTSampler.prepare_steering``) and the samples come from the top one; see `adabmDCA.api.sampling.sample_sequences` for the steering arguments. With ``return_full_ladder``, every rung's chains are kept at the same rounds as the endpoint batches, in the result's ``ladder_samples``.
+`mixing_method='renewal'` (default) tracks the birth round of every configuration and waits until the ladder has twice been repopulated by exact rung-0 draws (see `PTTSampler.measure_renewal`); extra batches are spaced by the measured renewal time. By default the renewal runs only the warmup, which replaces the initial populations once; `stationary=True` adds the stationary renewal, which certifies that the returned population descends from draws made after the ladder had forgotten its start. `'autocorrelation'` keeps the replica-index TRWA estimate of tau_int and tau_exp. Each round runs one pass of adjacent exchanges and population permutations, then the local sweeps, as in training. `local_kernel` selects the local update ('metropolized_gibbs' by default, 'metropolis' or 'gibbs'); `None` keeps the archived training kernel. All of them leave every replica's distribution invariant. The ladder is the training ladder (see `PTTSampler.prepare_sampling_ladder`). With `steering_potential`, steered rungs are added on top of it (`PTTSampler.prepare_steering`) and the samples come from the top one; see `adabmDCA.api.sampling.sample_sequences` for the steering arguments. With `return_full_ladder`, every rung's chains are kept at the same rounds as the endpoint batches, in the result's `ladder_samples`.
 
 
 ---
@@ -115,9 +114,9 @@ estimate_ptt_entropy(
 ) → PTTEntropyResult
 ```
 
-Estimate the entropy of a PTT-trained model as ``<E> + log Z``.
+Estimate the entropy of a PTT-trained model as `<E> + log Z`.
 
-A PTT archive already carries an estimate of log Z (bridges along its replica ladder), so no thermodynamic integration is needed: the ladder is advanced for the archive's ``equilibration_rounds`` exchange rounds, then ``log Z`` is re-estimated with Bennett's acceptance ratio and ``<E>`` is averaged over the endpoint chains.
+A PTT archive already carries an estimate of log Z (bridges along its replica ladder), so no thermodynamic integration is needed: the ladder is advanced for the archive's `equilibration_rounds` exchange rounds, then `log Z` is re-estimated with Bennett's acceptance ratio and `<E>` is averaged over the endpoint chains.
 
 
 
@@ -126,17 +125,16 @@ A PTT archive already carries an estimate of log Z (bridges along its replica la
  - <b>`model`</b>:  A PTT archive path, or a `PTTSampler` (it is forked, not modified).
  - <b>`n_sweeps`</b>:  Local sweeps per exchange round of the warmup.
  - <b>`seed`</b>:  Random seed of the warmup.
- - <b>`device`</b>:  ``"cpu"``, ``"cuda"``, ``"mps"`` (float32) or ``"auto"``.
+ - <b>`device`</b>:  `"cpu"`, `"cuda"`, `"mps"` (float32) or `"auto"`.
  - <b>`alphabet`</b>:  Optional alphabet; must match the archive.
- - <b>`output_dir`</b>:  If given, the result is written to ``<output_dir>/<label>.json``.
+ - <b>`output_dir`</b>:  If given, the result is written to `<output_dir>/<label>.json`.
  - <b>`label`</b>:  File-name stem of the written JSON.
- - <b>`is_cancelled`</b>:  Optional callable; returning ``True`` stops the warmup.
+ - <b>`is_cancelled`</b>:  Optional callable; returning `True` stops the warmup.
 
 
 
 **Returns:**
-
- - <b>`A `</b>: class:`PTTEntropyResult`; ``entropy`` is in nats per sequence.
+ A `PTTEntropyResult`; `entropy` is in nats per sequence.
 
 
 
@@ -157,17 +155,17 @@ Entropy of a PTT model, returned by `estimate_ptt_entropy`.
 
 **Attributes:**
 
- - <b>`entropy`</b>:  Entropy of the endpoint model, in nats per sequence  (``mean_energy + log_z``).
- - <b>`free_energy`</b>:  ``-log_z``.
+ - <b>`entropy`</b>:  Entropy of the endpoint model, in nats per sequence  (`mean_energy + log_z`).
+ - <b>`free_energy`</b>:  `-log_z`.
  - <b>`mean_energy`</b>:  Mean endpoint energy over the endpoint chains.
  - <b>`log_z`</b>:  Log partition function from the PTT bridges.
- - <b>`method`</b>:  Estimator of ``log_z``, e.g. ``"ptt_bridge"``.
- - <b>`status`</b>:  Status of the ``log_z`` estimate.
+ - <b>`method`</b>:  Estimator of `log_z`, e.g. `"ptt_bridge"`.
+ - <b>`status`</b>:  Status of the `log_z` estimate.
  - <b>`model_id`</b>:  Hash identifying the endpoint parameters.
  - <b>`model_version`</b>:  Number of training updates of the endpoint.
  - <b>`ladder_version`</b>:  Version of the replica ladder used.
  - <b>`sample_round`</b>:  Exchange round at which the chains were measured.
- - <b>`artifacts`</b>:  Written files by kind, when ``output_dir`` was given.
+ - <b>`artifacts`</b>:  Written files by kind, when `output_dir` was given.
 
 <a href="https://github.com/spqb/adabmDCApy/blob/main/<string>"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 

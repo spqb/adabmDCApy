@@ -26,22 +26,21 @@ load_model(
 
 Load DCA parameters from a text parameter file or a PTT archive.
 
-The file type is detected from its content. For a PTT archive (``.h5``), the final model of the training run is loaded together with its alphabet.
+The file type is detected from its content. For a PTT archive (`.h5`), the final model of the training run is loaded together with its alphabet.
 
 
 
 **Args:**
 
- - <b>`path`</b>:  Parameter file written by ``adabmDCA train`` (``params.dat``,  optionally gzipped) or a PTT archive (``ptt.h5``).
- - <b>`alphabet`</b>:  ``"protein"``, ``"rna"``, ``"dna"`` or an ordered custom token  string. ``None`` reads it from a PTT archive and assumes  ``"protein"`` for text files. An explicit value must match the archive.
- - <b>`device`</b>:  ``"auto"`` (CUDA when available, else CPU), ``"cpu"``, ``"cuda"``  or ``"mps"``.
- - <b>`dtype`</b>:  ``"float32"`` or ``"float64"``. PTT archives keep their precision.
+ - <b>`path`</b>:  Parameter file written by `adabmDCA train` (`params.dat`,  optionally gzipped) or a PTT archive (`ptt.h5`).
+ - <b>`alphabet`</b>:  `"protein"`, `"rna"`, `"dna"` or an ordered custom token  string. `None` reads it from a PTT archive and assumes  `"protein"` for text files. An explicit value must match the archive.
+ - <b>`device`</b>:  `"auto"` (CUDA when available, else CPU), `"cpu"`, `"cuda"`  or `"mps"`.
+ - <b>`dtype`</b>:  `"float32"` or `"float64"`. PTT archives keep their precision.
 
 
 
 **Returns:**
-
- - <b>`A `</b>: class:`DCAModel` on the requested device.
+ A `DCAModel` on the requested device.
 
 
 
@@ -81,16 +80,14 @@ Describe a model without using it: length, alphabet, device and precision.
 **Args:**
 
  - <b>`model`</b>:  A `DCAModel`, or a path to a parameter file or PTT archive.
- - <b>`alphabet`</b>:  Alphabet of a text parameter file: ``"protein"``, ``"rna"``,  ``"dna"`` or an ordered custom token string. ``None`` reads it from a  PTT archive and assumes ``"protein"`` for text files. Ignored when
- - <b>```model`` is already a `</b>: class:`DCAModel`.
- - <b>`device`</b>:  ``"auto"`` (CUDA when available, else CPU), ``"cpu"``,  ``"cuda"`` or ``"mps"``. Ignored for an in-memory model.
- - <b>`dtype`</b>:  ``"float32"`` or ``"float64"`` for loaded parameters. Ignored for an  in-memory model.
+ - <b>`alphabet`</b>:  Alphabet of a text parameter file: `"protein"`, `"rna"`,  `"dna"` or an ordered custom token string. `None` reads it from a  PTT archive and assumes `"protein"` for text files. Ignored when  `model` is already a `DCAModel`.
+ - <b>`device`</b>:  `"auto"` (CUDA when available, else CPU), `"cpu"`,  `"cuda"` or `"mps"`. Ignored for an in-memory model.
+ - <b>`dtype`</b>:  `"float32"` or `"float64"` for loaded parameters. Ignored for an  in-memory model.
 
 
 
 **Returns:**
-
- - <b>`The model's `</b>: class:`ModelMetadata`.
+ The model's `ModelMetadata`.
 
 
 ---
@@ -100,16 +97,16 @@ Describe a model without using it: length, alphabet, device and precision.
 ## <kbd>class</kbd> `DCAModel`
 DCA parameters and convenience methods for scoring and sampling.
 
-Use `load_model` for a saved model. Construct ``DCAModel`` directly when parameter tensors are already in memory. The bias tensor determines the model length ``L``, number of states ``q``, device, and dtype. The ordered ``tokens`` string maps state indices to residue symbols.
+Use `load_model` for a saved model. Construct `DCAModel` directly when parameter tensors are already in memory. The bias tensor determines the model length `L`, number of states `q`, device, and dtype. The ordered `tokens` string maps state indices to residue symbols.
 
 
 
 **Attributes:**
 
- - <b>`params`</b>:  Parameter tensors, including ``bias`` with shape ``(L, q)``  and ``coupling_matrix`` with shape ``(L, q, L, q)``.
+ - <b>`params`</b>:  Parameter tensors, including `bias` with shape `(L, q)`  and `coupling_matrix` with shape `(L, q, L, q)`.
  - <b>`alphabet`</b>:  Standard alphabet name or custom alphabet passed at creation.
- - <b>`tokens`</b>:  Resolved, ordered token string of length ``q``.
- - <b>`source`</b>:  Source path as a string, or ``None`` for an in-memory model.
+ - <b>`tokens`</b>:  Resolved, ordered token string of length `q`.
+ - <b>`source`</b>:  Source path as a string, or `None` for an in-memory model.
 
 <a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/model.py#L53"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
@@ -129,15 +126,15 @@ Validate and retain a set of DCA parameter tensors.
 
 **Args:**
 
- - <b>`params`</b>:  Mapping containing finite ``bias`` and  ``coupling_matrix`` tensors with compatible shapes.
- - <b>`alphabet`</b>:  ``"protein"``, ``"dna"``, ``"rna"``, or an ordered  custom token string whose length equals ``q``.
+ - <b>`params`</b>:  Mapping containing finite `bias` and  `coupling_matrix` tensors with compatible shapes.
+ - <b>`alphabet`</b>:  `"protein"`, `"dna"`, `"rna"`, or an ordered  custom token string whose length equals `q`.
  - <b>`source`</b>:  Optional path to the file from which the parameters came.
 
 
 
 **Raises:**
 
- - <b>`InputValidationError`</b>:  If required tensors are missing, nonfinite,  incompatible in shape, or inconsistent with ``alphabet``.
+ - <b>`InputValidationError`</b>:  If required tensors are missing, nonfinite,  incompatible in shape, or inconsistent with `alphabet`.
 
 
 ---
@@ -146,7 +143,7 @@ Validate and retain a set of DCA parameter tensors.
 
 Portable model description derived from the current bias tensor.
 
-Includes length, alphabet, tokens, source, package version, device, and dtype. ``num_states`` is available on the returned metadata.
+Includes length, alphabet, tokens, source, package version, device, and dtype. `num_states` is available on the returned metadata.
 
 
 
@@ -165,7 +162,7 @@ Return the model's APC-corrected contact scores.
 
 
 **Returns:**
-  A NumPy array of shape ``(L, L)``. Contact prediction requires  the ``"-"`` gap token in the model alphabet.
+  A NumPy array of shape `(L, L)`. Contact prediction requires  the `"-"` gap token in the model alphabet.
 
 ---
 
@@ -183,7 +180,7 @@ Compute model energies for one or more aligned sequences.
 
 **Args:**
 
- - <b>`sequences`</b>:  One sequence string or an iterable of strings, each of  length ``L`` and containing only the model's tokens.
+ - <b>`sequences`</b>:  One sequence string or an iterable of strings, each of  length `L` and containing only the model's tokens.
 
 
 
@@ -205,8 +202,7 @@ Return contact scores together with method and model metadata.
 
 
 **Returns:**
-
- - <b>`A `</b>: class:`ContactMapResult` whose score matrix has shape ``(L, L)``. The model alphabet must include ``"-"``.
+  A `ContactMapResult` whose score matrix has shape  `(L, L)`. The model alphabet must include `"-"`.
 
 ---
 
@@ -232,14 +228,14 @@ Generate sequences and return only their decoded strings.
 
  - <b>`n_sequences`</b>:  Number of sequences to generate.
  - <b>`n_sweeps`</b>:  Sampling sweeps applied to the initial chains.
- - <b>`sampler`</b>:  ``"metropolis"``, ``"gibbs"`` or ``"metropolized_gibbs"``.
+ - <b>`sampler`</b>:  `"metropolis"`, `"gibbs"` or `"metropolized_gibbs"`.
  - <b>`beta`</b>:  Positive inverse temperature used for sampling.
  - <b>`seed`</b>:  Random seed for reproducible initialization and sampling.
 
 
 
 **Returns:**
- A tuple of ``n_sequences`` strings, each of length ``L``.
+ A tuple of `n_sequences` strings, each of length `L`.
 
 ---
 
@@ -258,14 +254,12 @@ Generate sequences with energies and optional diagnostics.
 **Args:**
 
  - <b>`n_sequences`</b>:  Number of sequences to generate.
- - <b>`**kwargs`</b>:  Additional options accepted by
- - <b>`:func`</b>: `adabmDCA.api.sampling.sample_sequences`, such as ``n_sweeps``, ``sampler``, ``seed``, or ``reference_fasta``.
+ - <b>`**kwargs`</b>:  Additional options accepted by  `adabmDCA.api.sampling.sample_sequences`, such as  `n_sweeps`, `sampler`, `seed`, or `reference_fasta`.
 
 
 
 **Returns:**
-
- - <b>`A `</b>: class:`SamplingResult` containing generated sequences, energies, model metadata, and any requested diagnostics.
+ A `SamplingResult` containing generated sequences, energies, model metadata, and any requested diagnostics.
 
 ---
 
@@ -283,14 +277,13 @@ Score every single-token substitution of a wild-type sequence.
 
 **Args:**
 
- - <b>`wild_type`</b>:  Aligned sequence of length ``L`` using model tokens.
+ - <b>`wild_type`</b>:  Aligned sequence of length `L` using model tokens.
  - <b>`name`</b>:  Label attached to the resulting mutation scan.
 
 
 
 **Returns:**
-
- - <b>`A `</b>: class:`MutationScanResult` with wild-type energy and each mutant's energy difference relative to the wild type. Gap substitutions are included when ``"-"`` is a model token.
+ A `MutationScanResult` with wild-type energy and each mutant's energy difference relative to the wild type. Gap substitutions are included when `"-"` is a model token.
 
 ---
 
@@ -317,8 +310,7 @@ Compute energy and CDE-based local free energy with sequence metadata.
 
 
 **Returns:**
-
- - <b>`An `</b>: class:`EnergyResult` containing the sequences, energy and local-free-energy vectors, and model metadata.
+ An `EnergyResult` containing the sequences, energy and local-free-energy vectors, and model metadata.
 
 
 

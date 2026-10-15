@@ -89,7 +89,7 @@ Entries are counted once per symmetric pair (i < j). Only inactive entries are e
 
 **Returns:**
 
- - <b>`Tuple[torch.Tensor, int, int]`</b>:  Updated symmetric mask, number of entries requested (``int(fraction * inactive)``) and number actually activated.
+ - <b>`Tuple[torch.Tensor, int, int]`</b>:  Updated symmetric mask, number of entries requested (`int(fraction * inactive)`) and number actually activated.
 
 
 ---
@@ -115,7 +115,7 @@ Flat indices of the inactive unique (i < j) coupling entries, by decreasing Dkl.
 activate_elements(mask: Tensor, indices: Tensor) → Tensor
 ```
 
-Activates the unique entries at the flat ``indices`` together with their transposes.
+Activates the unique entries at the flat `indices` together with their transposes.
 
 
 ---

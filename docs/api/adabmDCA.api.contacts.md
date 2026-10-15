@@ -25,31 +25,29 @@ predict_contacts(
 
 Predict residue contacts from a DCA model or directly from an alignment.
 
-With ``model``, scores are the average-product-corrected (APC) Frobenius norms of the zero-sum-gauge couplings, excluding the gap state. With ``fasta_path``, a mean-field DCA model is inferred from the reweighted alignment and scored the same way. Larger scores mean likelier contacts.
+With `model`, scores are the average-product-corrected (APC) Frobenius norms of the zero-sum-gauge couplings, excluding the gap state. With `fasta_path`, a mean-field DCA model is inferred from the reweighted alignment and scored the same way. Larger scores mean likelier contacts.
 
 
 
 **Args:**
 
  - <b>`model`</b>:  A `DCAModel`, or a path to a parameter file or PTT archive.
- - <b>`fasta_path`</b>:  Aligned sequences (path, `Alignment` or sequence  strings) for mean-field prediction. Provide exactly one of ``model``  and ``fasta_path``.
- - <b>`alphabet`</b>:  ``"protein"``, ``"rna"``, ``"dna"`` or an ordered custom token  string, for the alignment or a text parameter file. ``None`` reads it  from a PTT archive and otherwise means ``"protein"``. Ignored when
- - <b>```model`` is already a `</b>: class:`DCAModel`. Must contain ``"-"``.
- - <b>`pseudocount`</b>:  Mean-field only: pseudocount in ``[0, 1]`` that regularizes the  covariance matrix before inversion.
- - <b>`device`</b>:  ``"auto"`` (CUDA when available, else CPU), ``"cpu"``,  ``"cuda"`` or ``"mps"``. Ignored for an in-memory model.
- - <b>`dtype`</b>:  ``"float32"`` or ``"float64"`` for loaded parameters. Ignored for an  in-memory model.
+ - <b>`fasta_path`</b>:  Aligned sequences (path, `Alignment` or sequence  strings) for mean-field prediction. Provide exactly one of `model`  and `fasta_path`.
+ - <b>`alphabet`</b>:  `"protein"`, `"rna"`, `"dna"` or an ordered custom token  string, for the alignment or a text parameter file. `None` reads it  from a PTT archive and otherwise means `"protein"`. Ignored when  `model` is already a `DCAModel`. Must contain `"-"`.
+ - <b>`pseudocount`</b>:  Mean-field only: pseudocount in `[0, 1]` that regularizes the  covariance matrix before inversion.
+ - <b>`device`</b>:  `"auto"` (CUDA when available, else CPU), `"cpu"`,  `"cuda"` or `"mps"`. Ignored for an in-memory model.
+ - <b>`dtype`</b>:  `"float32"` or `"float64"` for loaded parameters. Ignored for an  in-memory model.
 
 
 
 **Returns:**
-
- - <b>`A `</b>: class:`ContactMapResult` whose ``scores`` is a symmetric ``(L, L)`` array with a zero diagonal.
+ A `ContactMapResult` whose `scores` is a symmetric `(L, L)` array with a zero diagonal.
 
 
 
 **Raises:**
 
- - <b>`InputValidationError`</b>:  If both or neither of ``model`` and ``fasta_path``  are given, the alphabet lacks the ``"-"`` gap token, or the  pseudocount is outside ``[0, 1]``.
+ - <b>`InputValidationError`</b>:  If both or neither of `model` and `fasta_path`  are given, the alphabet lacks the `"-"` gap token, or the  pseudocount is outside `[0, 1]`.
 
 
 
@@ -77,7 +75,7 @@ compute_contact_map(
 ) → ndarray
 ```
 
-Return only the ``(L, L)`` contact-score matrix of `predict_contacts`.
+Return only the `(L, L)` contact-score matrix of `predict_contacts`.
 
 Takes the same arguments as `predict_contacts`; see it for details.
 

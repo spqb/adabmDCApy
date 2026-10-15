@@ -194,7 +194,7 @@ class EnergyResult:
             stem: File-name stem.
 
         Returns:
-            The written paths by kind: ``fasta``, ``csv`` and ``summary``.
+            The written paths, keyed by kind (``fasta``, ``csv`` and ``summary``).
         """
         folder = Path(directory)
         return {
@@ -317,7 +317,7 @@ class ContactMapResult:
             label: Optional file-name prefix, giving ``<label>_contact_map.*``.
 
         Returns:
-            The written paths by kind: ``matrix``, ``csv``, ``npy`` and ``summary``.
+            The written paths, keyed by kind (``matrix``, ``csv``, ``npy`` and ``summary``).
         """
         folder = Path(directory)
         stem = f"{label}_contact_map" if label else "contact_map"
@@ -475,7 +475,7 @@ class MutationScanResult:
             stem: File-name stem; defaults to ``<name>_DMS``.
 
         Returns:
-            The written paths by kind: ``fasta``, ``csv`` and ``summary``.
+            The written paths, keyed by kind (``fasta``, ``csv`` and ``summary``).
         """
         folder = Path(directory)
         selected_stem = stem or f"{self.name}_DMS"
@@ -572,7 +572,7 @@ class ProfileSplitResult:
             output_prefix: Path prefix of the three files.
 
         Returns:
-            The written paths by kind: ``training``, ``test`` and ``summary``.
+            The written paths, keyed by kind (``training``, ``test`` and ``summary``).
         """
         prefix = Path(output_prefix)
         training_path = prefix.with_suffix(prefix.suffix + ".train.fasta")
@@ -1359,7 +1359,7 @@ class TrainingResult:
             label: Optional file-name prefix.
 
         Returns:
-            The written paths by kind: ``summary`` and possibly ``history``.
+            The written paths, keyed by kind (``summary`` and possibly ``history``).
         """
         folder = Path(directory)
         prefix = f"{label}_" if label else ""
@@ -1436,7 +1436,7 @@ class ReintegrationResult:
             directory: Output folder.
 
         Returns:
-            The written paths by kind: ``alignment``, ``weights`` and ``summary``.
+            The written paths, keyed by kind (``alignment``, ``weights`` and ``summary``).
         """
         from adabmDCA.serialization import write_numpy_text
 
@@ -1557,7 +1557,7 @@ class ThermodynamicIntegrationResult:
             label: File-name stem.
 
         Returns:
-            The written paths by kind: ``log``, ``csv`` and ``summary``.
+            The written paths, keyed by kind (``log``, ``csv`` and ``summary``).
         """
         folder = Path(directory)
         return {

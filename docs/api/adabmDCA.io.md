@@ -86,7 +86,7 @@ Whether a file is gzip-compressed, judged by its content rather than its name.
 open_params(fname: Union[str, Path], mode: str = 'r') → IO[str]
 ```
 
-Open a parameter file as text; gzip is detected on reading and chosen by a ``.gz`` name on writing.
+Open a parameter file as text; gzip is detected on reading and chosen by a `.gz` name on writing.
 
 
 ---
@@ -104,9 +104,9 @@ load_params(
 ) → Dict[str, Tensor]
 ```
 
-Import parameters from the established ``J``/``h`` text format.
+Import parameters from the established `J`/`h` text format.
 
-Gzip-compressed files (such as ``params.dat.gz``) are read transparently, whatever their name. The file is parsed in two streaming passes so memory use is bounded by the final tensors and a small coupling chunk. Files containing one or both coupling triangles are supported.
+Gzip-compressed files (such as `params.dat.gz`) are read transparently, whatever their name. The file is parsed in two streaming passes so memory use is bounded by the final tensors and a small coupling chunk. Files containing one or both coupling triangles are supported.
 
 
 
@@ -176,9 +176,9 @@ save_params(
 ) → None
 ```
 
-Save parameters in the established ``J``/``h`` text format.
+Save parameters in the established `J`/`h` text format.
 
-Couplings are streamed in bounded chunks using the canonical ``i < j`` triangle. A supplied symmetric mask is collapsed onto that triangle. A file name ending in ``.gz`` is written gzip-compressed.
+Couplings are streamed in bounded chunks using the canonical `i < j` triangle. A supplied symmetric mask is collapsed onto that triangle. A file name ending in `.gz` is written gzip-compressed.
 
 
 

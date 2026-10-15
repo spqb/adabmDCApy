@@ -42,7 +42,7 @@ gibbs_sampling_triton(
 
 Run Gibbs updates, keeping each chain in registers across short chunks.
 
-``steps_per_launch`` controls sequential updates per kernel, independently of random-number chunking. ``transpose_couplings`` makes candidate fields contiguous at the cost of one extra coupling-sized allocation per call. Disable it to save memory or benchmark the original gather layout. ``coupling_dtype`` optionally converts sampling couplings without changing the caller's parameters. BF16 conversion and transposition use one copy.
+`steps_per_launch` controls sequential updates per kernel, independently of random-number chunking. `transpose_couplings` makes candidate fields contiguous at the cost of one extra coupling-sized allocation per call. Disable it to save memory or benchmark the original gather layout. `coupling_dtype` optionally converts sampling couplings without changing the caller's parameters. BF16 conversion and transposition use one copy.
 
 
 ---
@@ -66,7 +66,7 @@ gibbs_sampling_categorical_triton(
 
 Run Gibbs sampling directly on contiguous int32 categorical states.
 
-Each step updates one uniformly drawn site, shared by all chains, for ``nsweeps * L`` steps. ``sites`` instead gives the site of every step (its length then sets the number of steps and ``nsweeps`` is ignored). Sparse graphs (see `sparse_coupling_layout`) read only the coupled pairs.
+Each step updates one uniformly drawn site, shared by all chains, for `nsweeps * L` steps. `sites` instead gives the site of every step (its length then sets the number of steps and `nsweeps` is ignored). Sparse graphs (see `sparse_coupling_layout`) read only the coupled pairs.
 
 
 ---
@@ -89,8 +89,8 @@ Apply one fused Gibbs update at an independently drawn site per chain (CUDA, Tri
 
 **Args:**
 
- - <b>`chains`</b>:  One-hot chains, shape ``(n_chains, L, q)``, on a CUDA device.
- - <b>`params`</b>:  ``bias`` ``(L, q)`` and ``coupling_matrix`` ``(L, q, L, q)``.
+ - <b>`chains`</b>:  One-hot chains, shape `(n_chains, L, q)`, on a CUDA device.
+ - <b>`params`</b>:  `bias` `(L, q)` and `coupling_matrix` `(L, q, L, q)`.
  - <b>`beta`</b>:  Inverse temperature.
 
 
@@ -116,7 +116,7 @@ metropolis_sampling_triton(
 ) → Tensor
 ```
 
-Run Metropolis updates with ``steps_per_launch`` updates per kernel.
+Run Metropolis updates with `steps_per_launch` updates per kernel.
 
 
 ---
@@ -160,7 +160,7 @@ metropolis_sampling_replicas_categorical_triton(
 
 Sample a stack of PTT replicas in one sequence of Triton launches.
 
-``steps_per_launch=None`` uses the tuned default for the alphabet size. Sparse graphs (see `sparse_coupling_layout`) read only the coupled pairs.
+`steps_per_launch=None` uses the tuned default for the alphabet size. Sparse graphs (see `sparse_coupling_layout`) read only the coupled pairs.
 
 
 ---
@@ -175,7 +175,7 @@ transpose_couplings_for_metropolized_gibbs(couplings: 'Tensor') → Tensor
 
 View (L, q, L, q) couplings as (site, source_site, source_state, state).
 
-Stacking such views materializes the layout expected by ``metropolized_gibbs_sampling_replicas_categorical_triton`` in one copy.
+Stacking such views materializes the layout expected by `metropolized_gibbs_sampling_replicas_categorical_triton` in one copy.
 
 
 ---
@@ -197,7 +197,7 @@ metropolized_gibbs_sampling_replicas_categorical_triton(
 
 Metropolized Gibbs sampling of a stack of replicas in one sequence of launches.
 
-``couplings`` has shape (R, L, L, q, q) in the layout returned by ``transpose_couplings_for_metropolized_gibbs`` for each replica. Every replica updates one random site per step, shared by all its chains.
+`couplings` has shape (R, L, L, q, q) in the layout returned by `transpose_couplings_for_metropolized_gibbs` for each replica. Every replica updates one random site per step, shared by all its chains.
 
 
 ---
@@ -215,9 +215,9 @@ sparse_coupling_layout(
 )
 ```
 
-The sparse layout of stacked couplings ``(R, L, q, L, q)`` if it pays off for ``method``, else ``None``.
+The sparse layout of stacked couplings `(R, L, q, L, q)` if it pays off for `method`, else `None`.
 
-Returns ``(neighbours, blocks, degree)``: ``neighbours`` ``(R, L, D)`` lists each site's coupled sites (padded with -1), ``blocks`` ``(R, L, D, q, q)`` holds ``blocks[r, i, k, b, a] = J[i, a, j_k, b]``. The degree and the layout are cached per ``source`` tensor (``couplings`` by default); the layout is built only when used.
+Returns `(neighbours, blocks, degree)`: `neighbours` `(R, L, D)` lists each site's coupled sites (padded with -1), `blocks` `(R, L, D, q, q)` holds `blocks[r, i, k, b, a] = J[i, a, j_k, b]`. The degree and the layout are cached per `source` tensor (`couplings` by default); the layout is built only when used.
 
 
 ---
@@ -239,7 +239,7 @@ metropolized_gibbs_sampling_replicas_triton(
 
 Metropolized Gibbs sampling of a stack of replicas, from couplings in their original layout.
 
-``couplings`` has shape (R, L, q, L, q). Sparse graphs use the sparse kernel; otherwise the transposed copy of `metropolized_gibbs_sampling_replicas_categorical_triton` is made. Either layout is cached and reused while ``couplings`` is unchanged.
+`couplings` has shape (R, L, q, L, q). Sparse graphs use the sparse kernel; otherwise the transposed copy of `metropolized_gibbs_sampling_replicas_categorical_triton` is made. Either layout is cached and reused while `couplings` is unchanged.
 
 
 ---
@@ -259,7 +259,7 @@ metropolized_gibbs_sampling_triton(
 ) → Tensor
 ```
 
-Metropolized Gibbs sampling of one-hot chains; see ``metropolized_gibbs_sampling_categorical_triton``.
+Metropolized Gibbs sampling of one-hot chains; see `metropolized_gibbs_sampling_categorical_triton`.
 
 
 ---
@@ -281,7 +281,7 @@ metropolized_gibbs_sampling_categorical_triton(
 
 Metropolized Gibbs sampling of contiguous CUDA int32 states (N, L).
 
-Each update draws one site shared by all chains. A new state b != a is proposed from the site conditional restricted to the other states and accepted with min(1, (1 - p_a) / (1 - p_b)) (Liu 1996). One program owns a chain and reads, for every source position, a contiguous row of candidate couplings from a transposed copy made once per call. Sparse graphs (see `sparse_coupling_layout`) read only each site's coupled neighbours instead. ``coupling_dtype=torch.bfloat16`` stores that copy in BF16. Fields and acceptance use the bias precision, or FP32 for BF16 biases, as do the uniform random numbers. Couplings must have zero within-site blocks.
+Each update draws one site shared by all chains. A new state b != a is proposed from the site conditional restricted to the other states and accepted with min(1, (1 - p_a) / (1 - p_b)) (Liu 1996). One program owns a chain and reads, for every source position, a contiguous row of candidate couplings from a transposed copy made once per call. Sparse graphs (see `sparse_coupling_layout`) read only each site's coupled neighbours instead. `coupling_dtype=torch.bfloat16` stores that copy in BF16. Fields and acceptance use the bias precision, or FP32 for BF16 biases, as do the uniform random numbers. Couplings must have zero within-site blocks.
 
 
 ---
@@ -304,8 +304,8 @@ Apply one fused Metropolis update at an independently drawn site per chain (CUDA
 
 **Args:**
 
- - <b>`chains`</b>:  One-hot chains, shape ``(n_chains, L, q)``, on a CUDA device.
- - <b>`params`</b>:  ``bias`` ``(L, q)`` and ``coupling_matrix`` ``(L, q, L, q)``.
+ - <b>`chains`</b>:  One-hot chains, shape `(n_chains, L, q)`, on a CUDA device.
+ - <b>`params`</b>:  `bias` `(L, q)` and `coupling_matrix` `(L, q, L, q)`.
  - <b>`beta`</b>:  Inverse temperature.
 
 
@@ -329,9 +329,9 @@ exchange_log_acceptance_sparse_triton(
 ) → Tensor | None
 ```
 
-Hamiltonian-exchange log acceptance from sparse coupling layouts, or ``None`` if a graph is dense.
+Hamiltonian-exchange log acceptance from sparse coupling layouts, or `None` if a graph is dense.
 
-Computes the four energies ``E_m(z)`` for both models and both populations from each site's coupled neighbours only.
+Computes the four energies `E_m(z)` for both models and both populations from each site's coupled neighbours only.
 
 
 ---

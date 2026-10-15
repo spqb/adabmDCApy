@@ -30,8 +30,7 @@ Remove dots and lowercase insertion residues from every sequence.
 
 
 **Returns:**
-
- - <b>`A new `</b>: class:`Alignment` containing only the match columns.
+ A new `Alignment` containing only the match columns.
 
 
 ---
@@ -57,14 +56,13 @@ A sequence with a gap fraction exactly equal to the threshold is retained.
 **Args:**
 
  - <b>`alignment`</b>:  Alignment to filter.
- - <b>`max_gap_fraction`</b>:  Largest allowed fraction of gaps, in ``[0, 1]``.
+ - <b>`max_gap_fraction`</b>:  Largest allowed fraction of gaps, in `[0, 1]`.
  - <b>`gap_token`</b>:  Gap symbol.
 
 
 
 **Returns:**
-
- - <b>`An `</b>: class:`AlignmentFilterResult`.
+ An `AlignmentFilterResult`.
 
 
 ---
@@ -92,36 +90,35 @@ preprocess_alignment(
 
 Clean a raw alignment for DCA: read, transform, filter and optionally write it.
 
-Steps, each optional: remove insertions (or normalize dots to ``"-"``), check tokens against an alphabet, drop gappy sequences, drop duplicates. Keyword options override the corresponding `AlignmentProcessingConfig` fields.
+Steps, each optional: remove insertions (or normalize dots to `"-"`), check tokens against an alphabet, drop gappy sequences, drop duplicates. Keyword options override the corresponding `AlignmentProcessingConfig` fields.
 
 
 
 **Args:**
 
  - <b>`input_path`</b>:  FASTA or Stockholm file.
- - <b>`output_path`</b>:  FASTA file to write, or ``None``.
- - <b>`input_format`</b>:  ``"auto"``, ``"fasta"`` or ``"stockholm"``.
+ - <b>`output_path`</b>:  FASTA file to write, or `None`.
+ - <b>`input_format`</b>:  `"auto"`, `"fasta"` or `"stockholm"`.
  - <b>`alignment_index`</b>:  Alignment to read from a multi-alignment Stockholm file.
  - <b>`config`</b>:  Base settings; see `AlignmentProcessingConfig`.
- - <b>`remove_insertions`</b>:  Overrides ``config.remove_insertions``.
- - <b>`max_gap_fraction`</b>:  Overrides ``config.max_gap_fraction``.
- - <b>`remove_duplicates`</b>:  Overrides ``config.remove_duplicates``.
- - <b>`alphabet`</b>:  Overrides ``config.alphabet``.
- - <b>`gap_token`</b>:  Overrides ``config.gap_token``.
- - <b>`unknown_tokens`</b>:  Overrides ``config.unknown_tokens``.
- - <b>`line_width`</b>:  Largest sequence-line length of the output; ``0`` means no wrapping.
+ - <b>`remove_insertions`</b>:  Overrides `config.remove_insertions`.
+ - <b>`max_gap_fraction`</b>:  Overrides `config.max_gap_fraction`.
+ - <b>`remove_duplicates`</b>:  Overrides `config.remove_duplicates`.
+ - <b>`alphabet`</b>:  Overrides `config.alphabet`.
+ - <b>`gap_token`</b>:  Overrides `config.gap_token`.
+ - <b>`unknown_tokens`</b>:  Overrides `config.unknown_tokens`.
+ - <b>`line_width`</b>:  Largest sequence-line length of the output; `0` means no wrapping.
 
 
 
 **Returns:**
-
- - <b>`An `</b>: class:`AlignmentProcessingResult`.
+ An `AlignmentProcessingResult`.
 
 
 
 **Raises:**
 
- - <b>`InputValidationError`</b>:  If an option is invalid, or unknown tokens are  found with ``unknown_tokens="error"``.
+ - <b>`InputValidationError`</b>:  If an option is invalid, or unknown tokens are  found with `unknown_tokens="error"`.
 
 
 
@@ -144,12 +141,12 @@ Transformations applied by `preprocess_alignment`, in this order.
 
 **Attributes:**
 
- - <b>`remove_insertions`</b>:  Delete lowercase residues and dots (insertion states  of profile alignments); otherwise dots become ``"-"``.
- - <b>`max_gap_fraction`</b>:  Remove sequences with a larger fraction of gaps, or ``None``.
+ - <b>`remove_insertions`</b>:  Delete lowercase residues and dots (insertion states  of profile alignments); otherwise dots become `"-"`.
+ - <b>`max_gap_fraction`</b>:  Remove sequences with a larger fraction of gaps, or `None`.
  - <b>`remove_duplicates`</b>:  Keep only the first copy of identical sequences.
- - <b>`alphabet`</b>:  Check tokens against this alphabet (``"auto"`` detects it), or  ``None`` to skip the check.
- - <b>`gap_token`</b>:  Gap symbol counted by ``max_gap_fraction``.
- - <b>`unknown_tokens`</b>:  With ``alphabet``: ``"gap"`` replaces unknown tokens with  ``"-"``, ``"remove"`` drops their sequences, ``"error"`` raises.
+ - <b>`alphabet`</b>:  Check tokens against this alphabet (`"auto"` detects it), or  `None` to skip the check.
+ - <b>`gap_token`</b>:  Gap symbol counted by `max_gap_fraction`.
+ - <b>`unknown_tokens`</b>:  With `alphabet`: `"gap"` replaces unknown tokens with  `"-"`, `"remove"` drops their sequences, `"error"` raises.
 
 <a href="https://github.com/spqb/adabmDCApy/blob/main/<string>"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
@@ -190,10 +187,10 @@ What `preprocess_alignment` changed.
  - <b>`input_length`</b>:  Alignment length before processing.
  - <b>`output_length`</b>:  Alignment length after processing.
  - <b>`removed_insertion_characters`</b>:  Insertion residues deleted.
- - <b>`normalized_gap_characters`</b>:  Dots turned into ``"-"``.
+ - <b>`normalized_gap_characters`</b>:  Dots turned into `"-"`.
  - <b>`removed_for_gap_fraction`</b>:  Sequences dropped for too many gaps.
  - <b>`removed_as_duplicates`</b>:  Duplicate sequences dropped.
- - <b>`replaced_unknown_characters`</b>:  Unknown tokens replaced with ``"-"``.
+ - <b>`replaced_unknown_characters`</b>:  Unknown tokens replaced with `"-"`.
  - <b>`removed_for_unknown_tokens`</b>:  Sequences dropped for unknown tokens.
  - <b>`max_gap_fraction`</b>:  Gap threshold used, if any.
  - <b>`removed_names`</b>:  Names of all dropped sequences.
@@ -316,7 +313,7 @@ Outcome of `preprocess_alignment`.
  - <b>`alignment`</b>:  Processed alignment.
  - <b>`keep_mask`</b>:  For each input sequence, whether it was kept.
  - <b>`report`</b>:  What was changed, see `AlignmentProcessingReport`.
- - <b>`output_path`</b>:  Written FASTA file, if ``output_path`` was given.
+ - <b>`output_path`</b>:  Written FASTA file, if `output_path` was given.
 
 <a href="https://github.com/spqb/adabmDCApy/blob/main/<string>"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 

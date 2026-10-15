@@ -27,19 +27,18 @@ Return the ordered token string of an alphabet.
 
 **Args:**
 
- - <b>`alphabet`</b>:  ``"protein"``, ``"rna"``, ``"dna"`` or a custom token string,  which is returned unchanged.
+ - <b>`alphabet`</b>:  `"protein"`, `"rna"`, `"dna"` or a custom token string,  which is returned unchanged.
 
 
 
 **Returns:**
-
- - <b>`The tokens, gap first for the built-in alphabets`</b>:  ``"-ACDEFGHIKLMNPQRSTVWY"``, ``"-ACGU"`` or ``"-ACGT"``.
+ The tokens, gap first for the built-in alphabets (`"-ACDEFGHIKLMNPQRSTVWY"`, `"-ACGU"` or `"-ACGT"`).
 
 
 
 **Raises:**
 
- - <b>`TypeError`</b>:  If ``alphabet`` is not a string.
+ - <b>`TypeError`</b>:  If `alphabet` is not a string.
 
 
 ---

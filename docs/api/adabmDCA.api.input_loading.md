@@ -47,8 +47,7 @@ Sequences with unknown tokens are dropped and duplicates removed. The validation
 
 
 **Returns:**
-
- - <b>`The loaded `</b>: class:`TrainingInputs`.
+ The loaded `TrainingInputs`.
 
 
 

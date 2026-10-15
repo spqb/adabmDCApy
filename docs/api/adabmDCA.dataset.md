@@ -19,14 +19,14 @@
 ## <kbd>class</kbd> `DatasetDCA`
 Encoded alignment with sequence weights, as a PyTorch dataset.
 
-Build one with `from_alignment`. Items are ``(sequence, weight)`` pairs of encoded sequences.
+Build one with `from_alignment`. Items are `(sequence, weight)` pairs of encoded sequences.
 
 
 
 **Attributes:**
 
  - <b>`names`</b>:  Sequence names.
- - <b>`data`</b>:  Encoded sequences, shape ``(M, L)``, integer states.
+ - <b>`data`</b>:  Encoded sequences, shape `(M, L)`, integer states.
  - <b>`weights`</b>:  Weight of each sequence.
  - <b>`tokens`</b>:  Ordered alphabet.
 
@@ -66,14 +66,14 @@ from_alignment(
 
 Load an alignment and its weights into a dataset.
 
-An ``Alignment`` already returned by `load_alignment` is reused when ``load_config`` is omitted, preserving its filtering provenance. Pass ``load_config`` to apply a new loading policy.
+An `Alignment` already returned by `load_alignment` is reused when `load_config` is omitted, preserving its filtering provenance. Pass `load_config` to apply a new loading policy.
 
 
 
 **Args:**
 
  - <b>`alignment`</b>:  Path, `Alignment` or sequences.
- - <b>`weights`</b>:  Sequence weights (file, array or tensor), or ``None`` to compute them.
+ - <b>`weights`</b>:  Sequence weights (file, array or tensor), or `None` to compute them.
  - <b>`load_config`</b>:  Loading policy; see `AlignmentLoadConfig`.
  - <b>`clustering_th`</b>:  Identity threshold of the computed weights.
  - <b>`no_reweighting`</b>:  Give every sequence weight 1.
@@ -84,8 +84,7 @@ An ``Alignment`` already returned by `load_alignment` is reused when ``load_conf
 
 
 **Returns:**
-
- - <b>`A `</b>: class:`DatasetDCA`.
+ A `DatasetDCA`.
 
 
 

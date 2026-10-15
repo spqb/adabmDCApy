@@ -30,7 +30,7 @@ Detect whether a file is FASTA or Stockholm from its first non-empty line.
 
 
 **Returns:**
- ``"fasta"`` or ``"stockholm"``.
+ `"fasta"` or `"stockholm"`.
 
 
 
@@ -62,14 +62,13 @@ For validation, alphabet detection and filtering use `load_alignment`.
 **Args:**
 
  - <b>`path`</b>:  Alignment file, optionally gzip-compressed.
- - <b>`format`</b>:  ``"auto"`` (detected), ``"fasta"`` or ``"stockholm"``.
+ - <b>`format`</b>:  `"auto"` (detected), `"fasta"` or `"stockholm"`.
  - <b>`alignment_index`</b>:  Which alignment of a multi-alignment Stockholm file to  read (0-based); required when there is more than one.
 
 
 
 **Returns:**
-
- - <b>`The `</b>: class:`Alignment`.
+ The `Alignment`.
 
 
 
@@ -103,8 +102,8 @@ Write an alignment to a FASTA file.
 
  - <b>`alignment`</b>:  Alignment to write.
  - <b>`path`</b>:  Output file.
- - <b>`format`</b>:  Output format; only ``"fasta"`` is supported.
- - <b>`line_width`</b>:  Largest sequence-line length; ``0`` writes each sequence on one line.
+ - <b>`format`</b>:  Output format; only `"fasta"` is supported.
+ - <b>`line_width`</b>:  Largest sequence-line length; `0` writes each sequence on one line.
 
 
 
@@ -141,8 +140,7 @@ Stockholm permits dots as gap symbols, while adabmDCA and aligned FASTA files co
 
 
 **Returns:**
-
- - <b>`A new `</b>: class:`Alignment`.
+ A new `Alignment`.
 
 
 ---
@@ -172,16 +170,15 @@ Dots accepted as gaps by Stockholm are written as hyphens, the gap token used th
 
  - <b>`input_path`</b>:  FASTA or Stockholm file.
  - <b>`output_path`</b>:  FASTA file to write.
- - <b>`input_format`</b>:  ``"auto"``, ``"fasta"`` or ``"stockholm"``.
- - <b>`output_format`</b>:  Only ``"fasta"`` is supported.
+ - <b>`input_format`</b>:  `"auto"`, `"fasta"` or `"stockholm"`.
+ - <b>`output_format`</b>:  Only `"fasta"` is supported.
  - <b>`alignment_index`</b>:  Alignment to convert in a multi-alignment Stockholm file.
- - <b>`line_width`</b>:  Largest sequence-line length; ``0`` means no wrapping.
+ - <b>`line_width`</b>:  Largest sequence-line length; `0` means no wrapping.
 
 
 
 **Returns:**
-
- - <b>`An `</b>: class:`AlignmentConversionResult`.
+ An `AlignmentConversionResult`.
 
 
 ---
@@ -208,13 +205,12 @@ Convert one Stockholm alignment to FASTA; see `convert_alignment`.
  - <b>`input_path`</b>:  Stockholm file.
  - <b>`output_path`</b>:  FASTA file to write.
  - <b>`alignment_index`</b>:  Alignment to convert when the file contains several.
- - <b>`line_width`</b>:  Largest sequence-line length; ``0`` means no wrapping.
+ - <b>`line_width`</b>:  Largest sequence-line length; `0` means no wrapping.
 
 
 
 **Returns:**
-
- - <b>`An `</b>: class:`AlignmentConversionResult`.
+ An `AlignmentConversionResult`.
 
 
 ---
@@ -231,19 +227,19 @@ Names and sequences retain their input order. The alignment must contain at leas
 **Args:**
 
  - <b>`names`</b>:  Sequence names, one per row.
- - <b>`sequences`</b>:  Aligned sequence strings in the same order as ``names``.
+ - <b>`sequences`</b>:  Aligned sequence strings in the same order as `names`.
  - <b>`source`</b>:  Path of the source file, if known.
- - <b>`tokens`</b>:  Ordered alphabet used for encoding. ``None`` until resolved;  index ``i`` in an encoding corresponds to ``tokens[i]``.
- - <b>`retained_indices`</b>:  Positions of the current rows in the original  alignment. Defaults to ``0, 1, ..., M - 1``.
+ - <b>`tokens`</b>:  Ordered alphabet used for encoding. `None` until resolved;  index `i` in an encoding corresponds to `tokens[i]`.
+ - <b>`retained_indices`</b>:  Positions of the current rows in the original  alignment. Defaults to `0, 1, ..., M - 1`.
  - <b>`dropped_indices`</b>:  Original positions removed for invalid symbols.
  - <b>`duplicate_indices`</b>:  Original positions removed as duplicates.
- - <b>`original_size`</b>:  Number of rows before filtering. Defaults to ``M``.
+ - <b>`original_size`</b>:  Number of rows before filtering. Defaults to `M`.
 
 
 
 **Note:**
 
-> The provenance fields are populated by ``load_alignment``. Plain ``Alignment`` construction does not check sequences against ``tokens``.
+> The provenance fields are populated by `load_alignment`. Plain `Alignment` construction does not check sequences against `tokens`.
 
 <a href="https://github.com/spqb/adabmDCApy/blob/main/<string>"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
@@ -271,27 +267,27 @@ __init__(
 
 #### <kbd>property</kbd> encoded_sequences
 
-Return integer token indices as a NumPy array of shape ``(M, L)``.
+Return integer token indices as a NumPy array of shape `(M, L)`.
 
-Each element is the position of its residue in ``self.tokens``.
+Each element is the position of its residue in `self.tokens`.
 
 
 
 **Raises:**
 
- - <b>`InputValidationError`</b>:  If no alphabet has been resolved. Pass the  alignment through ``load_alignment`` first.
+ - <b>`InputValidationError`</b>:  If no alphabet has been resolved. Pass the  alignment through `load_alignment` first.
 
 ---
 
 #### <kbd>property</kbd> num_sequences
 
-Number of sequences (``M``) currently in the alignment.
+Number of sequences (`M`) currently in the alignment.
 
 ---
 
 #### <kbd>property</kbd> sequence_length
 
-Number of aligned positions (``L``) in each sequence.
+Number of aligned positions (`L`) in each sequence.
 
 
 
@@ -305,7 +301,7 @@ Number of aligned positions (``L``) in each sequence.
 to_dataframe() → DataFrame
 ```
 
-Return a pandas DataFrame with ``name`` and ``sequence`` columns.
+Return a pandas DataFrame with `name` and `sequence` columns.
 
 The DataFrame has one row per sequence and preserves alignment order.
 
@@ -333,24 +329,24 @@ The report includes the source, original and retained row counts, filtering indi
 to_onehot(flatten: 'bool' = False) → Tensor
 ```
 
-Encode the alignment as a CPU ``torch.float32`` one-hot tensor.
+Encode the alignment as a CPU `torch.float32` one-hot tensor.
 
 
 
 **Args:**
 
- - <b>`flatten`</b>:  If ``False``, return shape ``(M, L, q)``. If ``True``,  combine the position and token dimensions into shape  ``(M, L * q)``, useful for PCA.
+ - <b>`flatten`</b>:  If `False`, return shape `(M, L, q)`. If `True`,  combine the position and token dimensions into shape  `(M, L * q)`, useful for PCA.
 
 
 
 **Returns:**
- A tensor whose state features follow the order of ``self.tokens`` at each aligned position.
+ A tensor whose state features follow the order of `self.tokens` at each aligned position.
 
 
 
 **Raises:**
 
- - <b>`InputValidationError`</b>:  If ``tokens`` is unavailable. Load the  alignment with ``load_alignment`` first.
+ - <b>`InputValidationError`</b>:  If `tokens` is unavailable. Load the  alignment with `load_alignment` first.
 
 ---
 
@@ -369,13 +365,12 @@ Write names and sequences to an aligned FASTA file.
 **Args:**
 
  - <b>`path`</b>:  Output file path.
- - <b>`line_width`</b>:  Maximum sequence line length. ``0`` writes each  sequence on one line.
+ - <b>`line_width`</b>:  Maximum sequence line length. `0` writes each  sequence on one line.
 
 
 
 **Returns:**
-
- - <b>`The output path as a `</b>: class:`pathlib.Path`.
+ The output path as a `pathlib.Path`.
 
 
 ---
@@ -391,7 +386,7 @@ Outcome of `convert_alignment`.
 
  - <b>`alignment`</b>:  The converted alignment.
  - <b>`input_format`</b>:  Detected or given input format.
- - <b>`output_format`</b>:  Written format (``"fasta"``).
+ - <b>`output_format`</b>:  Written format (`"fasta"`).
  - <b>`output_path`</b>:  Written file.
 
 <a href="https://github.com/spqb/adabmDCApy/blob/main/<string>"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>

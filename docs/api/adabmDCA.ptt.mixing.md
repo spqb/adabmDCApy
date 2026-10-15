@@ -5,7 +5,7 @@
 # <kbd>module</kbd> `adabmDCA.ptt.mixing`
 Replica-index autocorrelation analysis used by PTT's TRWA experiment.
 
-This follows ``ptt_paper.implement._process_experiment``: center replica labels at their known uniform mean, compute their autocorrelation with an FFT, use a self-consistent window for tau_int, and fit the exponential tail for tau_exp. Times are in exchange rounds, not individual local sweeps.
+This follows `ptt_paper.implement._process_experiment`: center replica labels at their known uniform mean, compute their autocorrelation with an FFT, use a self-consistent window for tau_int, and fit the exponential tail for tau_exp. Times are in exchange rounds, not individual local sweeps.
 
 
 ---
@@ -18,9 +18,9 @@ This follows ``ptt_paper.implement._process_experiment``: center replica labels 
 renewal_forecast(ladder_old, threshold, min_points=20)
 ```
 
-Fit ``log G`` against rounds over the recent half of the decay and predict the renewal round.
+Fit `log G` against rounds over the recent half of the decay and predict the renewal round.
 
-Only rounds with ``0 < G < 0.5`` enter the fit: the first rounds, before fresh configurations reach every replica, and the counting floor are excluded. The fit uses the most recent half of those rounds, so it follows the slowest remaining configurations as the faster ones leave; an earlier fit tends to predict renewal too early. Returns ``None`` until ``min_points`` rounds are usable. The forecast only informs; renewal is decided by counting old configurations.
+Only rounds with `0 < G < 0.5` enter the fit: the first rounds, before fresh configurations reach every replica, and the counting floor are excluded. The fit uses the most recent half of those rounds, so it follows the slowest remaining configurations as the faster ones leave; an earlier fit tends to predict renewal too early. Returns `None` until `min_points` rounds are usable. The forecast only informs; renewal is decided by counting old configurations.
 
 
 ---
@@ -109,22 +109,22 @@ Outcome of one PTT mixing check.
 
 **Attributes:**
 
- - <b>`tau_int`</b>:  Integrated autocorrelation time of the replica index, in rounds  (autocorrelation method), else ``None``.
- - <b>`tau_exp`</b>:  Exponential autocorrelation time, in rounds, else ``None``.
+ - <b>`tau_int`</b>:  Integrated autocorrelation time of the replica index, in rounds  (autocorrelation method), else `None`.
+ - <b>`tau_exp`</b>:  Exponential autocorrelation time, in rounds, else `None`.
  - <b>`rounds`</b>:  Rounds measured.
  - <b>`required_rounds`</b>:  Rounds the check needed to pass.
- - <b>`status`</b>:  ``"converged"``, or why it did not converge (e.g. ``"budget_exceeded"``).
+ - <b>`status`</b>:  `"converged"`, or why it did not converge (e.g. `"budget_exceeded"`).
  - <b>`acceptance`</b>:  Swap acceptance of each adjacent replica pair.
  - <b>`local_sweeps`</b>:  Local sweeps spent on the check.
  - <b>`model_version`</b>:  Training update of the endpoint when checked.
  - <b>`ladder_version`</b>:  Version of the ladder checked.
  - <b>`replicas`</b>:  Number of replicas checked.
  - <b>`full_ladder`</b>:  Whether the full historical ladder was checked.
- - <b>`method`</b>:  ``"autocorrelation"`` or ``"renewal"``.
- - <b>`warmup_rounds`</b>:  Renewal method: rounds until the initial populations were  replaced, or ``None`` if the budget ran out first.
- - <b>`renewal_rounds`</b>:  Renewal method: rounds until the check passed, or ``None``.
+ - <b>`method`</b>:  `"autocorrelation"` or `"renewal"`.
+ - <b>`warmup_rounds`</b>:  Renewal method: rounds until the initial populations were  replaced, or `None` if the budget ran out first.
+ - <b>`renewal_rounds`</b>:  Renewal method: rounds until the check passed, or `None`.
  - <b>`trapped_fraction`</b>:  Renewal method: fraction of endpoint configurations still  older than the reference when the check ended (large when it failed).
- - <b>`immobile`</b>:  Renewal method, when the check failed: for each replica above  the bottom that still holds old configurations, a dict with  ``replica`` (counting from the bottom of the active ladder),  ``chains``, ``old`` (configurations born before the reference),  ``immobile`` (old configurations whose swap acceptance toward the  replica below is under ``health.IMMOBILE_THRESHOLD``, so that only  local moves can free them)  and ``blocking`` (whether the immobile ones alone exceed the renewal  tolerance).
+ - <b>`immobile`</b>:  Renewal method, when the check failed: for each replica above  the bottom that still holds old configurations, a dict with  `replica` (counting from the bottom of the active ladder),  `chains`, `old` (configurations born before the reference),  `immobile` (old configurations whose swap acceptance toward the  replica below is under `health.IMMOBILE_THRESHOLD`, so that only  local moves can free them)  and `blocking` (whether the immobile ones alone exceed the renewal  tolerance).
 
 <a href="https://github.com/spqb/adabmDCApy/blob/main/<string>"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
@@ -172,9 +172,9 @@ Whether the ladder passed the check.
 ## <kbd>class</kbd> `RenewalEstimate`
 Population renewal measured with configuration birth rounds.
 
-Rung 0 is redrawn exactly every round, so a configuration's birth round is the round in which it was drawn there. Relative to a reference round, ``ladder_old`` is the fraction of all configurations born before it (it can only decrease) and ``endpoint_fresh`` the fraction of endpoint configurations born after it. A phase ends once at most ``tolerance * chains_per_model`` old configurations remain anywhere in the ladder, which bounds the endpoint old fraction by ``tolerance`` from then on.
+Rung 0 is redrawn exactly every round, so a configuration's birth round is the round in which it was drawn there. Relative to a reference round, `ladder_old` is the fraction of all configurations born before it (it can only decrease) and `endpoint_fresh` the fraction of endpoint configurations born after it. A phase ends once at most `tolerance * chains_per_model` old configurations remain anywhere in the ladder, which bounds the endpoint old fraction by `tolerance` from then on.
 
-The warmup phase measures renewal of the initial state. The stationary phase restarts the reference at the end of the warmup and advances in fixed blocks of ``chunk_rounds`` (a fraction of ``warmup_rounds``) until the ladder is renewed again, so the retained population descends entirely from draws made after the ladder had forgotten its initialization. ``warmup_decay_rounds`` and ``stationary_decay_rounds`` are the decay times of the old fraction fitted at the end of each phase (see ``renewal_forecast``). Times are exchange rounds.
+The warmup phase measures renewal of the initial state. The stationary phase restarts the reference at the end of the warmup and advances in fixed blocks of `chunk_rounds` (a fraction of `warmup_rounds`) until the ladder is renewed again, so the retained population descends entirely from draws made after the ladder had forgotten its initialization. `warmup_decay_rounds` and `stationary_decay_rounds` are the decay times of the old fraction fitted at the end of each phase (see `renewal_forecast`). Times are exchange rounds.
 
 <a href="https://github.com/spqb/adabmDCApy/blob/main/<string>"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
@@ -232,7 +232,7 @@ Whether the ladder passed the check.
 ## <kbd>class</kbd> `RenewalForecast`
 Exponential fit of the old fraction G(t) of a renewal phase.
 
-``decay_rounds`` is the fitted decay time (``None`` if G is not decaying), ``predicted_round`` the round of the phase at which the fit reaches ``threshold``, and the fit is ``log G = intercept - t / decay`` over rounds ``fit_start``..``fit_end``.
+`decay_rounds` is the fitted decay time (`None` if G is not decaying), `predicted_round` the round of the phase at which the fit reaches `threshold`, and the fit is `log G = intercept - t / decay` over rounds `fit_start`..`fit_end`.
 
 <a href="https://github.com/spqb/adabmDCApy/blob/main/<string>"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 

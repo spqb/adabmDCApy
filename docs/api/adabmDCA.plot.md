@@ -161,7 +161,7 @@ plot_ptt_renewal(
 
 Plot PTT population renewal for the warmup and, if it ran, the stationary phase.
 
-``history`` holds per-round ``{phase}_ladder_old`` (G, fraction of all ladder configurations born before the phase reference) and ``{phase}_endpoint_fresh`` (F, fraction of endpoint configurations born after it) for ``phase`` in ``warmup`` and ``stationary``. The top row shows G and F; the bottom row shows the old fractions G and 1 - F on a logarithmic scale with the stopping thresholds, and the exponential fit of G over the recent half of each phase (see ``renewal_forecast``). Renewal is decided by G reaching ``tolerance / n_models``; the endpoint fraction 1 - F can rise again when old configurations climb back up the ladder.
+`history` holds per-round `{phase}_ladder_old` (G, fraction of all ladder configurations born before the phase reference) and `{phase}_endpoint_fresh` (F, fraction of endpoint configurations born after it) for `phase` in `warmup` and `stationary`. The top row shows G and F; the bottom row shows the old fractions G and 1 - F on a logarithmic scale with the stopping thresholds, and the exponential fit of G over the recent half of each phase (see `renewal_forecast`). Renewal is decided by G reaching `tolerance / n_models`; the endpoint fraction 1 - F can rise again when old configurations climb back up the ladder.
 
 
 ---
@@ -218,7 +218,7 @@ plot_privet(figure: Figure, privet: dict) → Figure
 
 PRIVET: the null law, the excess of samples near the training set, and per-sample scores.
 
-Left: cumulative distribution of the (reweighted) training sequences' distances to their nearest other training sequence (steps) and the fitted extreme-value law (line), on a log scale to show the lower tail; the band is the fitted window. Middle: the same law against the distances of the generated and held-out sequences to their nearest training sequence; a generated curve above the null at small distances is an excess of sequences close to the training set, scored in the title (most improbable group, log10 probability under the null). Right: per sample, ``log10 p_train`` against ``log10 p_test``; flagged samples lie below the dashed line ``delta_p = threshold``.
+Left: cumulative distribution of the (reweighted) training sequences' distances to their nearest other training sequence (steps) and the fitted extreme-value law (line), on a log scale to show the lower tail; the band is the fitted window. Middle: the same law against the distances of the generated and held-out sequences to their nearest training sequence; a generated curve above the null at small distances is an excess of sequences close to the training set, scored in the title (most improbable group, log10 probability under the null). Right: per sample, ``log10 p_train` against `log10 p_test``; flagged samples lie below the dashed line `delta_p = threshold`.
 
 
 ---

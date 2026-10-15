@@ -21,7 +21,7 @@ to_jsonable(value: 'Any') → Any
 
 Recursively convert a value to plain JSON types.
 
-NumPy scalars and arrays, tensors, paths, dataclasses, mappings and sequences are converted; non-finite floats become ``None``.
+NumPy scalars and arrays, tensors, paths, dataclasses, mappings and sequences are converted; non-finite floats become `None`.
 
 
 
@@ -32,7 +32,7 @@ NumPy scalars and arrays, tensors, paths, dataclasses, mappings and sequences ar
 
 
 **Returns:**
- A structure of ``dict``, ``list``, ``str``, ``int``, ``float``, ``bool`` and ``None`` only.
+ A structure of `dict`, `list`, `str`, `int`, `float`, `bool` and `None` only.
 
 
 ---

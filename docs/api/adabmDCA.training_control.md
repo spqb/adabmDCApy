@@ -39,7 +39,7 @@ Internal cancellation signal raised by the shared controller.
 <a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training_control.py#L45"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `TrainingLimits`
-Step budgets of a training run; ``None`` means no limit.
+Step budgets of a training run; `None` means no limit.
 
 
 

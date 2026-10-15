@@ -21,11 +21,11 @@ Portable description of a loaded DCA model.
 
 **Attributes:**
 
- - <b>`length`</b>:  Number of sites ``L``.
+ - <b>`length`</b>:  Number of sites `L`.
  - <b>`alphabet`</b>:  Alphabet name or custom token string given when loading.
- - <b>`tokens`</b>:  Ordered token string of length ``q``.
- - <b>`device`</b>:  Device of the parameters, e.g. ``"cpu"`` or ``"cuda:0"``.
- - <b>`dtype`</b>:  Precision of the parameters, e.g. ``"float32"``.
+ - <b>`tokens`</b>:  Ordered token string of length `q`.
+ - <b>`device`</b>:  Device of the parameters, e.g. `"cpu"` or `"cuda:0"`.
+ - <b>`dtype`</b>:  Precision of the parameters, e.g. `"float32"`.
  - <b>`source`</b>:  Path of the file the model was loaded from, if any.
  - <b>`package_version`</b>:  adabmDCA version that loaded the model.
  - <b>`schema_version`</b>:  Version of this metadata format.
@@ -56,7 +56,7 @@ __init__(
 
 #### <kbd>property</kbd> num_states
 
-Number of states per site, ``q``.
+Number of states per site, `q`.
 
 
 
@@ -113,9 +113,9 @@ DCA energies of scored sequences, returned by `score_sequences`.
  - <b>`model`</b>:  Metadata of the scoring model.
  - <b>`names`</b>:  Sequence names when read from an alignment, else empty.
  - <b>`warnings`</b>:  Non-fatal issues found while scoring.
- - <b>`cde_sum`</b>:  Summed context-dependent entropy of each sequence, or ``None``.
- - <b>`local_free_energies`</b>:  ``energies - local_lambda * cde_sum``, or ``None``.
- - <b>`local_lambda`</b>:  Weight used for the local free energies, or ``None``.
+ - <b>`cde_sum`</b>:  Summed context-dependent entropy of each sequence, or `None`.
+ - <b>`local_free_energies`</b>:  `energies - local_lambda * cde_sum`, or `None`.
+ - <b>`local_lambda`</b>:  Weight used for the local free energies, or `None`.
 
 <a href="https://github.com/spqb/adabmDCApy/blob/main/<string>"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
@@ -151,14 +151,14 @@ __init__(
 save(path: 'str | Path', format: 'str | None' = None) → Path
 ```
 
-Write the result in the format given by ``format`` or by the file extension.
+Write the result in the format given by `format` or by the file extension.
 
 
 
 **Args:**
 
  - <b>`path`</b>:  Output file.
- - <b>`format`</b>:  One of ``"csv"``, ``"fasta"`` or ``"json"``; inferred from the extension when ``None``.
+ - <b>`format`</b>:  One of `"csv"`, `"fasta"` or `"json"`; inferred from the extension when `None`.
 
 
 
@@ -175,7 +175,7 @@ Write the result in the format given by ``format`` or by the file extension.
 save_bundle(directory: 'str | Path', stem: 'str' = 'energies') → dict[str, Path]
 ```
 
-Write ``<stem>.fasta``, ``<stem>.csv`` and ``<stem>.json`` to ``directory``.
+Write `<stem>.fasta`, `<stem>.csv` and `<stem>.json` to `directory`.
 
 
 
@@ -187,8 +187,7 @@ Write ``<stem>.fasta``, ``<stem>.csv`` and ``<stem>.json`` to ``directory``.
 
 
 **Returns:**
-
- - <b>`The written paths by kind`</b>:  ``fasta``, ``csv`` and ``summary``.
+ The written paths, keyed by kind (`fasta`, `csv` and `summary`).
 
 ---
 
@@ -296,11 +295,11 @@ Contact scores returned by `predict_contacts`.
 
 **Attributes:**
 
- - <b>`scores`</b>:  Symmetric ``(L, L)`` array of APC-corrected scores, zero diagonal.
- - <b>`method`</b>:  ``"model"`` for a trained model, ``"mean_field"`` for an alignment.
+ - <b>`scores`</b>:  Symmetric `(L, L)` array of APC-corrected scores, zero diagonal.
+ - <b>`method`</b>:  `"model"` for a trained model, `"mean_field"` for an alignment.
  - <b>`alphabet`</b>:  Alphabet used.
  - <b>`tokens`</b>:  Ordered token string.
- - <b>`model`</b>:  Metadata of the model, for ``method="model"``.
+ - <b>`model`</b>:  Metadata of the model, for `method="model"`.
  - <b>`warnings`</b>:  Non-fatal issues found while scoring.
 
 <a href="https://github.com/spqb/adabmDCApy/blob/main/<string>"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
@@ -335,14 +334,14 @@ __init__(
 save(path: 'str | Path', format: 'str | None' = None) → Path
 ```
 
-Write the result in the format given by ``format`` or by the file extension.
+Write the result in the format given by `format` or by the file extension.
 
 
 
 **Args:**
 
  - <b>`path`</b>:  Output file.
- - <b>`format`</b>:  One of ``"csv"``, ``"json"`` or ``"npy"``; inferred from the extension when ``None``.
+ - <b>`format`</b>:  One of `"csv"`, `"json"` or `"npy"`; inferred from the extension when `None`.
 
 
 
@@ -362,20 +361,19 @@ save_bundle(
 ) → dict[str, Path]
 ```
 
-Write the matrix (``.txt``, ``.csv``, ``.npy``) and a JSON summary to ``directory``.
+Write the matrix (`.txt`, `.csv`, `.npy`) and a JSON summary to `directory`.
 
 
 
 **Args:**
 
  - <b>`directory`</b>:  Output folder.
- - <b>`label`</b>:  Optional file-name prefix, giving ``<label>_contact_map.*``.
+ - <b>`label`</b>:  Optional file-name prefix, giving `<label>_contact_map.*`.
 
 
 
 **Returns:**
-
- - <b>`The written paths by kind`</b>:  ``matrix``, ``csv``, ``npy`` and ``summary``.
+ The written paths, keyed by kind (`matrix`, `csv`, `npy` and `summary`).
 
 ---
 
@@ -387,7 +385,7 @@ Write the matrix (``.txt``, ``.csv``, ``.npy``) and a JSON summary to ``director
 save_matrix(path: 'str | Path') → Path
 ```
 
-Write the scores as headerless ``i,j,score`` lines, the format of ``adabmDCA contacts``.
+Write the scores as headerless `i,j,score` lines, the format of `adabmDCA contacts`.
 
 
 
@@ -469,7 +467,7 @@ Write `to_dict` as JSON.
 to_long_dataframe() → DataFrame
 ```
 
-Return one row per matrix entry: ``position_i``, ``position_j`` (0-based) and ``score``.
+Return one row per matrix entry: `position_i`, `position_j` (0-based) and `score`.
 
 ---
 
@@ -481,7 +479,7 @@ Return one row per matrix entry: ``position_i``, ``position_j`` (0-based) and ``
 to_npy(path: 'str | Path') → Path
 ```
 
-Write the ``(L, L)`` score matrix as a NumPy ``.npy`` file.
+Write the `(L, L)` score matrix as a NumPy `.npy` file.
 
 
 
@@ -510,7 +508,7 @@ One single-site mutant from `scan_mutations`.
  - <b>`wild_type`</b>:  Wild-type token at that site.
  - <b>`mutant`</b>:  Substituted token.
  - <b>`sequence`</b>:  Full mutant sequence.
- - <b>`delta_energy`</b>:  ``E(mutant) - E(wild type)``; negative values favour the mutant.
+ - <b>`delta_energy`</b>:  `E(mutant) - E(wild type)`; negative values favour the mutant.
 
 <a href="https://github.com/spqb/adabmDCApy/blob/main/<string>"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
@@ -600,7 +598,7 @@ __init__(
 
 #### <kbd>property</kbd> delta_energies
 
-Energy differences of all mutants, in the order of ``mutations``.
+Energy differences of all mutants, in the order of `mutations`.
 
 
 
@@ -614,14 +612,14 @@ Energy differences of all mutants, in the order of ``mutations``.
 save(path: 'str | Path', format: 'str | None' = None) → Path
 ```
 
-Write the result in the format given by ``format`` or by the file extension.
+Write the result in the format given by `format` or by the file extension.
 
 
 
 **Args:**
 
  - <b>`path`</b>:  Output file.
- - <b>`format`</b>:  One of ``"csv"``, ``"fasta"`` or ``"json"``; inferred from the extension when ``None``.
+ - <b>`format`</b>:  One of `"csv"`, `"fasta"` or `"json"`; inferred from the extension when `None`.
 
 
 
@@ -641,20 +639,19 @@ save_bundle(
 ) → dict[str, Path]
 ```
 
-Write the FASTA library, CSV table and JSON summary to ``directory``.
+Write the FASTA library, CSV table and JSON summary to `directory`.
 
 
 
 **Args:**
 
  - <b>`directory`</b>:  Output folder.
- - <b>`stem`</b>:  File-name stem; defaults to ``<name>_DMS``.
+ - <b>`stem`</b>:  File-name stem; defaults to `<name>_DMS`.
 
 
 
 **Returns:**
-
- - <b>`The written paths by kind`</b>:  ``fasta``, ``csv`` and ``summary``.
+ The written paths, keyed by kind (`fasta`, `csv` and `summary`).
 
 ---
 
@@ -689,7 +686,7 @@ Write `to_dataframe` as CSV.
 to_dataframe() → DataFrame
 ```
 
-Return one row per mutant, with 0- and 1-based positions and ``delta_energy``.
+Return one row per mutant, with 0- and 1-based positions and `delta_energy`.
 
 ---
 
@@ -713,9 +710,9 @@ Return a JSON-compatible document with the result type and schema version.
 to_fasta(path: 'str | Path') → Path
 ```
 
-Write the mutant sequences as FASTA, headers ``<wt><pos><mut> | DCAscore: <delta>``.
+Write the mutant sequences as FASTA, headers `<wt><pos><mut> | DCAscore: <delta>`.
 
-Positions in the headers are 0-based, as in ``adabmDCA dms``.
+Positions in the headers are 0-based, as in `adabmDCA dms`.
 
 
 
@@ -758,13 +755,13 @@ Write `to_dict` as JSON.
 <a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L489"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `SamplingProgress`
-Progress event passed to the ``progress`` callback of `sample_sequences`.
+Progress event passed to the `progress` callback of `sample_sequences`.
 
 
 
 **Attributes:**
 
- - <b>`stage`</b>:  ``"sampling"``, or a ``"ptt_*"`` stage when sampling with PTT.
+ - <b>`stage`</b>:  `"sampling"`, or a `"ptt_*"` stage when sampling with PTT.
  - <b>`completed`</b>:  Work done in this phase (sweeps or exchange rounds).
  - <b>`total`</b>:  Work planned for this phase.
  - <b>`pearson`</b>:  Current Cij Pearson correlation with the reference, if measured.
@@ -807,11 +804,11 @@ Training/test split of an alignment, returned by `split_alignment`.
 
  - <b>`training`</b>:  Training alignment.
  - <b>`test`</b>:  Test alignment.
- - <b>`score`</b>:  ``len(training) * len(test)``; Cobalt keeps the attempt maximizing it.
+ - <b>`score`</b>:  `len(training) * len(test)`; Cobalt keeps the attempt maximizing it.
  - <b>`attempts`</b>:  Number of attempts made.
  - <b>`tokens`</b>:  Alphabet tokens.
  - <b>`seed`</b>:  Random seed used.
- - <b>`method`</b>:  ``"cobalt"`` or ``"clustering"``.
+ - <b>`method`</b>:  `"cobalt"` or `"clustering"`.
  - <b>`identity`</b>:  Sequence-identity threshold of the clustering method.
  - <b>`train_fraction`</b>:  Requested training fraction of the clustering method.
 
@@ -850,7 +847,7 @@ __init__(
 save_bundle(output_prefix: 'str | Path') → dict[str, Path]
 ```
 
-Write ``<prefix>.train.fasta``, ``<prefix>.test.fasta`` and ``<prefix>.split.json``.
+Write `<prefix>.train.fasta`, `<prefix>.test.fasta` and `<prefix>.split.json`.
 
 
 
@@ -861,8 +858,7 @@ Write ``<prefix>.train.fasta``, ``<prefix>.test.fasta`` and ``<prefix>.split.jso
 
 
 **Returns:**
-
- - <b>`The written paths by kind`</b>:  ``training``, ``test`` and ``summary``.
+ The written paths, keyed by kind (`training`, `test` and `summary`).
 
 ---
 
@@ -915,7 +911,7 @@ Generated sequences and diagnostics, returned by `sample_sequences`.
  - <b>`sequences`</b>:  Generated sequences.
  - <b>`energies`</b>:  DCA energy of each sequence.
  - <b>`num_sweeps`</b>:  Monte Carlo sweeps performed (all replicas, for PTT).
- - <b>`sampler`</b>:  Local sampler used, or ``"ptt"``.
+ - <b>`sampler`</b>:  Local sampler used, or `"ptt"`.
  - <b>`beta`</b>:  Inverse temperature.
  - <b>`seed`</b>:  Random seed.
  - <b>`model`</b>:  Metadata of the sampled model.
@@ -925,20 +921,18 @@ Generated sequences and diagnostics, returned by `sample_sequences`.
  - <b>`sampling_dtype`</b>:  Precision used for sampling.
  - <b>`ptt_diagnostics`</b>:  PTT only: mixing, renewal and ladder-health diagnostics.
  - <b>`cde_sum`</b>:  Summed context-dependent entropy of each sequence.
- - <b>`local_lambda_fit`</b>:  Least-squares fit of energy against ``cde_sum``, if identifiable.
+ - <b>`local_lambda_fit`</b>:  Least-squares fit of energy against `cde_sum`, if identifiable.
  - <b>`cij_reference`</b>:  Reference connected correlations, when diagnostics were collected.
  - <b>`cij_generated`</b>:  Generated connected correlations, when diagnostics were collected.
  - <b>`pca_reference`</b>:  Reference sequences projected on their principal components.
  - <b>`pca_generated`</b>:  Generated sequences projected on the same components.
  - <b>`data_comparison`</b>:  With diagnostics and a reference: the share of data and  samples in each cluster of the data (k-means on the principal  components) and their energy distributions under the model.
- - <b>`distance_comparison`</b>:  With diagnostics and a reference: Hamming distances  (fraction of sites) within and between natural and generated  sequences, all pairs and nearest neighbours, plus held-out ->  reference and generated -> held-out nearest distances when a test  alignment was given; ``privet`` holds the PRIVET fit and per-sample
- - <b>`scores (also columns of `</b>: meth:`to_dataframe`).
+ - <b>`distance_comparison`</b>:  With diagnostics and a reference: Hamming distances  (fraction of sites) within and between natural and generated  sequences, all pairs and nearest neighbours, plus held-out ->  reference and generated -> held-out nearest distances when a test  alignment was given; `privet` holds the PRIVET fit and per-sample  scores (also columns of `to_dataframe`).
  - <b>`pca_explained_variance_ratio`</b>:  Variance explained by each component.
- - <b>`steering_potentials`</b>:  Steered sampling only: ``V(x, steering_strength)`` of  each sequence.
- - <b>`log_importance_weights`</b>:  Steered sampling only: log weights that turn  averages over these sequences into averages under the unsteered model,  ``<g>_p = mean(exp(log_w) * g)``. PTT normalizes them with its estimate  of ``log Z_s - log Z_0``; ordinary sampling self-normalizes them to mean 1.
- - <b>`steering`</b>:  Steered sampling only: ``strength``, ``input``, proposal block  length and acceptance, ``effective_sample_size`` of the weights, and for  PTT ``log_z_ratio`` and the rung ``strengths``.
- - <b>`ladder_samples`</b>:  PTT with ``ptt_return_full_ladder`` only: ``sequences``  ``(models, n, L)`` token indices of every ladder model, from the profile  (first) to the endpoint (last, the same samples as ``sequences``),  their ``energies`` ``(models, n)`` under their own model, ``tokens``,  the ``models`` rows of ``ptt_diagnostics`` and, when steered,
- - <b>```steering_potentials``. Written by `</b>: meth:`to_ladder_hdf5`.
+ - <b>`steering_potentials`</b>:  Steered sampling only: `V(x, steering_strength)` of  each sequence.
+ - <b>`log_importance_weights`</b>:  Steered sampling only: log weights that turn  averages over these sequences into averages under the unsteered model,  `<g>_p = mean(exp(log_w) * g)`. PTT normalizes them with its estimate  of `log Z_s - log Z_0`; ordinary sampling self-normalizes them to mean 1.
+ - <b>`steering`</b>:  Steered sampling only: `strength`, `input`, proposal block  length and acceptance, `effective_sample_size` of the weights, and for  PTT `log_z_ratio` and the rung `strengths`.
+ - <b>`ladder_samples`</b>:  PTT with `ptt_return_full_ladder` only: `sequences`  `(models, n, L)` token indices of every ladder model, from the profile  (first) to the endpoint (last, the same samples as `sequences`),  their `energies` `(models, n)` under their own model, `tokens`,  the `models` rows of `ptt_diagnostics` and, when steered,  `steering_potentials`. Written by `to_ladder_hdf5`.
 
 <a href="https://github.com/spqb/adabmDCApy/blob/main/<string>"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
@@ -991,14 +985,14 @@ __init__(
 save(path: 'str | Path', format: 'str | None' = None) → Path
 ```
 
-Write the result in the format given by ``format`` or by the file extension.
+Write the result in the format given by `format` or by the file extension.
 
 
 
 **Args:**
 
  - <b>`path`</b>:  Output file.
- - <b>`format`</b>:  One of ``"csv"``, ``"fasta"`` or ``"json"``; inferred from the extension when ``None``.
+ - <b>`format`</b>:  One of `"csv"`, `"fasta"` or `"json"`; inferred from the extension when `None`.
 
 
 
@@ -1018,16 +1012,16 @@ save_bundle(
 ) → dict[str, Path]
 ```
 
-Write samples (FASTA and CSV), a JSON summary and, in ``logs/``, the mixing/sampling logs.
+Write samples (FASTA and CSV), a JSON summary and, in `logs/`, the mixing/sampling logs.
 
-PTT results also get ``logs/ptt.log`` and, when available, ladder-health and renewal logs; diagnostics add the data-comparison and distance logs. Results with ladder samples also get ``<label>_ladder_samples.h5``.
+PTT results also get `logs/ptt.log` and, when available, ladder-health and renewal logs; diagnostics add the data-comparison and distance logs. Results with ladder samples also get `<label>_ladder_samples.h5`.
 
 
 
 **Args:**
 
  - <b>`directory`</b>:  Output folder.
- - <b>`label`</b>:  Optional file-name prefix, giving ``<label>_samples.fasta`` etc.
+ - <b>`label`</b>:  Optional file-name prefix, giving `<label>_samples.fasta` etc.
 
 
 
@@ -1049,7 +1043,7 @@ save_diagnostic_plots(
 
 Save diagnostic plots as PNG files: mixing, Cij scatter, PCA and energy against CDE.
 
-Plots whose data were not collected (see ``collect_diagnostics`` of `sample_sequences`) are skipped.
+Plots whose data were not collected (see `collect_diagnostics` of `sample_sequences`) are skipped.
 
 
 
@@ -1096,9 +1090,9 @@ Write `to_dataframe` as CSV.
 to_dataframe() → DataFrame
 ```
 
-Return one row per sequence: name, sequence, energy, and ``cde_sum``, steering and PRIVET columns when present.
+Return one row per sequence: name, sequence, energy, and `cde_sum`, steering and PRIVET columns when present.
 
-PRIVET columns are ``NaN`` for sequences left out of the comparison (beyond ``n_measure``).
+PRIVET columns are `NaN` for sequences left out of the comparison (beyond `n_measure`).
 
 ---
 
@@ -1171,7 +1165,7 @@ to_ladder_hdf5(path: 'str | Path') → Path
 
 Write the samples of every PTT ladder model as HDF5.
 
-The file holds ``sequences`` (uint8 token indices, ``(models, n, L)``), ``energies`` (``(models, n)``, each under its own model) and, when steered, ``steering_potentials``; the ``models`` group has one dataset per column of the ladder table (``training_step``, ``flag``, ``log_z``, ``log_likelihood``, ...), with ``NaN`` for missing values. Model 0 is the profile and the last model the endpoint. The root attributes give ``tokens``, ``n_models`` and ``n_sequences``.
+The file holds `sequences` (uint8 token indices, `(models, n, L)`), `energies` (`(models, n)`, each under its own model) and, when steered, `steering_potentials`; the `models` group has one dataset per column of the ladder table (`training_step`, `flag`, `log_z`, `log_likelihood`, ...), with `NaN` for missing values. Model 0 is the profile and the last model the endpoint. The root attributes give `tokens`, `n_models` and `n_sequences`.
 
 
 
@@ -1196,14 +1190,14 @@ The file holds ``sequences`` (uint8 token indices, ``(models, n, L)``), ``energi
 <a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L1168"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `TrainingProgress`
-One accepted update, passed to the ``progress`` callback of `train_model`.
+One accepted update, passed to the `progress` callback of `train_model`.
 
 
 
 **Attributes:**
 
  - <b>`epoch`</b>:  Step number of the record (gradient steps, or graph steps for PCD eaDCA/edDCA).
- - <b>`metrics`</b>:  Numeric values of the history row: ``Pearson``, ``LL_val``, ``Density``, ...
+ - <b>`metrics`</b>:  Numeric values of the history row: `Pearson`, `LL_val`, `Density`, ...
  - <b>`stage`</b>:  Current training phase.
  - <b>`gradient_steps`</b>:  Accepted parameter updates so far.
  - <b>`structure_steps`</b>:  Graph activations or decimations so far.
@@ -1250,9 +1244,9 @@ Size and filtering of one training or validation alignment.
  - <b>`retained_sequences`</b>:  Sequences kept after filtering.
  - <b>`removed_invalid`</b>:  Sequences dropped for unknown tokens or wrong length.
  - <b>`removed_duplicates`</b>:  Duplicate sequences dropped.
- - <b>`sequence_length`</b>:  Number of sites ``L``.
- - <b>`num_states`</b>:  Number of states ``q``.
- - <b>`effective_sequences`</b>:  Sum of the sequence weights (``Meff``).
+ - <b>`sequence_length`</b>:  Number of sites `L`.
+ - <b>`num_states`</b>:  Number of states `q`.
+ - <b>`effective_sequences`</b>:  Sum of the sequence weights (`Meff`).
 
 <a href="https://github.com/spqb/adabmDCApy/blob/main/<string>"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
@@ -1284,7 +1278,7 @@ __init__(
 <a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L1216"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `TrainingInitialization`
-Resolved training setup, passed to ``on_initialized`` of `train_model`.
+Resolved training setup, passed to `on_initialized` of `train_model`.
 
 
 
@@ -1334,16 +1328,15 @@ Outcome of `train_model`.
 **Attributes:**
 
  - <b>`model`</b>:  The trained `DCAModel`.
- - <b>`history`</b>:  One list per quantity, one entry per recorded update (see
- - <b>`:meth`</b>: `history_dataframe`).
- - <b>`chains`</b>:  Final Markov chains, one-hot, shape ``(n_chains, L, q)``.
+ - <b>`history`</b>:  One list per quantity, one entry per recorded update (see  `history_dataframe`).
+ - <b>`chains`</b>:  Final Markov chains, one-hot, shape `(n_chains, L, q)`.
  - <b>`pseudocount`</b>:  Pseudocount applied to the training statistics.
  - <b>`num_sequences`</b>:  Training sequences after filtering.
- - <b>`effective_sequences`</b>:  Effective number of training sequences (``Meff``).
- - <b>`artifacts`</b>:  Written files by kind (``params``, ``history``, ``ptt_archive``, ...).
+ - <b>`effective_sequences`</b>:  Effective number of training sequences (`Meff`).
+ - <b>`artifacts`</b>:  Written files by kind (`params`, `history`, `ptt_archive`, ...).
  - <b>`warnings`</b>:  Non-fatal issues found during training.
  - <b>`converged`</b>:  Whether training stopped at its target (Pearson, density,  validation plateau or converged graph) rather than at a step limit.
- - <b>`stop_reason`</b>:  Why training stopped, e.g. ``"target_pearson"``.
+ - <b>`stop_reason`</b>:  Why training stopped, e.g. `"target_pearson"`.
  - <b>`gradient_steps`</b>:  Accepted parameter updates.
  - <b>`structure_steps`</b>:  Graph activations or decimations.
  - <b>`sweeps`</b>:  Monte Carlo sweeps performed.
@@ -1430,8 +1423,7 @@ Write a JSON summary, and the history table unless training already wrote it.
 
 
 **Returns:**
-
- - <b>`The written paths by kind`</b>:  ``summary`` and possibly ``history``.
+ The written paths, keyed by kind (`summary` and possibly `history`).
 
 ---
 
@@ -1443,7 +1435,7 @@ Write a JSON summary, and the history table unless training already wrote it.
 to_csv(path: 'str | Path') → Path
 ```
 
-Write the history with the columns and names of ``history.csv``.
+Write the history with the columns and names of `history.csv`.
 
 
 
@@ -1506,7 +1498,7 @@ Outcome of `reintegrate_model`.
 
  - <b>`training`</b>:  Result of training on the combined alignment.
  - <b>`alignment`</b>:  Natural plus experimental sequences used for training.
- - <b>`weights`</b>:  Signed weight of each sequence of ``alignment``.
+ - <b>`weights`</b>:  Signed weight of each sequence of `alignment`.
  - <b>`lambda_value`</b>:  Weight of the experimental data.
  - <b>`scaling_factor`</b>:  Factor applied to the experimental weights.
  - <b>`label`</b>:  File-name prefix of the written files.
@@ -1545,9 +1537,9 @@ __init__(
 save_bundle(directory: 'str | Path') → dict[str, Path]
 ```
 
-Write the combined alignment, its weights and a JSON summary to ``directory``.
+Write the combined alignment, its weights and a JSON summary to `directory`.
 
-Files are named ``<label>_msa.fasta``, ``<label>_weights.dat`` and ``<label>_reintegration.json``.
+Files are named `<label>_msa.fasta`, `<label>_weights.dat` and `<label>_reintegration.json`.
 
 
 
@@ -1558,8 +1550,7 @@ Files are named ``<label>_msa.fasta``, ``<label>_weights.dat`` and ``<label>_rei
 
 
 **Returns:**
-
- - <b>`The written paths by kind`</b>:  ``alignment``, ``weights`` and ``summary``.
+ The written paths, keyed by kind (`alignment`, `weights` and `summary`).
 
 ---
 
@@ -1603,13 +1594,13 @@ Write `to_dict` as JSON.
 <a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L1451"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `ThermodynamicIntegrationProgress`
-Progress event passed to the ``progress`` callback of `estimate_entropy`.
+Progress event passed to the `progress` callback of `estimate_entropy`.
 
 
 
 **Attributes:**
 
- - <b>`stage`</b>:  ``"theta_search"`` while raising ``theta_max``, then ``"integration"``.
+ - <b>`stage`</b>:  `"theta_search"` while raising `theta_max`, then `"integration"`.
  - <b>`completed`</b>:  Steps done in this stage.
  - <b>`total`</b>:  Largest number of steps of this stage.
  - <b>`theta`</b>:  Current bias strength.
@@ -1651,12 +1642,12 @@ Outcome of `estimate_entropy`.
 **Attributes:**
 
  - <b>`entropy`</b>:  Estimated model entropy, in nats.
- - <b>`free_energy`</b>:  Free energy at ``theta = 0`` from the integration.
+ - <b>`free_energy`</b>:  Free energy at `theta = 0` from the integration.
  - <b>`theta_max`</b>:  Largest bias strength reached.
- - <b>`target_fraction`</b>:  Fraction of chains matching the target at ``theta_max``.
- - <b>`history`</b>:  Per integration step: ``theta``, ``free_energy``, ``entropy``,  ``mean_sequence_identity`` and ``elapsed_seconds``.
+ - <b>`target_fraction`</b>:  Fraction of chains matching the target at `theta_max`.
+ - <b>`history`</b>:  Per integration step: `theta`, `free_energy`, `entropy`,  `mean_sequence_identity` and `elapsed_seconds`.
  - <b>`model`</b>:  Metadata of the model.
- - <b>`artifacts`</b>:  Written files by kind, when ``output_dir`` was given.
+ - <b>`artifacts`</b>:  Written files by kind, when `output_dir` was given.
 
 <a href="https://github.com/spqb/adabmDCApy/blob/main/<string>"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
@@ -1703,7 +1694,7 @@ Return the integration history as a DataFrame, one row per step.
 save_bundle(directory: 'str | Path', label: 'str' = 'entropy') → dict[str, Path]
 ```
 
-Write ``<label>.log``, ``<label>.csv`` and ``<label>.json`` to ``directory``.
+Write `<label>.log`, `<label>.csv` and `<label>.json` to `directory`.
 
 
 
@@ -1715,8 +1706,7 @@ Write ``<label>.log``, ``<label>.csv`` and ``<label>.json`` to ``directory``.
 
 
 **Returns:**
-
- - <b>`The written paths by kind`</b>:  ``log``, ``csv`` and ``summary``.
+ The written paths, keyed by kind (`log`, `csv` and `summary`).
 
 ---
 

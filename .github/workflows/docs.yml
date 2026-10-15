@@ -38,7 +38,7 @@ jobs:
       run: |
         # Keep this list aligned with the public modules exposed by adabmDCA.
         # Command-line adapters and private implementation modules are excluded.
-        lazydocs \
+        python tools/lazydocs_rst.py \
           --output-path docs/api \
           --overview-file symbols.md \
           --src-base-url "https://github.com/spqb/adabmDCApy/blob/main/" \

@@ -18,7 +18,7 @@
 couplings_are_symmetric(couplings: Tensor) → bool
 ```
 
-Whether ``J[i, a, j, b] == J[j, b, i, a]`` exactly, as for every trained Potts model.
+Whether `J[i, a, j, b] == J[j, b, i, a]` exactly, as for every trained Potts model.
 
 The answer is cached per tensor and recomputed after in-place changes, so kernels can ask on every call. Kernels use it to sum pair terms once.
 
@@ -65,25 +65,25 @@ get_cde(x: Tensor, params: dict[str, Tensor]) → Tensor
 
 Compute per-site context-dependent entropy of one-hot sequences.
 
-For each site ``i``, hold all other residues fixed, evaluate the model probability of every state at ``i``, and return the Shannon entropy of that conditional distribution in nats. The conditional probabilities follow the same energy convention as `compute_energy`, including asymmetric couplings and nonzero same-site terms.
+For each site `i`, hold all other residues fixed, evaluate the model probability of every state at `i`, and return the Shannon entropy of that conditional distribution in nats. The conditional probabilities follow the same energy convention as `compute_energy`, including asymmetric couplings and nonzero same-site terms.
 
 
 
 **Args:**
 
- - <b>`x`</b>:  One-hot sequence of shape ``(L, q)`` or batch of shape  ``(N, L, q)``. It is moved to the model's device and dtype.
- - <b>`params`</b>:  Model parameters with ``bias`` of shape ``(L, q)`` and  ``coupling_matrix`` of shape ``(L, q, L, q)``.
+ - <b>`x`</b>:  One-hot sequence of shape `(L, q)` or batch of shape  `(N, L, q)`. It is moved to the model's device and dtype.
+ - <b>`params`</b>:  Model parameters with `bias` of shape `(L, q)` and  `coupling_matrix` of shape `(L, q, L, q)`.
 
 
 
 **Returns:**
- Tensor of shape ``(L,)`` for one sequence or ``(N, L)`` for a batch.
+ Tensor of shape `(L,)` for one sequence or `(N, L)` for a batch.
 
 
 
 **Raises:**
 
- - <b>`ValueError`</b>:  If the parameter or sequence dimensions are incompatible,  or ``x`` is not one-hot encoded.
+ - <b>`ValueError`</b>:  If the parameter or sequence dimensions are incompatible,  or `x` is not one-hot encoded.
 
 
 ---

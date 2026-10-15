@@ -22,18 +22,18 @@ Configuration for PTT snapshot retention, reservoirs and mixing analysis.
 ## <kbd>class</kbd> `PTTConfig`
 Settings of Parallel Trajectory Tempering, for training and sampling.
 
-Pass an instance as ``ptt=`` to `train_model` (or through ``TrainingConfig(ptt=...)``) to train with PTT. The defaults suit most families; see ``docs/ptt.md`` for the method. Round counts are exchange rounds: one pass of replica exchanges followed by the local sweeps.
+Pass an instance as `ptt=` to `train_model` (or through `TrainingConfig(ptt=...)`) to train with PTT. The defaults suit most families; see `docs/ptt.md` for the method. Round counts are exchange rounds: one pass of replica exchanges followed by the local sweeps.
 
 
 
 **Attributes:**
 
- - <b>`swaps`</b>:  Exchange-round factor: each update runs  ``int(swaps * sqrt(active replicas))`` rounds.
+ - <b>`swaps`</b>:  Exchange-round factor: each update runs  `int(swaps * sqrt(active replicas))` rounds.
  - <b>`target_acceptance`</b>:  Swap acceptance below which the current endpoint is  kept as a new snapshot in the ladder.
  - <b>`min_acceptance`</b>:  Swap acceptance below which a mixing check is run.
  - <b>`max_replicas`</b>:  Active ladder size above which the reservoir is refreshed  and the ladder compressed.
  - <b>`target_replicas`</b>:  Active replicas kept after compression.
- - <b>`reservoir_size`</b>:  Size of the reservoir population; ``None`` means  ``10 * n_chains``. Must be at least ``n_chains``.
+ - <b>`reservoir_size`</b>:  Size of the reservoir population; `None` means  `10 * n_chains`. Must be at least `n_chains`.
  - <b>`full_sampler`</b>:  Use the full historical ladder when collecting a new reservoir.
  - <b>`equilibration_rounds`</b>:  Extra rounds after a snapshot is inserted or replaced.
  - <b>`initialization_rounds`</b>:  Warmup rounds before the first update.
@@ -42,11 +42,11 @@ Pass an instance as ``ptt=`` to `train_model` (or through ``TrainingConfig(ptt=.
  - <b>`mixing_thermalization_rounds`</b>:  Warmup before a mixing measurement and after a recovery.
  - <b>`mixing_max_rounds`</b>:  Round budget of one mixing check; exceeding it is a  mixing failure, which triggers recovery.
  - <b>`mixing_window_factor`</b>:  Required trajectory length relative to the longest  correlation time (autocorrelation method).
- - <b>`mixing_method`</b>:  Training mixing check: ``"renewal"`` (the ladder is  repopulated by fresh configurations) or ``"autocorrelation"``.
+ - <b>`mixing_method`</b>:  Training mixing check: `"renewal"` (the ladder is  repopulated by fresh configurations) or `"autocorrelation"`.
  - <b>`renewal_tolerance`</b>:  Fraction of old configurations, per replica, below which  the ladder counts as renewed.
  - <b>`max_recoveries`</b>:  Largest number of learning-rate halvings after mixing failures.
  - <b>`min_learning_rate`</b>:  Learning-rate floor of recovery.
- - <b>`optimizer`</b>:  ``"adaptive"`` (steps bounded by a KL trust region, training  paused while the endpoint chains lag behind the model) or ``"sgd"``  (fixed learning rate).
+ - <b>`optimizer`</b>:  `"adaptive"` (steps bounded by a KL trust region, training  paused while the endpoint chains lag behind the model) or `"sgd"`  (fixed learning rate).
  - <b>`trust_radius`</b>:  Adaptive optimizer: largest predicted KL divergence of one update.
  - <b>`lag_tolerance`</b>:  Adaptive optimizer: largest lag of the endpoint chains, in  population standard deviations, before training pauses.
  - <b>`lag_horizon`</b>:  Adaptive optimizer: memory of past updates, in updates.
@@ -54,8 +54,8 @@ Pass an instance as ``ptt=`` to `train_model` (or through ``TrainingConfig(ptt=.
  - <b>`validation_stop`</b>:  Stop when the validation log-likelihood plateaus instead  of at the target Pearson; requires a validation alignment.
  - <b>`validation_window`</b>:  Updates per window of the plateau test, which compares  the medians of the last two windows.
  - <b>`validation_min_gain`</b>:  Stop when the median gain between the two windows  is below this value (log-likelihood per site).
- - <b>`activation`</b>:  eaDCA: ``"fixed"`` activates ``activation_fraction`` of the  inactive couplings per block; ``"adaptive"`` activates at most that  fraction, only significant candidates within a KL budget.
- - <b>`activation_kl_share`</b>:  Adaptive activation: share of ``trust_radius`` for the  first update of the new couplings; halved by each recovery.
+ - <b>`activation`</b>:  eaDCA: `"fixed"` activates `activation_fraction` of the  inactive couplings per block; `"adaptive"` activates at most that  fraction, only significant candidates within a KL budget.
+ - <b>`activation_kl_share`</b>:  Adaptive activation: share of `trust_radius` for the  first update of the new couplings; halved by each recovery.
  - <b>`activation_significance`</b>:  Adaptive activation: standard errors by which a  candidate's pair frequency must differ from the data; 0 disables the test.
 
 

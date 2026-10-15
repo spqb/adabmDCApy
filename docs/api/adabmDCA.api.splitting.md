@@ -32,31 +32,30 @@ split_alignment(
 
 Split an alignment into training and test sets that are not too similar.
 
-``method="clustering"`` clusters sequences at ``identity`` (MMseqs2 when installed and there are at least 100 sequences, otherwise a built-in greedy clustering) and assigns whole clusters to the training set until about ``train_fraction`` of the sequences are in it. ``method="cobalt"`` runs the Cobalt algorithm (Petti and Eddy, 2022), whose thresholds ``t1``-``t3`` bound the identities between and within the two sets.
+`method="clustering"` clusters sequences at `identity` (MMseqs2 when installed and there are at least 100 sequences, otherwise a built-in greedy clustering) and assigns whole clusters to the training set until about `train_fraction` of the sequences are in it. `method="cobalt"` runs the Cobalt algorithm (Petti and Eddy, 2022), whose thresholds `t1`-`t3` bound the identities between and within the two sets.
 
 
 
 **Args:**
 
  - <b>`alignment`</b>:  Alignment to split (path, `Alignment` or sequences).
- - <b>`method`</b>:  ``"clustering"`` or ``"cobalt"``.
- - <b>`identity`</b>:  Clustering: sequence identity, in ``(0, 1]``, that joins two  sequences into one cluster.
+ - <b>`method`</b>:  `"clustering"` or `"cobalt"`.
+ - <b>`identity`</b>:  Clustering: sequence identity, in `(0, 1]`, that joins two  sequences into one cluster.
  - <b>`train_fraction`</b>:  Clustering: target fraction of sequences in the training set.
- - <b>`t1`</b>:  Cobalt: no test sequence is more than ``t1`` identical to a training sequence.
- - <b>`t2`</b>:  Cobalt: no two test sequences are more than ``t2`` identical.
- - <b>`t3`</b>:  Cobalt: no two training sequences are more than ``t3`` identical.
- - <b>`max_train`</b>:  Cobalt: largest training set, or ``None`` for no limit.
- - <b>`max_test`</b>:  Cobalt: largest test set, or ``None`` for no limit.
- - <b>`attempts`</b>:  Cobalt: random attempts; the one maximizing  ``len(training) * len(test)`` is kept.
- - <b>`alphabet`</b>:  ``"protein"``, ``"rna"``, ``"dna"`` or a custom token string.
+ - <b>`t1`</b>:  Cobalt: no test sequence is more than `t1` identical to a training sequence.
+ - <b>`t2`</b>:  Cobalt: no two test sequences are more than `t2` identical.
+ - <b>`t3`</b>:  Cobalt: no two training sequences are more than `t3` identical.
+ - <b>`max_train`</b>:  Cobalt: largest training set, or `None` for no limit.
+ - <b>`max_test`</b>:  Cobalt: largest test set, or `None` for no limit.
+ - <b>`attempts`</b>:  Cobalt: random attempts; the one maximizing  `len(training) * len(test)` is kept.
+ - <b>`alphabet`</b>:  `"protein"`, `"rna"`, `"dna"` or a custom token string.
  - <b>`seed`</b>:  Random seed.
- - <b>`device`</b>:  ``"auto"``, ``"cpu"``, ``"cuda"`` or ``"mps"`` for identity computations.
+ - <b>`device`</b>:  `"auto"`, `"cpu"`, `"cuda"` or `"mps"` for identity computations.
 
 
 
 **Returns:**
-
- - <b>`A `</b>: class:`ProfileSplitResult` with the two alignments.
+ A `ProfileSplitResult` with the two alignments.
 
 
 
