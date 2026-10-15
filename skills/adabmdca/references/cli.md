@@ -1,6 +1,6 @@
 # adabmDCA command line
 
-`adabmDCA <command> [options]`. Commands: `preprocess`, `split-data`, `train`, `sample`, `energies`, `dms`, `contacts`, `entropy`, `reintegrate`, `plot-training-log`. Every command accepts `--alphabet` (`auto`, `protein`, `rna`, `dna` or an ordered token string), `--device` (`auto`, `cuda`, `cuda:1`, `mps`, `cpu`) and `--dtype` (`float32` default; `float64`; `bfloat16` only for sampling couplings on Ampere+ CUDA with Triton or MPS on macOS 14+, PTT on CUDA only). Input alignments can be FASTA, gzip FASTA or Stockholm. With `-l name`, output files are prefixed `name_`.
+`adabmDCA <command> [options]`. Commands: `preprocess`, `split-data`, `train`, `sample`, `energies`, `dms`, `contacts`, `entropy`, `reintegrate`, `diagnose`, `plot-training-log`. Every command accepts `--alphabet` (`auto`, `protein`, `rna`, `dna` or an ordered token string), `--device` (`auto`, `cuda`, `cuda:1`, `mps`, `cpu`) and `--dtype` (`float32` default; `float64`; `bfloat16` only for sampling couplings on Ampere+ CUDA with Triton or MPS on macOS 14+, PTT on CUDA only). Input alignments can be FASTA, gzip FASTA or Stockholm. With `-l name`, output files are prefixed `name_`.
 
 ## preprocess
 
@@ -179,6 +179,14 @@ adabmDCA reintegrate -d natural.fasta --reint tested.fasta --adj adjustments.txt
 ```
 
 `--adj` has one number per tested sequence, in order: `1` passed, `-1` failed, values in between grade it. `--lambda_` defaults to 1/max|adj|. **Defaults to PCD** (unlike `train`); add `--strategy ptt` for bmDCA/eaDCA. Accepts all `train` options. Outputs: the training outputs, prefixed `<label>-lambda_<λ>_` (label defaults to `reintegrated`, λ to two decimals), plus the combined alignment `..._msa.fasta`, its signed weights `..._weights.dat` and a JSON summary. Check that adjustments line up with the tested sequences in the combined files.
+
+## diagnose
+
+```bash
+adabmDCA diagnose model [-l label] [-s check/sampling.json] [--json]
+```
+
+Reads a training folder (and optionally the `sampling.json` of a check) and prints a verdict, `healthy`, `needs_attention`, `failed`, `running` or `incomplete`, with findings tagged F1–F8 and the recommended CLI change. See [diagnostics.md](diagnostics.md).
 
 ## plot-training-log
 

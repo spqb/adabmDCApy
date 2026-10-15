@@ -2,6 +2,16 @@
 
 Training metrics come from the same chains that estimate the gradient. If those chains fall out of equilibrium, the model is wrong **and** the metrics can still look fine. So every model that will be relied on must be checked by independent sampling. Full guide: https://spqb.github.io/adabmDCApy/algorithms/diagnostics/ (`docs/algorithms/diagnostics.md` in a clone).
 
+## Quick first step: `adabmDCA diagnose`
+
+```bash
+adabmDCA diagnose model                          # finished or running run
+adabmDCA diagnose model -s check/sampling.json   # include the check of the finished model (step 3)
+adabmDCA diagnose model -l run1 --json           # labelled run, full report as JSON
+```
+
+It reads `history.csv`, `events.jsonl`, `training.json` and the log, and prints a verdict (`healthy`, `needs_attention`, `failed`, `running`, `incomplete`) with findings tagged F1–F8 and the recommended change as CLI options. From Python: `adabmDCA.diagnose_run(run_dir, label=None, sampling_json=None)` returns the same report as a dict. Report its verdict and findings to the user, and use the manual steps below when you need the details behind a finding.
+
 ## 1. How did training end?
 
 Read `training.json` → `data.stop_reason`, `data.converged`, `data.warnings`, or the `[END]` section of `adabmDCA.log`.

@@ -152,6 +152,13 @@ reintegrate_model(load_alignment("natural.fasta"), load_alignment("tested.fasta"
                   np.loadtxt("adjustments.txt"), output_dir="reintegrated")   # .lambda_value, .training
 ```
 
+## Diagnose a run
+
+```python
+from adabmDCA import diagnose_run
+report = diagnose_run("model", label=None, sampling_json="check/sampling.json")   # dict, same as `adabmDCA diagnose --json`
+```
+
 ## Results and errors
 
 Every result object serializes itself: `to_dataframe()`, `to_csv()`, `to_json()`, `to_fasta()`, `save(path)` (format from suffix), `save_bundle(dir, label=...)` → `{kind: path}`. JSON files share the envelope `{"schema_version", "result_type", "data"}`.

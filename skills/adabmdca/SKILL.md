@@ -61,7 +61,7 @@ Skip steps 1–2 when the user already has a clean aligned FASTA and a validatio
 
 1. **Training and sampling are long jobs.** PTT training takes minutes for small RNA families and hours for protein families of 200–300 positions, even on a GPU. Run them in the background with output redirected to a file (`> train.out 2>&1`), and follow `model/history.csv`, `model/events.jsonl` and `grep '»' model/adabmDCA.log` instead of the terminal. Add `--no-progress` to `train` so the redirected output stays readable. For a quick check of a pipeline, cap the budget with `--max-gradient-steps 100`, and say the result is not converged.
 2. **Never overwrite a previous run.** Use a new `-o` folder (or `-l label`) per run. Only `--ptt-resume` reuses a folder, deliberately.
-3. **A finished training run is not a validated model.** Always read `training.json` → `data.stop_reason` and `data.converged`, then sample the model with `--plot` and a held-out set, and compare the sampled Pearson with the last training Pearson. See [references/diagnostics.md](references/diagnostics.md).
+3. **A finished training run is not a validated model.** Always read `training.json` → `data.stop_reason` and `data.converged`, then sample the model with `--plot` and a held-out set, and run `adabmDCA diagnose model -s check/sampling.json`, which compares the sampled Pearson with training and flags known failures. See [references/diagnostics.md](references/diagnostics.md).
 4. **Prefer PTT, use PCD to explore.** `--strategy pcd` is 9 to 41 times faster but nothing checks that its chains stay at equilibrium; on clustered protein families PCD models could not be sampled correctly. Train the model the user will rely on with PTT (the CLI default).
 5. **Python defaults differ from the CLI.** `train_model` uses PCD unless `ptt=PTTConfig(...)` is passed; the validation stop needs `PTTConfig(validation_stop=True)`; `sample_sequences` uses plain MCMC unless `ptt=True`; workflow functions default to `alphabet="protein"` (only `load_alignment` and `load_model` on `ptt.h5` detect it).
 6. **Alphabets.** Detection tries DNA, then RNA, then protein. An RNA alignment without any `U` is read as DNA: pass `--alphabet rna`. For custom symbols pass the ordered token string (e.g. `--alphabet ABCD-`) and use the same string in every command that reads that model.
@@ -91,13 +91,15 @@ Read the one that matches the task:
 - [references/cli.md](references/cli.md): every command with its main options, variants and outputs (train, resume, sample incl. `--ptt-return-full-ladder`, energies, dms, contacts, entropy, reintegrate, preprocess, split-data, plot-training-log).
 - [references/python-api.md](references/python-api.md): the same workflows from Python, progress callbacks and cancellation, steered sampling, result objects.
 - [references/outputs.md](references/outputs.md): what each output file contains and how to read it (`params.dat.gz`, `history.csv` columns, `events.jsonl`, `training.json`, `sampling.json`, `ladder_samples.h5`).
-- [references/diagnostics.md](references/diagnostics.md): how to tell whether a run is healthy, a triage script, and what to change when it is not.
+- [references/diagnostics.md](references/diagnostics.md): `adabmDCA diagnose`, how to tell whether a run is healthy, and what to change when it is not.
 
 The full documentation is at https://spqb.github.io/adabmDCApy/ and, in a clone, under `docs/`.
 
 ## MCP server
 
-For clients without a shell (Claude Desktop, claude.ai chat), and for structured management of long training jobs (start, poll progress, cancel), the separate agentDCA MCP server (https://github.com/rossetl/agentDCA) exposes adabmDCA as tools. With a shell, this skill and the CLI are enough.
+The separate agentDCA MCP server (https://github.com/rossetl/agentDCA) exposes adabmDCA as tools, for clients without a shell (Claude Desktop, claude.ai chat) and for long jobs. Its training jobs run detached and survive the end of the chat, with progress, cancel and resume; `diagnose_dca_run` wraps `adabmDCA diagnose`; and sampling and contact plots come back as images.
+
+**When the agentDCA tools are available, prefer them for long training runs and for diagnosis.** Use the CLI for everything else, or when the tools are not installed. The tools take Python parameter names (`n_sweeps`, `validation_path`, `ptt_resume`) where this skill gives CLI flags; [references/python-api.md](references/python-api.md) maps one to the other.
 
 ## Citation
 
