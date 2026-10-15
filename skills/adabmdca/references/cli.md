@@ -108,10 +108,10 @@ Outputs (in `-o`): `params.dat.gz`, `chains.fasta`, `weights.dat`, `history.csv`
 ## sample
 
 ```bash
-# PTT through the archived ladder (default strategy); -d is required with PTT
+# Default whenever the training folder has a ptt.h5: PTT through the archived ladder; -d is required
 adabmDCA sample -p model/ptt.h5 -d train.fasta -v validation.fasta --plot -o samples
 
-# Plain MCMC, for any model (the only option for a PCD-trained model)
+# Plain MCMC: only when there is no ptt.h5 (PCD-trained or imported models), or as a cross-check
 adabmDCA sample --strategy pcd -p model/params.dat.gz -d train.fasta --plot -o samples_mcmc
 ```
 

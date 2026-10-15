@@ -113,7 +113,7 @@ res.save_diagnostic_plots("samples")                        # the --plot figures
 res.to_ladder_hdf5("samples/ladder_samples.h5")             # needs ptt_return_full_ladder=True
 ```
 
-Plain MCMC: pass a `DCAModel` or parameter file and leave `ptt=False`; `n_sweeps` bounds the mixing-time measurement and `mixing_multiplier` (2) sets the generation length.
+When a `ptt.h5` exists, always sample it as above with `ptt=True`. Plain MCMC (only without an archive): pass a `DCAModel` or parameter file and leave `ptt=False`; `n_sweeps` bounds the mixing-time measurement and `mixing_multiplier` (2) sets the generation length.
 
 Reuse one archive for several operations without reloading:
 
