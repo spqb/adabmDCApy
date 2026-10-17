@@ -11,14 +11,14 @@ High-level sequence-generation operations.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/sampling.py#L358"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/sampling.py#L400"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `sample_sequences`
 
 ```python
 sample_sequences(
     model: 'DCAModel | str | Path',
-    n_sequences: 'int',
+    n_sequences: 'int | None' = None,
     ptt: 'bool' = False,
     ptt_local_sweeps: 'int' = 10,
     ptt_max_rounds: 'int' = 20000,
@@ -30,6 +30,9 @@ sample_sequences(
     sampler: 'str | None' = 'metropolized_gibbs',
     beta: 'float' = 1.0,
     seed: 'int' = 0,
+    initial_sequences: 'InitialSequences | None' = None,
+    measure_mixing_time: 'bool' = True,
+    record_every: 'int' = 1,
     reference_fasta: 'AlignmentInput | None' = None,
     weights_path: 'WeightInput | None' = None,
     test_fasta: 'AlignmentInput | None' = None,
@@ -56,7 +59,7 @@ sample_sequences(
 
 Generate sequences from a DCA model, with an energy for each.
 
-Ordinary sampling runs `n_sequences` independent Markov chains. With `reference_fasta`, their mixing time is first measured (up to `n_sweeps` sweeps) and generation runs for `mixing_multiplier` mixing times; otherwise it runs for exactly `n_sweeps` sweeps.
+Ordinary sampling runs `n_sequences` independent Markov chains, started from random sequences or from `initial_sequences`. With `reference_fasta`, their mixing time is first measured (up to `n_sweeps` sweeps) and generation runs for `mixing_multiplier` mixing times; otherwise, or with `measure_mixing_time=False`, it runs for exactly `n_sweeps` sweeps.
 
 PTT sampling (`ptt=True`, a PTT archive, or a `PTTSampler` as `model`) instead uses the replica ladder saved during training: the exact profile, the models flagged during training and the endpoint. It runs at `beta=1`, ignores `n_sweeps`, and equilibrates until its mixing check passes. A `PTTSampler` passed as `model` is forked, not modified. Every result includes the summed context-dependent entropy (CDE) of each sequence and, when identifiable, a least-squares fit of energy against it.
 
@@ -69,7 +72,7 @@ With PTT, steered rungs of increasing strength are added above the trained endpo
 **Args:**
 
  - <b>`model`</b>:  A `DCAModel`, a path to a parameter file or PTT archive, or  a `PTTSampler`.
- - <b>`n_sequences`</b>:  Number of sequences to generate.
+ - <b>`n_sequences`</b>:  Number of sequences to generate. Required, except with  `initial_sequences`, where it defaults to their number and a smaller  value starts from a random subset of them.
  - <b>`ptt`</b>:  Sample with PTT from the archive given as `model`.
  - <b>`ptt_local_sweeps`</b>:  PTT: local sweeps per exchange round.
  - <b>`ptt_max_rounds`</b>:  PTT: largest number of exchange rounds of the mixing check.
@@ -81,6 +84,9 @@ With PTT, steered rungs of increasing strength are added above the trained endpo
  - <b>`sampler`</b>:  `"metropolized_gibbs"`, `"gibbs"` or `"metropolis"`. For PTT,  select the local update with `ptt_local_kernel` instead.
  - <b>`beta`</b>:  Inverse temperature (ordinary sampling only).
  - <b>`seed`</b>:  Random seed.
+ - <b>`initial_sequences`</b>:  Ordinary sampling: starting configurations instead of  random sequences. A FASTA/Stockholm path, an `Alignment`, a list  of aligned strings, a `SamplingResult` (e.g. from PTT sampling),  or an array of token indices `(N, L)` or one-hot `(N, L, q)` in the  model's alphabet.
+ - <b>`measure_mixing_time`</b>:  Ordinary sampling with `reference_fasta`: `False`  skips the mixing-time measurement and runs exactly `n_sweeps` sweeps,  still recording the comparison with the reference.
+ - <b>`record_every`</b>:  Ordinary sampling with `reference_fasta`: sweeps between  entries of `sampling_history` (Pearson, slope and mean energy of the  chains). The starting chains are recorded at sweep 0 and the last sweep  is always recorded.
  - <b>`reference_fasta`</b>:  Natural alignment used to measure mixing and to compare  the generated statistics; required for PTT and for `collect_diagnostics`.
  - <b>`weights_path`</b>:  Optional weights of the reference sequences.
  - <b>`test_fasta`</b>:  Optional held-out alignment (e.g. the validation split). With  `collect_diagnostics`, nearest-neighbour distances from it to the  reference give the yardstick for the generated sequences' distances to  the training set, and PRIVET compares each generated sequence's  distances to both sets (overfitting check).
@@ -137,7 +143,7 @@ steered.steering["effective_sample_size"], steered.log_importance_weights[:3]
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/sampling.py#L767"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/sampling.py#L852"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `generate_sequences`
 
