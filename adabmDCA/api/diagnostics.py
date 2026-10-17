@@ -205,36 +205,23 @@ def _check_training(
                 f"probably still going (last event: {last or 'none'}).",
                 "Check again later: tail history.csv and grep '»' in the log.",
             )
-        elif ptt and (
-            last in ("ptt_mixing", "ptt_recovery", "ptt_lag_pause", "ptt_equilibration")
-            or indicators.get("failed_mixing_checks")
-        ):
+        elif any(("Traceback" in line or "Error" in line) and "TrainingCancelled" not in line for line in log_tail):
             findings.add(
-                "error",
-                "stalled_or_stopped",
-                "No training summary and no output for a while; the last event was "
-                f"'{last}'. A run stuck in a mixing check or reservoir refresh is the "
-                "signature of a trapping basin. See log_tail for an error message.",
-                "Restart from scratch with 10x the local sweeps (--nsweeps 100); do not "
-                "resume the archive.",
-                "F1",
-            )
-        elif any("TrainingCancelled" in line for line in log_tail):
-            findings.add(
-                "info",
-                "cancelled",
-                "The run was cancelled; its last checkpoint is in run_dir.",
+                "warning",
+                "crashed",
+                "No training summary and the log ends with an error: the run crashed. See log_tail.",
                 "Resume from the checkpoint: --ptt-resume ptt.h5 for PTT runs, or -p "
                 "params.dat.gz -c chains.fasta for PCD runs.",
             )
         else:
             findings.add(
-                "warning",
-                "no_summary",
-                "No training summary and no recent output: the run ended without "
-                "saving one (crash, kill or error). See log_tail.",
-                "Resume from the checkpoint: --ptt-resume ptt.h5 for PTT runs, or -p "
-                "params.dat.gz -c chains.fasta for PCD runs.",
+                "info",
+                "halted",
+                "No training summary: the run was stopped before it finished (for example "
+                "interrupted by hand). The metrics below are those of the last saved update.",
+                "To use the model, take the last checkpoint (ptt.h5 or params.dat.gz); to "
+                "continue, resume with --ptt-resume ptt.h5 for PTT runs, or -p params.dat.gz "
+                "-c chains.fasta for PCD runs.",
             )
         if any("Restart the training with more local sweeps" in line for line in log_tail):
             findings.add(
@@ -245,10 +232,9 @@ def _check_training(
                 "Restart from scratch with --nsweeps 100. Do not resume.",
                 "F1",
             )
-        return
 
-    stop_reason = summary.get("stop_reason")
-    if summary.get("converged") is False:
+    stop_reason = (summary or {}).get("stop_reason")
+    if summary is not None and summary.get("converged") is False:
         findings.add(
             "warning",
             "not_converged",
@@ -256,7 +242,7 @@ def _check_training(
             "If the curves were still improving, continue with a larger budget "
             "(--ptt-resume ptt.h5 for PTT runs, -p params.dat.gz -c chains.fasta for PCD).",
         )
-    for warning in summary.get("warnings") or []:
+    for warning in (summary or {}).get("warnings") or []:
         findings.add("info", "training_warning", str(warning))
 
     blocking = indicators.get("blocking_immobile_configurations", 0)
@@ -528,7 +514,7 @@ def diagnose_run(
         sampling = _read_data(Path(sampling_json).expanduser())
         training_pearson = indicators.get("final_pearson")
         sampling_indicators = _check_sampling(findings, sampling, training_pearson)
-    elif summary is not None:
+    elif summary is not None or stale:
         findings.add(
             "info",
             "unchecked_model",
@@ -548,10 +534,10 @@ def diagnose_run(
         verdict = "running"
     elif "error" in severities:
         verdict = "failed"
-    elif summary is None:
-        verdict = "incomplete"
     elif "warning" in severities:
         verdict = "needs_attention"
+    elif summary is None:
+        verdict = "incomplete"
     else:
         verdict = "healthy"
     report: dict[str, Any] = {

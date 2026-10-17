@@ -112,6 +112,23 @@ class DiagnoseRunTests(unittest.TestCase):
             diagnose_run(labeled)
         self.assertEqual(diagnose_run(labeled, label="x")["verdict"], "running")
 
+    def test_manually_halted_run_is_still_diagnosed(self):
+        import os
+
+        run = self.tmp / "run"
+        write_ptt_run(run, events=[{"event": "ptt_mixing", "step": 50, "status": "converged"}])
+        old = 3600
+        for path in run.iterdir():
+            os.utime(path, (path.stat().st_atime - old, path.stat().st_mtime - old))
+
+        report = diagnose_run(run)
+
+        codes = {finding["code"] for finding in report["findings"]}
+        self.assertEqual(report["verdict"], "incomplete")
+        self.assertIn("halted", codes)
+        self.assertNotIn("stalled_or_stopped", codes)
+        self.assertEqual(report["training"]["updates"], 59)
+
     def test_cli_prints_verdict_and_json(self):
         run = self.tmp / "run"
         write_ptt_run(run, summary={"stop_reason": "max_gradient_steps", "converged": False})
