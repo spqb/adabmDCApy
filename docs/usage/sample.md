@@ -18,7 +18,7 @@ Both commands also **check the model**: they verify that the chains have equilib
 
 **PTT** starts every rung of the ladder from exact draws of the independent-site profile, then exchanges configurations between neighbouring models while refreshing the bottom. It stops when every configuration that was in the ladder at the start has been replaced by one born later at the bottom (*population renewal*). The returned sequences then descend from fresh profile draws and carry no memory of the initialization. This takes from a few hundred exchange rounds on small RNA families to a few thousand on large proteins. `--ptt-stationary` renews the ladder a second time for extra certainty, at about twice the cost.
 
-**Plain MCMC** first measures the mixing time of the model: it runs chains started from natural sequences and records when the identity between a chain at time *t* and at time *t*/2 matches the identity between two independent chains. It then runs fresh chains from random sequences for `--nmix` (default 2) mixing times. If the mixing time is not reached within `--max_nsweeps` (default 5,000), sampling stops at the budget and **the samples are not at equilibrium**, even when they look reasonable. On three of the six benchmark families this happened at 10,000 sweeps, and the samples missed whole clusters of the data (see [Benchmarks](../algorithms/benchmarks.md#sampling-ptt-vs-plain-mcmc)). Without `-d`, plain MCMC simply runs `--max_nsweeps` sweeps.
+**Plain MCMC** first measures the mixing time of the model: it runs chains started from natural sequences and records when the identity between a chain at time *t* and at time *t*/2 matches the identity between two independent chains. It then runs fresh chains from random sequences for `--nmix` (default 2) mixing times. If the mixing time is not reached within `--max_nsweeps` (default 5,000), sampling stops at the budget and **the samples are not at equilibrium**, even when they look reasonable. On three of the six benchmark families this happened at 10,000 sweeps, and the samples missed whole clusters of the data (see [Benchmarks](../algorithms/benchmarks.md#sampling-from-random-sequences)). Without `-d`, plain MCMC simply runs `--max_nsweeps` sweeps.
 
 ## Options
 
@@ -41,6 +41,9 @@ Both commands also **check the model**: they verify that the chains have equilib
 | `--beta` | 1.0 | Inverse temperature (plain MCMC). Values above 1 concentrate on low-energy sequences |
 | `--nmix` | 2 | Mixing times to run (plain MCMC) |
 | `--max_nsweeps` | 5000 | Sweep budget (plain MCMC) |
+| `--init-sequences` | none | Start plain MCMC from these sequences instead of random ones, e.g. the `samples.fasta` of a PTT run. `--ngen` defaults to their number; a smaller value starts from a random subset |
+| `--nsweeps` | none | Run exactly this many sweeps, without measuring the mixing time (plain MCMC; replaces `--max_nsweeps` and `--nmix`) |
+| `--record-every` | 1 | Sweeps between rows of `logs/sampling.log` (plain MCMC with `-d`) |
 | `--nmeasure` | 10000 | Maximum number of reference sequences used for the mixing time, the PCA and the distances |
 | `--diagnostic` | off | Print renewal progress and adjacent-model acceptances (PTT) |
 | `--seed`, `--device`, `--dtype`, `-l` | | As for `train` |
@@ -72,7 +75,7 @@ Figures, with `--plot`:
 | `distances.png` | Hamming distances within and between sets; nearest-neighbour distances | both |
 | `energy_vs_cde.png` | Energy against summed context-dependent entropy, with fitted slope | both |
 
-Numerical logs, in `logs/`: `mix.log`, `sampling.log`, `data_vs_samples.log`, `distances.log`, and for PTT `ptt.log` (one row per ladder model: log Z, mean energy, entropy, likelihood of the data), `ptt_renewal.log`, `ptt_ladder_health.log` and `ptt_replicas.log`. With `-l`, file names are prefixed.
+Numerical logs, in `logs/`: `mix.log`, `sampling.log` (Pearson, slope and mean chain energy along the run; with `--init-sequences` its first row, at sweep 0, describes the starting sequences), `data_vs_samples.log`, `distances.log`, and for PTT `ptt.log` (one row per ladder model: log Z, mean energy, entropy, likelihood of the data), `ptt_renewal.log`, `ptt_ladder_health.log` and `ptt_replicas.log`. With `-l`, file names are prefixed.
 
 ## Reading the result in five minutes
 
@@ -92,11 +95,24 @@ from adabmDCA import load_alignment, sample_sequences
 reference = load_alignment("train.fasta")
 result = sample_sequences(
     model="model/ptt.h5", ptt=True, reference_fasta=reference,
-    n_sequences=2048, collect_diagnostics=True,       # n_sequences is required in Python
+    n_sequences=2048, collect_diagnostics=True,       # required unless initial_sequences is given
 )
 result.save_bundle("samples")
 result.save_diagnostic_plots("samples")
 df = result.to_dataframe()            # sequence, energy, cde_sum, ...
 ```
 
-In Python, `ptt=False` (plain MCMC) is the default; pass `ptt=True` to sample through the ladder. Python can also **steer** sampling toward sequences with a property of your choice and reweight them back to the model; see [Python workflows](python.md#steered-sampling).
+In Python, `ptt=False` (plain MCMC) is the default; pass `ptt=True` to sample through the ladder.
+
+Plain MCMC can start from sequences already in memory: `initial_sequences` takes a path, an `Alignment`, a list of aligned strings, a `SamplingResult` or an array of token indices or one-hot vectors. With `measure_mixing_time=False` it runs exactly `n_sweeps` sweeps. For example, to follow how a model moves equilibrium samples of another one:
+
+```python
+ptt = sample_sequences(model="model/ptt.h5", ptt=True, reference_fasta=reference, n_sequences=2048)
+long_run = sample_sequences(
+    model="pcd/params.dat", initial_sequences=ptt, reference_fasta=reference,
+    n_sweeps=50_000, measure_mixing_time=False, record_every=500,
+)
+long_run.sampling_history     # nsweeps (from 0), pearson, slope, mean_energy
+```
+
+Python can also **steer** sampling toward sequences with a property of your choice and reweight them back to the model; see [Python workflows](python.md#steered-sampling).

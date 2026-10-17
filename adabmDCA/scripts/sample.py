@@ -21,7 +21,9 @@ def resolve_ngen(args) -> None:
     if args.ngen is not None:
         return
     if args.strategy != "ptt":
-        args.ngen = DEFAULT_PCD_SEQUENCES
+        # With --init-sequences, the sampler starts from all of them.
+        if args.init_sequences is None:
+            args.ngen = DEFAULT_PCD_SEQUENCES
         return
     import h5py
 
@@ -52,7 +54,10 @@ def run(args, *, progress=None):
         dtype=args.dtype if args.strategy != "ptt" or "dtype" in explicit else None,
         sampler=args.sampler if args.strategy != "ptt" or "sampler" in explicit else None,
         beta=args.beta,
-        n_sweeps=args.max_nsweeps,
+        n_sweeps=args.max_nsweeps if args.nsweeps is None else args.nsweeps,
+        measure_mixing_time=args.nsweeps is None,
+        record_every=args.record_every,
+        initial_sequences=args.init_sequences,
         mixing_multiplier=args.nmix,
         ptt=(args.strategy == "ptt"),
         ptt_local_sweeps=args.ptt_local_sweeps,
@@ -126,7 +131,9 @@ def _configuration(args) -> dict:
         "held-out": args.test,
         "output": args.output,
         "label": args.label,
-        "sequences": args.ngen,
+        "sequences": "all initial sequences" if args.ngen is None else args.ngen,
+        "initial sequences": None if ptt else args.init_sequences,
+        "sweeps": None if ptt or args.nsweeps is None else f"{args.nsweeps} (fixed)",
         "sampler": sampler,
         "PTT mixing method": args.ptt_mixing_method if ptt else None,
         "PTT renewal tolerance": args.ptt_renewal_tolerance if renewal else None,

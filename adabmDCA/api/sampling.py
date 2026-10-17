@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import math
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import Any
 
@@ -44,6 +44,7 @@ from adabmDCA.utils import init_chains, resample_sequences
 
 ProgressCallback = Callable[[SamplingProgress], None]
 CancellationHook = Callable[[], bool]
+InitialSequences = AlignmentInput | Sequence[str] | SamplingResult | np.ndarray | torch.Tensor
 
 
 class _SamplerDefault(str):
@@ -70,6 +71,47 @@ def _validate_steering_strength(strength: float) -> None:
     if isinstance(strength, bool) or not isinstance(strength, (int, float)) or not math.isfinite(strength) \
             or strength == 0:
         raise InputValidationError("steering_strength must be a finite, non-zero number.")
+
+
+def _initial_chains(initial: InitialSequences, model: DCAModel, n_sequences: int | None, seed: int) -> torch.Tensor:
+    """One-hot starting chains from ``initial``, a random subset of ``n_sequences`` rows when fewer are asked."""
+    from adabmDCA.alignment import Alignment
+    from adabmDCA.input_loading import load_alignment
+
+    length, num_states = model.metadata.length, model.metadata.num_states
+    if isinstance(initial, SamplingResult):
+        initial = initial.sequences
+    if isinstance(initial, (np.ndarray, torch.Tensor)):
+        states = torch.as_tensor(initial)
+        if states.ndim == 3:
+            if states.shape[2] != num_states:
+                raise InputValidationError(f"One-hot initial sequences must have {num_states} states per site.")
+            states = states.argmax(-1)
+        if states.ndim != 2 or states.is_floating_point() or states.is_complex():
+            raise InputValidationError(
+                "Initial sequences given as an array must be integer token indices (N, L) or one-hot (N, L, q)."
+            )
+        if states.numel() and (int(states.min()) < 0 or int(states.max()) >= num_states):
+            raise InputValidationError(f"Initial token indices must lie in [0, {num_states}).")
+        if states.shape[1] != length:
+            raise InputValidationError(f"Initial sequences have length {states.shape[1]}; the model has {length}.")
+    else:
+        if not isinstance(initial, (str, Path, Alignment)):
+            sequences = tuple(initial)
+            if not sequences or not all(isinstance(sequence, str) for sequence in sequences):
+                raise InputValidationError("Initial sequences must be a path, an Alignment, strings or an array.")
+            initial = Alignment(names=tuple(f"initial_{i + 1}" for i in range(len(sequences))), sequences=sequences)
+        alignment = load_alignment(initial, alphabet=model.tokens, expected_length=length)
+        states = torch.as_tensor(alignment.encoded_sequences)
+    if n_sequences is not None and n_sequences > len(states):
+        raise InputValidationError(
+            f"n_sequences ({n_sequences}) exceeds the {len(states)} initial sequences."
+        )
+    if n_sequences is not None and n_sequences < len(states):
+        generator = torch.Generator().manual_seed(seed)
+        states = states[torch.randperm(len(states), generator=generator)[:n_sequences].to(states.device)]
+    params = model.params
+    return torch.nn.functional.one_hot(states.long().to(params["bias"].device), num_states).to(params["bias"].dtype)
 
 
 def _check_cancelled(hook: CancellationHook | None) -> None:
@@ -358,7 +400,7 @@ def _distance_comparison(dataset, samples, *, test=None, n_measure: int = 10_000
 def sample_sequences(
     *,
     model: DCAModel | str | Path,
-    n_sequences: int,
+    n_sequences: int | None = None,
     ptt: bool = False,
     ptt_local_sweeps: int = 10,
     ptt_max_rounds: int = 20_000,
@@ -370,6 +412,9 @@ def sample_sequences(
     sampler: str | None = _DEFAULT_SAMPLER,
     beta: float = 1.0,
     seed: int = 0,
+    initial_sequences: InitialSequences | None = None,
+    measure_mixing_time: bool = True,
+    record_every: int = 1,
     reference_fasta: AlignmentInput | None = None,
     weights_path: WeightInput | None = None,
     test_fasta: AlignmentInput | None = None,
@@ -394,10 +439,12 @@ def sample_sequences(
 ) -> SamplingResult:
     """Generate sequences from a DCA model, with an energy for each.
 
-    Ordinary sampling runs ``n_sequences`` independent Markov chains. With
+    Ordinary sampling runs ``n_sequences`` independent Markov chains, started
+    from random sequences or from ``initial_sequences``. With
     ``reference_fasta``, their mixing time is first measured (up to ``n_sweeps``
     sweeps) and generation runs for ``mixing_multiplier`` mixing times;
-    otherwise it runs for exactly ``n_sweeps`` sweeps.
+    otherwise, or with ``measure_mixing_time=False``, it runs for exactly
+    ``n_sweeps`` sweeps.
 
     PTT sampling (``ptt=True``, a PTT archive, or a :class:`PTTSampler` as
     ``model``) instead uses the replica ladder saved during training: the exact
@@ -431,7 +478,9 @@ def sample_sequences(
     Args:
         model: A :class:`DCAModel`, a path to a parameter file or PTT archive, or
             a :class:`PTTSampler`.
-        n_sequences: Number of sequences to generate.
+        n_sequences: Number of sequences to generate. Required, except with
+            ``initial_sequences``, where it defaults to their number and a smaller
+            value starts from a random subset of them.
         ptt: Sample with PTT from the archive given as ``model``.
         ptt_local_sweeps: PTT: local sweeps per exchange round.
         ptt_max_rounds: PTT: largest number of exchange rounds of the mixing check.
@@ -450,6 +499,18 @@ def sample_sequences(
             select the local update with ``ptt_local_kernel`` instead.
         beta: Inverse temperature (ordinary sampling only).
         seed: Random seed.
+        initial_sequences: Ordinary sampling: starting configurations instead of
+            random sequences. A FASTA/Stockholm path, an :class:`Alignment`, a list
+            of aligned strings, a :class:`SamplingResult` (e.g. from PTT sampling),
+            or an array of token indices ``(N, L)`` or one-hot ``(N, L, q)`` in the
+            model's alphabet.
+        measure_mixing_time: Ordinary sampling with ``reference_fasta``: ``False``
+            skips the mixing-time measurement and runs exactly ``n_sweeps`` sweeps,
+            still recording the comparison with the reference.
+        record_every: Ordinary sampling with ``reference_fasta``: sweeps between
+            entries of ``sampling_history`` (Pearson, slope and mean energy of the
+            chains). The starting chains are recorded at sweep 0 and the last sweep
+            is always recorded.
         reference_fasta: Natural alignment used to measure mixing and to compare
             the generated statistics; required for PTT and for ``collect_diagnostics``.
         weights_path: Optional weights of the reference sequences.
@@ -514,6 +575,12 @@ def sample_sequences(
     from adabmDCA.ptt import PTTSampler
 
     if ptt or isinstance(model, PTTSampler):
+        if initial_sequences is not None or not measure_mixing_time or record_every != 1:
+            raise InputValidationError(
+                "initial_sequences, measure_mixing_time and record_every apply to plain MCMC only (--strategy pcd)."
+            )
+        if n_sequences is None:
+            raise InputValidationError("n_sequences is required.")
         if beta != 1.0:
             raise InputValidationError("PTT generation supports beta=1 only.")
         from adabmDCA.api.ptt import sample_ptt_sequences
@@ -541,12 +608,16 @@ def sample_sequences(
         raise InputValidationError("ptt_return_full_ladder requires PTT sampling (--strategy ptt).")
     sampler = "metropolized_gibbs" if sampler is None or sampler is _DEFAULT_SAMPLER else sampler
     dtype = "float32" if dtype is None else dtype
-    validate_integer("n_sequences", n_sequences)
+    if n_sequences is None and initial_sequences is None:
+        raise InputValidationError("n_sequences is required unless initial_sequences is given.")
+    if n_sequences is not None:
+        validate_integer("n_sequences", n_sequences)
     validate_integer("n_sweeps", n_sweeps, minimum=0)
+    validate_integer("record_every", record_every)
     validate_integer("mixing_multiplier", mixing_multiplier)
     validate_integer("n_measure", n_measure)
     validate_seed(seed)
-    if reference_fasta is not None and n_sweeps < 2:
+    if reference_fasta is not None and measure_mixing_time and n_sweeps < 2:
         raise InputValidationError("n_sweeps must be at least 2 when estimating mixing time.")
     if collect_diagnostics and reference_fasta is None:
         raise InputValidationError("reference_fasta is required when collect_diagnostics=True.")
@@ -575,13 +646,16 @@ def sample_sequences(
         torch.cuda.manual_seed_all(seed)
 
     metadata = loaded.metadata
-    samples = init_chains(
-        num_chains=n_sequences,
-        L=metadata.length,
-        q=metadata.num_states,
-        device=loaded.params["bias"].device,
-        dtype=loaded.params["bias"].dtype,
-    )
+    if initial_sequences is not None:
+        samples = _initial_chains(initial_sequences, loaded, n_sequences, seed)
+    else:
+        samples = init_chains(
+            num_chains=n_sequences,
+            L=metadata.length,
+            q=metadata.num_states,
+            device=loaded.params["bias"].device,
+            dtype=loaded.params["bias"].dtype,
+        )
     steered_kernel = None
     if steering_potential is not None:
         _validate_steering_strength(steering_strength)
@@ -639,21 +713,37 @@ def sample_sequences(
             resample_sequences(dataset.data, dataset.weights, measured).long(), len(dataset.tokens)
         ).to(dtype=dataset.dtype, device=dataset.device)
         _check_cancelled(is_cancelled)
-        raw_mixing = compute_mixing_time(
-            sampler=sampling_function,
-            data=reference,
-            params=sampling_params,
-            n_max_sweeps=n_sweeps,
-            beta=beta,
-        )
-        mixing_history = {key: list(value) for key, value in raw_mixing.items()}
-        mixing_time = int(raw_mixing["t_half"][-1])
-        total_sweeps = mixing_multiplier * mixing_time
+        if measure_mixing_time:
+            raw_mixing = compute_mixing_time(
+                sampler=sampling_function,
+                data=reference,
+                params=sampling_params,
+                n_max_sweeps=n_sweeps,
+                beta=beta,
+            )
+            mixing_history = {key: list(value) for key, value in raw_mixing.items()}
+            mixing_time = int(raw_mixing["t_half"][-1])
+            total_sweeps = mixing_multiplier * mixing_time
+        else:
+            total_sweeps = n_sweeps
         fi, fij = dataset.get_frequencies(pseudocount=effective_pseudocount)
-        sampling_history = {"nsweeps": [], "pearson": [], "slope": []}
+        sampling_history = {"nsweeps": [], "pearson": [], "slope": [], "mean_energy": []}
     else:
         total_sweeps = n_sweeps
         fi = fij = None
+
+    def record(sweeps: int):
+        pi = get_freq_single_point(data=samples, weights=None, pseudo_count=0.0)
+        pij = get_freq_two_points(data=samples, weights=None, pseudo_count=0.0)
+        pearson, slope = get_correlation_two_points(fi=fi, pi=pi, fij=fij, pij=pij)
+        sampling_history["nsweeps"].append(sweeps)
+        sampling_history["pearson"].append(float(pearson))
+        sampling_history["slope"].append(float(slope))
+        sampling_history["mean_energy"].append(float(compute_energy(samples, params=loaded.params).mean()))
+        return float(pearson), float(slope)
+
+    if fi is not None and initial_sequences is not None:
+        record(0)
 
     if total_sweeps > 0:
         _notify(progress, stage="sampling", completed=0, total=total_sweeps)
@@ -669,20 +759,15 @@ def sample_sequences(
             beta=beta,
         )
         pearson = slope = None
-        if fi is not None and fij is not None:
-            pi = get_freq_single_point(data=samples, weights=None, pseudo_count=0.0)
-            pij = get_freq_two_points(data=samples, weights=None, pseudo_count=0.0)
-            pearson, slope = get_correlation_two_points(fi=fi, pi=pi, fij=fij, pij=pij)
-            sampling_history["nsweeps"].append(sweep + 1)
-            sampling_history["pearson"].append(float(pearson))
-            sampling_history["slope"].append(float(slope))
+        if fi is not None and ((sweep + 1) % record_every == 0 or sweep + 1 == total_sweeps):
+            pearson, slope = record(sweep + 1)
         _notify(
             progress,
             stage="sampling",
             completed=sweep + 1,
             total=total_sweeps,
-            pearson=None if pearson is None else float(pearson),
-            slope=None if slope is None else float(slope),
+            pearson=pearson,
+            slope=slope,
         )
 
     if collect_diagnostics:

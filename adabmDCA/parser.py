@@ -472,6 +472,20 @@ def add_args_sample(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         "--max_nsweeps", type=int, default=5000,
         help="(Defaults to 5000). Maximum chain updates. Ignored with --strategy ptt; use --ptt-max-rounds.",
     )
+    standard_args.add_argument(
+        "--init-sequences", metavar="FASTA", type=str, default=None,
+        help=("Start the chains from these sequences instead of random ones, e.g. the samples.fasta of a PTT "
+              "run. --ngen defaults to their number; a smaller --ngen starts from a random subset."),
+    )
+    standard_args.add_argument(
+        "--nsweeps", type=int, default=None,
+        help="Run exactly this many sweeps, without measuring the mixing time (replaces --max_nsweeps and --nmix).",
+    )
+    standard_args.add_argument(
+        "--record-every", type=int, default=1,
+        help=("(Defaults to 1). Sweeps between entries of logs/sampling.log (Pearson, slope and mean energy "
+              "against --data)."),
+    )
 
     ptt_args = parser.add_argument_group("PTT sampling (--strategy ptt)")
     parser.add_argument("--strategy", choices=("ptt", "pcd"), default="ptt",
