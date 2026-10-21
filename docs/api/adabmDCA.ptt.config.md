@@ -48,6 +48,7 @@ Pass an instance as `ptt=` to `train_model` (or through `TrainingConfig(ptt=...)
  - <b>`min_learning_rate`</b>:  Learning-rate floor of recovery.
  - <b>`optimizer`</b>:  `"adaptive"` (steps bounded by a KL trust region, training  paused while the endpoint chains lag behind the model) or `"sgd"`  (fixed learning rate).
  - <b>`trust_radius`</b>:  Adaptive optimizer: largest predicted KL divergence of one update.
+ - <b>`centering`</b>:  Update with the centering trick: connected-correlation coupling  gradient, field step corrected for the centring offset. Removes the one-site  part of the coupling step, which otherwise repeats the field step and makes  the trust region stop the fields.
  - <b>`lag_tolerance`</b>:  Adaptive optimizer: largest lag of the endpoint chains, in  population standard deviations, before training pauses.
  - <b>`lag_horizon`</b>:  Adaptive optimizer: memory of past updates, in updates.
  - <b>`lag_pause_rounds`</b>:  Adaptive optimizer: longest pause, in rounds.
@@ -94,6 +95,7 @@ __init__(
     min_learning_rate: 'float' = 1e-08,
     optimizer: 'str' = 'adaptive',
     trust_radius: 'float' = 0.01,
+    centering: 'bool' = True,
     lag_tolerance: 'float' = 0.25,
     lag_horizon: 'int' = 200,
     lag_pause_rounds: 'int' = 100,
