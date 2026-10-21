@@ -54,6 +54,9 @@ def _without_stop_settings(settings):
 
 # Updates after a pause before another one may start.
 _LAG_PAUSE_COOLDOWN = 10
+# Unvalidated recovery points kept after the last validated one. Each holds a full ladder with
+# its chains, so without a bound they grow the archive until the next mixing check passes.
+_MAX_UNVALIDATED_RECOVERY_POINTS = 3
 
 
 def validation_window_gain(values, window):
@@ -357,7 +360,9 @@ class _PTTTrainer:
         if validated:
             sampler.recovery_points = [point]
         elif not sampler.recovery_points or sampler.recovery_points[-1]["step"] != point["step"]:
-            sampler.recovery_points.append(point)
+            points = sampler.recovery_points + [point]
+            anchor = points[:1] if points[0]["validated"] else []
+            sampler.recovery_points = anchor + points[len(anchor):][-_MAX_UNVALIDATED_RECOVERY_POINTS:]
 
     def _replace_current_record(self):
         # Recovery may resample a previously recorded model. Replace that

@@ -499,6 +499,21 @@ def test_bounded_mixing_recovery_and_restored_archive(training_case, tmp_path, m
     assert {event["reason"] for event in recoveries} == {"mixing_budget_exceeded"}
 
 
+def test_generation_loads_archives_without_recovery_points(training_case, tmp_path):
+    data, config = training_case
+    path = train_model(data, config=config, output_dir=tmp_path / "run").artifacts["ptt_archive"]
+    assert PTTSampler.from_archive(path, mode="resume").recovery_points
+    assert PTTSampler.from_archive(path, mode="generate").recovery_points == []
+
+
+def test_recovery_points_keep_the_validated_one_and_the_newest(training_case, tmp_path):
+    data, config = training_case
+    run = train_model(data, config=replace(config, max_epochs=12), output_dir=tmp_path / "run")
+    points = PTTSampler.from_archive(run.artifacts["ptt_archive"], mode="resume").recovery_points
+    assert [(point["step"], point["validated"]) for point in points] == [
+        (0, True), (10, False), (11, False), (12, False)]
+
+
 def test_recovery_halves_both_ptt_optimizer_rates(training_case, tmp_path, monkeypatch):
     data, base = training_case
     config = replace(base, learning_rate=0.016, ptt=replace(base.ptt, optimizer="sgd"))

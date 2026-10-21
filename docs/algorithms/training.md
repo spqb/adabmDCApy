@@ -76,7 +76,7 @@ The temporary snapshots are scaffolding. The flagged models form the sampling la
 
 High swap acceptance between neighbours does not guarantee that configurations travel along the whole ladder. PTT therefore runs explicit **mixing checks**: at initialization, before every reservoir collection, and whenever the swap acceptance of some link falls below `--ptt-min-acceptance` (0.1). The default check, *population renewal*, labels every configuration with the round it entered the ladder and waits until all configurations present at the start have been replaced by newer ones, twice, within `--ptt-mixing-max-rounds` (20,000) rounds. Reservoir batches are spaced by the measured renewal time, so they are independent.
 
-When a check fails, PTT **recovers**: it searches the saved checkpoints backward for the newest one whose mixing check passes, restores it, halves both learning rates, and continues. After `--ptt-max-recoveries` (3) recoveries, training stops with an error that names the likely cause:
+When a check fails, PTT **recovers**: it searches the recovery points (the last checkpoint whose mixing check passed and the three most recent ones) backward for the newest one whose mixing check passes, restores it, halves both learning rates, and continues. After `--ptt-max-recoveries` (3) recoveries, training stops with an error that names the likely cause:
 
 - configurations that practically cannot swap toward the bottom (a narrow basin the model has learned; the remedy is to restart with more local sweeps);
 - a link whose acceptance is below the target (rungs too far apart; a smaller learning rate or a higher target acceptance);
@@ -236,4 +236,4 @@ One row per update. Columns present depend on the strategy and model.
 
 ### Checkpoints and the archive
 
-Every `--checkpoint-interval` updates (default 500), and at every flagged model, `params.dat.gz`, `chains.fasta` and `ptt.h5` are rewritten. The archive is written to a temporary file, validated and moved into place, so an interrupted run always leaves a consistent archive; it is the authoritative state. It also stores recovery points, so it grows with the length of the run.
+Every `--checkpoint-interval` updates (default 500), and at every flagged model, `params.dat.gz`, `chains.fasta` and `ptt.h5` are rewritten. The archive is written to a temporary file, validated and moved into place, so an interrupted run always leaves a consistent archive; it is the authoritative state. It also stores the recovery points: the last checkpoint whose mixing check passed and the three most recent ones.

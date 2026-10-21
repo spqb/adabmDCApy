@@ -324,6 +324,8 @@ def load_archive(cls, path, *, device="cpu", mode="generate", seed=None):
                 raise ValueError("Invalid PTT archive mode.")
             if mode == "generate":
                 result.training_state = {}
+                # Rollback points serve only training; on large models they can fill the device.
+                result.recovery_points = []
             result.device = target
             result.models = [{k: v.to(target) for k, v in p.items()} for p in models]
             result.chains = [c.to(target) for c in populations]
