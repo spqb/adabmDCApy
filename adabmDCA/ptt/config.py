@@ -58,6 +58,10 @@ class PTTConfig:
             paused while the endpoint chains lag behind the model) or ``"sgd"``
             (fixed learning rate).
         trust_radius: Adaptive optimizer: largest predicted KL divergence of one update.
+        centering: Update with the centering trick: connected-correlation coupling
+            gradient, field step corrected for the centring offset. Removes the one-site
+            part of the coupling step, which otherwise repeats the field step and makes
+            the trust region stop the fields.
         lag_tolerance: Adaptive optimizer: largest lag of the endpoint chains, in
             population standard deviations, before training pauses.
         lag_horizon: Adaptive optimizer: memory of past updates, in updates.
@@ -102,6 +106,7 @@ class PTTConfig:
     min_learning_rate: float = 1e-8
     optimizer: str = "adaptive"
     trust_radius: float = 0.01
+    centering: bool = True
     lag_tolerance: float = 0.25
     lag_horizon: int = 200
     lag_pause_rounds: int = 100
@@ -136,6 +141,8 @@ class PTTConfig:
             raise InputValidationError("PTT renewal_tolerance must be between 0 and 1.")
         if self.optimizer not in PTT_OPTIMIZERS:
             raise InputValidationError("PTT optimizer must be 'sgd' or 'adaptive'.")
+        if not isinstance(self.centering, bool):
+            raise InputValidationError("PTT centering must be boolean.")
         if self.activation not in PTT_ACTIVATIONS:
             raise InputValidationError("PTT activation must be 'fixed' or 'adaptive'.")
         for name in (

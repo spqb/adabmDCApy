@@ -279,7 +279,7 @@ def test_renewal_training_logs_resumes_exactly_and_pins_the_method(tmp_path):
     resumed = train_model(data, config=config, ptt_resume=partial.artifacts["ptt_archive"])
     torch.testing.assert_close(complete.model.params["coupling_matrix"],
                                resumed.model.params["coupling_matrix"], rtol=0, atol=0)
-    with pytest.raises(Exception, match="configuration differ from the archive in settings: ptt"):
+    with pytest.raises(Exception, match="configuration differ from the archive in settings: ptt.mixing_method"):
         train_model(data, config=replace(config, ptt=replace(config.ptt, mixing_method="autocorrelation")),
                     ptt_resume=partial.artifacts["ptt_archive"])
 

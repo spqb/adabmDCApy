@@ -265,6 +265,10 @@ def add_args_ptt(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     ptt_args.add_argument("--ptt-optimizer", choices=("adaptive", "sgd"), default=None,
                           help=("PTT optimizer: adaptive bounds each update by a KL trust radius and pauses when endpoint "
                                 "chains lag; sgd uses the fixed --lr (default: adaptive)."))
+    ptt_args.add_argument("--ptt-centering", action=argparse.BooleanOptionalAction, default=None,
+                          help=("Update with the centering trick: connected-correlation coupling gradient, field step "
+                                "corrected for the centring offset. Without it the coupling step repeats the field "
+                                "step and the trust region can stop the fields (default: on)."))
     ptt_args.add_argument("--ptt-trust-radius", type=float, default=None,
                         help="Adaptive optimizer: maximum local KL divergence per update (default: 0.01).")
     ptt_args.add_argument("--ptt-lag-tolerance", type=float, default=None,
@@ -478,13 +482,13 @@ def add_args_sample(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
               "run. --ngen defaults to their number; a smaller --ngen starts from a random subset."),
     )
     standard_args.add_argument(
-        "--nsweeps", type=int, default=None,
-        help="Run exactly this many sweeps, without measuring the mixing time (replaces --max_nsweeps and --nmix).",
-    )
-    standard_args.add_argument(
         "--init-distribution", choices=("profile", "uniform"), default=None,
         help=("Distribution of the starting sequences without --init-sequences: the profile (independent-site) "
               "model of --data, or uniformly random residues. Default: profile with --data, uniform without."),
+    )
+    standard_args.add_argument(
+        "--nsweeps", type=int, default=None,
+        help="Run exactly this many sweeps, without measuring the mixing time (replaces --max_nsweeps and --nmix).",
     )
     standard_args.add_argument(
         "--record-every", type=int, default=1,

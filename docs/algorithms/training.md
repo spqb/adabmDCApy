@@ -84,11 +84,15 @@ When a check fails, PTT **recovers**: it searches the saved checkpoints backward
 
 [Diagnose a run](diagnostics.md) explains each case and what to change.
 
+### Centred updates
+
+The raw coupling gradient, \(f_{ij} - p_{ij}\), repeats the field gradient: summed over the partner site it is \(L-1\) times \(f_i - p_i\). By default PTT removes this one-site part with the **centering trick**: the coupling step becomes the difference of connected correlations, \(C_{ij}^{\rm data} - C_{ij}^{\rm model}\), and the field step takes over the single-site correction ([formulas](../quantities/training.md#adaptive-optimizer-and-predicted-kl)). Field and coupling updates are then no longer correlated, so the [trust region](#the-adaptive-optimizer) spends its KL budget on both instead of stopping the fields, and training goes further: on β-lactamase and RF00023 it reaches a clearly higher validation likelihood. On cm_russ it also makes training at the default 10 sweeps work, where without centering the run stalls in repeated pauses and needs `--nsweeps 100`. The better-fitted models can be somewhat harder to sample: on large families, PTT sampling may need a larger `--ptt-max-rounds` ([F7](diagnostics.md#f7-slow-or-incomplete-ptt-sampling)). `--no-ptt-centering` restores the raw gradient.
+
 ### The adaptive optimizer
 
 The default PTT optimizer, `adaptive`, does two things a fixed learning rate cannot.
 
-**Trust-region steps.** Fields and couplings get separate learning rates, both at most `--lr`. Before every update the optimizer estimates, from the endpoint chains, how much the proposed step would change the model distribution, measured as a KL divergence. It accounts for the correlation between field and coupling directions, which is strong (95% on cm_russ). It then picks the rates that maximize the predicted likelihood gain while keeping the predicted KL below `--ptt-trust-radius` (0.01). At the default `--lr 0.01` the constraint rarely binds: both rates stay at 0.01 and the predicted KL is around 10⁻³. With a larger `--lr`, it binds at every step, and the optimizer spends the whole budget on the couplings, leaving the field rate at its floor.
+**Trust-region steps.** Fields and couplings get separate learning rates, both at most `--lr`. Before every update the optimizer estimates, from the endpoint chains, how much the proposed step would change the model distribution, measured as a KL divergence. It accounts for the correlation between field and coupling directions. It then picks the rates that maximize the predicted likelihood gain while keeping the predicted KL below `--ptt-trust-radius` (0.01). With centred updates at the default `--lr 0.01`, the constraint rarely binds: both rates stay at 0.01. When it binds, both rates fall together.
 
 **Pausing when the chains fall behind.** A small step in parameter space can still be too fast for the chains. When a new mode forms (a subfamily the model starts to represent), the time the chains need to populate it grows. If updates continue, the gradient is computed from chains that under-represent the mode, asks for more of it, and the model overshoots. The optimizer measures this **lag** before every update. Each endpoint configuration carries a memory of the energy changes recent updates imposed on it; if the chains had caught up, a configuration's current state would no longer correlate with those pushes. The remaining correlation, in population standard deviations, is the lag. It is measured along the *drift*, the energy difference between the endpoint and the rung below, which is the direction the model has moved, and along the tails of the drift distribution, where a forming mode first shows.
 
@@ -150,6 +154,8 @@ With windows of 100 on RF00379 (three seeds, as in the figure), the rule stopped
 
 *The same models, validation log-likelihood against mixing time, coloured by update. Up to the validation stop (circled) both grow together; afterwards the mixing time keeps growing while the held-out likelihood declines.*
 
+The mixing time does not follow the size of the couplings. On RF00023, models with the same coupling norm, trained with different learning rates, differed by 1.5× in mixing time, and a model with smaller couplings mixed more slowly than one with larger couplings. This is an observation on a few models, not a rule. How long a model takes to sample depends on how its couplings are arranged, so measure it rather than infer it from the parameters.
+
 A Pearson target chosen in advance cannot tell where this turning point lies: it depends on the family and on the training data. When a validation set is available, rely on the validation stop rather than on `--target`.
 
 **Budgets.** `--max-gradient-steps`, `--max-structure-steps` and `--nepochs` stop training before convergence, with a stop reason that says so.
@@ -176,11 +182,11 @@ The figures produced by `plot-training-log` for an RF00379 PTT run. Read them to
 
 ![RF00379 learning rates](../figures/rf00379/training/training_learning_rates.png){ width="600" }
 
-**Learning rates.** At the default `--lr` both rates stay at 0.01 most of the time. Occasional updates with the field rate at its floor (10⁻¹⁴) are normal: the trust region then spends its budget on the couplings. A field rate at the floor for most updates means `--lr` is too large. Halved rates after a recovery persist.
+**Learning rates.** Both rates stay at `--lr` while the trust region does not bind, and fall below it when it binds. With `--no-ptt-centering`, the field rate often drops to its floor (10⁻¹⁴) instead ([why](#centred-updates)). Rates below `--lr` point to a learning rate that is too large only together with mixing failures or recoveries. Halved rates after a recovery persist. A trust region that does not bind is no reason to raise `--lr`: with centred updates, `--lr 0.1` gave a slightly worse model on RF00023, and on β-lactamase a slightly better one that PTT could no longer sample to equilibrium.
 
 ![RF00379 predicted KL](../figures/rf00379/training/training_kl.png){ width="600" }
 
-**Predicted KL.** How far each update moves the model, according to the optimizer. A median around 10⁻³ is typical; values pinned at the trust radius (0.01) mean the steps are capped.
+**Predicted KL.** How far each update moves the model, according to the optimizer. A median well below the trust radius is typical; values pinned at 0.01 mean the steps are capped.
 
 ![RF00379 chain lag](../figures/rf00379/training/training_lag.png){ width="600" }
 

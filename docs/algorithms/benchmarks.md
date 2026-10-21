@@ -15,6 +15,8 @@ What to expect from adabmDCA on real data, and how the training strategies, mode
 
 Each family was split 80/20 into training and validation sets by clustering at 80% identity. LBD's training set is far more redundant than its validation set (M_eff 1,149 vs 5,415), which partly explains its lower validation Pearson.
 
+The PTT runs below were trained before [centred updates](training.md#centred-updates) became the default, so they correspond to `--no-ptt-centering`. With centering, cm_russ_natural trains at the default 10 sweeps, and β-lactamase and RF00023 reach a higher validation likelihood.
+
 Protocol, per family, with default settings except `--nsweeps 100` for cm_russ_natural and LBD:
 
 1. bmDCA with **PTT** and the validation set, stopping at the validation plateau;

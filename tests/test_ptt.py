@@ -222,7 +222,7 @@ def training_case(tmp_path):
 
 
 def test_ptt_sgd_keeps_both_rates_fixed():
-    config = TrainingConfig(learning_rate=0.1, ptt=PTTConfig(optimizer="sgd"))
+    config = TrainingConfig(learning_rate=0.1, ptt=PTTConfig(optimizer="sgd", centering=False))
     optimizer = _PTTOptimizer(config)
     params = profile()
     mask = torch.ones_like(params["coupling_matrix"])
@@ -295,6 +295,32 @@ def test_ptt_trust_region_keeps_rates_positive_inside_the_trust_region():
     assert scales[0] == pytest.approx(0.0, abs=1e-11) and scales[0] > 0
 
 
+def test_ptt_centering_uses_connected_correlations_and_centred_fields():
+    torch.manual_seed(0)
+    length, states = 4, 3
+    mask = torch.ones(length, states, length, states, dtype=torch.float64)
+    mask[torch.arange(length), :, torch.arange(length), :] = 0
+
+    def frequencies():
+        samples = torch.nn.functional.one_hot(torch.randint(states, (200, length)), states).double()
+        return samples.mean(0), get_freq_two_points(samples) * mask
+
+    (fi, fij), (pi, pij) = frequencies(), frequencies()
+    gradients = _PTTOptimizer._centered({"bias": fi - pi, "coupling_matrix": (fij - pij) * mask},
+                                        fi=fi, pi=pi, mask=mask)
+
+    def connected(f, ff):
+        return ff - torch.einsum("ia,jb->iajb", f, f)
+
+    coupling = gradients["coupling_matrix"]
+    assert torch.allclose(coupling, (connected(fi, fij) - connected(pi, pij)) * mask)
+    # No one-site part: every block sums to zero over the partner's states.
+    assert coupling.sum(3).abs().max() < 1e-12
+    assert torch.equal(coupling, coupling.permute(2, 3, 0, 1))
+    offset = 0.5 * (fi + pi)
+    assert torch.allclose(gradients["bias"], fi - pi - torch.einsum("iajb,jb->ia", coupling, offset))
+
+
 def test_ptt_optimizer_configuration_and_cli_are_ptt_specific(tmp_path):
     from adabmDCA.scripts.train import create_parser, run
 
@@ -303,6 +329,11 @@ def test_ptt_optimizer_configuration_and_cli_are_ptt_specific(tmp_path):
     ])
     assert parsed.ptt_optimizer == "adaptive"
     assert parsed.ptt_trust_radius == 0.002
+    assert parsed.ptt_centering is None
+    assert create_parser().parse_args([
+        "--data", "unused.fasta", "--strategy", "ptt", "--no-ptt-centering",
+    ]).ptt_centering is False
+    assert PTTConfig().centering is True
     assert create_parser().parse_args([
         "--data", "unused.fasta", "--strategy", "ptt", "--ptt-optimizer", "sgd",
     ]).ptt_optimizer == "sgd"
@@ -314,6 +345,8 @@ def test_ptt_optimizer_configuration_and_cli_are_ptt_specific(tmp_path):
         ]))
     with pytest.raises(InputValidationError, match="optimizer"):
         PTTConfig(optimizer="unknown")
+    with pytest.raises(InputValidationError, match="centering"):
+        PTTConfig(centering="yes")
 
 
 def test_ptt_metrics_resume_and_consumers(training_case, tmp_path, monkeypatch):
@@ -398,6 +431,26 @@ def test_ptt_adaptive_resume_preserves_trust_region_state(training_case, tmp_pat
     assert saved.optimizer_state["kind"] == "adaptive"
     assert saved.optimizer_state["trust_diagnostics"] is not None
     assert saved.optimizer_state["nominal_rates"] == {"bias": 0.02, "coupling_matrix": 0.02}
+
+
+def test_archives_from_before_centering_resume_uncentered(training_case, tmp_path):
+    data, base = training_case
+    assert base.ptt.centering is True
+    config = replace(base, ptt=replace(base.ptt, centering=False))
+    complete = train_model(data, config=config)
+    partial = train_model(data, config=replace(config, max_epochs=1), output_dir=tmp_path / "old")
+    archive_path = partial.artifacts["ptt_archive"]
+    with h5py.File(archive_path, "r+") as archive:
+        metadata = json.loads(archive.attrs["metadata"])
+        del metadata["config"]["centering"]
+        del metadata["training_state"]["settings"]["ptt"]["centering"]
+        archive.attrs["metadata"] = json.dumps(metadata)
+
+    with pytest.raises(InputValidationError, match="settings: ptt.centering"):
+        train_model(data, config=base, ptt_resume=archive_path)
+    resumed = train_model(data, config=config, ptt_resume=archive_path)
+    torch.testing.assert_close(complete.model.params["coupling_matrix"],
+                               resumed.model.params["coupling_matrix"], rtol=0, atol=0)
 
 
 def test_metrics_use_injected_ptt_normalizer(training_case, monkeypatch):

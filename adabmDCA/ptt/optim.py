@@ -28,6 +28,7 @@ class _PTTOptimizer:
         self.kind = ptt.optimizer
         self.trust_radius = ptt.trust_radius
         self.lag_tolerance = ptt.lag_tolerance
+        self.centering = ptt.centering
         self.pause_cooldown = 0
         self.last_pause = None
         self.rates = {key: config.learning_rate for key in self._keys}
@@ -297,12 +298,30 @@ class _PTTOptimizer:
         }
         self.pause_cooldown = max(0, self.pause_cooldown - 1)
 
+    @staticmethod
+    def _centered(gradients, *, fi, pi, mask):
+        """Centering trick: the gradients of the energy written in x - mu, with mu = (fi + pi) / 2, mapped back.
+
+        Summed over the partner site, the raw coupling gradient is (L - 1) times the field gradient: the
+        coupling step repeats the field step, and the two are almost collinear. Centred, the coupling
+        gradient is the difference of connected correlations, Cij_data - Cij_model, which has no one-site
+        part, and the field step absorbs the shift of the centred parametrization:
+        dh_i(a) = (fi - pi)_i(a) - sum_{j,b} dJ_ij(a, b) mu_j(b).
+        """
+        offset = 0.5 * (fi + pi)
+        coupling = (gradients["coupling_matrix"]
+                    - (torch.einsum("ia,jb->iajb", fi, fi) - torch.einsum("ia,jb->iajb", pi, pi))) * mask
+        bias = gradients["bias"] - torch.einsum("iajb,jb->ia", coupling, offset)
+        return {"bias": bias, "coupling_matrix": coupling}
+
     def step(self, *, fi, fij, pi, pij, params, mask, l2_regularization, sampler=None):
         gradients = {
             "bias": fi - pi,
             "coupling_matrix": fij - pij - l2_regularization * params["coupling_matrix"],
         }
         gradients["coupling_matrix"] = gradients["coupling_matrix"] * mask
+        if self.centering:
+            gradients = self._centered(gradients, fi=fi, pi=pi, mask=mask)
         if self.kind == "adaptive":
             if sampler is None:
                 raise InputValidationError("The adaptive PTT optimizer requires its PTT sampler.")

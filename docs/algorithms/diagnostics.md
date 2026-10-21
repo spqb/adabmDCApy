@@ -33,11 +33,14 @@ The failures observed so far fall into three groups:
 | Error naming a link "below the target", with no immobile configurations | [F3](#f3-a-ladder-link-is-too-wide) | Smaller `--lr`, or larger `--ptt-target-acceptance` |
 | Error saying "every link accepts at least the target" | [F4](#f4-the-replicas-relax-too-slowly) | More `--nsweeps` |
 | Repeated `restored step …; learning rates …` lines, `lr_coupling` halving | F1, F3, F4 or F5 | Read the mixing-failure lines just before each recovery |
-| `lr_bias` at ~10⁻¹⁴ and `kl` at 0.01 for most updates | [F5](#f5-the-learning-rate-is-too-large) | Back to the default `--lr 0.01` |
+| `kl` at 0.01 for most updates (and `lr_bias` at ~10⁻¹⁴ with `--no-ptt-centering`), with mixing failures or recoveries | [F5](#f5-the-learning-rate-is-too-large) | Treat the failures first; then a smaller `--lr` |
+| `kl` at 0.01 for most updates, training otherwise clean | The trust region binds; normal | Nothing |
+| `lr_bias` at ~10⁻¹⁴ for many updates, with `--no-ptt-centering` | The field steps are stopped, training is slow | Drop `--no-ptt-centering` ([why](training.md#centred-updates)) |
 | Training finished, but independent samples disagree with training (Pearson, cluster shares), or the ladder health shows trapped links | [F6](#f6-good-metrics-miscalibrated-model) | Retrain with more `--nsweeps` |
 | PTT sampling warns that `G` stopped decreasing or its decay time doubled, or hits `--ptt-max-rounds` | [F7](#f7-slow-or-incomplete-ptt-sampling) | Usually a better training run |
 | "PTT initial mixing experiment exceeded its round budget" | [F8](#f8-the-initial-mixing-check-fails) | Check the input |
 | PCD model: plain MCMC sampling reaches `--max_nsweeps` without a mixing time | [Checking a PCD model](#checking-a-pcd-model) | Retrain with PTT |
+| Plain MCMC samples have many more gaps than the data at the ends of the alignment, or in another block of columns, and a Pearson that depends on the seed | Chains trapped in a gap block ([Plain MCMC and blocks of gaps](#plain-mcmc-and-blocks-of-gaps)) | Start from the profile (the default with `-d`), or sample with PTT |
 | Plain MCMC resampling: `pearson_sampling.png` rises above its final level, then declines | Model trained out of equilibrium ([Checking a PCD model](#checking-a-pcd-model)) | Retrain with PTT |
 
 ## Triage procedure
@@ -70,8 +73,8 @@ The failures observed so far fall into three groups:
 | `ll_val` | Rising, then flat; spikes up to 0.01 per site at ladder changes | Falling over hundreds of updates |
 | `acceptance_min` | Saw-tooth between ~0.25 and 0.5–0.9 | Long stretches below 0.25, or below 0.1 |
 | `replicas` | 2–3 | — |
-| `lr_bias`, `lr_coupling` | At `--lr` most of the time | Halved after recoveries; `lr_bias` at the floor most of the time |
-| `kl` | Median well below 0.01 (~10⁻³) | Pinned at 0.01 |
+| `lr_bias`, `lr_coupling` | At `--lr`; below it when the trust region binds (with `--no-ptt-centering`, `lr_bias` at the floor instead) | Halved after recoveries |
+| `kl` | Below 0.01, or pinned at 0.01 when the trust region binds | Pinned at 0.01 together with mixing failures |
 | `lag_drift`, `lag_drift_tail` | Below ~0.05 most of the time | Peaks approaching 0.25 |
 
 **5. Check the finished model** as described [below](#checking-a-finished-model). Training metrics alone cannot prove that a model is good.
@@ -174,11 +177,13 @@ On a healthy protein run (cm_russ, `--nsweeps 100`): `validation_plateau`, no fa
 
 ### F5. The learning rate is too large
 
-**Symptoms.** `kl` pinned at 0.01, `lr_coupling` below `--lr` and fluctuating, `lr_bias` at about 10⁻¹⁴ for most updates, earlier and more frequent mixing failures.
+**Symptoms.** Earlier and more frequent mixing failures and recoveries, while `kl` is pinned at 0.01. With `--no-ptt-centering`, `lr_bias` also sits at about 10⁻¹⁴.
 
-**Mechanism.** With a large `--lr` the trust region binds at every step. Field and coupling steps change the sequence statistics along strongly correlated directions, so the optimizer spends the whole budget on the couplings and sets the field rate to its floor: the exact optimum of its quadratic model, not a bug. The larger steps move the model faster than the chains can follow, making F1 and F3 more likely. (Occasional updates with the field rate at the floor are normal at any learning rate.)
+**Mechanism.** The larger steps move the model faster than the chains can follow, making F1 and F3 more likely.
 
-**Fix.** The default `--lr 0.01`.
+A pinned `kl` alone is not a symptom, nor is the field rate at its floor with `--no-ptt-centering`: the raw coupling step repeats the field step, so a binding trust region stops the fields and fits them through the couplings, more slowly ([centred updates](training.md#centred-updates)).
+
+**Fix.** Treat the mixing failures first (F1, F3). If they persist, use a smaller `--lr`.
 
 ### F6. Good metrics, miscalibrated model
 
@@ -233,6 +238,14 @@ A PCD model has no ladder, so it can only be sampled with plain MCMC. Run `adabm
 3. **The plateau value**, compared with the training Pearson at equal sample size, as for PTT models.
 
 Passing all three is necessary, not sufficient. A monotone curve can belong to a model whose relaxation is too slow to show the decline within the run, or to chains confined to one region of a multimodal model.
+
+### Plain MCMC and blocks of gaps
+
+Columns that are gapped together in some sequences form a cooperative unit. Truncated sequences are the common case: in RF00023, 3% of the training sequences lack both strands of the terminal helix, with columns 0–7 and the last 14 gapped together. Every model of that family makes this state a deep trap for single-site updates. It lies about 20 energy units below the complete sequence, and a gap at its edge stays a gap with probability 0.99, because putting a nucleotide there leaves it facing a gap in its paired column. Its equilibrium weight is only 3% because it has much less entropy: the summed CDE of those 22 columns is 1.1–1.6 nats, against 3.4–4.2 when the helix is present. Plain MCMC cannot cross between the two states: from any start, the gapped state ends at its starting share.
+
+Where the chains start therefore decides the result. Uniformly random sequences have a gap at one site in five, and in that context the model is not constrained by data. A model of RF00023 trained with [centred updates](training.md#centred-updates), the default, gives the terminal columns a gap probability of 0.35 there. Within 30 sweeps, 10–28% of the chains (depending on the seed) had built the gapped state, against 3% at equilibrium, and they stayed there for the whole run. The Pearson of the samples fell to 0.77–0.91, against 0.946 for PTT, and the mixing time was reached anyway, since it is measured from natural sequences. The other models of the family gave the same columns a gap probability of 0.03–0.11 in a random context and only 0.1% of the chains got trapped. Started from the profile, the same centered model gave 0.941.
+
+The profile is the default start for this reason. It does not make plain MCMC exact: from the profile, every model of RF00023 ended with 0–0.3% of the chains in the gapped state instead of 2–3%, because the chains cannot build it either. PTT samples it correctly. When plain MCMC samples differ from the data in a block of columns that are often gapped, compare the gap frequency of those columns with the data's, and sample with PTT.
 
 ## Distances and overfitting
 

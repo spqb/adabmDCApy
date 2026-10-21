@@ -179,6 +179,8 @@ def load_archive(cls, path, *, device="cpu", mode="generate", seed=None):
                 key: value for key, value in meta["config"].items()
                 if key in valid_config_fields
             }
+            # Archives written before centering became the default were trained without it.
+            meta["config"].setdefault("centering", False)
             resolved_config = asdict(PTTConfig(**meta["config"]))
             if meta["training_state"]:
                 meta["training_state"]["settings"]["ptt"] = resolved_config

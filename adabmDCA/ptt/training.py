@@ -199,6 +199,14 @@ class _PTTTrainer:
             key for key in set(archived_settings) | set(current_settings)
             if archived_settings.get(key) != current_settings.get(key)
         )
+        if "ptt" in differing_settings and all(isinstance(s.get("ptt"), dict)
+                                               for s in (archived_settings, current_settings)):
+            archived_ptt, current_ptt = archived_settings["ptt"], current_settings["ptt"]
+            differing_settings.remove("ptt")
+            differing_settings += sorted(
+                f"ptt.{key}" for key in set(archived_ptt) | set(current_ptt)
+                if archived_ptt.get(key) != current_ptt.get(key)
+            )
         if target_mismatch or differing_settings:
             reasons = []
             if target_mismatch:

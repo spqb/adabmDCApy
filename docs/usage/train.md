@@ -67,7 +67,7 @@ adabmDCA train -d train.fasta -v validation.fasta -o model --plot-training-logs
 
 Sparse models have their own options: `--gsteps` (10, parameter updates per graph change) and `--factivate` (0.001, fraction of the inactive couplings activated each time) for eaDCA; `--density` (0.02, final fraction of couplings) and `--drate` (0.01, fraction removed per step) for edDCA. For edgeDCA the pseudocount, not `--lr`, sets the size of each update: values closer to 1 give smaller steps, and some datasets need values up to 0.95.
 
-PTT has about thirty further options, all prefixed `--ptt-`. The defaults rarely need changing; the ones that do are discussed in [Diagnose a run](../algorithms/diagnostics.md#hyperparameters-that-matter-for-diagnosis), and the full list is in `adabmDCA train --help` and the [PTT configuration reference](../api/adabmDCA.ptt.config.md).
+PTT has about thirty further options, all prefixed `--ptt-`. One changes the update rule: PTT updates with the centering trick by default, and `--no-ptt-centering` uses the raw gradient instead, which trains more slowly on several families ([why](../algorithms/training.md#centred-updates)). The defaults rarely need changing; the ones that do are discussed in [Diagnose a run](../algorithms/diagnostics.md#hyperparameters-that-matter-for-diagnosis), and the full list is in `adabmDCA train --help` and the [PTT configuration reference](../api/adabmDCA.ptt.config.md).
 
 ## What you see while it runs
 
@@ -134,7 +134,7 @@ adabmDCA train -d train.fasta -v validation.fasta -o model \
     --ptt-resume model/ptt.h5 --max-gradient-steps 20000
 ```
 
-The archive restores the ladder, the chains, the optimizer and the random state, so a resumed run continues exactly. Only the update budget, the stopping criteria (`--target` and the `--ptt-validation-*` options), the checkpoint interval and the logging options may change; a run stopped on the validation plateau can thus be continued with `--no-ptt-validation-stop`. `history.csv` is rewritten from the archive, and the log and events are appended. Do not resume a run that failed because configurations were trapped: restart it from scratch with more sweeps instead.
+The archive restores the ladder, the chains, the optimizer and the random state, so a resumed run continues exactly. Only the update budget, the stopping criteria (`--target` and the `--ptt-validation-*` options), the checkpoint interval and the logging options may change; a run stopped on the validation plateau can thus be continued with `--no-ptt-validation-stop`. Archives written before centering became the default were trained without it and resume only with `--no-ptt-centering`. `history.csv` is rewritten from the archive, and the log and events are appended. Do not resume a run that failed because configurations were trapped: restart it from scratch with more sweeps instead.
 
 **PCD.** Start from the saved parameters and chains:
 

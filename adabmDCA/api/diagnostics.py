@@ -301,18 +301,32 @@ def _check_training(
             "F1",
         )
     long_enough = (indicators.get("updates") or 0) >= MIN_UPDATES_FOR_RATES
-    if long_enough and (
+    # A binding trust region with the field rate at its floor is the exact optimum when the coupling step
+    # already carries the field step, and is normal on its own. It points at the learning rate only when the
+    # chains also fail to follow the model.
+    binding = long_enough and (
         (indicators.get("lr_bias_at_floor_fraction") or 0) > 0.5
         or (indicators.get("median_kl") or 0) >= 0.0099
-    ):
+    )
+    struggling = failed or indicators.get("recoveries") or indicators.get("lag_pauses", 0) >= 3
+    if binding and struggling:
         findings.add(
             "warning",
             "learning_rate_too_large",
             f"lr_bias at its floor in {indicators.get('lr_bias_at_floor_fraction')} of the "
-            f"updates, median kl {indicators.get('median_kl')} (cap 0.01): the trust region "
-            "binds at every step.",
-            "Go back to the default --lr 0.01.",
+            f"updates, median kl {indicators.get('median_kl')} (cap 0.01), together with mixing "
+            "failures, recoveries or repeated lag pauses: the steps may outpace the chains.",
+            "Treat the mixing failures first; if they persist, try a smaller --lr.",
             "F5",
+        )
+    elif binding:
+        findings.add(
+            "info",
+            "trust_region_binding",
+            f"lr_bias at its floor in {indicators.get('lr_bias_at_floor_fraction')} of the "
+            f"updates, median kl {indicators.get('median_kl')} (cap 0.01): the trust region "
+            "binds and the couplings carry the field corrections. Normal without mixing failures.",
+            "Nothing to do.",
         )
     if long_enough and (indicators.get("fraction_acceptance_below_0.1") or 0) > 0.1:
         findings.add(

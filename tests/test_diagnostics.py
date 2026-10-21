@@ -68,6 +68,18 @@ class DiagnoseRunTests(unittest.TestCase):
         self.assertEqual(failures["learning_rate_too_large"]["failure"], "F5")
         self.assertEqual(report["training"]["blocking_immobile_configurations"], 61)
 
+    def test_binding_trust_region_alone_is_not_a_failure(self):
+        run = self.tmp / "run"
+        write_ptt_run(run, lr_bias=1e-14, kl=0.01,
+                      summary={"stop_reason": "validation_plateau", "converged": True, "warnings": []})
+
+        report = diagnose_run(run)
+
+        codes = {finding["code"] for finding in report["findings"]}
+        self.assertNotIn("learning_rate_too_large", codes)
+        self.assertIn("trust_region_binding", codes)
+        self.assertEqual(report["verdict"], "healthy")
+
     def test_short_runs_do_not_trigger_rate_based_findings(self):
         run = self.tmp / "run"
         write_ptt_run(run, updates=20, lr_bias=1e-14, kl=0.01, summary={"stop_reason": "validation_plateau"})
