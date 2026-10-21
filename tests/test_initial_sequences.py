@@ -104,3 +104,28 @@ def test_cli_starts_plain_mcmc_from_a_fasta_for_a_fixed_number_of_sweeps(tmp_pat
     log = pd.read_csv(artifacts["sampling_log"])
     assert list(log["nsweeps"]) == [0, 2, 3]
     assert {"pearson", "slope", "mean_energy"} <= set(log.columns)
+
+
+def test_chains_start_from_the_reference_profile_by_default(tmp_path):
+    # Every reference sequence starts with A: the profile start puts A there (but for the pseudocount),
+    # uniform starts put each state about a third of the time.
+    reference = _fasta(tmp_path / "ref.fasta", ("AAB", "ABA", "ABB", "AB-", "AAA", "A-A"))
+
+    def first_site_a(**kwargs):
+        result = sample_sequences(model=_model(), n_sequences=600, n_sweeps=0, measure_mixing_time=False,
+                                  device="cpu", seed=1, pseudocount=0.01, **kwargs)
+        return sum(s[0] == "A" for s in result.sequences) / len(result.sequences)
+
+    assert first_site_a(reference_fasta=reference) > 0.9
+    assert first_site_a(reference_fasta=reference, initial_distribution="profile") > 0.9
+    assert first_site_a(reference_fasta=reference, initial_distribution="uniform") < 0.5
+    assert first_site_a() < 0.5
+
+
+def test_initial_distribution_is_validated(tmp_path):
+    with pytest.raises(InputValidationError, match="requires reference_fasta"):
+        sample_sequences(model=_model(), n_sequences=4, n_sweeps=0, initial_distribution="profile", device="cpu")
+    with pytest.raises(InputValidationError, match="alternatives"):
+        _sample(list(SEQUENCES), initial_distribution="uniform")
+    with pytest.raises(InputValidationError, match="'profile' or 'uniform'"):
+        sample_sequences(model=_model(), n_sequences=4, n_sweeps=0, initial_distribution="data", device="cpu")

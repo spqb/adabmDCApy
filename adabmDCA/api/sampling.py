@@ -413,6 +413,7 @@ def sample_sequences(
     beta: float = 1.0,
     seed: int = 0,
     initial_sequences: InitialSequences | None = None,
+    initial_distribution: str | None = None,
     measure_mixing_time: bool = True,
     record_every: int = 1,
     reference_fasta: AlignmentInput | None = None,
@@ -440,7 +441,8 @@ def sample_sequences(
     """Generate sequences from a DCA model, with an energy for each.
 
     Ordinary sampling runs ``n_sequences`` independent Markov chains, started
-    from random sequences or from ``initial_sequences``. With
+    from the profile (independent-site) model of ``reference_fasta``, from
+    uniformly random sequences, or from ``initial_sequences``. With
     ``reference_fasta``, their mixing time is first measured (up to ``n_sweeps``
     sweeps) and generation runs for ``mixing_multiplier`` mixing times;
     otherwise, or with ``measure_mixing_time=False``, it runs for exactly
@@ -504,6 +506,14 @@ def sample_sequences(
             of aligned strings, a :class:`SamplingResult` (e.g. from PTT sampling),
             or an array of token indices ``(N, L)`` or one-hot ``(N, L, q)`` in the
             model's alphabet.
+        initial_distribution: Ordinary sampling without ``initial_sequences``:
+            ``"profile"`` draws the starting sequences from the weighted
+            single-site frequencies of ``reference_fasta`` (with ``pseudocount``),
+            ``"uniform"`` draws every residue uniformly. ``None`` uses the profile
+            when ``reference_fasta`` is given and uniform sequences otherwise.
+            Uniform sequences are far from any natural sequence, where the model
+            is not constrained by data: chains can fall into metastable states
+            there, such as blocks of gaps, that plain MCMC never leaves.
         measure_mixing_time: Ordinary sampling with ``reference_fasta``: ``False``
             skips the mixing-time measurement and runs exactly ``n_sweeps`` sweeps,
             still recording the comparison with the reference.
@@ -575,9 +585,11 @@ def sample_sequences(
     from adabmDCA.ptt import PTTSampler
 
     if ptt or isinstance(model, PTTSampler):
-        if initial_sequences is not None or not measure_mixing_time or record_every != 1:
+        if (initial_sequences is not None or initial_distribution is not None or not measure_mixing_time
+                or record_every != 1):
             raise InputValidationError(
-                "initial_sequences, measure_mixing_time and record_every apply to plain MCMC only (--strategy pcd)."
+                "initial_sequences, initial_distribution, measure_mixing_time and record_every apply to plain MCMC "
+                "only (--strategy pcd)."
             )
         if n_sequences is None:
             raise InputValidationError("n_sequences is required.")
@@ -610,6 +622,12 @@ def sample_sequences(
     dtype = "float32" if dtype is None else dtype
     if n_sequences is None and initial_sequences is None:
         raise InputValidationError("n_sequences is required unless initial_sequences is given.")
+    if initial_distribution not in (None, "profile", "uniform"):
+        raise InputValidationError("initial_distribution must be 'profile' or 'uniform'.")
+    if initial_distribution is not None and initial_sequences is not None:
+        raise InputValidationError("initial_distribution and initial_sequences are alternatives.")
+    if initial_distribution == "profile" and reference_fasta is None:
+        raise InputValidationError("initial_distribution='profile' requires reference_fasta.")
     if n_sequences is not None:
         validate_integer("n_sequences", n_sequences)
     validate_integer("n_sweeps", n_sweeps, minimum=0)
@@ -646,15 +664,37 @@ def sample_sequences(
         torch.cuda.manual_seed_all(seed)
 
     metadata = loaded.metadata
+    dataset = fi = fij = None
+    if reference_fasta is not None:
+        dataset = DatasetDCA.from_alignment(
+            reference_fasta,
+            weights=weights_path,
+            load_config=AlignmentLoadConfig(
+                alphabet=loaded.tokens,
+                invalid_sequences="drop",
+                remove_duplicates=True,
+                expected_length=metadata.length,
+            ),
+            clustering_th=clustering_seqid,
+            no_reweighting=no_reweighting,
+            device=loaded.params["bias"].device,
+            dtype=loaded.params["bias"].dtype,
+        )
+        effective_pseudocount = pseudocount
+        if effective_pseudocount is None:
+            effective_pseudocount = 1.0 / dataset.weights.sum().item()
+        fi, fij = dataset.get_frequencies(pseudocount=effective_pseudocount)
     if initial_sequences is not None:
         samples = _initial_chains(initial_sequences, loaded, n_sequences, seed)
     else:
+        profile = initial_distribution == "profile" or (initial_distribution is None and fi is not None)
         samples = init_chains(
             num_chains=n_sequences,
             L=metadata.length,
             q=metadata.num_states,
             device=loaded.params["bias"].device,
             dtype=loaded.params["bias"].dtype,
+            fi=fi if profile else None,
         )
     steered_kernel = None
     if steering_potential is not None:
@@ -686,26 +726,9 @@ def sample_sequences(
     distance_comparison: dict[str, Any] = {}
 
     if reference_fasta is not None:
-        dataset = DatasetDCA.from_alignment(
-            reference_fasta,
-            weights=weights_path,
-            load_config=AlignmentLoadConfig(
-                alphabet=loaded.tokens,
-                invalid_sequences="drop",
-                remove_duplicates=True,
-                expected_length=metadata.length,
-            ),
-            clustering_th=clustering_seqid,
-            no_reweighting=no_reweighting,
-            device=loaded.params["bias"].device,
-            dtype=loaded.params["bias"].dtype,
-        )
         test = None if test_fasta is None else _load_test_alignment(
             test_fasta, dataset, clustering_seqid=clustering_seqid, no_reweighting=no_reweighting
         )
-        effective_pseudocount = pseudocount
-        if effective_pseudocount is None:
-            effective_pseudocount = 1.0 / dataset.weights.sum().item()
         measured = min(n_measure, len(dataset))
         # Draw the reference rows before one-hot encoding: the full alignment
         # can be far larger in one-hot form than the few rows needed.
@@ -726,11 +749,9 @@ def sample_sequences(
             total_sweeps = mixing_multiplier * mixing_time
         else:
             total_sweeps = n_sweeps
-        fi, fij = dataset.get_frequencies(pseudocount=effective_pseudocount)
         sampling_history = {"nsweeps": [], "pearson": [], "slope": [], "mean_energy": []}
     else:
         total_sweeps = n_sweeps
-        fi = fij = None
 
     def record(sweeps: int):
         pi = get_freq_single_point(data=samples, weights=None, pseudo_count=0.0)

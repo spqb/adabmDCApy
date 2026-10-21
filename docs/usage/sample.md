@@ -18,7 +18,9 @@ Both commands also **check the model**: they verify that the chains have equilib
 
 **PTT** starts every rung of the ladder from exact draws of the independent-site profile, then exchanges configurations between neighbouring models while refreshing the bottom. It stops when every configuration that was in the ladder at the start has been replaced by one born later at the bottom (*population renewal*). The returned sequences then descend from fresh profile draws and carry no memory of the initialization. This takes from a few hundred exchange rounds on small RNA families to a few thousand on large proteins. `--ptt-stationary` renews the ladder a second time for extra certainty, at about twice the cost.
 
-**Plain MCMC** first measures the mixing time of the model: it runs chains started from natural sequences and records when the identity between a chain at time *t* and at time *t*/2 matches the identity between two independent chains. It then runs fresh chains from random sequences for `--nmix` (default 2) mixing times. If the mixing time is not reached within `--max_nsweeps` (default 5,000), sampling stops at the budget and **the samples are not at equilibrium**, even when they look reasonable. On three of the six benchmark families this happened at 10,000 sweeps, and the samples missed whole clusters of the data (see [Benchmarks](../algorithms/benchmarks.md#sampling-from-random-sequences)). Without `-d`, plain MCMC simply runs `--max_nsweeps` sweeps.
+**Plain MCMC** first measures the mixing time of the model: it runs chains started from natural sequences and records when the identity between a chain at time *t* and at time *t*/2 matches the identity between two independent chains. It then runs fresh chains for `--nmix` (default 2) mixing times, started from the profile (independent-site) model of `-d`, or from uniformly random sequences without `-d` or with `--init-distribution uniform`. If the mixing time is not reached within `--max_nsweeps` (default 5,000), sampling stops at the budget and **the samples are not at equilibrium**, even when they look reasonable. On three of the six benchmark families this happened at 10,000 sweeps, and the samples missed whole clusters of the data (see [Benchmarks](../algorithms/benchmarks.md#sampling-from-random-sequences)). Without `-d`, plain MCMC simply runs `--max_nsweeps` sweeps.
+
+The mixing time is measured from natural sequences, so it cannot see states that only the chains' starting point leads into. Uniformly random sequences lie far from anything in the data, where the model is not constrained, and chains can fall from there into metastable states that single-site updates never leave, such as blocks of gaps ([details](../algorithms/diagnostics.md#plain-mcmc-and-blocks-of-gaps)). This is why the profile is the default start.
 
 ## Options
 
@@ -41,7 +43,8 @@ Both commands also **check the model**: they verify that the chains have equilib
 | `--beta` | 1.0 | Inverse temperature (plain MCMC). Values above 1 concentrate on low-energy sequences |
 | `--nmix` | 2 | Mixing times to run (plain MCMC) |
 | `--max_nsweeps` | 5000 | Sweep budget (plain MCMC) |
-| `--init-sequences` | none | Start plain MCMC from these sequences instead of random ones, e.g. the `samples.fasta` of a PTT run. `--ngen` defaults to their number; a smaller value starts from a random subset |
+| `--init-sequences` | none | Start plain MCMC from these sequences, e.g. the `samples.fasta` of a PTT run. `--ngen` defaults to their number; a smaller value starts from a random subset |
+| `--init-distribution` | profile with `-d`, uniform without | Distribution of the starting sequences of plain MCMC without `--init-sequences`: `profile` (independent-site draws from the weighted frequencies of `-d`) or `uniform` |
 | `--nsweeps` | none | Run exactly this many sweeps, without measuring the mixing time (plain MCMC; replaces `--max_nsweeps` and `--nmix`) |
 | `--record-every` | 1 | Sweeps between rows of `logs/sampling.log` (plain MCMC with `-d`) |
 | `--nmeasure` | 10000 | Maximum number of reference sequences used for the mixing time, the PCA and the distances |
@@ -104,7 +107,7 @@ df = result.to_dataframe()            # sequence, energy, cde_sum, ...
 
 In Python, `ptt=False` (plain MCMC) is the default; pass `ptt=True` to sample through the ladder.
 
-Plain MCMC can start from sequences already in memory: `initial_sequences` takes a path, an `Alignment`, a list of aligned strings, a `SamplingResult` or an array of token indices or one-hot vectors. With `measure_mixing_time=False` it runs exactly `n_sweeps` sweeps. For example, to follow how a model moves equilibrium samples of another one:
+Plain MCMC starts from the profile of `reference_fasta` when it is given and from uniformly random sequences otherwise; `initial_distribution="profile"` or `"uniform"` chooses explicitly. It can also start from sequences already in memory: `initial_sequences` takes a path, an `Alignment`, a list of aligned strings, a `SamplingResult` or an array of token indices or one-hot vectors. With `measure_mixing_time=False` it runs exactly `n_sweeps` sweeps. For example, to follow how a model moves equilibrium samples of another one:
 
 ```python
 ptt = sample_sequences(model="model/ptt.h5", ptt=True, reference_fasta=reference, n_sequences=2048)

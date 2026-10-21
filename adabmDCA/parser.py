@@ -466,7 +466,7 @@ def add_args_sample(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     )
     standard_args.add_argument(
         "--nmix", type=int, default=2,
-        help="(Defaults to 2). Number of mixing times used to generate 'ngen' sequences starting from random.",
+        help="(Defaults to 2). Number of mixing times used to generate 'ngen' sequences.",
     )
     standard_args.add_argument(
         "--max_nsweeps", type=int, default=5000,
@@ -480,6 +480,11 @@ def add_args_sample(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     standard_args.add_argument(
         "--nsweeps", type=int, default=None,
         help="Run exactly this many sweeps, without measuring the mixing time (replaces --max_nsweeps and --nmix).",
+    )
+    standard_args.add_argument(
+        "--init-distribution", choices=("profile", "uniform"), default=None,
+        help=("Distribution of the starting sequences without --init-sequences: the profile (independent-site) "
+              "model of --data, or uniformly random residues. Default: profile with --data, uniform without."),
     )
     standard_args.add_argument(
         "--record-every", type=int, default=1,

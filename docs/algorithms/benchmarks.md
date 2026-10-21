@@ -67,7 +67,7 @@ By the training metrics, the two strategies are hard to tell apart. Both reach t
 
 ## Sampling from random sequences
 
-The usual check is to sample the final model from random sequences and compare the samples with the data. Pearson of the generated vs training connected correlations, 2,000 sequences; × marks plain MCMC runs that did not reach a mixing time within 10,000 sweeps:
+The usual check is to sample the final model from random sequences and compare the samples with the data. These runs started plain MCMC from uniformly random sequences, the default at the time; it now starts from the profile of the data ([why](diagnostics.md#plain-mcmc-and-blocks-of-gaps)). Pearson of the generated vs training connected correlations, 2,000 sequences; × marks plain MCMC runs that did not reach a mixing time within 10,000 sweeps:
 
 | Family | PTT model, PTT sampling | PTT model, MCMC | PCD model, MCMC | Time: PTT / MCMC |
 | --- | --- | --- | --- | --- |

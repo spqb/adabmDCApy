@@ -58,6 +58,7 @@ def run(args, *, progress=None):
         measure_mixing_time=args.nsweeps is None,
         record_every=args.record_every,
         initial_sequences=args.init_sequences,
+        initial_distribution=args.init_distribution,
         mixing_multiplier=args.nmix,
         ptt=(args.strategy == "ptt"),
         ptt_local_sweeps=args.ptt_local_sweeps,
@@ -132,7 +133,8 @@ def _configuration(args) -> dict:
         "output": args.output,
         "label": args.label,
         "sequences": "all initial sequences" if args.ngen is None else args.ngen,
-        "initial sequences": None if ptt else args.init_sequences,
+        "initial sequences": None if ptt else (args.init_sequences or args.init_distribution
+                                               or ("profile of --data" if args.data else "uniform")),
         "sweeps": None if ptt or args.nsweeps is None else f"{args.nsweeps} (fixed)",
         "sampler": sampler,
         "PTT mixing method": args.ptt_mixing_method if ptt else None,
