@@ -141,6 +141,18 @@ class DiagnoseRunTests(unittest.TestCase):
         self.assertNotIn("stalled_or_stopped", codes)
         self.assertEqual(report["training"]["updates"], 59)
 
+    def test_interrupted_run_is_halted_at_once(self):
+        for status in ("interrupted", "cancelled"):
+            run = self.tmp / status
+            write_ptt_run(run)
+            (run / "adabmDCA.log").write_text(f"update lines\n\n[END]\nstatus: {status}\nstop_reason: N/A\n"
+                                              "error: KeyboardInterrupt: \n")
+
+            report = diagnose_run(run)
+
+            self.assertEqual(report["verdict"], "incomplete")
+            self.assertIn("halted", {finding["code"] for finding in report["findings"]})
+
     def test_cli_prints_verdict_and_json(self):
         run = self.tmp / "run"
         write_ptt_run(run, summary={"stop_reason": "max_gradient_steps", "converged": False})

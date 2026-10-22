@@ -78,6 +78,18 @@ def _tail(path: Path, lines: int = 8) -> list[str]:
         return []
 
 
+def _end_status(path: Path) -> str | None:
+    """Status of the terminal ``[END]`` section the training log gets when the run stops, if any."""
+    try:
+        lines = path.read_text(errors="replace").splitlines()
+    except OSError:
+        return None
+    if "[END]" not in lines:
+        return None
+    section = lines[len(lines) - 1 - lines[::-1].index("[END]"):]
+    return next((line.split(":", 1)[1].strip() for line in section if line.startswith("status:")), None)
+
+
 def _round(value: float | None, digits: int = 4) -> float | None:
     return None if value is None else round(value, digits)
 
@@ -194,10 +206,21 @@ def _check_training(
     ptt: bool,
     stale: bool,
     log_tail: list[str],
+    end_status: str | None = None,
 ) -> None:
     if summary is None:
         last = indicators.get("last_event", {}).get("event", "")
-        if not stale:
+        if end_status in ("interrupted", "cancelled"):
+            findings.add(
+                "info",
+                "halted",
+                f"No training summary: the run was {end_status} (by hand, a time limit or a cancel request). "
+                "The metrics below are those of the last saved update.",
+                "To use the model, take the last checkpoint (ptt.h5 or params.dat.gz); to "
+                "continue, resume with --ptt-resume ptt.h5 for PTT runs, or -p params.dat.gz "
+                "-c chains.fasta for PCD runs.",
+            )
+        elif not stale and end_status is None:
             findings.add(
                 "info",
                 "running",
@@ -521,7 +544,8 @@ def diagnose_run(
         indicators["stop_reason"] = summary.get("stop_reason")
         indicators["converged"] = summary.get("converged")
         indicators["gradient_steps"] = summary.get("gradient_steps")
-    _check_training(findings, summary, indicators, ptt=ptt, stale=stale, log_tail=log_tail)
+    end_status = _end_status(files["log"]) if files["log"].exists() else None
+    _check_training(findings, summary, indicators, ptt=ptt, stale=stale, log_tail=log_tail, end_status=end_status)
 
     sampling_indicators = None
     if sampling_json is not None:
@@ -544,7 +568,7 @@ def diagnose_run(
 
     ordered = findings.sorted()
     severities = {item["severity"] for item in ordered}
-    if summary is None and not stale and "error" not in severities:
+    if summary is None and not stale and end_status is None and "error" not in severities:
         verdict = "running"
     elif "error" in severities:
         verdict = "failed"
