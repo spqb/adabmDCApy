@@ -27,9 +27,13 @@ def _numba_categorical_sampler(name, device):
     """The multithreaded Numba kernel for ``name`` on CPU, when Numba is installed."""
     if device.type != "cpu":
         return None
-    from adabmDCA.numba_kernels import categorical_sampler, is_numba_available
+    from adabmDCA.numba_kernels import is_numba_available
 
-    return categorical_sampler(name) if is_numba_available() else None
+    if not is_numba_available():
+        return None
+    from adabmDCA.numba_kernels import categorical_sampler
+
+    return categorical_sampler(name)
 
 
 def _bfloat16_categorical_sampler(name):

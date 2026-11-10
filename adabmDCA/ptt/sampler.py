@@ -44,9 +44,11 @@ _RESERVOIR_SPACING_BLOCKS = 4
 def _profile_states(params, n_chains):
     """Exact integer draws of the uncoupled profile model of ``params``."""
     if params["bias"].device.type == "cpu":
-        from adabmDCA.numba_kernels import is_numba_available, sample_profile_states
+        from adabmDCA.numba_kernels import is_numba_available
 
         if is_numba_available():
+            from adabmDCA.numba_kernels import sample_profile_states
+
             return sample_profile_states(params["bias"], n_chains)
     return sampling_profile_categorical(params, n_chains, 1.0).to(torch.int32)
 

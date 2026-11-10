@@ -235,9 +235,13 @@ class SteeredKernel:
 def _fused_gibbs(device: str) -> Callable[..., torch.Tensor] | None:
     """A compiled categorical Gibbs sampler with explicit sites: Metal on MPS, Triton on CUDA, Numba on CPU."""
     if device == "cpu":
-        from adabmDCA.numba_kernels import categorical_sampler, is_numba_available
+        from adabmDCA.numba_kernels import is_numba_available
 
-        return categorical_sampler("gibbs") if is_numba_available() else None
+        if not is_numba_available():
+            return None
+        from adabmDCA.numba_kernels import categorical_sampler
+
+        return categorical_sampler("gibbs")
     if device.startswith("mps"):
         from adabmDCA.mps_kernels import categorical_sampler, is_mps_available
         from adabmDCA.mps_kernels.sampling import _supported

@@ -396,9 +396,11 @@ def prepare_sampler(sampling_method: str, device: torch.device) -> Callable:
         if is_mps_available():
             return onehot_sampler(sampling_method)
     if device.type == "cpu":
-        from adabmDCA.numba_kernels import is_numba_available, onehot_sampler
+        from adabmDCA.numba_kernels import is_numba_available
 
         if is_numba_available():
+            from adabmDCA.numba_kernels import onehot_sampler
+
             return onehot_sampler(sampling_method)
     scripted_sampler = torch.jit.script(sampler)
     if device.type == "cuda":
