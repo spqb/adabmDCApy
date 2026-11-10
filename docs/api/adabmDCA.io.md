@@ -10,37 +10,7 @@
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/io.py#L18"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
-
-## <kbd>function</kbd> `load_chains`
-
-```python
-load_chains(
-    fname: str,
-    tokens: str,
-    device: device = device(type='cpu'),
-    dtype: dtype = torch.float32
-) → Tuple[Tensor, ]
-```
-
-Load chain sequences from FASTA and return their one-hot encoding.
-
-
-
-**Args:**
-
- - <b>`fname`</b> (str):  Path to the file containing the sequences.
- - <b>`tokens`</b> (str):  "protein", "dna", "rna" or another string with the alphabet to be used.
- - <b>`device`</b> (torch.device, optional):  Device where to store the sequences. Defaults to "cpu".
- - <b>`dtype`</b> (torch.dtype, optional):  Data type of the sequences. Defaults to torch.float32
-
-Return:
- - <b>`Tuple[torch.Tensor, ...]`</b>:  One-hot encoded sequences.
-
-
----
-
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/io.py#L45"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/io.py#L17"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `save_chains`
 
@@ -65,7 +35,7 @@ Saves the chains in a fasta file.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/io.py#L80"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/io.py#L52"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `is_gzip`
 
@@ -78,7 +48,7 @@ Whether a file is gzip-compressed, judged by its content rather than its name.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/io.py#L86"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/io.py#L58"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `open_params`
 
@@ -91,7 +61,7 @@ Open a parameter file as text; gzip is detected on reading and chosen by a `.gz`
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/io.py#L97"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/io.py#L69"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `load_params`
 
@@ -128,7 +98,7 @@ Gzip-compressed files (such as `params.dat.gz`) are read transparently, whatever
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/io.py#L238"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/io.py#L210"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `load_params_old`
 
@@ -163,7 +133,7 @@ Import the parameters of the model from a file.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/io.py#L318"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/io.py#L290"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `save_params`
 
@@ -194,7 +164,7 @@ Couplings are streamed in bounded chunks using the canonical `i < j` triangle. A
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/io.py#L401"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/io.py#L373"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `load_params_oldformat`
 
@@ -227,7 +197,7 @@ Import the parameters of the model from a file. Assumes the old DCA format.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/io.py#L448"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/io.py#L420"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `save_params_oldformat`
 

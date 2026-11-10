@@ -9,6 +9,8 @@ The rules follow the "Diagnose a run" guide (docs/algorithms/diagnostics.md): ea
 
 **Global Variables**
 ---------------
+- **DEFAULT_TRUST_RADIUS**
+- **NGD_TRUST_RADIUS**
 - **GUIDE**
 - **FAILURES**
 - **SEVERITY_ORDER**
@@ -17,7 +19,7 @@ The rules follow the "Diagnose a run" guide (docs/algorithms/diagnostics.md): ea
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/diagnostics.py#L508"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/diagnostics.py#L528"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `diagnose_run`
 

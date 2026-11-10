@@ -178,7 +178,6 @@
 - [`graph.select_inactive_elements`](./adabmDCA.graph.md#function-select_inactive_elements): Activates the inactive off-diagonal coupling entries with the largest Dkl.
 - [`graph.update_mask_decimation`](./adabmDCA.graph.md#function-update_mask_decimation): Updates the mask by removing the n_remove couplings with the smallest Dkl.
 - [`io.is_gzip`](./adabmDCA.io.md#function-is_gzip): Whether a file is gzip-compressed, judged by its content rather than its name.
-- [`io.load_chains`](./adabmDCA.io.md#function-load_chains): Load chain sequences from FASTA and return their one-hot encoding.
 - [`io.load_params`](./adabmDCA.io.md#function-load_params): Import parameters from the established `J`/`h` text format.
 - [`io.load_params_old`](./adabmDCA.io.md#function-load_params_old): Import the parameters of the model from a file.
 - [`io.load_params_oldformat`](./adabmDCA.io.md#function-load_params_oldformat): Import the parameters of the model from a file. Assumes the old DCA format.
