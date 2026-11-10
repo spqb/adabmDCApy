@@ -15,6 +15,16 @@ DEFAULT_PTT_N_CHAINS = 2_048
 DEFAULT_PTT_SAMPLER = "metropolized_gibbs"
 DEFAULT_PTT_MAX_EPOCHS = 50_000
 PTT_OPTIMIZERS = ("sgd", "adaptive")
+DEFAULT_TRUST_RADIUS = 0.01
+# The natural-gradient steps fill the trust region: at 0.01 the ladder renews slowly after each jump.
+NGD_TRUST_RADIUS = 0.001
+# Natural-gradient damping, in mean eigenvalues of the Fisher matrix. In the centred coordinates large damping
+# keeps the centred gradient's fast-mixing models (RF00379: best validation LL at 50); in the raw ones it does not.
+NGD_DAMPING = 0.5
+NGD_CENTRED_DAMPING = 50.0
+# Arc length per window of the validation plateau test with the natural gradient. Gradient steps vary 10x in arc
+# length per update across families (0.009-0.1), so their windows stay counted in updates.
+NGD_VALIDATION_ARC_WINDOW = 1.0
 PTT_ACTIVATIONS = ("fixed", "adaptive")
 
 
@@ -57,11 +67,26 @@ class PTTConfig:
         optimizer: ``"adaptive"`` (steps bounded by a KL trust region, training
             paused while the endpoint chains lag behind the model) or ``"sgd"``
             (fixed learning rate).
-        trust_radius: Adaptive optimizer: largest predicted KL divergence of one update.
+        trust_radius: Adaptive optimizer: largest predicted KL divergence of one update;
+            ``None`` means 0.01, or 0.001 with ``natural_gradient`` (whose steps fill the radius).
         centering: Update with the centering trick: connected-correlation coupling
             gradient, field step corrected for the centring offset. Removes the one-site
             part of the coupling step, which otherwise repeats the field step and makes
             the trust region stop the fields.
+        natural_gradient: Step along the damped natural gradient (F + damping)^-1 g, with F the
+            Fisher matrix of the model estimated on the endpoint chains and solved by conjugate
+            gradient. The undamped natural gradient does not depend on the parametrization; with
+            ``centering`` the system is solved in the centred coordinates, so that large damping
+            tends to the centred gradient (without it, to the raw gradient). The learning rate is
+            then a fraction of the Newton step: ``--lr 1`` lets the trust region alone limit the steps.
+            The system is solved with the Fisher matrix of half of the endpoint chains and the KL of
+            the trust region measured on the other half: F has at most as many directions as there
+            are chains, and the solve puts the step where those chains vary least. Measured on the
+            same chains, the KL of the step was 0.2 % of its KL on independent chains (LBD).
+        ngd_damping: Natural gradient: damping, in units of the mean eigenvalue of F; ``None``
+            means 50 with ``centering``, 0.5 without.
+        ngd_cg_steps: Natural gradient: largest number of conjugate-gradient iterations.
+        ngd_cg_tolerance: Natural gradient: relative residual at which conjugate gradient stops.
         lag_tolerance: Adaptive optimizer: largest lag of the endpoint chains, in
             population standard deviations, before training pauses.
         lag_horizon: Adaptive optimizer: memory of past updates, in updates.
@@ -69,9 +94,18 @@ class PTTConfig:
         validation_stop: Stop when the validation log-likelihood plateaus instead
             of at the target Pearson; requires a validation alignment.
         validation_window: Updates per window of the plateau test, which compares
-            the medians of the last two windows.
+            the medians of the last two windows, when the windows are counted in updates
+            (without arc-length windows).
         validation_min_gain: Stop when the median gain between the two windows
             is below this value (log-likelihood per site).
+        validation_arc_window: Windows of the plateau test in Fisher arc length: each spans this
+            length of the path, the sum of sqrt(2 KL) over its updates (KL the predicted KL
+            divergence of the update), so the test sees the same change of the model whatever
+            the step size. ``None`` means 1 with ``natural_gradient`` and windows of
+            ``validation_window`` updates otherwise, as 0 always does; the ``sgd`` optimizer always
+            counts updates (it predicts no KL).
+        validation_arc_min_updates: Arc-length windows: fewest updates per window, against the noise
+            of the log Z estimate; a window grows to this many updates when the steps are large.
         activation: eaDCA: ``"fixed"`` activates ``activation_fraction`` of the
             inactive couplings per block; ``"adaptive"`` activates at most that
             fraction, only significant candidates within a KL budget.
@@ -105,14 +139,20 @@ class PTTConfig:
     max_recoveries: int = 3
     min_learning_rate: float = 1e-8
     optimizer: str = "adaptive"
-    trust_radius: float = 0.01
+    trust_radius: float | None = None
     centering: bool = True
+    natural_gradient: bool = False
+    ngd_damping: float | None = None
+    ngd_cg_steps: int = 20
+    ngd_cg_tolerance: float = 1e-3
     lag_tolerance: float = 0.25
     lag_horizon: int = 200
     lag_pause_rounds: int = 100
     validation_stop: bool = False
     validation_window: int = 200
     validation_min_gain: float = 0.0
+    validation_arc_window: float | None = None
+    validation_arc_min_updates: int = 50
     activation: str = "fixed"
     activation_kl_share: float = 0.5
     activation_significance: float = 3.0
@@ -143,11 +183,23 @@ class PTTConfig:
             raise InputValidationError("PTT optimizer must be 'sgd' or 'adaptive'.")
         if not isinstance(self.centering, bool):
             raise InputValidationError("PTT centering must be boolean.")
+        if not isinstance(self.natural_gradient, bool):
+            raise InputValidationError("PTT natural_gradient must be boolean.")
+        validate_integer("ngd_cg_steps", self.ngd_cg_steps, minimum=1)
+        validate_integer("validation_arc_min_updates", self.validation_arc_min_updates, minimum=1)
+        value = self.validation_arc_window
+        if value is not None and (isinstance(value, bool) or not isinstance(value, (int, float))
+                                  or not 0 <= value < math.inf):
+            raise InputValidationError("PTT validation_arc_window must be None or a finite number, at least 0.")
+        for name in ("effective_ngd_damping", "ngd_cg_tolerance"):
+            value = getattr(self, name)
+            if isinstance(value, bool) or not isinstance(value, (int, float)) or not 0 < value < math.inf:
+                raise InputValidationError(f"PTT {name.removeprefix('effective_')} must be a finite positive number.")
         if self.activation not in PTT_ACTIVATIONS:
             raise InputValidationError("PTT activation must be 'fixed' or 'adaptive'.")
         for name in (
             "min_acceptance", "target_acceptance", "min_learning_rate",
-            "mixing_window_factor", "trust_radius", "lag_tolerance", "validation_min_gain",
+            "mixing_window_factor", "effective_trust_radius", "lag_tolerance", "validation_min_gain",
             "activation_kl_share", "activation_significance",
         ):
             value = getattr(self, name)
@@ -163,7 +215,7 @@ class PTTConfig:
             raise InputValidationError("min_learning_rate must be finite and positive.")
         if self.mixing_window_factor < 2:
             raise InputValidationError("PTT mixing_window_factor must be finite and at least 2.")
-        if self.trust_radius <= 0:
+        if self.effective_trust_radius <= 0:
             raise InputValidationError("PTT trust_radius must be positive.")
         if self.lag_tolerance <= 0:
             raise InputValidationError("PTT lag_tolerance must be positive.")
@@ -171,3 +223,27 @@ class PTTConfig:
             raise InputValidationError("PTT activation_kl_share must be larger than 0 and at most 1.")
         if self.activation_significance < 0:
             raise InputValidationError("PTT activation_significance cannot be negative.")
+
+    @property
+    def effective_trust_radius(self) -> float:
+        """The trust radius in use: ``trust_radius``, or its default for the chosen update."""
+        if self.trust_radius is not None:
+            return self.trust_radius
+        return NGD_TRUST_RADIUS if self.natural_gradient else DEFAULT_TRUST_RADIUS
+
+    @property
+    def effective_validation_arc_window(self) -> float | None:
+        """The arc length of the plateau-test windows, or ``None`` when they are counted in updates."""
+        value = self.validation_arc_window
+        if value is None:
+            value = NGD_VALIDATION_ARC_WINDOW if self.natural_gradient else 0
+        if value == 0 or self.optimizer != "adaptive":
+            return None
+        return float(value)
+
+    @property
+    def effective_ngd_damping(self) -> float:
+        """The natural-gradient damping in use: ``ngd_damping``, or its default for the coordinates."""
+        if self.ngd_damping is not None:
+            return self.ngd_damping
+        return NGD_CENTRED_DAMPING if self.centering else NGD_DAMPING

@@ -1,45 +1,17 @@
 import gzip
 import math
 from pathlib import Path
-from typing import IO, Dict, Optional, Tuple, Union
+from typing import IO, Dict, Optional, Union
 
 import numpy as np
 import pandas as pd
 import torch
-from torch.nn.functional import one_hot
 
 from adabmDCA._validation import validate_finite_parameters
-from adabmDCA.alignment import Alignment, read_alignment, write_alignment
+from adabmDCA.alignment import Alignment, write_alignment
 from adabmDCA.alphabet import get_tokens
 from adabmDCA.fasta import decode_sequence, encode_sequence, validate_alphabet
 from adabmDCA.utils import get_mask_save
-
-
-def load_chains(
-    fname: str,
-    tokens: str,
-    device: torch.device = torch.device("cpu"),
-    dtype: torch.dtype = torch.float32,
-) -> Tuple[torch.Tensor, ...]:
-    """Load chain sequences from FASTA and return their one-hot encoding.
-    
-    Args:
-        fname (str): Path to the file containing the sequences.
-        tokens (str): "protein", "dna", "rna" or another string with the alphabet to be used.
-        device (torch.device, optional): Device where to store the sequences. Defaults to "cpu".
-        dtype (torch.dtype, optional): Data type of the sequences. Defaults to torch.float32
-    
-    Return:
-        Tuple[torch.Tensor, ...]: One-hot encoded sequences.
-    """
-    alignment = read_alignment(fname, format="fasta")
-    sequences = np.asarray(alignment.sequences, dtype=str)
-    validate_alphabet(sequences, tokens=tokens)
-    encoded_sequences = encode_sequence(sequences, tokens=tokens)
-    encoded_sequences = torch.tensor(encoded_sequences, dtype=torch.int64)
-    sequences_oh = one_hot(encoded_sequences, num_classes=len(tokens)).to(device=device, dtype=dtype)
-    
-    return (sequences_oh,)
 
 
 def save_chains(

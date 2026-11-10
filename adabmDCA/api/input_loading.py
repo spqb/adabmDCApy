@@ -21,7 +21,7 @@ from adabmDCA.input_loading import (
     WeightInput,
     load_alignment,
 )
-from adabmDCA.io import load_chains, load_params
+from adabmDCA.io import load_params
 from adabmDCA.training_config import TrainingConfig
 
 
@@ -203,14 +203,12 @@ def load_training_inputs(
                 details={"path": str(path)},
             )
         try:
-            chains, = load_chains(
-                str(path),
-                tokens=training_dataset.tokens,
-                device=device,
-                dtype=dtype,
-            )
-        except AdabmDCAError:
-            raise
+            chains = load_alignment(path, alphabet=training_dataset.tokens).to_onehot().to(device=device, dtype=dtype)
+        except AdabmDCAError as exc:
+            raise ChainLoadError(
+                f"Could not load initial chains from '{path}': {exc}",
+                details={**exc.details, "path": str(path)},
+            ) from exc
         except (IndexError, KeyError, OSError, RuntimeError, TypeError, ValueError) as exc:
             raise ChainLoadError(
                 f"Could not load initial chains from '{path}': {exc}",

@@ -18,6 +18,7 @@ from pathlib import Path
 from typing import Any
 
 from adabmDCA.exceptions import InputLoadError
+from adabmDCA.ptt.config import DEFAULT_TRUST_RADIUS, NGD_TRUST_RADIUS
 
 GUIDE = "https://spqb.github.io/adabmDCApy/algorithms/diagnostics/"
 FAILURES = {
@@ -118,8 +119,26 @@ class _Findings:
         return sorted(self.items, key=lambda item: SEVERITY_ORDER[item["severity"]])
 
 
+def _trust_radius(summary: dict[str, Any] | None, log: Path) -> float:
+    """Trust radius of the run, from its summary or the configuration printed in its log."""
+    settings: dict[str, Any] = dict(((summary or {}).get("config") or {}).get("ptt") or {})
+    if not settings and log.exists():
+        with log.open(encoding="utf-8", errors="replace") as handle:
+            for line in handle:
+                key, _, value = line.strip().partition(":")
+                if key in ("trust_radius", "natural_gradient") and value.strip():
+                    settings.setdefault(key, value.strip())
+                if len(settings) == 2:
+                    break
+    radius = settings.get("trust_radius")
+    if radius not in (None, "None"):
+        return float(radius)
+    natural = settings.get("natural_gradient") in (True, "True")
+    return NGD_TRUST_RADIUS if natural else DEFAULT_TRUST_RADIUS
+
+
 def _training_indicators(
-    history: dict[str, list[float | None]], events: list[dict[str, Any]]
+    history: dict[str, list[float | None]], events: list[dict[str, Any]], trust_radius: float = DEFAULT_TRUST_RADIUS,
 ) -> dict[str, Any]:
     indicators: dict[str, Any] = {}
     steps = _values(history, "step")
@@ -151,7 +170,8 @@ def _training_indicators(
     kl = _values(history, "kl")
     if kl:
         indicators["median_kl"] = float(f"{statistics.median(kl):.3g}")
-        indicators["kl_at_cap_fraction"] = _round(sum(value >= 0.0099 for value in kl) / len(kl), 3)
+        indicators["kl_cap"] = trust_radius
+        indicators["kl_at_cap_fraction"] = _round(sum(value >= 0.99 * trust_radius for value in kl) / len(kl), 3)
     tail = _values(history, "lag_drift_tail")
     if tail:
         indicators["max_lag_drift_tail"] = _round(max(tail), 3)
@@ -329,7 +349,7 @@ def _check_training(
     # chains also fail to follow the model.
     binding = long_enough and (
         (indicators.get("lr_bias_at_floor_fraction") or 0) > 0.5
-        or (indicators.get("median_kl") or 0) >= 0.0099
+        or (indicators.get("median_kl") or 0) >= 0.99 * (indicators.get("kl_cap") or DEFAULT_TRUST_RADIUS)
     )
     struggling = failed or indicators.get("recoveries") or indicators.get("lag_pauses", 0) >= 3
     if binding and struggling:
@@ -337,7 +357,7 @@ def _check_training(
             "warning",
             "learning_rate_too_large",
             f"lr_bias at its floor in {indicators.get('lr_bias_at_floor_fraction')} of the "
-            f"updates, median kl {indicators.get('median_kl')} (cap 0.01), together with mixing "
+            f"updates, median kl {indicators.get('median_kl')} (cap {indicators.get('kl_cap')}), together with mixing "
             "failures, recoveries or repeated lag pauses: the steps may outpace the chains.",
             "Treat the mixing failures first; if they persist, try a smaller --lr.",
             "F5",
@@ -347,7 +367,7 @@ def _check_training(
             "info",
             "trust_region_binding",
             f"lr_bias at its floor in {indicators.get('lr_bias_at_floor_fraction')} of the "
-            f"updates, median kl {indicators.get('median_kl')} (cap 0.01): the trust region "
+            f"updates, median kl {indicators.get('median_kl')} (cap {indicators.get('kl_cap')}): the trust region "
             "binds and the couplings carry the field corrections. Normal without mixing failures.",
             "Nothing to do.",
         )
@@ -539,7 +559,7 @@ def diagnose_run(
     log_tail = _tail(files["log"]) if files["log"].exists() else []
 
     findings = _Findings()
-    indicators = _training_indicators(history, events)
+    indicators = _training_indicators(history, events, _trust_radius(summary, files["log"]))
     if summary is not None:
         indicators["stop_reason"] = summary.get("stop_reason")
         indicators["converged"] = summary.get("converged")

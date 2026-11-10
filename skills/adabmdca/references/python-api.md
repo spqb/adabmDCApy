@@ -165,4 +165,4 @@ Every result object serializes itself: `to_dataframe()`, `to_csv()`, `to_json()`
 
 Expected failures raise subclasses of `AdabmDCAError` (`InputValidationError`, `ModelLoadError`, `ConvergenceError`, `OperationCancelledError`, …); `error.to_dict()` gives `code`, `exit_code`, `message`, `details`.
 
-Low-level building blocks (`compute_energy`, `get_freq_single_point`, `get_freq_two_points`, `compute_weights`, `get_sampler`, `init_chains`, `load_params`, `save_params`) are documented in the API reference: https://spqb.github.io/adabmDCApy/api/.
+Low-level building blocks (`compute_energy`, `get_freq_single_point`, `get_freq_two_points`, `compute_weights`, `prepare_sampler`, `init_chains`, `load_params`, `save_params`) are documented in the API reference: https://spqb.github.io/adabmDCApy/api/. For MCMC in your own code, take the sampler from `prepare_sampler(method, device)` (or `prepare_fixed_model_sampler` for a fixed model), which uses the Triton, Metal or Numba kernels of the device; `get_sampler` returns the slow reference implementation.

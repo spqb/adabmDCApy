@@ -1,6 +1,7 @@
 """Correctness gates for the experimental full-ladder PTT implementation."""
 
 import json
+import types
 from dataclasses import replace
 from itertools import product
 
@@ -321,6 +322,88 @@ def test_ptt_centering_uses_connected_correlations_and_centred_fields():
     assert torch.allclose(gradients["bias"], fi - pi - torch.einsum("iajb,jb->ia", coupling, offset))
 
 
+@pytest.mark.parametrize("centred", [False, True])
+def test_ptt_natural_gradient_solves_the_damped_fisher_system(centred):
+    torch.manual_seed(0)
+    length, states, chains, l2 = 4, 3, 500, 0.05
+    samples = torch.nn.functional.one_hot(torch.randint(states, (chains, length)), states).double()
+    mask = torch.ones(length, states, length, states, dtype=torch.float64)
+    mask[torch.arange(length), :, torch.arange(length), :] = 0
+    mask[0, :, 2, :] = mask[2, :, 0, :] = 0
+    coupling = torch.randn(length, states, length, states, dtype=torch.float64)
+    gradients = {"bias": torch.randn(length, states, dtype=torch.float64),
+                 "coupling_matrix": 0.5 * (coupling + coupling.permute(2, 3, 0, 1)) * mask}
+    config = TrainingConfig(learning_rate=1.0, ptt=PTTConfig(
+        natural_gradient=True, ngd_damping=0.3, ngd_cg_steps=500, ngd_cg_tolerance=1e-12, trust_radius=1e6))
+    optimizer = _PTTOptimizer(config)
+    offset, system, y = None, gradients, samples
+    if centred:
+        # Frequencies whose difference is the field gradient and whose mean is the offset mu.
+        mu = torch.softmax(torch.randn(length, states, dtype=torch.float64), dim=1)
+        fi, pi = mu + 0.05 * gradients["bias"], mu - 0.05 * gradients["bias"]
+        gradients["bias"] = fi - pi
+        system = {"bias": gradients["bias"],
+                  "coupling_matrix": _PTTOptimizer._centered(gradients, fi=fi, pi=pi, mask=mask)["coupling_matrix"]}
+        offset, y = mu.flatten(), samples - mu
+    step, damping = optimizer._natural_step(system, samples, mask, l2, offset=offset)
+
+    # Dense system on the independent parameters: fields and one coupling per active pair i < j,
+    # with the pair features centred on the offset.
+    pairs = [(i, a, j, b) for i in range(length) for j in range(i + 1, length)
+             for a in range(states) for b in range(states) if mask[i, a, j, b]]
+    features = torch.cat([samples.flatten(1),
+                          torch.stack([y[:, i, a] * y[:, j, b] for i, a, j, b in pairs], 1)], 1)
+    fisher = torch.cov(features.T, correction=0)
+    assert damping == pytest.approx(0.3 * torch.trace(fisher).item() / len(fisher))
+    curvature = torch.full((len(fisher),), damping, dtype=torch.float64)
+    curvature[length * states:] += l2
+
+    def independent(values):
+        return torch.cat([values["bias"].flatten(),
+                          torch.stack([values["coupling_matrix"][pair] for pair in pairs])])
+
+    solution = torch.linalg.solve(fisher + torch.diag(curvature), independent(system))
+    expected = {"bias": solution[:length * states].reshape(length, states),
+                "coupling_matrix": torch.zeros_like(mask)}
+    for (i, a, j, b), value in zip(pairs, solution[length * states:]):
+        expected["coupling_matrix"][i, a, j, b] = expected["coupling_matrix"][j, b, i, a] = value
+    if centred:  # back to the raw fields: h = h' - J mu
+        expected["bias"] = expected["bias"] - torch.einsum("iajb,jb->ia", expected["coupling_matrix"], mu)
+    torch.testing.assert_close(step["bias"], expected["bias"])
+    torch.testing.assert_close(step["coupling_matrix"], expected["coupling_matrix"])
+    assert torch.equal(step["coupling_matrix"], step["coupling_matrix"].permute(2, 3, 0, 1))
+    assert not (step["coupling_matrix"] * (1 - mask)).any()
+
+    # The converged natural step is the optimum of the trust-region model: with --lr 1 and a
+    # radius that does not bind, both groups take the whole Newton step.
+    optimizer._adapt(gradients, samples, l2, steps=step, damping=damping, offset=offset)
+    assert optimizer.trust_diagnostics["bias_scale"] == pytest.approx(1.0, abs=1e-6)
+    assert optimizer.trust_diagnostics["coupling_scale"] == pytest.approx(1.0, abs=1e-6)
+
+
+def test_ptt_natural_gradient_measures_its_trust_region_on_held_out_chains(monkeypatch):
+    length, states = 3, 2
+    samples = torch.nn.functional.one_hot(torch.randint(states, (6, length)), states).double()
+    sampler = types.SimpleNamespace(endpoint_samples=lambda copy=True: samples)
+    frequencies = torch.full((length, states), 1 / states, dtype=torch.float64)
+    pair = torch.full((length, states, length, states), 1 / states ** 2, dtype=torch.float64)
+    params = {"bias": torch.zeros(length, states, dtype=torch.float64), "coupling_matrix": torch.zeros_like(pair)}
+    optimizer = _PTTOptimizer(TrainingConfig(learning_rate=1.0, ptt=PTTConfig(natural_gradient=True)))
+    seen = {}
+
+    def natural_step(system, chains, mask, *args, **kwargs):
+        seen["solve"] = chains
+        return {key: torch.zeros_like(value) for key, value in system.items()}, 0.1
+
+    monkeypatch.setattr(optimizer, "_natural_step", natural_step)
+    monkeypatch.setattr(optimizer, "_adapt", lambda gradients, chains, *args, **kwargs: seen.update(trust=chains))
+    monkeypatch.setattr(optimizer, "_record_lags", lambda sampler: None)
+    optimizer.step(fi=frequencies, fij=pair, pi=frequencies, pij=pair, params=params,
+                   mask=torch.ones_like(pair), l2_regularization=0.0, sampler=sampler)
+    # Solved on half of the chains, measured on the other half.
+    assert torch.equal(seen["solve"], samples[0::2]) and torch.equal(seen["trust"], samples[1::2])
+
+
 def test_ptt_optimizer_configuration_and_cli_are_ptt_specific(tmp_path):
     from adabmDCA.scripts.train import create_parser, run
 
@@ -347,6 +430,36 @@ def test_ptt_optimizer_configuration_and_cli_are_ptt_specific(tmp_path):
         PTTConfig(optimizer="unknown")
     with pytest.raises(InputValidationError, match="centering"):
         PTTConfig(centering="yes")
+    parsed = create_parser().parse_args([
+        "--data", "unused.fasta", "--strategy", "ptt", "--ptt-natural-gradient", "--ptt-ngd-damping", "0.1",
+        "--ptt-ngd-cg-steps", "5", "--ptt-ngd-cg-tolerance", "1e-4"
+    ])
+    assert (parsed.ptt_natural_gradient, parsed.ptt_ngd_damping, parsed.ptt_ngd_cg_steps,
+            parsed.ptt_ngd_cg_tolerance) == (True, 0.1, 5, 1e-4)
+    assert PTTConfig().natural_gradient is False
+    assert PTTConfig(natural_gradient=True).effective_ngd_damping == 50.0
+    assert PTTConfig(natural_gradient=True, centering=False).effective_ngd_damping == 0.5
+    assert PTTConfig(natural_gradient=True, ngd_damping=2.0).effective_ngd_damping == 2.0
+    for options in ({"natural_gradient": 1}, {"ngd_damping": 0}, {"ngd_cg_steps": 0}, {"ngd_cg_tolerance": -1}):
+        with pytest.raises(InputValidationError):
+            PTTConfig(**options)
+
+
+def test_ptt_natural_gradient_training_records_its_solve_and_resumes_exactly(training_case, tmp_path):
+    data, config = training_case
+    config = replace(config, learning_rate=1.0, ptt=replace(config.ptt, natural_gradient=True))
+    full = train_model(data, config=config)
+    first = train_model(data, config=replace(config, max_epochs=1), output_dir=tmp_path / "run")
+    resumed = train_model(data, config=config, ptt_resume=first.artifacts["ptt_archive"])
+    assert full.gradient_steps == resumed.gradient_steps == 3
+    for key in full.model.params:
+        torch.testing.assert_close(full.model.params[key], resumed.model.params[key], rtol=0, atol=0)
+    # The first row is the model before the first update.
+    iterations = np.asarray(full.history["ptt_ngd_cg_iterations"], dtype=float)[1:]
+    assert len(iterations) == 3 and (iterations >= 1).all()
+    assert np.isfinite(np.asarray(full.history["ptt_ngd_cosine"], dtype=float)[1:]).all()
+    header = (tmp_path / "run" / "history.csv").read_text().splitlines()[0].split(",")
+    assert {"ngd_cg_iterations", "ngd_cg_residual", "ngd_cosine", "ngd_damping"} <= set(header)
 
 
 def test_ptt_metrics_resume_and_consumers(training_case, tmp_path, monkeypatch):
@@ -1007,7 +1120,8 @@ def test_validation_plateau_compares_window_medians_and_ignores_spikes():
 
 def test_validation_stop_ends_training_on_the_validation_plateau(training_case, tmp_path):
     data, config = training_case
-    ptt = replace(config.ptt, validation_stop=True, validation_window=1, validation_min_gain=10.0)
+    ptt = replace(config.ptt, validation_stop=True, validation_window=1, validation_arc_window=0,
+                  validation_min_gain=10.0)
     stopped = train_model(data, validation_path=data, output_dir=tmp_path / "plateau",
                           config=replace(config, ptt=ptt, max_epochs=10, target_pearson=0.0))
     # The target Pearson (0 here) is not a stop criterion; two one-update windows are.
@@ -1019,8 +1133,70 @@ def test_validation_stop_ends_training_on_the_validation_plateau(training_case, 
         train_model(data, config=replace(config, ptt=ptt))
 
 
+def test_validation_arc_windows_follow_the_path_length_not_the_update_count():
+    from adabmDCA.ptt.training import (validation_arc_gain, validation_arc_windows, validation_plateau,
+                                       validation_window_gain)
+
+    # Steps of arc length sqrt(2 KL) = 1/8: a window of arc length 1 holds 8 updates.
+    rising = [0.01 * step for step in range(40)]
+    kls = [1 / 128] * 40
+    assert validation_arc_gain(rising, kls, 1.0, 5) == pytest.approx(0.08)
+    assert validation_arc_windows(kls, 1.0, 5) == (24, 32, 40, (1.0, 1.0))
+    assert validation_arc_windows(kls, 1.0, 10)[:3] == (20, 30, 40)
+    assert validation_arc_gain(rising[:15], kls[:15], 1.0, 5) is None  # path shorter than two windows
+    # Windows grow to at least min_updates updates: 9 here, and with many, the update windows.
+    assert validation_arc_gain(rising, kls, 1.0, 9) == pytest.approx(0.09)
+    assert validation_arc_gain(rising, kls, 1.0, 20) == pytest.approx(validation_window_gain(rising, 20))
+    assert validation_arc_gain(rising, kls, 1.0, 21) is None
+    # The same path in steps four times shorter (KL / 16): the windows cover the same change.
+    fine = [0.0025 * step for step in range(160)]
+    assert validation_arc_gain(fine, [1 / 2048] * 160, 1.0, 5) == pytest.approx(0.08)
+    # Missing validation values (None) and KL (None, NaN) are skipped.
+    assert validation_arc_gain(rising + [None, 0.4], kls + [None, float("nan")], 1.0, 5) == pytest.approx(
+        validation_arc_gain(rising + [0.4], kls + [0.0], 1.0, 5))
+    flat = rising + [0.39] * 8 + [0.385] * 8
+    assert validation_plateau(flat, 200, 0.0, kls=[1 / 128] * 56, arc_window=1.0, min_updates=5) == pytest.approx(-0.005)
+    assert validation_plateau(flat, 200, 0.0) is None  # update windows of 200: not enough values
+
+
+def test_validation_arc_stop_ends_training_on_the_validation_plateau(training_case, tmp_path):
+    data, config = training_case
+    # Updates here have an arc length of about 0.0017: windows of 0.002 hold one or two.
+    ptt = replace(config.ptt, validation_stop=True, validation_arc_window=0.002, validation_arc_min_updates=1,
+                  validation_min_gain=10.0)
+    stopped = train_model(data, validation_path=data, output_dir=tmp_path / "plateau",
+                          config=replace(config, ptt=ptt, max_epochs=10, target_pearson=0.0))
+    assert stopped.gradient_steps < 10 and stopped.stop_reason == "validation_plateau"
+    events = [json.loads(line) for line in (tmp_path / "plateau" / "events.jsonl").read_text().splitlines()]
+    plateau = [event for event in events if event["event"] == "ptt_validation_plateau"]
+    assert [event["arc_window"] for event in plateau] == [0.002]
+    # The event and the log report the windows actually compared, in updates and arc length.
+    updates, lengths = plateau[0]["window_updates"], plateau[0]["window_arc_lengths"]
+    assert len(updates) == len(lengths) == 2 and min(updates) >= 1 and min(lengths) >= 0.002
+    assert sum(updates) <= stopped.gradient_steps
+    assert f"last {updates[1]} updates (arc length" in (tmp_path / "plateau" / "adabmDCA.log").read_text()
+
+
 def test_validation_stop_cli_and_configuration():
     from adabmDCA.scripts.train import create_parser
+
+    parsed = create_parser().parse_args([
+        "--data", "unused.fasta", "--strategy", "ptt", "--ptt-validation-arc-window", "1.5",
+        "--ptt-validation-arc-min-updates", "30",
+    ])
+    assert (parsed.ptt_validation_arc_window, parsed.ptt_validation_arc_min_updates) == (1.5, 30)
+    assert PTTConfig().validation_arc_window is None and PTTConfig().validation_arc_min_updates == 50
+    # Arc-length windows by default with the natural gradient only; counted in updates otherwise, with 0,
+    # or with sgd, which predicts no KL.
+    assert PTTConfig().effective_validation_arc_window is None
+    assert PTTConfig(natural_gradient=True).effective_validation_arc_window == 1.0
+    assert PTTConfig(validation_arc_window=2).effective_validation_arc_window == 2.0
+    assert PTTConfig(natural_gradient=True, validation_arc_window=0).effective_validation_arc_window is None
+    assert PTTConfig(optimizer="sgd", centering=False).effective_validation_arc_window is None
+    for bad in ({"validation_arc_window": -1}, {"validation_arc_window": float("inf")},
+                {"validation_arc_window": "1"}, {"validation_arc_min_updates": 0}):
+        with pytest.raises(InputValidationError):
+            PTTConfig(**bad)
 
     parsed = create_parser().parse_args([
         "--data", "unused.fasta", "--strategy", "ptt", "--ptt-validation-stop", "--ptt-validation-window", "50",

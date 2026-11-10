@@ -7,6 +7,7 @@ import torch
 
 from adabmDCA import Alignment
 from adabmDCA.exceptions import (
+    ChainLoadError,
     InputValidationError,
     ModelCompatibilityError,
     WeightLoadError,
@@ -292,6 +293,23 @@ def test_training_loader_checks_initial_chain_dimensions(tmp_path: Path):
         )
 
     assert context.value.details["expected_suffix"] == (2, 3)
+
+
+def test_training_loader_reads_initial_chains_with_gaps_and_rejects_foreign_tokens(tmp_path: Path):
+    chains = tmp_path / "chains.fasta"
+    chains.write_text(">chain_0\nA-\n>chain_1\nBA\n", encoding="utf-8")
+    config = TrainingConfig(alphabet="AB-", no_reweighting=True, n_chains=2)
+
+    inputs = load_training_inputs(Alignment(("train",), ("AB",)), initial_chains_path=chains, config=config,
+                                  device=torch.device("cpu"), dtype=torch.float64)
+    assert inputs.initial_chains.dtype == torch.float64
+    assert inputs.initial_chains.argmax(-1).tolist() == [[0, 2], [1, 0]]
+
+    chains.write_text(">chain_0\nAC\n", encoding="utf-8")
+    with pytest.raises(ChainLoadError) as context:
+        load_training_inputs(Alignment(("train",), ("AB",)), initial_chains_path=chains, config=config,
+                             device=torch.device("cpu"), dtype=torch.float32)
+    assert context.value.details["path"] == str(chains)
 
 
 def test_training_loader_checks_initial_parameter_dimensions(tmp_path: Path):

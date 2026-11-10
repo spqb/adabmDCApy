@@ -89,7 +89,7 @@ The command first prints the resolved configuration and the input summary: retai
 
 With `-l name`, every file is prefixed with `name_`. [The training pipeline](../algorithms/training.md#outputs-and-logs) lists every column of `history.csv` and every event.
 
-A PTT log looks like this (RF00379, from a run with the earlier 100-update validation window; the default is now 200):
+A PTT log looks like this (RF00379, from an earlier version; the reservoir spacing is now checked every quarter of the warmup):
 
 ```text
    step   sweeps      time  pearson      val    ll/L  ll_val  reps   acc     lr_h     lr_J   lag  tail

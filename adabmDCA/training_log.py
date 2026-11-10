@@ -37,7 +37,8 @@ class Column:
     width: int = 8
 
 
-def history_columns(*, model_type: str, ptt_optimizer: str | None, validation: bool) -> tuple[Column, ...]:
+def history_columns(*, model_type: str, ptt_optimizer: str | None, validation: bool,
+                    natural_gradient: bool = False) -> tuple[Column, ...]:
     """Quantities recorded at every update, in CSV order."""
     sparse = model_type != "bmDCA"
     ptt = ptt_optimizer is not None
@@ -82,13 +83,20 @@ def history_columns(*, model_type: str, ptt_optimizer: str | None, validation: b
                 Column("ptt_lag_drift", "lag_drift", "lag", "f2", 4),
                 Column("ptt_lag_drift_tail", "lag_drift_tail", "tail", "f2", 4),
             ]
+        if natural_gradient:
+            columns += [
+                Column("ptt_ngd_cg_iterations", "ngd_cg_iterations"),
+                Column("ptt_ngd_cg_residual", "ngd_cg_residual"),
+                Column("ptt_ngd_cosine", "ngd_cosine"),
+                Column("ptt_ngd_damping", "ngd_damping"),
+            ]
     return tuple(columns)
 
 
 def columns_for_config(config: Any, *, validation: bool) -> tuple[Column, ...]:
     ptt = getattr(config, "ptt", None)
     return history_columns(model_type=config.model_type, ptt_optimizer=None if ptt is None else ptt.optimizer,
-                           validation=validation)
+                           validation=validation, natural_gradient=ptt is not None and ptt.natural_gradient)
 
 
 def _scalar(value: Any) -> Any:
@@ -245,6 +253,15 @@ def describe_event(stage: str, details: dict[str, Any]) -> str | None:
         return (f"pause: {signal} lag {_number(details.get('lag_before'), 2)} → {_number(details.get('lag_after'), 2)}, "
                 f"{action}, {details.get('rounds', 0)} extra rounds{health}")
     if stage == "ptt_validation_plateau":
+        if details.get("arc_window") is not None:
+            updates, lengths = details.get("window_updates"), details.get("window_arc_lengths")
+            if updates is None or lengths is None:
+                window = f"{details['arc_window']:g} of arc length"
+                last, before = window, window
+            else:
+                before, last = (f"{count} updates (arc length {length:.3g})" for count, length in zip(updates, lengths))
+            return (f"validation plateau: median validation log-likelihood per site of the last {last} "
+                    f"{details.get('gain'):+.1e} against the {before} before")
         window = details.get("window")
         return (f"validation plateau: median validation log-likelihood per site of the last {window} updates "
                 f"{details.get('gain'):+.1e} against the {window} before")

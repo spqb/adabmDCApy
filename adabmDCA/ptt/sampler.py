@@ -37,6 +37,9 @@ from adabmDCA.sampling import sampling_profile_categorical
 from adabmDCA.statmech import compute_energy
 from adabmDCA.steering import SteeredKernel, Steering
 
+# Reservoir spacing checks per warmup length. Checked every whole warmup, the spacing was
+# typically twice the renewal time; a quarter cut 20-30 % of the training sweeps (RF00379, cm_russ).
+_RESERVOIR_SPACING_BLOCKS = 4
 
 def _profile_states(params, n_chains):
     """Exact integer draws of the uncoupled profile model of ``params``."""
@@ -1292,8 +1295,9 @@ class PTTSampler:
 
         Runs in place on the production populations. Warmup lasts until the
         replica is renewed relative to the current populations. The spacing is
-        then measured as its stationary renewal time, a whole number of chunks
-        of the warmup length. Between batches the populations advance in
+        then measured as its stationary renewal time, checked every quarter of
+        the warmup length (whole warmups round a renewal time just above the
+        warmup up to twice its length). Between batches the populations advance in
         chunks of that spacing until, at a chunk end, at most
         ``renewal_tolerance * n_chains`` of the replica's configurations
         predate the previous batch. Returns ``(batches, details)``, or
@@ -1333,7 +1337,7 @@ class PTTSampler:
             if spacing >= budget:
                 details["immobile"] = self._immobile_old_configurations(reference, self.config.renewal_tolerance)
                 return None, details
-            chunk = min(warmup, budget - spacing)
+            chunk = min(max(1, math.ceil(warmup / _RESERVOIR_SPACING_BLOCKS)), budget - spacing)
             old, _, renewed, count = phase(reference, chunk, False, report("reservoir_renewal", spacing))
             if renewed is not None and details["renewal_rounds"] is None:
                 details["renewal_rounds"] = spacing + renewed

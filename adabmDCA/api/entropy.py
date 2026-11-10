@@ -27,7 +27,6 @@ from adabmDCA.exceptions import (
 )
 from adabmDCA.functional import one_hot
 from adabmDCA.input_loading import AlignmentInput, AlignmentLoadConfig, load_alignment
-from adabmDCA.io import load_chains
 from adabmDCA.sampling import prepare_sampler
 from adabmDCA.statmech import compute_energy
 from adabmDCA.utils import init_chains, resample_sequences
@@ -164,12 +163,8 @@ def estimate_entropy(
     if initial_chains_path is None:
         chains = init_chains(n_chains, length, num_states, device=runtime_device, dtype=runtime_dtype)
     else:
-        chains = load_chains(
-            str(initial_chains_path),
-            tokens=loaded_model.tokens,
-            device=runtime_device,
-            dtype=runtime_dtype,
-        )[0]
+        chains = load_alignment(initial_chains_path, alphabet=loaded_model.tokens).to_onehot().to(
+            device=runtime_device, dtype=runtime_dtype)
         if chains.ndim != 3 or tuple(chains.shape[1:]) != (length, num_states):
             raise ModelCompatibilityError(
                 "Initial chains do not match the loaded model.",
