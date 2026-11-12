@@ -2,9 +2,7 @@
 
 from __future__ import annotations
 
-import bisect
 import hashlib
-import math
 import statistics
 import time
 from dataclasses import replace
@@ -43,8 +41,7 @@ def _resume_settings(config_or_settings):
 # Stopping criteria may change on resume, like step budgets: a run stopped on a
 # plateau can be continued with validation stopping off or a higher target.
 _RESUMABLE_STOP_SETTINGS = ("target_pearson",)
-_RESUMABLE_PTT_STOP_SETTINGS = ("validation_stop", "validation_window", "validation_min_gain",
-                                "validation_arc_window", "validation_arc_min_updates")
+_RESUMABLE_PTT_STOP_SETTINGS = ("validation_stop", "validation_window", "validation_min_gain")
 
 
 def _without_stop_settings(settings):
@@ -77,68 +74,9 @@ def validation_window_gain(values, window):
     return statistics.median(values[-window:]) - statistics.median(values[-2 * window:-window])
 
 
-def validation_arc_windows(kls, arc_window, min_updates):
-    """The two arc-length windows of :func:`validation_arc_gain`, as ``(before, last, end, lengths)``.
-
-    The earlier window holds the updates ``before:last``, the latest ``last:end``; ``lengths`` are
-    their arc lengths, earlier first. ``None`` until the path holds both windows.
-    """
-    positions, position = [], 0.0
-    for kl in kls:
-        if kl is not None and math.isfinite(kl) and kl > 0:
-            position += math.sqrt(2.0 * kl)
-        positions.append(position)
-
-    def start(end):
-        if end < 1 or positions[end - 1] < arc_window:
-            return None
-        threshold = positions[end - 1] - arc_window
-        first = min(bisect.bisect_right(positions, threshold, 0, end), end - min_updates)
-        return first if first >= 0 else None
-
-    end = len(positions)
-    last = start(end)
-    before = None if last is None else start(last)
-    if before is None:
-        return None
-
-    def at(index):
-        return positions[index - 1] if index > 0 else 0.0
-
-    return before, last, end, (at(last) - at(before), at(end) - at(last))
-
-
-def validation_arc_gain(values, kls, arc_window, min_updates):
-    """:func:`validation_window_gain` with windows of Fisher arc length instead of updates.
-
-    The arc length of the path is the sum of sqrt(2 KL) over the updates, with KL the predicted
-    KL divergence of each update: the Fisher length of each step, additive along the path, so a
-    window covers the same change of the model whatever the step size. Each window spans
-    ``arc_window`` of arc length, or ``min_updates`` updates when those are longer (against the
-    noise of the log Z estimate when the steps are large). The last window ends at the latest
-    update, the one before where the last begins. ``None`` until the path holds both windows.
-    """
-    windows = validation_arc_windows(kls, arc_window, min_updates)
-    if windows is None:
-        return None
-    before, last, end, _ = windows
-    recent = [value for value in values[last:end] if value is not None]
-    earlier = [value for value in values[before:last] if value is not None]
-    if not recent or not earlier:
-        return None
-    return statistics.median(recent) - statistics.median(earlier)
-
-
-def validation_plateau(values, window, min_gain, *, kls=None, arc_window=None, min_updates=None):
-    """The window gain when it is below ``min_gain``; otherwise ``None``.
-
-    Windows of ``window`` updates (:func:`validation_window_gain`), or with ``arc_window`` of
-    arc length (:func:`validation_arc_gain`, from the ``kls`` of the updates).
-    """
-    if arc_window is None:
-        gain = validation_window_gain(values, window)
-    else:
-        gain = validation_arc_gain(values, kls, arc_window, min_updates)
+def validation_plateau(values, window, min_gain):
+    """The :func:`validation_window_gain` when it is below ``min_gain``; otherwise ``None``."""
+    gain = validation_window_gain(values, window)
     return gain if gain is not None and gain < min_gain else None
 
 
@@ -403,10 +341,6 @@ class _PTTTrainer:
                             if optimizer.lag_diagnostics is not None
                             else dict.fromkeys(("drift", "drift_tail"))).items()},
                     }),
-                    **({} if not optimizer.natural_gradient else {
-                        f"ptt_ngd_{key}": None if optimizer.ngd_diagnostics is None else optimizer.ngd_diagnostics[key]
-                        for key in ("cg_iterations", "cg_residual", "cosine", "damping")
-                    }),
                 },
             ),
         )
@@ -449,23 +383,9 @@ class _PTTTrainer:
     def _plateau(self):
         if not self.validation_stop:
             return None
-        config, history = self.sampler.config, self.controller.history
-        arc_window = config.effective_validation_arc_window
-        kls = history.get("ptt_predicted_kl", [])[1:] if arc_window is not None else None
-        return validation_plateau(history["LL_val"][1:], config.validation_window, config.validation_min_gain,
-                                  kls=kls, arc_window=arc_window,
-                                  min_updates=config.validation_arc_min_updates)
-
-    def _plateau_windows(self):
-        """The windows of the plateau test that fired, for its event."""
         config = self.sampler.config
-        arc_window = config.effective_validation_arc_window
-        if arc_window is None:
-            return {"window": config.validation_window}
-        kls = self.controller.history.get("ptt_predicted_kl", [])[1:]
-        before, last, end, lengths = validation_arc_windows(kls, arc_window, config.validation_arc_min_updates)
-        return {"arc_window": arc_window, "window_updates": [last - before, end - last],
-                "window_arc_lengths": [float(length) for length in lengths]}
+        return validation_plateau(self.controller.history["LL_val"][1:], config.validation_window,
+                                  config.validation_min_gain)
 
     def _recovery_exhaustion_message(self, *, restored=False, mixing=None):
         if mixing is None and self.recovery_events:
@@ -618,7 +538,8 @@ class _PTTTrainer:
         controller.record(self.record, epoch=controller.counters.gradient_steps)
         self.plateau_gain = self._plateau()
         if self.plateau_gain is not None:
-            controller.begin_stage("ptt_validation_plateau", gain=self.plateau_gain, **self._plateau_windows())
+            controller.begin_stage("ptt_validation_plateau", gain=self.plateau_gain,
+                                   window=sampler.config.validation_window)
         validated = any(
             event["kind"] == "mixing" and event["status"] == "converged"
             and (not sampler.config.full_sampler or event.get("full_ladder", False))

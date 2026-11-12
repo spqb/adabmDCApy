@@ -670,17 +670,3 @@ def test_ptt_status_shows_the_validation_plateau_test_instead_of_the_pearson_tar
     assert "val LL -1.0000" in renderer._status
     assert "plateau check from step 4" in renderer._status
     renderer.close()
-
-    # Arc-length windows: steps of arc length sqrt(2 KL) = 0.5, windows of 1 hold two updates.
-    from adabmDCA.ptt.training import validation_arc_gain
-
-    arc = _PTTProgressRenderer(target_pearson=0.95, max_steps=100, stream=io.StringIO())
-    arc.set_validation_stop(window=200, min_gain=0.0, arc_window=1.0, min_updates=2)
-    for step, value in enumerate([-1.2, *values]):
-        metrics = {"Pearson": 0.97, "LL_val": value, **({"ptt_predicted_kl": 0.125} if step else {})}
-        arc(TrainingProgress(epoch=step, metrics=metrics, gradient_steps=step))
-        if step == 3:
-            assert "plateau check from arc length 2" in arc._status
-    gain = validation_arc_gain(values, [0.125] * len(values), 1.0, 2)
-    assert f"plateau gain {gain:+.1e} (stops < 0)" in arc._status
-    arc.close()

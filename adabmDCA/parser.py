@@ -269,20 +269,8 @@ def add_args_ptt(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
                           help=("Update with the centering trick: connected-correlation coupling gradient, field step "
                                 "corrected for the centring offset. Without it the coupling step repeats the field "
                                 "step and the trust region can stop the fields (default: on)."))
-    ptt_args.add_argument("--ptt-natural-gradient", action=argparse.BooleanOptionalAction, default=None,
-                          help=("Step along the damped natural gradient, with the Fisher matrix estimated on the "
-                                "endpoint chains and solved by conjugate gradient; --lr is then a fraction of "
-                                "the Newton step, so use --lr 1. With --ptt-centering the damping acts on the centred "
-                                "coordinates (default: off)."))
-    ptt_args.add_argument("--ptt-ngd-damping", type=float, default=None,
-                          help=("Natural gradient: damping, in mean eigenvalues of the Fisher matrix (default: 50, "
-                                "0.5 with --no-ptt-centering)."))
-    ptt_args.add_argument("--ptt-ngd-cg-steps", type=int, default=None,
-                          help="Natural gradient: maximum conjugate-gradient iterations per update (default: 20).")
-    ptt_args.add_argument("--ptt-ngd-cg-tolerance", type=float, default=None,
-                          help="Natural gradient: relative residual that stops conjugate gradient (default: 1e-3).")
     ptt_args.add_argument("--ptt-trust-radius", type=float, default=None,
-                        help="Adaptive optimizer: maximum local KL divergence per update (default: 0.01, 0.001 with --ptt-natural-gradient).")
+                        help="Adaptive optimizer: maximum local KL divergence per update (default: 0.01).")
     ptt_args.add_argument("--ptt-lag-tolerance", type=float, default=None,
                         help=("Adaptive optimizer: largest lag of the endpoint chains behind the model along the "
                               "drift and its tails, in standard deviations of the population, before training "
@@ -306,19 +294,10 @@ def add_args_ptt(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
                         help=("Stop when the validation log-likelihood per site plateaus instead of at --target; "
                               "requires --validation. Default: on when --validation is given, off otherwise."))
     ptt_args.add_argument("--ptt-validation-window", type=int, default=None,
-                        help=("Validation stop: updates per window of the compared medians, without arc-length "
-                              "windows (default: 200)."))
+                        help="Validation stop: updates per window of the compared medians (default: 200).")
     ptt_args.add_argument("--ptt-validation-min-gain", type=float, default=None,
                         help=("Validation stop: stop when the median validation log-likelihood per site of the last "
                               "window exceeds that of the window before by less than this (default: 0)."))
-    ptt_args.add_argument("--ptt-validation-arc-window", type=float, default=None,
-                        help=("Validation stop: windows of this Fisher arc length (sum of sqrt(2 KL) over the "
-                              "updates), so that the test does not depend on the step size; 0 counts the windows in "
-                              "--ptt-validation-window updates, as --ptt-optimizer sgd always does (default: 1 with "
-                              "--ptt-natural-gradient, 0 otherwise)."))
-    ptt_args.add_argument("--ptt-validation-arc-min-updates", type=int, default=None,
-                        help=("Validation stop with arc-length windows: fewest updates per window; a window grows "
-                              "to this many updates when the steps are large (default: 50)."))
     ptt_args.add_argument("--ptt-equilibration-rounds", type=int, default=None,
                         help="PTT rounds after a ladder change (default: 10).")
     ptt_args.add_argument("--ptt-initialization-rounds", type=int, default=None,

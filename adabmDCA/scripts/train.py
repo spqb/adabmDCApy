@@ -154,10 +154,9 @@ class _PTTProgressRenderer:
         """The history quantities of this run, which define the diagnostic table."""
         self._columns = columns
 
-    def set_validation_stop(self, window: int, min_gain: float, arc_window: float | None = None,
-                            min_updates: int | None = None) -> None:
+    def set_validation_stop(self, window: int, min_gain: float) -> None:
         """Show the validation plateau test instead of the Pearson target."""
-        self._validation_stop = (window, min_gain, arc_window, min_updates)
+        self._validation_stop = (window, min_gain)
 
     @classmethod
     def _acceptance_status(cls, values) -> str:
@@ -166,20 +165,14 @@ class _PTTProgressRenderer:
     def _pearson_status(self) -> str:
         if self._validation_stop is None:
             return f"Pearson {self._number(self._pearson)}/{self._target_pearson:.3f}"
-        from adabmDCA.ptt.training import validation_arc_gain, validation_window_gain
+        from adabmDCA.ptt.training import validation_window_gain
 
-        window, min_gain, arc_window, min_updates = self._validation_stop
-        rows = [self._validation[step] for step in sorted(self._validation)]
-        values = [value for value, _ in rows]
-        if arc_window is None:
-            gain = validation_window_gain(values, window)
-            waiting = f"plateau check from step {2 * window}"
-        else:
-            gain = validation_arc_gain(values, [kl for _, kl in rows], arc_window, min_updates)
-            waiting = f"plateau check from arc length {2 * arc_window:g}"
-        plateau = waiting if gain is None else f"plateau gain {gain:+.1e} (stops < {min_gain:g})"
-        finite = [value for value in values if value is not None]
-        latest = finite[-1] if finite else None
+        window, min_gain = self._validation_stop
+        values = [self._validation[step] for step in sorted(self._validation)]
+        gain = validation_window_gain(values, window)
+        plateau = (f"plateau check from step {2 * window}" if gain is None
+                   else f"plateau gain {gain:+.1e} (stops < {min_gain:g})")
+        latest = values[-1] if values else None
         return f"Pearson {self._number(self._pearson)} | val LL {self._number(latest, 4)} | {plateau}"
 
     def _record_validation(self, event: TrainingProgress) -> None:
@@ -190,9 +183,8 @@ class _PTTProgressRenderer:
         for step in [step for step in self._validation if step >= event.epoch]:
             del self._validation[step]
         value = event.metrics.get("LL_val")
-        value = value if value is not None and math.isfinite(value) else None
-        if value is not None or self._validation_stop[2] is not None:
-            self._validation[event.epoch] = (value, event.metrics.get("ptt_predicted_kl"))
+        if value is not None and math.isfinite(value):
+            self._validation[event.epoch] = value
 
     def _write_status(self, *, force=False, phase=None) -> None:
         if self._status is None:
@@ -501,8 +493,7 @@ def initialization_callback(args: argparse.Namespace, renderer):
             renderer.set_columns(columns_for_config(info.config, validation=info.validation is not None))
             ptt = info.config.ptt
             if ptt is not None and ptt.validation_stop:
-                renderer.set_validation_stop(ptt.validation_window, ptt.validation_min_gain,
-                                             ptt.effective_validation_arc_window, ptt.validation_arc_min_updates)
+                renderer.set_validation_stop(ptt.validation_window, ptt.validation_min_gain)
 
     return initialized
 

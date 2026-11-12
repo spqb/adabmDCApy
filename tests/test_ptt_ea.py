@@ -264,7 +264,7 @@ def test_resume_rejects_changed_activation_settings(tmp_path):
 def test_validation_plateau_uses_gradient_step_coordinates(tmp_path):
     data, config = ea_case(tmp_path, max_epochs=50)
     config = replace(config, ptt=replace(config.ptt, validation_stop=True,
-                                         validation_window=1, validation_arc_window=0, validation_min_gain=10.0))
+                                         validation_window=1, validation_min_gain=10.0))
     result = train_model(data, validation_path=data, config=config, output_dir=tmp_path / "validation_stop")
     stop = next(event for event in events_of(result) if event["event"] == "ptt_validation_plateau")
     assert result.stop_reason == "validation_plateau"

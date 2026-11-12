@@ -26,14 +26,9 @@ class _PTTOptimizer:
     def __init__(self, config, state=None):
         ptt = config.ptt
         self.kind = ptt.optimizer
-        self.trust_radius = ptt.effective_trust_radius
+        self.trust_radius = ptt.trust_radius
         self.lag_tolerance = ptt.lag_tolerance
         self.centering = ptt.centering
-        self.natural_gradient = ptt.natural_gradient
-        self.ngd_damping = ptt.effective_ngd_damping
-        self.ngd_cg_steps = ptt.ngd_cg_steps
-        self.ngd_cg_tolerance = ptt.ngd_cg_tolerance
-        self.ngd_diagnostics = None
         self.pause_cooldown = 0
         self.last_pause = None
         self.rates = {key: config.learning_rate for key in self._keys}
@@ -51,7 +46,6 @@ class _PTTOptimizer:
             "nominal_rates": dict(self.nominal_rates),
             "trust_diagnostics": self.trust_diagnostics,
             "lag_diagnostics": self.lag_diagnostics,
-            "ngd_diagnostics": self.ngd_diagnostics,
             "pause_cooldown": self.pause_cooldown,
             "last_pause": self.last_pause,
         }
@@ -63,7 +57,6 @@ class _PTTOptimizer:
         self.nominal_rates = {key: float(state["nominal_rates"][key]) for key in self._keys}
         self.trust_diagnostics = state["trust_diagnostics"]
         self.lag_diagnostics = state["lag_diagnostics"]
-        self.ngd_diagnostics = state.get("ngd_diagnostics")
         self.pause_cooldown = int(state["pause_cooldown"])
         self.last_pause = state["last_pause"]
 
@@ -181,16 +174,9 @@ class _PTTOptimizer:
             h, j = h * shrink, j * shrink
         return (h, j), ridge
 
-    def _adapt(self, gradients, samples, l2_regularization, steps=None, damping=0.0, offset=None):
-        """Scale the two group rates within the KL trust region around the nominal rates.
-
-        ``steps`` are the unscaled update directions (the gradients by default); ``damping`` adds
-        ``damping * |step|^2`` to the curvature, as in the damped natural-gradient system. With the
-        centring ``offset`` mu the norm is that of the centred coordinates, where the field step is
-        dh + dJ mu.
-        """
-        steps = gradients if steps is None else steps
-        directions = {key: self.nominal_rates[key] * steps[key] for key in self._keys}
+    def _adapt(self, gradients, samples, l2_regularization):
+        """Scale the two group rates within the KL trust region around the nominal rates."""
+        directions = {key: self.nominal_rates[key] * gradients[key] for key in self._keys}
         bias_scores, coupling_scores = self._directional_score_components(
             samples, directions["bias"], directions["coupling_matrix"]
         )
@@ -203,17 +189,6 @@ class _PTTOptimizer:
         regularization_curvature = float(
             0.5 * l2_regularization * device_accumulation(directions["coupling_matrix"]).square().sum()
         )
-        damping_bias = float(damping * device_accumulation(directions["bias"]).square().sum())
-        damping_coupling = float(
-            0.5 * damping * device_accumulation(directions["coupling_matrix"]).square().sum()
-        )
-        if offset is not None and damping:
-            size = offset.numel()
-            shift = directions["coupling_matrix"].reshape(size, size) @ offset
-            covariance += float(damping * device_accumulation(directions["bias"].flatten() * shift).sum())
-            damping_coupling += float(damping * device_accumulation(shift).square().sum())
-        variance_bias += damping_bias
-        variance_coupling += damping_coupling
         linear_bias = float(
             (device_accumulation(gradients["bias"]) * device_accumulation(directions["bias"])).sum()
         )
@@ -247,7 +222,6 @@ class _PTTOptimizer:
             "fisher_coupling": stabilized_coupling,
             "fisher_cross": covariance,
             "regularization_curvature": regularization_curvature,
-            "damping_curvature": damping_bias + damping_coupling,
             "ridge": ridge,
             "linear_bias": linear_bias,
             "linear_coupling": linear_coupling,
@@ -340,115 +314,23 @@ class _PTTOptimizer:
         bias = gradients["bias"] - torch.einsum("iajb,jb->ia", coupling, offset)
         return {"bias": bias, "coupling_matrix": coupling}
 
-    def _natural_step(self, gradients, samples, mask, l2_regularization, offset=None):
-        """Damped natural gradient: solve (F + l2 + damping) step = gradient by conjugate gradient.
-
-        F is the Fisher matrix of the Potts model, the covariance over the endpoint chains of the
-        features x_i(a) and x_i(a) x_j(b). Its products are two matrix products with the chains, so F
-        is never stored. The couplings are stored twice (J_ij and J_ji), so their entries count with
-        weight 1/2 in the inner products, as in the predicted gain and KL of the trust region. The
-        damping is ``ngd_damping`` times the mean eigenvalue of F, tr(F) / (number of parameters):
-        the chains span at most as many directions as there are chains, and the damping is the
-        curvature assigned to the directions they do not see.
-
-        With the centring ``offset`` mu the system is solved in the centred coordinates, whose pair
-        features are (x - mu)_i(a) (x - mu)_j(b): ``gradients`` are then the centred ones (field
-        gradient, connected-correlation coupling gradient), and the step is mapped back with
-        dh = dh' - dJ mu. F + l2 alone is the same in both coordinates; the damping is not: in the
-        centred ones, large damping tends to the centred gradient instead of the raw one.
-        """
-        x = samples.flatten(1).to(gradients["bias"].dtype)
-        n, size = x.shape
-        y = x if offset is None else x - offset.to(x.dtype)
-        weights = mask.reshape(size, size).to(x.dtype)
-        p = x.mean(0)
-        trace = float(device_accumulation(p * (1 - p)).sum())
-        pair = (y.T @ y) / n
-        pair_square = pair if offset is None else (y * y).T @ (y * y) / n  # one-hot: x^2 = x
-        trace += 0.5 * float(device_accumulation((pair_square - pair * pair) * weights).sum())
-        parameters = size + 0.5 * float(device_accumulation(weights).sum())
-        damping = self.ngd_damping * trace / parameters
-
-        def product(h, j):
-            score = x @ h + 0.5 * ((y @ j) * y).sum(1)
-            score = score - score.mean()
-            return (x.T @ score / n + damping * h,
-                    ((y * score.unsqueeze(1)).T @ y / n) * weights + (damping + l2_regularization) * j)
-
-        def dot(a, b):
-            return float(device_accumulation(a[0] * b[0]).sum() + 0.5 * device_accumulation(a[1] * b[1]).sum())
-
-        g = (gradients["bias"].reshape(size), gradients["coupling_matrix"].reshape(size, size) * weights)
-        step = (torch.zeros_like(g[0]), torch.zeros_like(g[1]))
-        residual = (g[0].clone(), g[1].clone())
-        direction = (g[0].clone(), g[1].clone())
-        rr = norm = dot(g, g)
-        iterations = 0
-        for _ in range(self.ngd_cg_steps):
-            if rr <= self.ngd_cg_tolerance ** 2 * norm:
-                break
-            image = product(*direction)
-            curvature = dot(direction, image)
-            if not curvature > 0:
-                break
-            alpha = rr / curvature
-            step = (step[0] + alpha * direction[0], step[1] + alpha * direction[1])
-            residual = (residual[0] - alpha * image[0], residual[1] - alpha * image[1])
-            rr, previous = dot(residual, residual), rr
-            beta = rr / previous
-            direction = (residual[0] + beta * direction[0], residual[1] + beta * direction[1])
-            iterations += 1
-        coupling = step[1].reshape(mask.shape)
-        # Exactly symmetric: the float rounding of the products is not.
-        coupling = 0.5 * (coupling + coupling.permute(2, 3, 0, 1)) * mask
-        flat = (step[0], coupling.reshape(size, size))
-        bias = step[0] if offset is None else step[0] - flat[1] @ offset.to(x.dtype)
-        self.ngd_diagnostics = {
-            "damping": damping,
-            "cg_iterations": iterations,
-            "cg_residual": math.sqrt(rr / norm) if norm > 0 else 0.0,
-            # Angle between the natural and the plain gradient (in the coordinates of the solve)
-            "cosine": dot(flat, g) / math.sqrt(max(dot(flat, flat) * norm, 1e-300)),
-        }
-        return {"bias": bias.reshape(gradients["bias"].shape), "coupling_matrix": coupling}, damping
-
     def step(self, *, fi, fij, pi, pij, params, mask, l2_regularization, sampler=None):
         gradients = {
             "bias": fi - pi,
             "coupling_matrix": fij - pij - l2_regularization * params["coupling_matrix"],
         }
         gradients["coupling_matrix"] = gradients["coupling_matrix"] * mask
-        offset = None
-        if self.centering and not self.natural_gradient:
+        if self.centering:
             gradients = self._centered(gradients, fi=fi, pi=pi, mask=mask)
-        steps, damping = gradients, 0.0
-        if self.natural_gradient:
-            if sampler is None:
-                raise InputValidationError("The PTT natural gradient requires its PTT sampler.")
-            system = gradients
-            if self.centering:
-                # Solved in the centred coordinates: field gradient, connected-correlation coupling gradient.
-                offset = (0.5 * (fi + pi)).flatten()
-                system = {"bias": gradients["bias"],
-                          "coupling_matrix": self._centered(gradients, fi=fi, pi=pi, mask=mask)["coupling_matrix"]}
-            samples = sampler.endpoint_samples(copy=False)
-            if samples.shape[0] > 1:
-                # The solve fits the step to its chains (F has at most as many directions): the
-                # trust region measures it on the other half.
-                solve_samples, held_out_samples = samples[0::2], samples[1::2]
-            else:
-                solve_samples = held_out_samples = samples
-            steps, damping = self._natural_step(system, solve_samples, mask, l2_regularization, offset=offset)
         if self.kind == "adaptive":
             if sampler is None:
                 raise InputValidationError("The adaptive PTT optimizer requires its PTT sampler.")
-            trust_samples = held_out_samples if self.natural_gradient else sampler.endpoint_samples(copy=False)
-            self._adapt(gradients, trust_samples, l2_regularization, steps=steps, damping=damping, offset=offset)
+            self._adapt(gradients, sampler.endpoint_samples(copy=False), l2_regularization)
             self._record_lags(sampler)
         updated = {key: value.clone() for key, value in params.items()}
         with torch.no_grad():
             for key in self._keys:
-                updated[key] += self.rates[key] * steps[key]
+                updated[key] += self.rates[key] * gradients[key]
             updated["coupling_matrix"] *= mask
         return updated
 

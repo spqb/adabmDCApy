@@ -132,19 +132,13 @@ As \(\alpha \to 1\) both frequencies tend to \(1/q^2\) and the step vanishes; th
 
 **Pearson target.** Stop when `pearson` ≥ `--target` (0.95).
 
-**Validation plateau.** With validation log-likelihoods \(\ell_t\) at accepted updates, compare the medians of two consecutive windows \(W_1\) (ending at update \(t\)) and \(W_2\) (just before it):
+**Validation plateau.** With validation log-likelihoods \(\ell_t\) at accepted updates and a window \(w\) (`--ptt-validation-window`, 200), after at least \(2w\) updates compute
 
 \[
-g_t = \operatorname{median}_{s \in W_1} \ell_s - \operatorname{median}_{s \in W_2} \ell_s,
+g_t = \operatorname{median}(\ell_{t-w+1},\dots,\ell_t) - \operatorname{median}(\ell_{t-2w+1},\dots,\ell_{t-w}),
 \]
 
-and stop as soon as \(g_t <\) `--ptt-validation-min-gain` (0). By default both windows hold \(w\) updates (`--ptt-validation-window`, 200). With `--ptt-validation-arc-window` \(a > 0\) (default 1 with `--ptt-natural-gradient`), the windows are measured along the Fisher arc length of the training path,
-
-\[
-\sigma_t = \sum_{s \le t} \sqrt{2\,\mathrm{KL}_s},
-\]
-
-with \(\mathrm{KL}_s\) the predicted KL divergence of update \(s\) (`kl`): \(\sqrt{2\,\mathrm{KL}}\) is the Fisher length of a step, and lengths add along the path. \(W_1\) then holds the updates with \(\sigma_s > \sigma_t - a\), grown to at least `--ptt-validation-arc-min-updates` (50) updates; \(W_2\) is built in the same way from the update before \(W_1\). `--ptt-optimizer sgd`, which predicts no KL, always uses windows of \(w\) updates. The Pearson target is then reported but does not stop the run.
+and stop as soon as \(g_t <\) `--ptt-validation-min-gain` (0). The Pearson target is then reported but does not stop the run.
 
 **Counters.**
 

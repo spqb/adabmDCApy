@@ -229,7 +229,7 @@ class _ElementActivationPolicy(_DensePolicy):
         error = (f * (1 - f) / self.effective_size + p * (1 - p) / len(samples)).sqrt()
         significant = candidates[(f - p).abs() >= self.config.ptt.activation_significance * error]
         details = {"requested": requested, "candidates": len(candidates), "significant": len(significant),
-                   "kl_budget": self.kl_share * self.config.ptt.effective_trust_radius}
+                   "kl_budget": self.kl_share * self.config.ptt.trust_radius}
         if len(significant) == 0:
             return None, {**details, "activated": 0, "predicted_kl": 0.0}
         weights = self.optimizer.nominal_rates["coupling_matrix"] * (fij_target - pij).flatten()[significant]

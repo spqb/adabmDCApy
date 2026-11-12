@@ -18,7 +18,7 @@ from pathlib import Path
 from typing import Any
 
 from adabmDCA.exceptions import InputLoadError
-from adabmDCA.ptt.config import DEFAULT_TRUST_RADIUS, NGD_TRUST_RADIUS
+from adabmDCA.ptt.config import DEFAULT_TRUST_RADIUS
 
 GUIDE = "https://spqb.github.io/adabmDCApy/algorithms/diagnostics/"
 FAILURES = {
@@ -126,15 +126,13 @@ def _trust_radius(summary: dict[str, Any] | None, log: Path) -> float:
         with log.open(encoding="utf-8", errors="replace") as handle:
             for line in handle:
                 key, _, value = line.strip().partition(":")
-                if key in ("trust_radius", "natural_gradient") and value.strip():
-                    settings.setdefault(key, value.strip())
-                if len(settings) == 2:
+                if key == "trust_radius" and value.strip():
+                    settings[key] = value.strip()
                     break
     radius = settings.get("trust_radius")
-    if radius not in (None, "None"):
-        return float(radius)
-    natural = settings.get("natural_gradient") in (True, "True")
-    return NGD_TRUST_RADIUS if natural else DEFAULT_TRUST_RADIUS
+    if radius in (None, "None", "N/A"):
+        return DEFAULT_TRUST_RADIUS
+    return float(radius)
 
 
 def _training_indicators(
