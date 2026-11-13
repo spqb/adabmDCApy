@@ -11,7 +11,7 @@ Optional Triton kernels for categorical GPU sampling.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling_triton.py#L682"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling_triton.py#L743"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `is_triton_available`
 
@@ -24,7 +24,7 @@ Return whether Triton was imported successfully.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling_triton.py#L687"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling_triton.py#L748"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `gibbs_sampling_triton`
 
@@ -47,7 +47,7 @@ Run Gibbs updates, keeping each chain in registers across short chunks.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling_triton.py#L715"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling_triton.py#L776"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `gibbs_sampling_categorical_triton`
 
@@ -66,12 +66,12 @@ gibbs_sampling_categorical_triton(
 
 Run Gibbs sampling directly on contiguous int32 categorical states.
 
-Each step updates one uniformly drawn site, shared by all chains, for `nsweeps * L` steps. `sites` instead gives the site of every step (its length then sets the number of steps and `nsweeps` is ignored). Sparse graphs (see `sparse_coupling_layout`) read only the coupled pairs.
+Each step updates one uniformly drawn site, shared by all chains, for `nsweeps * L` steps. `sites` instead gives the site of every step (its length then sets the number of steps and `nsweeps` is ignored). Sparse graphs (see `sparse_coupling_layout`) read only the coupled pairs. Dense float32 models with at least 4096 chains use the row kernel of Metropolized Gibbs (`metropolized_gibbs_row_layout`, cached while the couplings are unchanged) unless `transpose_couplings` is disabled: the same random numbers and distributions, with fields that differ from the per-chain kernel by float32 rounding.
 
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling_triton.py#L774"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling_triton.py#L855"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `gibbs_step_independent_sites_triton`
 
@@ -101,7 +101,7 @@ Apply one fused Gibbs update at an independently drawn site per chain (CUDA, Tri
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling_triton.py#L799"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling_triton.py#L880"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `metropolis_sampling_triton`
 
@@ -121,7 +121,7 @@ Run Metropolis updates with `steps_per_launch` updates per kernel.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling_triton.py#L817"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling_triton.py#L898"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `metropolis_sampling_categorical_triton`
 
@@ -138,12 +138,12 @@ metropolis_sampling_categorical_triton(
 
 Run Metropolis sampling directly on contiguous int32 categorical states.
 
-Sparse graphs (see `sparse_coupling_layout`) read only the coupled pairs.
+Sparse graphs (see `sparse_coupling_layout`) read only the coupled pairs. Large dense float32 populations (see `_metropolis_columns_applies`) use the kernel with one thread per chain, on a transposed copy of the couplings that is cached while they are unchanged: the same random numbers and updates as the per-program kernel.
 
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling_triton.py#L863"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling_triton.py#L1004"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `metropolis_sampling_replicas_categorical_triton`
 
@@ -165,7 +165,7 @@ Sample a stack of PTT replicas in one sequence of Triton launches.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling_triton.py#L935"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling_triton.py#L1076"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `transpose_couplings_for_metropolized_gibbs`
 
@@ -180,7 +180,7 @@ Stacking such views materializes the layout expected by `metropolized_gibbs_samp
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling_triton.py#L944"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling_triton.py#L1085"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `metropolized_gibbs_sampling_replicas_categorical_triton`
 
@@ -202,7 +202,7 @@ Metropolized Gibbs sampling of a stack of replicas in one sequence of launches.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling_triton.py#L1062"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling_triton.py#L1203"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `metropolized_gibbs_row_layout`
 
@@ -220,7 +220,7 @@ Stacked couplings `(R, L, q, L, q)` as the rows read by the dense Metropolized G
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling_triton.py#L1169"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling_triton.py#L1316"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `sparse_coupling_layout`
 
@@ -240,7 +240,7 @@ Returns `(neighbours, blocks, degree)`: `neighbours` `(R, L, D)` lists each site
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling_triton.py#L1218"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling_triton.py#L1365"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `metropolized_gibbs_sampling_replicas_triton`
 
@@ -263,7 +263,7 @@ Metropolized Gibbs sampling of a stack of replicas, from couplings in their orig
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling_triton.py#L1265"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling_triton.py#L1412"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `metropolized_gibbs_sampling_triton`
 
@@ -283,7 +283,7 @@ Metropolized Gibbs sampling of one-hot chains; see `metropolized_gibbs_sampling_
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling_triton.py#L1285"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling_triton.py#L1432"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `metropolized_gibbs_sampling_categorical_triton`
 
@@ -305,7 +305,7 @@ Each update draws one site shared by all chains. A new state b != a is proposed 
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling_triton.py#L1353"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling_triton.py#L1500"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `metropolis_step_independent_sites_triton`
 
@@ -335,7 +335,7 @@ Apply one fused Metropolis update at an independently drawn site per chain (CUDA
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling_triton.py#L1457"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling_triton.py#L1604"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `exchange_log_acceptance_sparse_triton`
 
@@ -355,7 +355,7 @@ Computes the four energies `E_m(z)` for both models and both populations from ea
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling_triton.py#L1497"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling_triton.py#L1644"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `exchange_log_acceptance_categorical_triton`
 
