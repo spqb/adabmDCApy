@@ -527,3 +527,122 @@ def test_float64_models_and_small_populations_keep_the_per_chain_kernel():
     # One thread per chain: too few chains leave the GPU idle.
     assert not _row_kernel_applies(params["bias"].float(), torch.float32, 5, 2048)
     assert _row_kernel_applies(params["bias"].float(), torch.float32, 5, 4096)
+
+
+@cuda
+@pytest.mark.parametrize("num_states", [2, 5, 21])
+def test_gibbs_row_kernel_matches_the_per_chain_kernel(num_states):
+    """Same sites and uniforms: the shifted fields differ by float32 rounding only."""
+    from adabmDCA.sampling_triton import _gibbs_steps_triton, _replica_metropolized_gibbs_rows_steps_triton
+
+    length, num_chains, steps = 7, 77, 40
+    model = random_potts(length, num_states, scale=0.8, seed=3, dtype=torch.float32, device="cuda")
+    generator = torch.Generator(device="cuda").manual_seed(5)
+    states = torch.randint(0, num_states, (num_chains, length), device="cuda", dtype=torch.int32, generator=generator)
+    sites = torch.randint(0, length, (steps,), device="cuda", dtype=torch.int32, generator=generator)
+    uniforms = torch.rand((steps, num_chains), device="cuda", generator=generator)
+    expected = states.clone()
+    _gibbs_steps_triton(expected, model, sites, uniforms, 1.0)
+    rows, row_biases, columns = row_inputs([model], states[None])
+    for steps_per_launch, block_n, num_warps in ((1, 32, 1), (16, 16, 1), (8, 128, 4), (16, None, None)):
+        result = columns.clone()
+        _replica_metropolized_gibbs_rows_steps_triton(
+            result, row_biases, rows, sites, uniforms, 1.0,
+            steps_per_launch=steps_per_launch, block_n=block_n, num_warps=num_warps, gibbs=True)
+        mismatch = (result[0].t().int() != expected).float().mean()
+        assert mismatch < 2e-3, (steps_per_launch, block_n, float(mismatch))
+
+
+@cuda
+@pytest.mark.parametrize("coupling_dtype", [torch.float32, torch.bfloat16])
+@pytest.mark.parametrize("num_states", [2, 5, 21])
+def test_metropolis_columns_kernel_matches_the_per_program_kernel(num_states, coupling_dtype):
+    from adabmDCA.sampling_triton import _metropolis_columns_steps_triton, _metropolis_steps_triton
+
+    length, num_chains, steps = 7, 77, 40
+    model = random_potts(length, num_states, scale=0.8, seed=4, dtype=torch.float32, device="cuda")
+    model["coupling_matrix"] = model["coupling_matrix"].to(coupling_dtype)
+    generator = torch.Generator(device="cuda").manual_seed(6)
+    states = torch.randint(0, num_states, (num_chains, length), device="cuda", dtype=torch.int32, generator=generator)
+    sites = torch.randint(0, length, (steps,), device="cuda", dtype=torch.int32, generator=generator)
+    proposals = torch.randint(0, num_states, (steps, num_chains), device="cuda", dtype=torch.int32,
+                              generator=generator)
+    uniforms = torch.rand((steps, num_chains), device="cuda", generator=generator)
+    expected = states.clone()
+    _metropolis_steps_triton(expected, model, sites, proposals, uniforms, 1.0)
+    transposed = model["coupling_matrix"].permute(0, 2, 3, 1).contiguous()
+    # 77 chains: the last program of every launch shape is partly empty.
+    for steps_per_launch, block_n, num_warps in ((1, 32, 1), (16, 32, 1), (8, 64, 2), (16, 16, 1)):
+        result = states.t().to(torch.int8).contiguous()
+        _metropolis_columns_steps_triton(result, model["bias"], transposed, sites, proposals, uniforms, 1.0,
+                                         steps_per_launch=steps_per_launch, block_n=block_n, num_warps=num_warps)
+        mismatch = (result.t().int() != expected).float().mean()
+        assert mismatch < 2e-3, (steps_per_launch, block_n, float(mismatch))
+
+
+@cuda
+@pytest.mark.parametrize("coupling_dtype", [None, torch.bfloat16])
+@pytest.mark.parametrize("method", ["gibbs", "metropolis"])
+def test_large_gibbs_and_metropolis_populations_sample_exact_distributions(method, coupling_dtype):
+    from adabmDCA import sampling_triton as st
+
+    sample = {"gibbs": st.gibbs_sampling_categorical_triton,
+              "metropolis": st.metropolis_sampling_categorical_triton}[method]
+    params = random_potts(3, 3, scale=1.0, seed=7, dtype=torch.float32, device="cuda")
+    if coupling_dtype is torch.bfloat16:
+        params["coupling_matrix"] = params["coupling_matrix"].to(torch.bfloat16).float()  # exactly representable
+    dtype = coupling_dtype or torch.float32
+    assert st.sparse_coupling_layout(params["coupling_matrix"][None], method=method) is None
+    assert st._row_kernel_applies(params["bias"], dtype, 3, 60_000)
+    assert st._metropolis_columns_applies(params["bias"], dtype, 3, 60_000)
+    torch.manual_seed(12)
+    states = torch.zeros(60_000, 3, device="cuda", dtype=torch.int32)
+    samples = sample(states, params, 30, coupling_dtype=coupling_dtype)
+    assert samples.dtype == torch.int32 and samples.shape == states.shape and not states.any()
+    _, exact = exact_distribution({key: value.double() for key, value in params.items()})
+    np.testing.assert_allclose(empirical_distribution(samples, 3), exact, atol=0.01 if coupling_dtype is None else 0.02)
+
+
+@cuda
+@pytest.mark.parametrize("method", ["gibbs", "metropolis"])
+def test_large_gibbs_and_metropolis_populations_follow_the_small_population_kernels(method, monkeypatch):
+    """The kernels for many chains draw the same random numbers as the others."""
+    from adabmDCA import sampling_triton as st
+
+    sample = {"gibbs": st.gibbs_sampling_categorical_triton,
+              "metropolis": st.metropolis_sampling_categorical_triton}[method]
+    params = random_potts(9, 21, scale=0.5, seed=8, dtype=torch.float32, device="cuda")
+    states = torch.randint(0, 21, (5000, 9), device="cuda", dtype=torch.int32)
+    sites = torch.randint(0, 9, (30,), device="cuda", dtype=torch.int32)
+    results = []
+    for minimum in (4096, 10**9):
+        monkeypatch.setattr(st, "_ROW_MIN_CHAINS", minimum)
+        monkeypatch.setattr(st, "_COLUMNS_MIN_CHAINS", minimum)
+        fresh = {key: value.clone() for key, value in params.items()}  # no cached layout
+        torch.manual_seed(14)
+        runs = [sample(states, fresh, 3)]
+        if method == "gibbs":
+            torch.manual_seed(15)
+            runs.append(sample(states, fresh, 0, sites=sites))
+        results.append(runs)
+    for many, few in zip(*results):
+        assert (many != few).float().mean() < 2e-3
+        assert (many != states).any()
+
+
+@cuda
+def test_gibbs_and_metropolis_keep_their_kernels_for_small_populations_and_float64():
+    from adabmDCA.sampling_triton import _metropolis_columns_applies, _rows_launch
+
+    bias = torch.zeros(4, 21, device="cuda")
+    assert not _metropolis_columns_applies(bias.double(), torch.float64, 21, 50_000)
+    assert not _metropolis_columns_applies(bias, torch.float32, 21, 4095)
+    assert _metropolis_columns_applies(bias, torch.float32, 21, 4096)
+    assert _metropolis_columns_applies(bias, torch.bfloat16, 21, 4096)
+    # Small alphabets: the per-program kernel keeps a site's couplings in cache for longer.
+    assert not _metropolis_columns_applies(bias[:, :5], torch.float32, 5, 8191)
+    assert _metropolis_columns_applies(bias[:, :5], torch.float32, 5, 8192)
+    assert not _metropolis_columns_applies(bias, torch.float32, 200, 50_000)
+    # A single model keeps one warp per program; ladders switch to large programs.
+    assert _rows_launch(50_000, 1, 5) == (16, 1) and _rows_launch(50_000, 1, 2) == (32, 1)
+    assert _rows_launch(50_000, 17, 5) == (128, 4) and _rows_launch(8192, 17, 5) == (16, 1)

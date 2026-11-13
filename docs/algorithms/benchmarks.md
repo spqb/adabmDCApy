@@ -225,6 +225,19 @@ One exchange round of this ladder with 10 local sweeps then takes 0.40 s instead
 
 The Pearson of the four sample sets with the training data is 0.958–0.963, within the noise of 2,048 sequences. Fewer local sweeps per round need more rounds but less time, because the local sweeps dominate a round. The two runs with 2 sweeps have the highest energies, each within 2 standard errors of the reference: too little to tell a bias from noise, so check the energies against a 10-sweep run before relying on fewer sweeps. With 1 sweep per round the renewal took 18,867 rounds (512 chains), longer than with 2.
 
+Single models sampled with many chains (`sample --strategy pcd`, or training with a large `--nchains`) use one thread per chain for all three samplers. Gibbs reads the same rows as Metropolized Gibbs and only draws the new state differently. Metropolis has its own kernel, which reads the old and the proposed coupling of every other position from one row. It is used from 4,096 chains, or from 8,192 for alphabets of at most 8 states, where the former kernel keeps the small coupling block of a position in cache. Time per sweep of one float32 model, former kernel → new kernel (RTX A5000 shared with another job, so within about 15%):
+
+| Model | Chains | Gibbs | Metropolis |
+| --- | --- | --- | --- |
+| β-lactamase (L = 215, 21 states) | 4,096 | 8.0 → 6.6 ms | 4.9 → 2.9 ms |
+| | 8,192 | 16.3 → 8.1 ms (2.0×) | 9.4 → 3.0 ms (3.1×) |
+| | 32,768 | 73 → 23 ms (3.1×) | 40 → 5.9 ms (6.7×) |
+| RF00379 (L = 136, 5 states) | 4,096 | 1.08 → 0.51 ms (2.1×) | 0.44 ms (former kernel kept) |
+| | 8,192 | 2.13 → 0.66 ms (3.2×) | 0.84 → 0.80 ms |
+| | 32,768 | 8.2 → 1.3 ms (6.2×) | 3.1 → 1.3 ms (2.5×) |
+
+Both pairs of kernels use the same random numbers. Metropolis gave identical states in these runs; Gibbs differed in at most 4 states in 100,000 after one sweep, from float32 rounding of the shifted fields. Below these numbers of chains, which include the default 2,048 of training, nothing changes: every design tried for fewer chains was at best as fast as the current kernels.
+
 **Sparse kernels.** For sparse models, kernels that read only the coupled pairs are selected automatically: on CPU while at most half of the pairs are coupled, on GPU while every position is coupled to at most 40% of the others (60% for Metropolis). On CPU they were 2.3–4× faster for Gibbs-type samplers at 13–32% pair density; on GPU at most 1.5×, and Metropolis was slightly slower. `ADABMDCA_SPARSE=0` forces the dense kernels; results are identical up to floating-point rounding.
 
 ## GPU vs CPU
