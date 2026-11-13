@@ -1,0 +1,183 @@
+{
+  "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+  "torch": "2.13.0",
+  "settings": {
+    "output": "docs/assets/benchmarks/mps-bfloat16-protein300-production-m4.json",
+    "length": 300,
+    "states": 21,
+    "chains": 2000,
+    "sweeps": 10,
+    "repeats": 5,
+    "seed": 17,
+    "bias_scale": 0.3,
+    "coupling_scale": 0.02,
+    "methods": [
+      "gibbs",
+      "metropolis",
+      "metropolized_gibbs"
+    ]
+  },
+  "model": {
+    "type": "synthetic symmetric dense Potts, zero within-site blocks",
+    "fp32_coupling_bytes": 158760000,
+    "bf16_coupling_bytes": 79380000,
+    "relative_l2_quantization_error": 0.001658155582845211,
+    "max_abs_quantization_error": 0.00024084746837615967
+  },
+  "methods": {
+    "gibbs": {
+      "matches_rounded_fp32_trajectory": true,
+      "final_residue_disagreement_fraction_vs_master": 0.16423332691192627,
+      "centered_conditional_logit_rms_error": 0.0003985368555455119,
+      "centered_conditional_logit_relative_l2_error": 0.0010159690526274129,
+      "centered_conditional_logit_max_abs_error": 0.0015616861221912717,
+      "timings": {
+        "fp32_cached": {
+          "seconds": [
+            1.7661432499298826,
+            1.76880616589915,
+            1.7841708329506218,
+            1.7807476669549942,
+            1.7799378749914467
+          ],
+          "median_seconds": 1.7799378749914467
+        },
+        "bf16_cached": {
+          "seconds": [
+            0.8408041250659153,
+            0.8349592079175636,
+            0.8274077500682324,
+            0.8383093751035631,
+            0.8198869170155376
+          ],
+          "median_seconds": 0.8349592079175636
+        },
+        "fp32_refreshed": {
+          "seconds": [
+            1.7834429579088464,
+            1.8421933749923483,
+            1.8224446669919416,
+            1.813839124981314,
+            1.8025502079399303
+          ],
+          "median_seconds": 1.813839124981314
+        },
+        "bf16_refreshed": {
+          "seconds": [
+            0.8335430000443012,
+            0.836888917023316,
+            0.841859541949816,
+            0.8384161660214886,
+            0.8534258329309523
+          ],
+          "median_seconds": 0.8384161660214886
+        }
+      },
+      "cached_speedup": 2.131766268475216,
+      "refreshed_speedup": 2.1634114399158966
+    },
+    "metropolis": {
+      "matches_rounded_fp32_trajectory": true,
+      "final_residue_disagreement_fraction_vs_master": 0.007633333560079336,
+      "centered_conditional_logit_rms_error": 0.0003985368555455119,
+      "centered_conditional_logit_relative_l2_error": 0.0010159690526274129,
+      "centered_conditional_logit_max_abs_error": 0.0015616861221912717,
+      "timings": {
+        "fp32_cached": {
+          "seconds": [
+            1.3921585419448093,
+            1.3905224159825593,
+            1.4034489159239456,
+            1.391407540999353,
+            1.3968617500504479
+          ],
+          "median_seconds": 1.3921585419448093
+        },
+        "bf16_cached": {
+          "seconds": [
+            0.6960107500199229,
+            0.6924641670193523,
+            0.6923056249506772,
+            0.6930577079765499,
+            0.6921771250199527
+          ],
+          "median_seconds": 0.6924641670193523
+        },
+        "fp32_refreshed": {
+          "seconds": [
+            1.4030854169977829,
+            1.3867503750370815,
+            1.3926661250879988,
+            1.3949091250542551,
+            1.3767741249175742
+          ],
+          "median_seconds": 1.3926661250879988
+        },
+        "bf16_refreshed": {
+          "seconds": [
+            0.6995990839786828,
+            0.6946789589710534,
+            0.6921537088928744,
+            0.6960952079389244,
+            0.697182249976322
+          ],
+          "median_seconds": 0.6960952079389244
+        }
+      },
+      "cached_speedup": 2.010441273715615,
+      "refreshed_speedup": 2.0006833967605644
+    },
+    "metropolized_gibbs": {
+      "matches_rounded_fp32_trajectory": true,
+      "final_residue_disagreement_fraction_vs_master": 0.18638333678245544,
+      "centered_conditional_logit_rms_error": 0.0003985368555455119,
+      "centered_conditional_logit_relative_l2_error": 0.0010159690526274129,
+      "centered_conditional_logit_max_abs_error": 0.0015616861221912717,
+      "timings": {
+        "fp32_cached": {
+          "seconds": [
+            1.747217833995819,
+            1.9197376670781523,
+            1.9781724590575323,
+            1.8852545419940725,
+            1.9132042500423267
+          ],
+          "median_seconds": 1.9132042500423267
+        },
+        "bf16_cached": {
+          "seconds": [
+            0.8485715410206467,
+            0.8710616669850424,
+            0.93917791696731,
+            0.9152519580675289,
+            0.9285767920082435
+          ],
+          "median_seconds": 0.9152519580675289
+        },
+        "fp32_refreshed": {
+          "seconds": [
+            1.7654153750045225,
+            1.8097132080001757,
+            1.940937125007622,
+            1.928066833061166,
+            1.8755728750256822
+          ],
+          "median_seconds": 1.8755728750256822
+        },
+        "bf16_refreshed": {
+          "seconds": [
+            0.8707731660688296,
+            0.8500124169513583,
+            0.962248208001256,
+            0.914063583011739,
+            0.8963823330122977
+          ],
+          "median_seconds": 0.8963823330122977
+        }
+      },
+      "cached_speedup": 2.090357997246882,
+      "refreshed_speedup": 2.0923804563648742
+    }
+  },
+  "timing": "paired alternating order; synchronized calls; warm compilation/layouts; states reset each call"
+}
