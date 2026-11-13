@@ -274,7 +274,9 @@ def test_ptt_bf16_kernels_match_fp32_for_rounded_couplings(name, length, sparse)
             reference = expected._replica_kernel(stack, *expected._stacked_replica_params(local), nsweeps=3)
             torch.manual_seed(5)
             biases, couplings = actual._stacked_replica_params(local)
-            assert couplings.dtype == torch.bfloat16 and biases.dtype == torch.float32
+            # Metropolized Gibbs takes the couplings in full precision and stores its own layout in BF16.
+            stacked = torch.float32 if name == "metropolized_gibbs" else torch.bfloat16
+            assert couplings.dtype == stacked and biases.dtype == torch.float32
             result = actual._replica_kernel(stack, biases, couplings, nsweeps=3)
         for left, right in zip(result, reference):
             torch.testing.assert_close(left, right, rtol=0, atol=0)

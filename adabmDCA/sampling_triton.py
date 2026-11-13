@@ -436,6 +436,104 @@ if triton is not None:
         tl.store(states_ptr + state_base + position, background, mask=position_mask)
 
     @triton.jit
+    def _replica_metropolized_gibbs_rows_kernel(
+        states_ptr,
+        biases_ptr,
+        rows_ptr,
+        sites_ptr,
+        uniforms_ptr,
+        step,
+        beta,
+        num_chains: tl.constexpr,
+        length: tl.constexpr,
+        num_states: tl.constexpr,
+        num_replicas: tl.constexpr,
+        blocks_per_replica: tl.constexpr,
+        BLOCK_N: tl.constexpr,
+        FIRST: tl.constexpr,
+        SECOND: tl.constexpr,
+        VECTOR: tl.constexpr,
+        STEPS: tl.constexpr,
+    ):
+        """Metropolized Gibbs with one thread per chain; see :func:`metropolized_gibbs_row_layout`.
+
+        ``states`` is (R, L, N): the 32 chains of a warp read their states at a
+        source position in one load. Each then reads its row of the couplings of
+        the updated site, ``rows[site, source, state, :]``, as ``FIRST + SECOND``
+        loads of ``VECTOR`` contiguous columns (16 bytes each for 20 amino-acid
+        columns). Chains in the same state share the row, so a warp fetches as
+        many rows as it holds distinct states at that position. The rows hold
+        the couplings relative to the last state, whose field is therefore zero
+        and is not stored. The tiles are (groups, VECTOR, chains): all
+        reductions over candidates stay inside a thread.
+        """
+        STRIDE: tl.constexpr = (FIRST + SECOND) * VECTOR
+        program = tl.program_id(0)
+        replica = program // blocks_per_replica
+        chain = (program % blocks_per_replica) * BLOCK_N + tl.arange(0, BLOCK_N)
+        chain_mask = chain < num_chains
+        # Threads past the last chain repeat it; their stores are masked.
+        chain = tl.minimum(chain, num_chains - 1)
+        column = tl.arange(0, VECTOR)
+        first = tl.arange(0, FIRST)[:, None] * VECTOR + column[None, :]
+        second = FIRST * VECTOR + tl.arange(0, SECOND)[:, None] * VECTOR + column[None, :]
+        first_valid = first < num_states - 1
+        second_valid = second < num_states - 1
+        states = states_ptr + replica.to(tl.int64) * (length * num_chains)
+        replica_biases = biases_ptr + replica * (length * STRIDE)
+        replica_rows = rows_ptr + replica.to(tl.int64) * (length * length * num_states * STRIDE)
+        for local_step in range(STEPS):
+            random_step = step + local_step
+            site = tl.load(sites_ptr + random_step * num_replicas + replica)
+            site_rows = replica_rows + site.to(tl.int64) * (length * num_states * STRIDE)
+            field_a = tl.zeros([FIRST, VECTOR, BLOCK_N], dtype=tl.float32)
+            field_b = tl.zeros([SECOND, VECTOR, BLOCK_N], dtype=tl.float32)
+            for source in range(length):
+                state = tl.load(states + source * num_chains + chain).to(tl.int32)
+                row = site_rows + (source * num_states + state) * STRIDE
+                field_a += tl.load(row[None, None, :] + first[:, :, None]).to(tl.float32)
+                field_b += tl.load(row[None, None, :] + second[:, :, None]).to(tl.float32)
+            field_a += tl.load(replica_biases + site * STRIDE + first)[:, :, None]
+            field_b += tl.load(replica_biases + site * STRIDE + second)[:, :, None]
+            logits_a = tl.where(first_valid[:, :, None], beta * field_a, -float("inf"))
+            logits_b = tl.where(second_valid[:, :, None], beta * field_b, -float("inf"))
+            # The last state has logit zero.
+            top = tl.maximum(tl.max(tl.max(logits_a, axis=1), axis=0), tl.max(tl.max(logits_b, axis=1), axis=0))
+            top = tl.maximum(top, 0.0)
+            weights_a = tl.exp(logits_a - top[None, None, :])
+            weights_b = tl.exp(logits_b - top[None, None, :])
+            weight_last = tl.exp(-top)
+            old_state = tl.load(states + site * num_chains + chain).to(tl.int32)
+            others_a = tl.where(first[:, :, None] == old_state[None, None, :], 0.0, weights_a)
+            others_b = tl.where(second[:, :, None] == old_state[None, None, :], 0.0, weights_b)
+            groups_a = tl.sum(others_a, axis=1)
+            groups_b = tl.sum(others_b, axis=1)
+            total_a = tl.sum(groups_a, axis=0)
+            others_total = total_a + tl.sum(groups_b, axis=0) + tl.where(old_state == num_states - 1, 0.0, weight_last)
+            random_offset = ((random_step * num_replicas + replica) * num_chains + chain) * 2
+            threshold = tl.load(uniforms_ptr + random_offset) * others_total
+            # The first candidate whose cumulative weight exceeds the threshold, counted in
+            # the order of the states: first tile, second tile, last state.
+            before_a = tl.cumsum(groups_a, axis=0) - groups_a
+            before_b = tl.cumsum(groups_b, axis=0) - groups_b + total_a[None, :]
+            below_a = (tl.cumsum(others_a, axis=1) + before_a[:, None, :]) <= threshold[None, None, :]
+            below_b = (tl.cumsum(others_b, axis=1) + before_b[:, None, :]) <= threshold[None, None, :]
+            proposed = (
+                tl.sum(tl.sum((below_a & first_valid[:, :, None]).to(tl.int32), axis=1), axis=0)
+                + tl.sum(tl.sum((below_b & second_valid[:, :, None]).to(tl.int32), axis=1), axis=0)
+            )
+            proposed = tl.minimum(proposed, num_states - 1)
+            proposed_total = (
+                tl.sum(tl.sum(tl.where(first[:, :, None] == proposed[None, None, :], 0.0, weights_a), axis=1), axis=0)
+                + tl.sum(tl.sum(tl.where(second[:, :, None] == proposed[None, None, :], 0.0, weights_b), axis=1), axis=0)
+                + tl.where(proposed == num_states - 1, 0.0, weight_last)
+            )
+            uniform = tl.load(uniforms_ptr + random_offset + 1)
+            accepted = (others_total > 0) & (uniform * proposed_total < others_total)
+            new_state = tl.where(accepted, proposed, old_state)
+            tl.store(states + site * num_chains + chain, new_state.to(states_ptr.dtype.element_ty), mask=chain_mask)
+
+    @triton.jit
     def _replica_sparse_kernel(
         states_ptr,
         biases_ptr,
@@ -881,17 +979,22 @@ def metropolized_gibbs_sampling_replicas_categorical_triton(
     return result
 
 
-def _metropolized_gibbs_sweeps(states, biases, couplings, nsweeps, beta, steps_per_launch, sparse=None):
+def _metropolized_gibbs_sweeps(states, biases, couplings, nsweeps, beta, steps_per_launch, sparse=None, rows=None):
     """Run ``nsweeps`` Metropolized Gibbs sweeps in place on (R, N, L) states.
 
     ``couplings`` are in the transposed dense layout, unless ``sparse`` (from
-    :func:`sparse_coupling_layout`) is given; both draw the same random numbers.
+    :func:`sparse_coupling_layout`) or ``rows`` (from :func:`metropolized_gibbs_row_layout`)
+    is given; all three draw the same random numbers.
     """
     num_replicas, num_chains, length = states.shape
     num_states = biases.shape[2]
     num_steps = nsweeps * length
     if num_replicas == 0 or num_chains == 0 or num_steps == 0:
         return
+    if rows is not None:
+        row_biases = _row_biases(biases, rows.shape[-1])
+        # The row kernel keeps the chains as columns, one byte per state.
+        columns = states.transpose(1, 2).to(torch.int8).contiguous()
     steps_per_chunk = max(1, min(num_steps, 8_000_000 // (num_replicas * num_chains)))
     block_l = triton.next_power_of_2(length)
     block_q = triton.next_power_of_2(num_states)
@@ -905,9 +1008,115 @@ def _metropolized_gibbs_sweeps(states, biases, couplings, nsweeps, beta, steps_p
         if sparse is not None:
             _sparse_steps_triton(states, biases, sparse, sites, uniforms, beta, "metropolized_gibbs")
             continue
+        if rows is not None:
+            _replica_metropolized_gibbs_rows_steps_triton(
+                columns, row_biases, rows, sites, uniforms, beta, steps_per_launch=steps_per_launch)
+            continue
         _replica_metropolized_gibbs_steps_triton(
             states, biases, couplings, sites, uniforms, beta,
             steps_per_launch=steps_per_launch, block_l=block_l, block_q=block_q, num_warps=num_warps,
+        )
+    if rows is not None:
+        states.copy_(columns.transpose(1, 2))
+
+
+# Row kernel of dense Metropolized Gibbs: one thread per chain, so it needs many chains to fill
+# the GPU. Measured on an RTX A5000 with a 215-site protein model, against the per-chain
+# kernel (float32): half as fast with 2048 chains in all, as fast with 4096, 2 times faster
+# with 8192, 2.8 times with 17 models of 2048 chains and 3.4 times with 17 models of 8192.
+# BF16 rows: 4.4 and 5.4 times faster in the last two cases.
+_ROW_MIN_CHAINS = 4096
+_ROW_MAX_STATES = 127  # states are stored in one signed byte
+
+
+def _row_tiles(num_states: int, itemsize: int) -> tuple[int, int, int]:
+    """``(vector, first, second)``: the q - 1 columns of a row as ``first + second`` loads of ``vector`` columns.
+
+    A load is at most 16 bytes. Both tiles hold a power-of-two number of loads,
+    so the stored rows have ``(first + second) * vector`` columns, zero-padded.
+    """
+    columns = max(num_states - 1, 1)
+    vector = 16 // itemsize
+    groups = -(-columns // vector)
+    while groups == 1 and vector > 1:
+        vector //= 2
+        groups = -(-columns // vector)
+    if groups == 1:
+        return vector, 1, 1
+    first = 1 << (groups.bit_length() - 1)
+    if first == groups:
+        first //= 2
+    return vector, first, triton.next_power_of_2(groups - first)
+
+
+def _row_kernel_applies(biases: torch.Tensor, coupling_dtype: torch.dtype, num_states: int, total_chains: int) -> bool:
+    """Whether the row kernel is used: float32 fields, float32 or BF16 rows, enough chains in all."""
+    return (
+        biases.dtype == torch.float32
+        and coupling_dtype in (torch.float32, torch.bfloat16)
+        and 2 <= num_states <= _ROW_MAX_STATES
+        and total_chains >= _ROW_MIN_CHAINS
+    )
+
+
+def metropolized_gibbs_row_layout(couplings: torch.Tensor, dtype: torch.dtype | None = None) -> torch.Tensor:
+    """Stacked couplings ``(R, L, q, L, q)`` as the rows read by the dense Metropolized Gibbs kernel.
+
+    ``rows[r, i, j, b, a] = J[r, i, a, j, b] - J[r, i, q - 1, j, b]`` for ``a < q - 1``, with
+    shape ``(R, L, L, q, stride)`` and zero padding: the coupling fields that source site ``j``
+    in state ``b`` exerts on site ``i``, relative to the last state of ``i``. Shifting all the
+    fields of a site by the same amount leaves its conditional distribution unchanged, so the
+    last column is neither stored nor read. ``dtype`` (float32 or bfloat16, default: that of
+    ``couplings``) is the stored type; the differences are taken in float32.
+    """
+    num_replicas, length, num_states = couplings.shape[:3]
+    dtype = dtype or couplings.dtype
+    vector, first, second = _row_tiles(num_states, torch.empty((), dtype=dtype).element_size())
+    rows = torch.zeros((num_replicas, length, length, num_states, (first + second) * vector),
+                       device=couplings.device, dtype=dtype)
+    for replica in range(num_replicas):  # one model at a time bounds the temporary memory
+        fields = couplings[replica].permute(0, 2, 3, 1).float()
+        rows[replica, ..., :num_states - 1] = (fields[..., :num_states - 1] - fields[..., num_states - 1:]).to(dtype)
+    return rows
+
+
+def _row_biases(biases: torch.Tensor, stride: int) -> torch.Tensor:
+    """Biases ``(R, L, q)`` relative to the last state, padded to ``(R, L, stride)``."""
+    num_states = biases.shape[-1]
+    rows = biases.new_zeros((*biases.shape[:-1], stride))
+    rows[..., :num_states - 1] = biases[..., :num_states - 1] - biases[..., num_states - 1:]
+    return rows
+
+
+def _rows_launch(total_chains: int) -> tuple[int, int]:
+    """(chains per program, warps) of the row kernel for this many chains in all models.
+
+    Small programs keep more warps in flight when the chains are few (tuned on an RTX A5000).
+    """
+    return (128, 4) if total_chains >= 24_000 else (16, 1)
+
+
+def _replica_metropolized_gibbs_rows_steps_triton(
+    states, biases, rows, sites, uniforms, beta, *, steps_per_launch=8, block_n=None, num_warps=None,
+):
+    """Apply controlled Metropolized Gibbs updates with the row kernel, in place.
+
+    ``states`` is (R, L, N) int8, the chains as columns; ``biases`` comes from
+    :func:`_row_biases` and ``rows`` from :func:`metropolized_gibbs_row_layout`.
+    ``sites`` is (steps, R) and ``uniforms`` (steps, R, N, 2), as for the per-chain kernel.
+    """
+    num_replicas, length, num_chains = states.shape
+    num_states = rows.shape[3]
+    vector, first, second = _row_tiles(num_states, rows.element_size())
+    if block_n is None:
+        block_n, num_warps = _rows_launch(num_replicas * num_chains)
+    blocks = triton.cdiv(num_chains, block_n)
+    for step in range(0, sites.shape[0], steps_per_launch):
+        _replica_metropolized_gibbs_rows_kernel[(num_replicas * blocks,)](
+            states, biases, rows, sites, uniforms, step, beta,
+            num_chains, length, num_states, num_replicas, blocks,
+            BLOCK_N=block_n, FIRST=first, SECOND=second, VECTOR=vector,
+            STEPS=min(steps_per_launch, sites.shape[0] - step), num_warps=num_warps,
         )
 
 
@@ -1014,26 +1223,42 @@ def metropolized_gibbs_sampling_replicas_triton(
     beta: float = 1.0,
     *,
     steps_per_launch: int = 8,
+    coupling_dtype: torch.dtype | None = None,
 ) -> torch.Tensor:
     """Metropolized Gibbs sampling of a stack of replicas, from couplings in their original layout.
 
-    ``couplings`` has shape (R, L, q, L, q). Sparse graphs use the sparse kernel;
-    otherwise the transposed copy of
-    :func:`metropolized_gibbs_sampling_replicas_categorical_triton` is made. Either
-    layout is cached and reused while ``couplings`` is unchanged.
+    ``couplings`` has shape (R, L, q, L, q). Sparse graphs use the sparse kernel.
+    Dense float32 models with at least 4096 chains in all use the row kernel
+    (:func:`metropolized_gibbs_row_layout`), which reads the couplings relative to the last state of each site: the same
+    distributions, with fields that differ from the per-chain kernel by float32
+    rounding. Other dense models use the transposed copy of
+    :func:`metropolized_gibbs_sampling_replicas_categorical_triton`. Each layout is
+    cached and reused while ``couplings`` is unchanged.
+    ``coupling_dtype=torch.bfloat16`` stores the layout in BF16; fields and
+    acceptance stay in the bias precision.
     """
     if couplings.ndim != 5:
         raise ValueError("Replica couplings must have shape (R, L, q, L, q)")
-    sparse = sparse_coupling_layout(couplings)
+    dtype = coupling_dtype or couplings.dtype
+    sparse = sparse_coupling_layout(couplings, dtype)
+    rows = None
     if sparse is None:
-        # (R, i, a, j, b) -> (R, i, j, b, a): the per-replica layout of transpose_couplings_for_metropolized_gibbs.
-        transposed = cached(couplings, "triton_transposed", lambda: couplings.permute(0, 1, 3, 4, 2).contiguous())
-        return metropolized_gibbs_sampling_replicas_categorical_triton(
-            states, biases, transposed, nsweeps, beta, steps_per_launch=steps_per_launch)
+        if not _row_kernel_applies(biases, dtype, couplings.shape[2], states.shape[0] * states.shape[1]):
+            # (R, i, a, j, b) -> (R, i, j, b, a): the per-replica layout of transpose_couplings_for_metropolized_gibbs.
+            transposed = cached(couplings, f"triton_transposed_{dtype}",
+                                lambda: couplings.permute(0, 1, 3, 4, 2).to(dtype).contiguous())
+            return metropolized_gibbs_sampling_replicas_categorical_triton(
+                states, biases, transposed, nsweeps, beta, steps_per_launch=steps_per_launch)
+        rows = cached(couplings, f"triton_rows_{dtype}", lambda: metropolized_gibbs_row_layout(couplings, dtype))
     if not states.is_cuda or states.dtype != torch.int32 or states.ndim != 3 or not states.is_contiguous():
         raise ValueError("Replica sampling requires contiguous CUDA int32 states of shape (R, N, L)")
+    if biases.shape != (states.shape[0], states.shape[2], couplings.shape[2]):
+        raise ValueError("Replica biases must have shape (R, L, q)")
+    if steps_per_launch < 1:
+        raise ValueError("steps_per_launch must be positive")
     result = states.clone(memory_format=torch.contiguous_format)
-    _metropolized_gibbs_sweeps(result, biases.contiguous(), None, nsweeps, beta, steps_per_launch, sparse=sparse)
+    _metropolized_gibbs_sweeps(result, biases.contiguous(), None, nsweeps, beta, steps_per_launch,
+                               sparse=sparse, rows=rows)
     return result
 
 
@@ -1070,12 +1295,14 @@ def metropolized_gibbs_sampling_categorical_triton(
 
     Each update draws one site shared by all chains. A new state b != a is
     proposed from the site conditional restricted to the other states and
-    accepted with min(1, (1 - p_a) / (1 - p_b)) (Liu 1996). One program owns
-    a chain and reads, for every source position, a contiguous row of
-    candidate couplings from a transposed copy made once per call.
+    accepted with min(1, (1 - p_a) / (1 - p_b)) (Liu 1996). Every chain reads,
+    for every source position, a contiguous row of candidate couplings: from
+    the row layout of :func:`metropolized_gibbs_row_layout` for float32 models
+    with at least 4096 chains (cached while the couplings are unchanged),
+    otherwise from a transposed copy made once per call.
     Sparse graphs (see :func:`sparse_coupling_layout`) read only each site's
     coupled neighbours instead.
-    ``coupling_dtype=torch.bfloat16`` stores that copy in BF16. Fields and
+    ``coupling_dtype=torch.bfloat16`` stores the couplings in BF16. Fields and
     acceptance use the bias precision, or FP32 for BF16 biases, as do the
     uniform random numbers. Couplings must have zero within-site blocks.
     """
@@ -1092,6 +1319,12 @@ def metropolized_gibbs_sampling_categorical_triton(
     replicas = result.unsqueeze(0)
     if sparse is not None:
         _metropolized_gibbs_sweeps(replicas, bias.unsqueeze(0), None, nsweeps, beta, steps_per_launch, sparse=sparse)
+        return result
+    dtype = coupling_dtype or kernel_params["coupling_matrix"].dtype
+    if _row_kernel_applies(bias, dtype, num_states, num_chains):
+        rows = cached(source, f"triton_rows_{dtype}",
+                      lambda: metropolized_gibbs_row_layout(kernel_params["coupling_matrix"].unsqueeze(0), dtype))
+        _metropolized_gibbs_sweeps(replicas, bias.unsqueeze(0), None, nsweeps, beta, steps_per_launch, rows=rows)
         return result
     couplings = transpose_couplings_for_metropolized_gibbs(kernel_params["coupling_matrix"]).to(
         dtype=coupling_dtype or kernel_params["coupling_matrix"].dtype,

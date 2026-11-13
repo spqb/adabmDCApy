@@ -187,13 +187,17 @@ def _prepare_replica_sampler(name, device, coupling_dtype=None):
         )
         if not is_triton_available():
             return None
-        # BF16 couplings are rounded once per replica, before stacking.
-        transform = None if coupling_dtype is None else (lambda couplings: couplings.to(coupling_dtype))
         if name == "metropolis":
+            # BF16 couplings are rounded once per replica, before stacking.
+            transform = None if coupling_dtype is None else (lambda couplings: couplings.to(coupling_dtype))
             return _ReplicaKernel(metropolis_sampling_replicas_categorical_triton, transform_couplings=transform,
                                   min_length=200)
-        # Takes the stacked couplings as they are and prepares a dense or sparse layout itself.
-        return _ReplicaKernel(metropolized_gibbs_sampling_replicas_triton, transform_couplings=transform)
+        # Takes the stacked couplings in full precision and prepares its own layout (rows or
+        # sparse), stored in BF16 when requested.
+        if coupling_dtype is None:
+            return _ReplicaKernel(metropolized_gibbs_sampling_replicas_triton)
+        return _ReplicaKernel(functools.partial(metropolized_gibbs_sampling_replicas_triton,
+                                                coupling_dtype=coupling_dtype))
     except ImportError:
         pass
     return None

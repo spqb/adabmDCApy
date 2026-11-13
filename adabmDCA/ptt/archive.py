@@ -175,6 +175,10 @@ def load_archive(cls, path, *, device="cpu", mode="generate", seed=None):
             # Settings added to PTTConfig after the archive was written take
             # their defaults; settings since removed are dropped.
             valid_config_fields = {field.name for field in fields(PTTConfig)}
+            # Archives written while the natural-gradient update existed store an unset trust
+            # radius: it meant 0.01, or 0.001 with that update.
+            if "trust_radius" in meta["config"] and meta["config"]["trust_radius"] is None:
+                meta["config"]["trust_radius"] = 0.001 if meta["config"].get("natural_gradient") else 0.01
             meta["config"] = {
                 key: value for key, value in meta["config"].items()
                 if key in valid_config_fields

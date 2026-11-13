@@ -44,7 +44,7 @@ from the Threadripper/RTX A5000 workstation in the NVIDIA comparison above.
 See [MPS vs CPU](algorithms/benchmarks.md#mps-vs-cpu) for sampling and PCD
 training results.
 
-The default precision is `float32`; `--dtype float64` is available. `--dtype bfloat16` stores the couplings used inside the sampler in BF16 while keeping all other state in FP32. On CUDA it requires an Ampere-or-newer NVIDIA GPU with Triton and gave at most about 12% speed-up in our tests. It is also available on MPS as described below. PTT supports BF16 on CUDA only, where large protein models train about 10% and sample 15–20% faster.
+The default precision is `float32`; `--dtype float64` is available. `--dtype bfloat16` stores the couplings used inside the sampler in BF16 while keeping all other state in FP32. On CUDA it requires an Ampere-or-newer NVIDIA GPU with Triton and gave at most about 12% speed-up in our tests. It is also available on MPS as described below. PTT supports BF16 on CUDA only, where large protein models train about 10% faster and their ladders sample about 1.5 times faster.
 
 ### Apple Silicon
 

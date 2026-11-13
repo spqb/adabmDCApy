@@ -205,6 +205,26 @@ Cost of one independent sample (energy correlation time × time per sweep, 2,000
 | RF00379 (τ ≈ 5 / 7 / 16 sweeps) | 2.9 ms | 4.6 ms | 3.7 ms | 48 ms | 71 ms | 34 ms |
 | cm_russ (τ ≈ 71 / 93 / 818 sweeps) | 54 ms | 70 ms | 365 ms | 1.0 s | 1.4 s | 1.7 s |
 
+**Many chains on GPU.** With at least 4,096 chains in all the models sampled together, dense float32 models use a second Metropolized Gibbs kernel. It runs one thread per chain and reads, for every other position, the row of couplings toward the updated position with 16-byte loads; chains of a warp in the same state share the row. The rows hold the couplings relative to the last state of the updated position, which shifts all its fields equally and leaves its conditional distribution unchanged, so one column less is stored and read. Time per sweep of the ladder of a β-lactamase model (L = 215, 17 models above the profile, RTX A5000):
+
+| Chains per model | Per-chain kernel | Row kernel | Row kernel, `--dtype bfloat16` |
+| --- | --- | --- | --- |
+| 2,048 | 86 ms | 30 ms (2.9×) | 20 ms (4.4×) |
+| 8,192 | 350 ms | 104 ms (3.4×) | 66 ms (5.3×) |
+
+With fewer chains the threads do not fill the GPU and the per-chain kernel is kept: for one model the row kernel was half as fast with 2,048 chains, as fast with 4,096 and twice as fast with 8,192. This is the case of training, which samples each model separately. Float64 models also keep the per-chain kernel. Both kernels draw the same random numbers and sample the same distributions; their trajectories differ by float32 rounding of the fields (3 states in 100,000 after two sweeps).
+
+One exchange round of this ladder with 10 local sweeps then takes 0.40 s instead of 0.95 s with 2,048 chains per model, and 1.6 s instead of 4.6 s with 10,000 (1.15 s with `--dtype bfloat16`); the exchanges, 0.08 s and 0.34 s, are unchanged. Sampling 2,048 sequences (one renewal of the ladder, whose length varies from run to run):
+
+| Kernel | `--ptt-local-sweeps` | Rounds | Time | Mean energy of the samples |
+| --- | --- | --- | --- | --- |
+| Per-chain | 10 | 4,328 | 69 min | 153.1 ± 1.6 |
+| Row | 10 | 5,112 | 33 min | 151.8 ± 1.6 |
+| Row | 2 | 8,193 | 22 min | 155.1 ± 1.6 |
+| Row, `--dtype bfloat16` | 2 | 7,695 | 16 min | 157.1 ± 1.6 |
+
+The Pearson of the four sample sets with the training data is 0.958–0.963, within the noise of 2,048 sequences. Fewer local sweeps per round need more rounds but less time, because the local sweeps dominate a round. The two runs with 2 sweeps have the highest energies, each within 2 standard errors of the reference: too little to tell a bias from noise, so check the energies against a 10-sweep run before relying on fewer sweeps. With 1 sweep per round the renewal took 18,867 rounds (512 chains), longer than with 2.
+
 **Sparse kernels.** For sparse models, kernels that read only the coupled pairs are selected automatically: on CPU while at most half of the pairs are coupled, on GPU while every position is coupled to at most 40% of the others (60% for Metropolis). On CPU they were 2.3–4× faster for Gibbs-type samplers at 13–32% pair density; on GPU at most 1.5×, and Metropolis was slightly slower. `ADABMDCA_SPARSE=0` forces the dense kernels; results are identical up to floating-point rounding.
 
 ## GPU vs CPU

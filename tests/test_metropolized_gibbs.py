@@ -398,3 +398,132 @@ def test_sparse_gibbs_and_metropolis_sample_exact_distributions(method):
     samples = sample(torch.zeros(40_000, 5, device="cuda", dtype=torch.int32), params, 20)
     _, exact = exact_distribution(params)
     np.testing.assert_allclose(empirical_distribution(samples, 3), exact, atol=0.01)
+
+
+def row_inputs(models, states, dtype=None):
+    """Row layout, shifted biases and column states of the row kernel for stacked models."""
+    from adabmDCA.sampling_triton import _row_biases, metropolized_gibbs_row_layout
+
+    rows = metropolized_gibbs_row_layout(torch.stack([m["coupling_matrix"] for m in models]), dtype)
+    biases = _row_biases(torch.stack([m["bias"] for m in models]), rows.shape[-1])
+    return rows, biases, states.transpose(1, 2).to(torch.int8).contiguous()
+
+
+@pytest.mark.parametrize(
+    "num_states, itemsize, expected",
+    [(21, 4, (4, 4, 1)), (21, 2, (8, 2, 1)), (5, 4, (2, 1, 1)), (5, 2, (2, 1, 1)), (2, 4, (1, 1, 1)),
+     (3, 4, (1, 1, 1)), (4, 4, (2, 1, 1)), (29, 4, (4, 4, 4)), (17, 4, (4, 2, 2))],
+)
+def test_row_tiles_cover_all_but_the_last_state(num_states, itemsize, expected):
+    pytest.importorskip("triton")
+    from adabmDCA.sampling_triton import _row_tiles
+
+    vector, first, second = _row_tiles(num_states, itemsize)
+    assert (vector, first, second) == expected
+    assert (first + second) * vector >= num_states - 1 and vector * itemsize <= 16
+    assert first & (first - 1) == 0 and second & (second - 1) == 0
+
+
+@cuda
+def test_row_layout_holds_the_couplings_relative_to_the_last_state():
+    from adabmDCA.sampling_triton import metropolized_gibbs_row_layout
+
+    models = [random_potts(6, 21, seed=seed, dtype=torch.float32, device="cuda") for seed in (1, 2)]
+    couplings = torch.stack([m["coupling_matrix"] for m in models])
+    rows = metropolized_gibbs_row_layout(couplings)
+    assert rows.shape == (2, 6, 6, 21, 20)
+    expected = (couplings[:, :, :20] - couplings[:, :, 20:]).permute(0, 1, 3, 4, 2)  # (R, i, j, b, a)
+    assert torch.equal(rows, expected)
+    half = metropolized_gibbs_row_layout(couplings, torch.bfloat16)
+    assert half.shape == (2, 6, 6, 21, 24) and half.dtype == torch.bfloat16
+    assert torch.equal(half[..., :20], expected.to(torch.bfloat16)) and not half[..., 20:].any()
+
+
+@cuda
+@pytest.mark.parametrize("num_states", [2, 3, 4, 5, 21, 29])
+def test_row_kernel_matches_controlled_reference(num_states):
+    """Same random inputs as the reference: the shifted fields differ by float32 rounding only."""
+    from adabmDCA.sampling_triton import _replica_metropolized_gibbs_rows_steps_triton
+
+    length, num_chains, steps = 7, 77, 40
+    models = [random_potts(length, num_states, scale=0.8, seed=seed, dtype=torch.float32, device="cuda")
+              for seed in (1, 2)]
+    biases = torch.stack([m["bias"] for m in models])
+    couplings = torch.stack([m["coupling_matrix"] for m in models])
+    generator = torch.Generator(device="cuda").manual_seed(4)
+    states = torch.randint(0, num_states, (2, num_chains, length), device="cuda", dtype=torch.int32,
+                           generator=generator)
+    sites = torch.randint(0, length, (steps, 2), device="cuda", dtype=torch.int32, generator=generator)
+    uniforms = torch.rand((steps, 2, num_chains, 2), device="cuda", generator=generator)
+    expected = controlled_reference(states.cpu(), biases.double().cpu(), couplings.double().cpu(), sites.cpu(),
+                                    uniforms.double().cpu())
+    rows, row_biases, columns = row_inputs(models, states)
+    # 77 chains: the last program of every launch shape is partly empty.
+    for steps_per_launch, block_n, num_warps in ((1, 32, 1), (16, 32, 1), (8, 128, 4), (8, 16, 1)):
+        result = columns.clone()
+        _replica_metropolized_gibbs_rows_steps_triton(
+            result, row_biases, rows, sites, uniforms, 1.0,
+            steps_per_launch=steps_per_launch, block_n=block_n, num_warps=num_warps)
+        mismatch = (result.transpose(1, 2).int().cpu() != expected).float().mean()
+        assert mismatch < 2e-3, (steps_per_launch, block_n, float(mismatch))
+
+
+@cuda
+@pytest.mark.parametrize("coupling_dtype", [None, torch.bfloat16])
+@pytest.mark.parametrize("num_states", [3, 5])
+def test_row_kernel_samples_exact_distributions(coupling_dtype, num_states):
+    from adabmDCA.sampling_triton import (
+        _row_kernel_applies,
+        metropolized_gibbs_sampling_categorical_triton,
+        metropolized_gibbs_sampling_replicas_triton,
+        sparse_coupling_layout,
+    )
+
+    torch.manual_seed(11)
+    length = 3 if num_states == 3 else 2
+    models = [random_potts(length, num_states, scale=1.0, seed=seed, dtype=torch.float32, device="cuda")
+              for seed in (7, 8)]
+    if coupling_dtype is torch.bfloat16:
+        # Exactly representable couplings: the BF16 rows hold their rounded differences.
+        for model in models:
+            model["coupling_matrix"] = model["coupling_matrix"].to(torch.bfloat16).float()
+    biases = torch.stack([m["bias"] for m in models])
+    couplings = torch.stack([m["coupling_matrix"] for m in models])
+    assert sparse_coupling_layout(couplings) is None
+    assert _row_kernel_applies(biases, coupling_dtype or couplings.dtype, num_states, 2 * 60_000)
+    states = torch.zeros(2, 60_000, length, device="cuda", dtype=torch.int32)
+    samples = metropolized_gibbs_sampling_replicas_triton(states, biases, couplings, nsweeps=12,
+                                                          coupling_dtype=coupling_dtype)
+    single = metropolized_gibbs_sampling_categorical_triton(states[0], models[0], nsweeps=12,
+                                                            coupling_dtype=coupling_dtype)
+    atol = 0.01 if coupling_dtype is None else 0.02
+    for result, params in ((samples[0], models[0]), (samples[1], models[1]), (single, models[0])):
+        _, exact = exact_distribution({key: value.double() for key, value in params.items()})
+        np.testing.assert_allclose(empirical_distribution(result, num_states), exact, atol=atol)
+
+
+@cuda
+def test_row_kernel_handles_nearly_deterministic_conditionals():
+    from adabmDCA.sampling_triton import metropolized_gibbs_sampling_categorical_triton
+
+    torch.manual_seed(0)
+    for favoured in (0, 2):  # a middle state and the last one, which the rows do not store
+        params = random_potts(2, 3, scale=0.0, dtype=torch.float32, device="cuda")
+        params["bias"][:, favoured] = 60.0
+        start = torch.full((5000, 2), favoured, device="cuda", dtype=torch.int32)
+        assert torch.equal(metropolized_gibbs_sampling_categorical_triton(start, params, 5), start)
+        other = torch.full((5000, 2), 1, device="cuda", dtype=torch.int32)
+        samples = metropolized_gibbs_sampling_categorical_triton(other, params, 5)
+        assert (samples == favoured).double().mean() > 0.99
+
+
+@cuda
+def test_float64_models_and_small_populations_keep_the_per_chain_kernel():
+    from adabmDCA.sampling_triton import _row_kernel_applies
+
+    params = random_potts(4, 5, device="cuda")
+    assert not _row_kernel_applies(params["bias"], params["coupling_matrix"].dtype, 5, 10_000)
+    assert not _row_kernel_applies(params["bias"].float(), torch.float32, 200, 10_000)
+    # One thread per chain: too few chains leave the GPU idle.
+    assert not _row_kernel_applies(params["bias"].float(), torch.float32, 5, 2048)
+    assert _row_kernel_applies(params["bias"].float(), torch.float32, 5, 4096)

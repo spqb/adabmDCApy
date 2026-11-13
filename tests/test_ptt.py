@@ -173,6 +173,19 @@ def test_archive_allows_cuda_cpu_float32_partition_roundoff(tmp_path):
         PTTSampler.from_archive(path, mode="inspect")
 
 
+@pytest.mark.parametrize("natural_gradient, expected", [(False, 0.01), (True, 0.001)])
+def test_archive_from_the_natural_gradient_period_loads(tmp_path, natural_gradient, expected):
+    """Those archives store an unset trust radius and settings that no longer exist."""
+    sampler = PTTSampler(profile(), tokens="AB", n_chains=32)
+    path = sampler.save_archive(tmp_path / "ptt.h5")
+    with h5py.File(path, "r+") as archive:
+        metadata = json.loads(archive.attrs["metadata"])
+        metadata["config"].update(trust_radius=None, natural_gradient=natural_gradient, ngd_damping=None,
+                                  validation_arc_window=None)
+        archive.attrs["metadata"] = json.dumps(metadata)
+    assert PTTSampler.from_archive(path, mode="inspect").config.trust_radius == expected
+
+
 def test_mixing_failure_leaves_state_and_rng_untouched(monkeypatch):
     from adabmDCA.ptt.mixing import MixingEstimate
 
