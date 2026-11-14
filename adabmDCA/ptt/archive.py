@@ -139,6 +139,12 @@ def save_archive(sampler, path):
                 group.attrs["model_id"] = model_id(point["params"])
                 for key, tensor in point["params"].items():
                     group.create_dataset(key, data=tensor.detach().cpu().numpy())
+            anchor = getattr(sampler, "anchor", None)
+            if anchor is not None:
+                # A low-rank model at the bottom of the ladder instead of the profile.
+                group = archive.create_group("anchor")
+                group.create_dataset("fields", data=anchor.fields.cpu().numpy())
+                group.create_dataset("weights", data=anchor.weights.cpu().numpy())
             archive.create_dataset("lineage", data=sampler.lineage.cpu().numpy())
             archive.create_dataset("rng", data=sampler._rng.cpu().numpy())
             _write_tree(archive.create_group("algorithm"),
@@ -207,6 +213,12 @@ def load_archive(cls, path, *, device="cpu", mode="generate", seed=None):
                     raise ValueError("Invalid PTT chain categories.")
                 populations.append(categorical.to(torch.int32))
             algorithm = _read_tree(archive["algorithm"])
+            anchor = None
+            if "anchor" in archive:
+                from adabmDCA.lowrank import LowRankPotts
+
+                anchor = LowRankPotts(torch.from_numpy(archive["anchor/fields"][...]),
+                                      torch.from_numpy(archive["anchor/weights"][...]))
             result = cls(
                 algorithm["profile_params"],
                 tokens=meta["tokens"],
@@ -214,6 +226,8 @@ def load_archive(cls, path, *, device="cpu", mode="generate", seed=None):
                 sampler=meta["local_sampler"],
                 config=PTTConfig(**meta["config"]),
                 seed=meta["seed"],
+                anchor=anchor,
+                _restoring=True,
             )
             if len(models) < 2:
                 raise ValueError("Invalid PTT ladder size.")
@@ -337,6 +351,8 @@ def load_archive(cls, path, *, device="cpu", mode="generate", seed=None):
             for key in ("reservoir", "temporary", "held", "recovery_points", "profile_params", "ptt_checkpoints",
                         "lag_memory"):
                 setattr(result, key, _tree_to_device(getattr(result, key), target))
+            if result.anchor is not None:
+                result.anchor = result.anchor.to(target)
             result._rng = torch.from_numpy(archive["rng"][...])
             if mode != "inspect" and seed is None:
                 torch.Generator(device=target).set_state(result._rng)

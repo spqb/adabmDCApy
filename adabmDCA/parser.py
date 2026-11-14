@@ -302,6 +302,9 @@ def add_args_ptt(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
                         help="PTT rounds after a ladder change (default: 10).")
     ptt_args.add_argument("--ptt-initialization-rounds", type=int, default=None,
                         help="PTT initialization rounds (default: 100).")
+    ptt_args.add_argument("--ptt-anchor-rank", type=int, default=None,
+                        help=("bmDCA: start at a low-rank Potts model of this rank (1-3), fitted to the data and "
+                              "sampled exactly, instead of the profile (default: 0, the profile)."))
     return parser
 
 

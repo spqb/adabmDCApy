@@ -80,6 +80,10 @@ class PTTConfig:
             first update of the new couplings; halved by each recovery.
         activation_significance: Adaptive activation: standard errors by which a
             candidate's pair frequency must differ from the data; 0 disables the test.
+        anchor_rank: bmDCA: start training at a low-rank Potts model of this rank (1 to 3),
+            fitted to the data by maximum likelihood, instead of the profile. The model is
+            sampled exactly, so it replaces the profile at the bottom of the ladder.
+            0 starts at the profile.
 
     Example:
         >>> from adabmDCA import PTTConfig, train_model
@@ -117,11 +121,15 @@ class PTTConfig:
     activation: str = "fixed"
     activation_kl_share: float = 0.5
     activation_significance: float = 3.0
+    anchor_rank: int = 0
 
     def __post_init__(self):
         for name in ("swaps", "equilibration_rounds", "initialization_rounds", "mixing_chains", "max_recoveries",
                      "lag_horizon", "lag_pause_rounds", "validation_window"):
             validate_integer(name, getattr(self, name))
+        validate_integer("anchor_rank", self.anchor_rank, minimum=0)
+        if self.anchor_rank > 3:
+            raise InputValidationError("PTT anchor_rank must be between 0 and 3.")
         validate_integer("max_replicas", self.max_replicas, minimum=2)
         validate_integer("target_replicas", self.target_replicas, minimum=2)
         validate_integer("mixing_initial_rounds", self.mixing_initial_rounds, minimum=8)

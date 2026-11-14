@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import time
 from collections.abc import Callable
 from pathlib import Path
 
@@ -132,6 +133,53 @@ def _finish_log(checkpoint, status: str, controller, history, *, error: BaseExce
     finish(status, summary)
 
 
+def _fit_anchor(dataset, num_states, rank, pseudocount, frequencies, device, stage_progress):
+    """Fit the low-rank PTT anchor and build its exact sampler, reporting both as ``anchor_fit`` stage events.
+
+    Events: ``start`` (rank, number of parameters), ``progress`` after every
+    likelihood evaluation, and a final ``event`` with the log-likelihoods per
+    site of the anchor and of the profile on the training data, and the cost and
+    acceptance of the exact sampler.
+    """
+    from adabmDCA.lowrank import fit_low_rank_potts
+
+    length = dataset.get_num_residues()
+
+    def emit(kind, current=None, total=None, **details):
+        if stage_progress is not None:
+            stage_progress(StageProgress("anchor_fit", kind, 0, current=current, total=total,
+                                         details={"rank": rank, **details}))
+
+    emit("start", parameters=length * num_states * (rank + 1))
+    evaluations = 0
+
+    def report(info):
+        nonlocal evaluations
+        evaluations = info["evaluation"]
+        emit("progress", evaluations, info["max_evaluations"], log_likelihood=info["log_likelihood"] / length,
+             lattice_points=info["lattice_points"])
+
+    started = time.monotonic()
+    anchor = fit_low_rank_potts(dataset.data, dataset.weights, num_states=num_states, rank=rank,
+                                pseudocount=pseudocount, device=device,
+                                callback=None if stage_progress is None else report)
+    fit_seconds = time.monotonic() - started
+    if stage_progress is None:
+        return anchor
+    started = time.monotonic()
+    cells = anchor.cells  # the exact sampler, which the ladder would otherwise build on its first draw
+    sampler_seconds = time.monotonic() - started
+    sites = torch.arange(length, device=dataset.data.device)
+    weights = dataset.weights.to(torch.float64).reshape(-1)
+    profile = frequencies.to(torch.float64).log()[sites, dataset.data.long()].sum(1)
+    emit("event", seconds=fit_seconds, evaluations=evaluations,
+         log_likelihood=anchor.log_likelihood(dataset.data, dataset.weights) / length,
+         profile_log_likelihood=float((weights * profile).sum() / weights.sum()) / length,
+         cells=len(cells.centers), sampler_seconds=sampler_seconds, acceptance=anchor.acceptance,
+         log_z=anchor.log_z)
+    return anchor
+
+
 def train_model(
     data_path: AlignmentInput,
     *,
@@ -247,9 +295,12 @@ def train_model(
             It receives a :class:`StageProgress` with ``stage``, ``kind``,
             completed and total work, and stage-specific details. These
             events do not add metric rows or alter the ``progress`` callback.
+            With a low-rank anchor, the ``anchor_fit`` stage reports its fit
+            before training starts.
         on_initialized: Optional callback taking one
             :class:`TrainingInitialization` event. It runs once after input
-            loading and weighting, before numerical training begins.
+            loading and weighting, before the PTT ladder is built and
+            numerical training begins.
         is_cancelled: Optional zero-argument function returning ``True`` to
             request cancellation or ``False`` to continue.
 
@@ -422,18 +473,6 @@ def train_model(
             dtype=resolved_dtype,
         )
 
-    ptt_sampler = None
-    if training_config.ptt is not None:
-        if ptt_resume is not None:
-            ptt_sampler = PTTSampler.from_archive(ptt_resume, device=resolved_device, mode="resume")
-            if ptt_sampler.tokens != tokens or not ptt_sampler.training_state:
-                raise InputValidationError("PTT archive token order or training restart state is incompatible.")
-        else:
-            ptt_sampler = PTTSampler(params, tokens=tokens, n_chains=n_chains, sampler=sampler,
-                                     config=training_config.ptt, seed=seed)
-        if dtype == "bfloat16":
-            ptt_sampler.set_coupling_dtype(torch.bfloat16)
-
     initialization = TrainingInitialization(
         training=_dataset_summary(dataset, loaded_inputs.training_alignment),
         validation=(
@@ -449,6 +488,26 @@ def train_model(
     )
     if on_initialized is not None:
         on_initialized(initialization)
+
+    ptt_sampler = None
+    if training_config.ptt is not None:
+        if ptt_resume is not None:
+            ptt_sampler = PTTSampler.from_archive(ptt_resume, device=resolved_device, mode="resume")
+            if ptt_sampler.tokens != tokens or not ptt_sampler.training_state:
+                raise InputValidationError("PTT archive token order or training restart state is incompatible.")
+        else:
+            anchor = None
+            if training_config.ptt.anchor_rank:
+                if model_type != "bmDCA" or loaded_inputs.initial_params is not None:
+                    raise InputValidationError("A low-rank PTT anchor requires bmDCA trained from scratch.")
+                anchor = _fit_anchor(dataset, num_states, training_config.ptt.anchor_rank, effective_pseudocount,
+                                     fi_target, resolved_device, stage_progress)
+                params = anchor.potts_params(resolved_dtype, resolved_device)
+            ptt_sampler = PTTSampler(params, tokens=tokens, n_chains=n_chains, sampler=sampler,
+                                     config=training_config.ptt, seed=seed, anchor=anchor)
+        if dtype == "bfloat16":
+            ptt_sampler.set_coupling_dtype(torch.bfloat16)
+
 
     artifacts: dict[str, Path] = {}
     checkpoint = None

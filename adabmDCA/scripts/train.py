@@ -256,7 +256,31 @@ class _PTTProgressRenderer:
             else:
                 self._set_status(live_status, phase="optimization")
 
+    def _on_anchor(self, event: StageProgress) -> None:
+        """The fit of the low-rank model at the bottom of the ladder, before training starts."""
+        details = event.details
+        rank = details["rank"]
+        if event.kind == "start":
+            self._lines([f"Fitting the rank-{rank} low-rank anchor ({details['parameters']:,} parameters)"])
+        elif event.kind == "progress":
+            self._set_status(f"Low-rank anchor | rank {rank} | evaluation {event.current} | "
+                             f"LL/L {details['log_likelihood']:.4f} | {details['lattice_points']:,} lattice points",
+                             phase="anchor_fit")
+        else:
+            with self._lock:
+                self._status = None
+                self._lines([
+                    f"  fitted in {details['seconds']:.1f}s ({details['evaluations']} evaluations): "
+                    f"LL/L {details['log_likelihood']:.4f}, profile {details['profile_log_likelihood']:.4f} "
+                    f"({details['log_likelihood'] - details['profile_log_likelihood']:+.4f})",
+                    f"  exact sampler: {details['cells']:,} latent cells built in {details['sampler_seconds']:.1f}s, "
+                    f"acceptance {details['acceptance']:.2f}, log Z {details['log_z']:.4f}",
+                ])
+
     def on_stage(self, event: StageProgress) -> None:
+        if event.stage == "anchor_fit":
+            self._on_anchor(event)
+            return
         details = event.details
         self._step = event.gradient_steps
         if "pearson" in details:
@@ -351,6 +375,7 @@ def _print_initialization(args: argparse.Namespace, initialized) -> None:
         "sweeps per step": initialized.config.n_sweeps,
         "PTT optimizer": None if initialized.config.ptt is None else initialized.config.ptt.optimizer,
         "PTT mixing method": None if initialized.config.ptt is None else initialized.config.ptt.mixing_method,
+        "PTT low-rank anchor rank": (initialized.config.ptt.anchor_rank or None) if initialized.config.ptt else None,
         "maximum gradient steps": limits.max_gradient_steps,
         "maximum structure steps": limits.max_structure_steps,
         "effective pseudocount": f"{initialized.effective_pseudocount:.6g}",

@@ -19,6 +19,7 @@ import torch
 
 from adabmDCA._validation import validate_integer, validate_seed
 from adabmDCA.exceptions import InputValidationError, OperationCancelledError
+from adabmDCA.lowrank import LowRankPotts
 from adabmDCA.ptt.archive import load_archive, model_id, save_archive
 from adabmDCA.ptt.config import DEFAULT_PTT_N_CHAINS, DEFAULT_PTT_SAMPLER, PTTConfig
 from adabmDCA.ptt.health import IMMOBILE_THRESHOLD, bar, pair_health
@@ -156,20 +157,26 @@ class PTTSampler:
         sampler: str = DEFAULT_PTT_SAMPLER,
         config: PTTConfig | None = None,
         seed: int = 0,
+        anchor: LowRankPotts | None = None,
+        _restoring: bool = False,
     ) -> None:
-        """Start a two-replica ladder at an uncoupled (profile) model.
+        """Start a two-replica ladder at an exactly sampled model: a profile or a low-rank anchor.
 
         Both replicas start at ``params``; training then moves the endpoint.
         To continue from a saved state use :meth:`from_archive`.
 
         Args:
             params: ``bias`` of shape ``(L, q)`` and an all-zero ``coupling_matrix``
-                of shape ``(L, q, L, q)``, float32 or float64, on CPU, CUDA or MPS (float32).
+                of shape ``(L, q, L, q)``, float32 or float64, on CPU, CUDA or MPS (float32);
+                with ``anchor``, the Potts parameters of the anchor (``anchor.potts_params``).
             tokens: Ordered alphabet of length ``q``.
             n_chains: Chains per replica.
             sampler: Local kernel: ``"metropolized_gibbs"``, ``"gibbs"`` or ``"metropolis"``.
             config: PTT settings; defaults to ``PTTConfig()``.
             seed: Random seed of the sampler's own generator.
+            anchor: A :class:`~adabmDCA.lowrank.LowRankPotts` model at the bottom of the ladder
+                instead of the profile: it is sampled exactly and its log Z is known, so it
+                plays the role of the profile, but it is already coupled.
 
         Raises:
             InputValidationError: If the parameters are coupled, invalid or
@@ -185,9 +192,13 @@ class PTTSampler:
         self.tokens = tokens
         self.local_sampler = sampler
         self._validate_params(params)
-        if torch.count_nonzero(params["coupling_matrix"]):
+        self.anchor = anchor
+        if anchor is not None:
+            if not self._matches_anchor(params, anchor):
+                raise InputValidationError("PTT parameters must be the Potts parameters of the low-rank anchor.")
+        elif torch.count_nonzero(params["coupling_matrix"]):
             raise InputValidationError("PTT must start at an exact uncoupled profile; use an archive to resume.")
-        if not (params["bias"].softmax(-1) > 0).all():
+        elif not (params["bias"].softmax(-1) > 0).all():
             raise InputValidationError("PTT anchor probabilities underflow at the selected precision.")
         self.models = [_clone(params), _clone(params)]
         self.profile_params = _clone(params)
@@ -208,7 +219,8 @@ class PTTSampler:
         self.acceptance = [1.0]
         self.training_state = {}
         self.active_start = 0
-        self.anchor_log_z = float(torch.logsumexp(diagnostic_double(params["bias"]), -1).sum())
+        # An archive being loaded restores the normalizer and chains: skip computing them.
+        self.anchor_log_z = math.nan if _restoring else self._anchor_normalizer()
         self.reservoir = None
         self.temporary = None
         self.held = None
@@ -220,8 +232,12 @@ class PTTSampler:
         self.timings = {key: 0.0 for key in _TIMING_KEYS}
         self.last_advance_timing = dict(self.timings)
         self.mode = "train"
-        with self._random_context():
-            self.chains = [_profile_states(params, n_chains) for _ in self.models]
+        if _restoring:
+            self.chains = [torch.zeros((n_chains, params["bias"].shape[0]), dtype=torch.int32, device=self.device)
+                           for _ in self.models]
+        else:
+            with self._random_context():
+                self.chains = [self._bottom_states(params, n_chains) for _ in self.models]
         self.lineage = torch.arange(2 * n_chains, device=self.device).reshape(2, n_chains)
         # Generation-only state: birth rounds of configurations (see
         # ``measure_renewal``), and whether each configuration has reached the
@@ -244,6 +260,27 @@ class PTTSampler:
         self._steering_kernels = None
         if self.config.reservoir_size is not None and self.config.reservoir_size < n_chains:
             raise InputValidationError("PTT reservoir_size must be at least n_chains.")
+
+    @staticmethod
+    def _matches_anchor(params, anchor):
+        """Whether ``params`` are the Potts parameters of ``anchor``, up to rounding on another device."""
+        expected = anchor.potts_params(torch.float64, "cpu")
+        return all(
+            torch.allclose(params[key].detach().cpu().double(), expected[key], rtol=1e-5, atol=1e-6)
+            for key in expected
+        )
+
+    def _anchor_normalizer(self):
+        """log Z of the bottom of the ladder: analytic for the profile, by quadrature for a low-rank anchor."""
+        if getattr(self, "anchor", None) is not None:
+            return self.anchor.log_z
+        return float(torch.logsumexp(diagnostic_double(self.profile_params["bias"]), -1).sum())
+
+    def _bottom_states(self, params, n_chains):
+        """Exact draws of the bottom of the ladder: the low-rank anchor, or the profile of ``params``."""
+        if getattr(self, "anchor", None) is not None:
+            return self.anchor.sample(n_chains, device=self.device)
+        return _profile_states(params, n_chains)
 
     def _validate_params(self, params):
         if set(params) != {"bias", "coupling_matrix"} or params["bias"].ndim != 2:
@@ -362,13 +399,13 @@ class PTTSampler:
         self._replica_params_cache = None
         self.active_start = 0
         self.reservoir = self.temporary = self.held = None
-        self.anchor_log_z = float(torch.logsumexp(diagnostic_double(self.profile_params["bias"]), -1).sum())
+        self.anchor_log_z = self._anchor_normalizer()
         # Start every replica from exact draws of the bottom profile, i.e. the
         # distribution that enters the ladder at rung 0. Uniform random
         # sequences can relax into states that every model disfavors
         # relative to its neighbors, where exchanges cannot remove them.
         with self._random_context():
-            self.chains = [_profile_states(self.models[0], n_chains) for _ in self.models]
+            self.chains = [self._bottom_states(self.models[0], n_chains) for _ in self.models]
         self._reset_lineage()
         # Initial configurations predate every round of this generation run; stamping them with the
         # round before it makes ages count from the start of generation, not of training.
@@ -396,8 +433,11 @@ class PTTSampler:
             if k not in (
                 "recovery_points", "ptt_checkpoints", "_local_kernel", "_replica_kernel",
                 "_replica_params_cache", "_endpoint_samples_cache", "_exchange_kernel", "steering", "_steering_kernels",
+                "anchor",
             )
         })
+        # The anchor is fixed for the life of the ladder: share it.
+        result.anchor = getattr(self, "anchor", None)
         # The steering potential is user code (possibly a large model): share it.
         result.steering = getattr(self, "steering", None)
         kernels = getattr(self, "_steering_kernels", None)
@@ -642,7 +682,7 @@ class PTTSampler:
                 with timer.measure("local_sampling_seconds"):
                     first_local = self.active_start
                     if first_local == 0 and self.reservoir is None:
-                        self.chains[0] = _profile_states(self.models[0], len(self.chains[0]))
+                        self.chains[0] = self._bottom_states(self.models[0], len(self.chains[0]))
                         if birth is not None:
                             # Exact redraws are new configurations.
                             birth[0] = self.rounds
@@ -940,14 +980,14 @@ class PTTSampler:
         if full_ladder:
             trial.active_start = 0
             trial.reservoir = None
-            trial.anchor_log_z = float(torch.logsumexp(diagnostic_double(trial.profile_params["bias"]), -1).sum())
+            trial.anchor_log_z = trial._anchor_normalizer()
             trial.acceptance = [1.0] * (len(trial.models) - 1)
         n = min(self.config.mixing_chains, len(trial.reservoir)) if trial.reservoir is not None else self.config.mixing_chains
         if in_place:
             n = len(trial.chains[0])
         else:
             with trial._random_context():
-                trial.chains = [_profile_states(p, n) for p in trial.models]
+                trial.chains = [trial._bottom_states(p, n) for p in trial.models]
         trial._reset_lineage()
         before = trial.local_sweeps
         timing_before = dict(trial.timings)
@@ -1252,13 +1292,13 @@ class PTTSampler:
         if full_ladder:
             trial.active_start = 0
             trial.reservoir = None
-            trial.anchor_log_z = float(torch.logsumexp(diagnostic_double(trial.profile_params["bias"]), -1).sum())
+            trial.anchor_log_z = trial._anchor_normalizer()
             trial.acceptance = [1.0] * (len(trial.models) - 1)
         n = self.config.mixing_chains
         if trial.reservoir is not None:
             n = min(n, len(trial.reservoir))
         with trial._random_context():
-            trial.chains = [_profile_states(p, n) for p in trial.models]
+            trial.chains = [trial._bottom_states(p, n) for p in trial.models]
         trial._reset_lineage()
         trial.start_birth_tracking()
         timing_before = dict(trial.timings)
@@ -1579,7 +1619,7 @@ class PTTSampler:
         if self.config.full_sampler:
             source.active_start = 0
             source.reservoir = None
-            source.anchor_log_z = float(torch.logsumexp(diagnostic_double(source.models[0]["bias"]), -1).sum())
+            source.anchor_log_z = source._anchor_normalizer()
             source.acceptance = [1.0] * (len(source.models) - 1)
         before = source.local_sweeps
         timing_before = dict(source.timings)
@@ -2115,8 +2155,11 @@ class PTTSampler:
             raise ValueError("PTT compressed ladders require a reservoir.")
         validate_integer("total_models", self.total_models, minimum=len(self.models))
         self._validate_params(self.profile_params)
-        if torch.count_nonzero(self.profile_params["coupling_matrix"]):
+        anchor = getattr(self, "anchor", None)
+        if anchor is None and torch.count_nonzero(self.profile_params["coupling_matrix"]):
             raise ValueError("PTT initial profile must be uncoupled.")
+        if anchor is not None and not self._matches_anchor(self.profile_params, anchor):
+            raise ValueError("PTT initial model differs from its low-rank anchor.")
         if self.reservoir is None and model_id(self.models[0]) != model_id(self.profile_params):
             raise ValueError("PTT requires a profile anchor or a reservoir.")
 

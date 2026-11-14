@@ -33,6 +33,7 @@ nav:
       - Training quantities: quantities/training.md
       - Sampling quantities: quantities/sampling.md
       - Normalization, scoring and importance weights: quantities/derived.md
+      - Low-rank Potts models: quantities/low_rank.md
   - Python API:
       - Overview: api/index.md
       - Symbols: api/symbols.md
