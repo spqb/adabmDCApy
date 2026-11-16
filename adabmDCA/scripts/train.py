@@ -356,6 +356,8 @@ def _print_initialization(args: argparse.Namespace, initialized) -> None:
     training = initialized.training
     validation = initialized.validation
     limits = initialized.config.limits
+    ptt = initialized.config.ptt
+    validation_stop = ptt is not None and ptt.validation_stop
     values = {
         "input": training.source or "<memory>",
         "validation": None if validation is None else validation.source or "<memory>",
@@ -375,7 +377,10 @@ def _print_initialization(args: argparse.Namespace, initialized) -> None:
             None if initialized.data_pearson is None
             else f"{initialized.data_pearson:.4f} / {initialized.data_slope:.4f}"
         ),
-        "target Pearson": initialized.config.target_pearson,
+        # PTT with the validation stop ignores the Pearson target.
+        "stop": (f"validation plateau (window {ptt.validation_window} updates, "
+                 f"minimum gain {ptt.validation_min_gain:g})" if validation_stop
+                 else f"target Pearson {initialized.config.target_pearson}"),
         "number of chains": initialized.n_chains,
         "sweeps per step": initialized.config.n_sweeps,
         "PTT optimizer": None if initialized.config.ptt is None else initialized.config.ptt.optimizer,
@@ -386,7 +391,9 @@ def _print_initialization(args: argparse.Namespace, initialized) -> None:
         "maximum structure steps": limits.max_structure_steps,
         "effective pseudocount": f"{initialized.effective_pseudocount:.6g}",
         "device": initialized.device,
-        "dtype": initialized.dtype,
+        # BF16 training samples with BF16 couplings but keeps float32 parameters, statistics and chains.
+        "dtype": ("bfloat16 (float32 parameters)" if initialized.config.dtype == "bfloat16"
+                  else initialized.dtype),
     }
     print_configuration(values)
 

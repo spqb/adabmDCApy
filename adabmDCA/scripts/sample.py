@@ -118,6 +118,15 @@ def main(args=None) -> int:
     return 0
 
 
+def _dtype_label(args, ptt: bool) -> str:
+    """The precision of this run: PTT keeps the archive's precision unless --dtype is given."""
+    if ptt and "dtype" not in getattr(args, "_explicit_options", ()):
+        return "archive precision"
+    if args.dtype == "bfloat16":
+        return "bfloat16 (" + ("archive" if ptt else "float32") + " parameters)"
+    return args.dtype
+
+
 def _configuration(args) -> dict:
     """The options of this run, as printed before sampling starts."""
     ptt, renewal = args.strategy == "ptt", args.strategy == "ptt" and args.ptt_mixing_method == "renewal"
@@ -146,7 +155,7 @@ def _configuration(args) -> dict:
         "beta": args.beta,
         "seed": args.seed,
         "device": args.device,
-        "dtype": "archive precision" if ptt else args.dtype,
+        "dtype": _dtype_label(args, ptt),
         "plots": args.plot,
     }
 

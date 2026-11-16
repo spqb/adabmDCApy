@@ -13,6 +13,7 @@ from adabmDCA import (load_alignment, load_model, inspect_model, train_model, sa
 
 - `train_model` trains with **PCD unless `ptt=PTTConfig(...)`** is passed.
 - The validation stop is off unless `PTTConfig(validation_stop=True)`.
+- The anchor is off unless `PTTConfig(anchor=True)` (rank: `anchor_rank`, default 2); use it for bmDCA from scratch.
 - `sample_sequences` uses **plain MCMC unless `ptt=True`**, and `n_sequences` is required.
 - Workflow functions default to `alphabet="protein"`. Only `load_alignment` and `load_model` on a `ptt.h5` detect it. Pass `alphabet="rna"`, `"dna"` or a token string otherwise.
 
@@ -56,7 +57,7 @@ Function forms take `model=` a `DCAModel` or a path: `score_sequences(seqs, mode
 ```python
 result = train_model(
     "train.fasta", validation_path="validation.fasta", alphabet="rna",
-    ptt=PTTConfig(validation_stop=True),
+    ptt=PTTConfig(validation_stop=True, anchor=True),   # anchor: see SKILL.md
     output_dir="model", label="run1", device="auto", seed=0,
 )
 result.stop_reason, result.converged, result.gradient_steps, result.sweeps

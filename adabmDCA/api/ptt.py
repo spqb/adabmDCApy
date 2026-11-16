@@ -386,7 +386,7 @@ def sample_ptt_sequences(
         num_sweeps=backend.local_sweeps - before, sampler="ptt", beta=1.0,
         seed=backend.seed, model=model.metadata,
         cde_sum=cde_sum, local_lambda_fit=lambda_fit,
-        sampling_dtype=str(samples.dtype).removeprefix("torch."),
+        sampling_dtype="bfloat16" if dtype == "bfloat16" else str(samples.dtype).removeprefix("torch."),
         mixing_history={**mixing_history, "equilibration_rounds": [0], "spacing_rounds": [spacing],
                         "local_sweeps_per_round": [local_sweeps]},
         sampling_history={"exchange_rounds": [backend.rounds],

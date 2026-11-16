@@ -38,7 +38,7 @@ Writes `<prefix>.train.fasta`, `<prefix>.test.fasta`, `<prefix>.split.json`. Clu
 adabmDCA train -d train.fasta -v validation.fasta -o model --no-progress > train.out 2>&1 &
 ```
 
-Default: bmDCA, PTT, 2048 chains, 10 Metropolized Gibbs sweeps per exchange round, lr 0.01, adaptive optimizer. With `-v` training stops at the validation plateau; without it at Pearson `--target` 0.95.
+Default: bmDCA, PTT, 10240 chains, 10 Metropolized Gibbs sweeps per exchange round, lr 0.01, adaptive optimizer. With `-v` training stops at the validation plateau; without it at Pearson `--target` 0.95.
 
 | Option | Default | Meaning |
 | --- | --- | --- |
@@ -48,7 +48,7 @@ Default: bmDCA, PTT, 2048 chains, 10 Metropolized Gibbs sweeps per exchange roun
 | `-l`, `--label` | none | Prefix of output files |
 | `-m`, `--model` | `bmDCA` | `bmDCA`, `eaDCA` (PTT or PCD), `edDCA`, `edgeDCA` (PCD only) |
 | `--strategy` | `ptt` | `ptt` or `pcd` |
-| `--nchains` | 2048 | Chains (per replica with PTT) |
+| `--nchains` | 10240 | Chains (per replica with PTT) |
 | `--nsweeps` | 10 | Sweeps per update (PCD) or per exchange round (PTT) |
 | `--sampler` | `metropolized_gibbs` | `gibbs`, `metropolis` |
 | `--lr` | 0.01 | Learning rate (upper bound for the adaptive PTT optimizer) |
@@ -72,6 +72,8 @@ PTT has about thirty `--ptt-*` options; the defaults rarely need changing. The o
 
 | Option | Default | Meaning |
 | --- | --- | --- |
+| `--ptt-anchor` | off | bmDCA from scratch: start the ladder at the anchor, a tractable model fitted to the data, instead of the profile. Recommended: fewer ladder models, faster sampling |
+| `--ptt-anchor-rank` | 2 | Rank of the anchor, 1 to 3 (needs `--ptt-anchor`); 3 for RNA and short proteins, see SKILL.md |
 | `--ptt-validation-stop` / `--no-ptt-validation-stop` | on with `-v` | Stop at the validation plateau |
 | `--ptt-validation-window` | 200 | Updates per compared window |
 | `--ptt-validation-min-gain` | 0 | Minimal gain between windows |
@@ -86,6 +88,7 @@ Common variants:
 
 ```bash
 adabmDCA train --strategy pcd -d train.fasta -o model_pcd                         # fast first look
+adabmDCA train -d train.fasta -v validation.fasta -o model --ptt-anchor           # PTT from the anchor (recommended for bmDCA)
 adabmDCA train -d train.fasta -v validation.fasta -o model --nsweeps 100          # after trapped configurations
 adabmDCA train -m eaDCA -d train.fasta -v validation.fasta -o model_ea            # sparse, PTT
 adabmDCA train --strategy pcd -m edDCA -d train.fasta -o model_ed --density 0.02  # decimated, PCD only
