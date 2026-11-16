@@ -97,7 +97,7 @@ def add_args_dca(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         "--nchains",
         type=int,
         default=DEFAULT_N_CHAINS,
-        help="(Defaults to 2048). Number of Markov chains to run in parallel.",
+        help="(Defaults to 10240). Number of Markov chains to run in parallel.",
     )
     dca_args.add_argument(
         "--target",
@@ -225,7 +225,7 @@ def add_args_edDCA(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
 def add_args_ptt(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     ptt_args = parser.add_argument_group(
         "Parallel Trajectory Tempering arguments",
-        "PTT defaults: Metropolized Gibbs, 10 sweeps per exchange round, 2048 chains, 50000 updates.",
+        "PTT defaults: Metropolized Gibbs, 10 sweeps per exchange round, 10240 chains, 50000 updates.",
     )
     parser.add_argument("--strategy", choices=("ptt", "pcd"), default="ptt",
                         help="Training strategy (default: ptt).")
@@ -235,7 +235,7 @@ def add_args_ptt(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     ptt_args.add_argument("--ptt-target-acceptance", type=float, default=None, help="PTT target acceptance (default: 0.25).")
     ptt_args.add_argument("--ptt-max-replicas", type=int, default=None, help="Refresh the reservoir above this active ladder size after held-snapshot replacement (default: 2).")
     ptt_args.add_argument("--ptt-target-replicas", type=int, default=None, help="Active replicas retained after reservoir refresh (default: 2).")
-    ptt_args.add_argument("--ptt-reservoir-size", type=int, default=None, help="Reservoir population size (default: 10 * nchains).")
+    ptt_args.add_argument("--ptt-reservoir-size", type=int, default=None, help="Reservoir population size (default: 20480, or 2 * nchains if larger).")
     ptt_args.add_argument("--ptt-full-sampler", action="store_true", default=None, help="Generate new reservoirs using the full historical ladder.")
     ptt_args.add_argument("--ptt-min-acceptance", type=float, default=None, help="Acceptance below this starts a mixing diagnostic (default: 0.1).")
     ptt_args.add_argument("--ptt-mixing-chains", type=int, default=None, help="Chains per replica in the mixing experiment (default: 100).")
@@ -302,6 +302,11 @@ def add_args_ptt(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
                         help="PTT rounds after a ladder change (default: 10).")
     ptt_args.add_argument("--ptt-initialization-rounds", type=int, default=None,
                         help="PTT initialization rounds (default: 100).")
+    ptt_args.add_argument("--ptt-anchor", action="store_true", default=None,
+                        help=("bmDCA: start the ladder at the anchor, a tractable model fitted to the data and "
+                              "sampled exactly, instead of the profile. The ladder then needs fewer models."))
+    ptt_args.add_argument("--ptt-anchor-rank", type=int, default=None,
+                        help="With --ptt-anchor: rank of the anchor, 1 to 3 (default: 2).")
     return parser
 
 

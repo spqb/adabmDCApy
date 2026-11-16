@@ -256,7 +256,32 @@ class _PTTProgressRenderer:
             else:
                 self._set_status(live_status, phase="optimization")
 
+    def _on_anchor(self, event: StageProgress) -> None:
+        """The fit of the exactly sampled model at the bottom of the ladder, before training starts."""
+        details = event.details
+        if event.kind == "start":
+            self._lines([f"Fitting the anchor (rank {details['rank']}, {details['parameters']:,} parameters)"])
+        elif event.kind == "progress":
+            self._set_status(f"Anchor | evaluation {event.current} | "
+                             f"LL/L {details['log_likelihood']:.4f} | {details['lattice_points']:,} lattice points",
+                             phase="anchor_fit")
+        else:
+            with self._lock:
+                self._status = None
+                sampler = (f"  exact sampler: {details['cells']:,} latent cells built in "
+                           f"{details['sampler_seconds']:.1f}s, acceptance {details['acceptance']:.2f}, "
+                           f"log Z {details['log_z']:.4f}")
+                self._lines([
+                    f"  fitted in {details['seconds']:.1f}s ({details['evaluations']} evaluations): "
+                    f"LL/L {details['log_likelihood']:.4f}, profile {details['profile_log_likelihood']:.4f} "
+                    f"({details['log_likelihood'] - details['profile_log_likelihood']:+.4f})",
+                    sampler,
+                ])
+
     def on_stage(self, event: StageProgress) -> None:
+        if event.stage == "anchor_fit":
+            self._on_anchor(event)
+            return
         details = event.details
         self._step = event.gradient_steps
         if "pearson" in details:
@@ -331,6 +356,8 @@ def _print_initialization(args: argparse.Namespace, initialized) -> None:
     training = initialized.training
     validation = initialized.validation
     limits = initialized.config.limits
+    ptt = initialized.config.ptt
+    validation_stop = ptt is not None and ptt.validation_stop
     values = {
         "input": training.source or "<memory>",
         "validation": None if validation is None else validation.source or "<memory>",
@@ -346,16 +373,27 @@ def _print_initialization(args: argparse.Namespace, initialized) -> None:
         "duplicates removed": training.removed_duplicates,
         "validation sequences": None if validation is None else validation.retained_sequences,
         "validation effective sequences": None if validation is None else f"{validation.effective_sequences:.6g}",
-        "target Pearson": initialized.config.target_pearson,
+        "validation vs training data Pearson / slope": (
+            None if initialized.data_pearson is None
+            else f"{initialized.data_pearson:.4f} / {initialized.data_slope:.4f}"
+        ),
+        # PTT with the validation stop ignores the Pearson target.
+        "stop": (f"validation plateau (window {ptt.validation_window} updates, "
+                 f"minimum gain {ptt.validation_min_gain:g})" if validation_stop
+                 else f"target Pearson {initialized.config.target_pearson}"),
         "number of chains": initialized.n_chains,
         "sweeps per step": initialized.config.n_sweeps,
         "PTT optimizer": None if initialized.config.ptt is None else initialized.config.ptt.optimizer,
         "PTT mixing method": None if initialized.config.ptt is None else initialized.config.ptt.mixing_method,
+        "PTT anchor": (f"rank {initialized.config.ptt.anchor_rank}"
+                       if initialized.config.ptt and initialized.config.ptt.anchor else None),
         "maximum gradient steps": limits.max_gradient_steps,
         "maximum structure steps": limits.max_structure_steps,
         "effective pseudocount": f"{initialized.effective_pseudocount:.6g}",
         "device": initialized.device,
-        "dtype": initialized.dtype,
+        # BF16 training samples with BF16 couplings but keeps float32 parameters, statistics and chains.
+        "dtype": ("bfloat16 (float32 parameters)" if initialized.config.dtype == "bfloat16"
+                  else initialized.dtype),
     }
     print_configuration(values)
 
@@ -377,6 +415,8 @@ def ptt_config_from_args(args: argparse.Namespace, *, validation: bool = False):
         raise InputValidationError("PTT tuning and resume options require --strategy ptt.")
     if args.strategy != "ptt":
         return None
+    if "anchor_rank" in ptt_options and not ptt_options.get("anchor"):
+        raise InputValidationError("--ptt-anchor-rank requires --ptt-anchor.")
     if validation and "validation_stop" not in ptt_options:
         ptt_options["validation_stop"] = True
     return PTTConfig(**ptt_options)

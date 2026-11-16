@@ -156,6 +156,37 @@ def test_plotter_draws_the_recorded_quantities_from_the_history_table(tmp_path: 
     assert context["label"] == "bmDCA" and context["model"] == "bmDCA" and context["target_pearson"] == 0.99
 
 
+def test_agreement_between_validation_and_training_data_is_logged_and_plotted(tmp_path: Path):
+    initialized = []
+    data = {"data_path": Alignment(("s1", "s2", "s3", "s4", "s5"), ("AAA", "AAB", "BBA", "BBB", "ABA")),
+            "validation_path": Alignment(("v1", "v2", "v3"), ("AAA", "BBB", "BAB"))}
+    result = train_model(**{**_training_kwargs(tmp_path), **data}, on_initialized=initialized.append)
+    info = initialized[0]
+    assert info.data_pearson is not None and info.data_slope is not None
+    assert -1 <= info.data_pearson <= 1
+    assert "pearson_to_training:" in result.artifacts["log"].read_text(encoding="utf-8")
+    _, context = read_training_history(result.artifacts["history"])
+    assert context["data_pearson"] == pytest.approx(info.data_pearson)
+    assert context["data_slope"] == pytest.approx(info.data_slope)
+    assert context["target_stops"]
+    # Without validation data there is nothing to compare.
+    no_validation = train_model(**{**_training_kwargs(tmp_path / "alone"), "validation_path": None},
+                                on_initialized=initialized.append)
+    assert initialized[-1].data_pearson is None
+    _, context = read_training_history(no_validation.artifacts["history"])
+    assert context["data_pearson"] is None and context["data_slope"] is None
+
+
+def test_target_line_is_dropped_when_ptt_stops_on_validation(tmp_path: Path):
+    (tmp_path / "history.csv").write_text("step,pearson,slope\n1,0.5,0.4\n2,0.6,0.5\n")
+    header = "adabmDCA training log\n[OPTIMIZATION]\nptt:\n  lag_tolerance: 0.25\n  validation_stop: {}\n[PROGRESS]\n"
+    (tmp_path / "adabmDCA.log").write_text(header.format("True"))
+    assert not read_training_history(tmp_path / "history.csv")[1]["target_stops"]
+    (tmp_path / "adabmDCA.log").write_text(header.format("False"))
+    assert read_training_history(tmp_path / "history.csv")[1]["target_stops"]
+    assert set(plot_training_history(tmp_path / "history.csv")) == {"pearson", "slope", "overview"}
+
+
 def test_plotter_reads_tables_written_before_format_4(tmp_path: Path):
     table = tmp_path / "history.csv"
     table.write_text("Epochs,Pearson,Slope,Pearson_val,Slope_val,Density,Time\n1,0.5,0.4,,,1,0.1\n2,0.6,0.5,,,1,0.2\n")

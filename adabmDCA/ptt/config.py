@@ -11,7 +11,9 @@ from adabmDCA.exceptions import InputValidationError
 # One local sampler call is one Potts sweep. PTT and standard PCD share the
 # same sampling defaults unless the caller provides an explicit override.
 DEFAULT_PTT_N_SWEEPS = 10
-DEFAULT_PTT_N_CHAINS = 2_048
+DEFAULT_PTT_N_CHAINS = 10_240
+# The reservoir holds this many configurations, or twice the chains if that is more.
+DEFAULT_PTT_RESERVOIR_SIZE = 20_480
 DEFAULT_PTT_SAMPLER = "metropolized_gibbs"
 DEFAULT_PTT_MAX_EPOCHS = 50_000
 PTT_OPTIMIZERS = ("sgd", "adaptive")
@@ -38,7 +40,7 @@ class PTTConfig:
             and the ladder compressed.
         target_replicas: Active replicas kept after compression.
         reservoir_size: Size of the reservoir population; ``None`` means
-            ``10 * n_chains``. Must be at least ``n_chains``.
+            20,480, or ``2 * n_chains`` if that is larger. Must be at least ``n_chains``.
         full_sampler: Use the full historical ladder when collecting a new reservoir.
         equilibration_rounds: Extra rounds after a snapshot is inserted or replaced.
         initialization_rounds: Warmup rounds before the first update.
@@ -80,6 +82,12 @@ class PTTConfig:
             first update of the new couplings; halved by each recovery.
         activation_significance: Adaptive activation: standard errors by which a
             candidate's pair frequency must differ from the data; 0 disables the test.
+        anchor: bmDCA: start training at the anchor instead of the profile. The anchor is a
+            tractable model fitted to the data by maximum likelihood before training; it is
+            sampled exactly and its log Z is known, so it replaces the profile at the bottom
+            of the ladder, and the ladder needs fewer models.
+        anchor_rank: Rank of the anchor (1 to 3). Rank 3 fits a slightly better anchor than
+            rank 2 but takes about ten times longer to fit.
 
     Example:
         >>> from adabmDCA import PTTConfig, train_model
@@ -117,11 +125,16 @@ class PTTConfig:
     activation: str = "fixed"
     activation_kl_share: float = 0.5
     activation_significance: float = 3.0
+    anchor: bool = False
+    anchor_rank: int = 2
 
     def __post_init__(self):
         for name in ("swaps", "equilibration_rounds", "initialization_rounds", "mixing_chains", "max_recoveries",
                      "lag_horizon", "lag_pause_rounds", "validation_window"):
             validate_integer(name, getattr(self, name))
+        if not isinstance(self.anchor, bool):
+            raise InputValidationError("PTT anchor must be boolean.")
+        validate_integer("anchor_rank", self.anchor_rank, maximum=3)
         validate_integer("max_replicas", self.max_replicas, minimum=2)
         validate_integer("target_replicas", self.target_replicas, minimum=2)
         validate_integer("mixing_initial_rounds", self.mixing_initial_rounds, minimum=8)

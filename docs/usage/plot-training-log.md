@@ -14,7 +14,7 @@ One PNG per recorded quantity, named `<label>_<quantity>.png` (`training_pearson
 
 | Quantity | Plots | Available for |
 | --- | --- | --- |
-| `pearson` | Pearson and slope of the connected correlations, training and validation, with the target | all runs |
+| `pearson` | Pearson and slope of the connected correlations, training and validation, with the agreement between the validation and the training data (the level the validation curves can reach) and the target Pearson when it ends the run (not for PTT with a validation stop) | all runs |
 | `loglikelihood` | Log-likelihood per site, training and validation | PTT |
 | `entropy` | Model entropy | PTT |
 | `density` | Fraction of active couplings | sparse models |

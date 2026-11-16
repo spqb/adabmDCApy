@@ -670,3 +670,38 @@ def test_ptt_status_shows_the_validation_plateau_test_instead_of_the_pearson_tar
     assert "val LL -1.0000" in renderer._status
     assert "plateau check from step 4" in renderer._status
     renderer.close()
+
+
+def test_printed_precision_and_stop_follow_the_options(capsys):
+    from types import SimpleNamespace
+
+    from adabmDCA.scripts.sample import _configuration, create_parser
+    from adabmDCA.scripts.train import _print_initialization, create_parser as train_parser
+
+    def sample_label(*options):
+        args = create_parser().parse_args(["-p", "model.h5", "-o", "out", "--ngen", "10", *options])
+        return _configuration(args)["dtype"]
+
+    assert sample_label("--strategy", "pcd") == "float32"
+    assert sample_label("--strategy", "pcd", "--dtype", "bfloat16") == "bfloat16 (float32 parameters)"
+    assert sample_label() == "archive precision"
+    assert sample_label("--dtype", "bfloat16") == "bfloat16 (archive parameters)"
+
+    from adabmDCA.api import TrainingConfig
+
+    args = train_parser().parse_args(["-d", "x.fasta", "-o", "out", "--dtype", "bfloat16"])
+    summary = SimpleNamespace(source="x.fasta", retained_sequences=4, sequence_length=2, num_states=2,
+                              effective_sequences=4.0, removed_invalid=0, removed_duplicates=0)
+    initialized = SimpleNamespace(training=summary, validation=None, config=TrainingConfig(dtype="bfloat16"),
+                                  data_pearson=None, data_slope=None, n_chains=8, effective_pseudocount=0.25,
+                                  device="cuda", dtype="float32")
+    _print_initialization(args, initialized)
+    output = capsys.readouterr().out
+    assert "bfloat16 (float32 parameters)" in output and "target Pearson 0.95" in output
+
+    from adabmDCA import PTTConfig
+
+    initialized.config = TrainingConfig(ptt=PTTConfig(validation_stop=True))
+    _print_initialization(args, initialized)
+    output = capsys.readouterr().out
+    assert "validation plateau (window 200 updates, minimum gain 0)" in output and "Pearson 0.95" not in output
