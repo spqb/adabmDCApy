@@ -24,7 +24,7 @@ High-level DCA training workflow.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/training.py#L135"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/training.py#L187"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `train_model`
 
@@ -45,7 +45,7 @@ train_model(
     learning_rate: 'float' = 0.01,
     n_sweeps: 'int' = 10,
     sampler: 'str' = 'metropolized_gibbs',
-    n_chains: 'int' = 2048,
+    n_chains: 'int' = 10240,
     target_pearson: 'float' = 0.95,
     max_epochs: 'int' = 50000,
     max_gradient_steps: 'int | None' = None,
@@ -116,8 +116,8 @@ Pass `config=TrainingConfig(...)` to specify the training policy as one object. 
  - <b>`use_wandb`</b>:  Enable Weights & Biases logging when output is configured.
  - <b>`allow_signed_weights`</b>:  Permit signed input weights for experimental  reintegration workflows.
  - <b>`progress`</b>:  Optional callback taking exactly one  `TrainingProgress` event and returning `None`. It runs  synchronously after each recorded metrics update. The event has  `epoch` (the reported step), `stage` (for example,  `"optimization"` or `"activation"`), cumulative  `gradient_steps`, `structure_steps`, and `sweeps` counters,  and a `metrics` dictionary. Numeric metrics are Python floats;  keys such as `"Pearson"` and `"Time"` can vary by stage.  For PTT, `partition_estimate` may contain normalization  diagnostics; otherwise it is `None`. Callback exceptions  propagate and end the training run.
- - <b>`stage_progress`</b>:  Optional callback for transient PTT stage updates.  It receives a `StageProgress` with `stage`, `kind`,  completed and total work, and stage-specific details. These  events do not add metric rows or alter the `progress` callback.
- - <b>`on_initialized`</b>:  Optional callback taking one  `TrainingInitialization` event. It runs once after input  loading and weighting, before numerical training begins.
+ - <b>`stage_progress`</b>:  Optional callback for transient PTT stage updates.  It receives a `StageProgress` with `stage`, `kind`,  completed and total work, and stage-specific details. These  events do not add metric rows or alter the `progress` callback.  With a PTT anchor, the `anchor_fit` stage reports its fit  before training starts.
+ - <b>`on_initialized`</b>:  Optional callback taking one  `TrainingInitialization` event. It runs once after input  loading and weighting, before the PTT ladder is built and  numerical training begins.
  - <b>`is_cancelled`</b>:  Optional zero-argument function returning `True` to  request cancellation or `False` to continue.
 
 

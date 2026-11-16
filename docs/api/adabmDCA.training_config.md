@@ -115,7 +115,7 @@ __init__(
     learning_rate: 'float' = 0.01,
     n_sweeps: 'int' = 10,
     sampler: 'str' = 'metropolized_gibbs',
-    n_chains: 'int' = 2048,
+    n_chains: 'int' = 10240,
     target_pearson: 'float' = 0.95,
     max_epochs: 'int' = 50000,
     max_gradient_steps: 'int | None' = None,

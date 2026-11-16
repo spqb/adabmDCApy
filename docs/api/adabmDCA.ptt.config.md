@@ -9,6 +9,7 @@ Configuration for PTT snapshot retention, reservoirs and mixing analysis.
 ---------------
 - **DEFAULT_PTT_N_SWEEPS**
 - **DEFAULT_PTT_N_CHAINS**
+- **DEFAULT_PTT_RESERVOIR_SIZE**
 - **DEFAULT_PTT_SAMPLER**
 - **DEFAULT_PTT_MAX_EPOCHS**
 - **PTT_OPTIMIZERS**
@@ -18,7 +19,7 @@ Configuration for PTT snapshot retention, reservoirs and mixing analysis.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/config.py#L22"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/ptt/config.py#L24"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `PTTConfig`
 Settings of Parallel Trajectory Tempering, for training and sampling.
@@ -34,7 +35,7 @@ Pass an instance as `ptt=` to `train_model` (or through `TrainingConfig(ptt=...)
  - <b>`min_acceptance`</b>:  Swap acceptance below which a mixing check is run.
  - <b>`max_replicas`</b>:  Active ladder size above which the reservoir is refreshed  and the ladder compressed.
  - <b>`target_replicas`</b>:  Active replicas kept after compression.
- - <b>`reservoir_size`</b>:  Size of the reservoir population; `None` means  `10 * n_chains`. Must be at least `n_chains`.
+ - <b>`reservoir_size`</b>:  Size of the reservoir population; `None` means  20,480, or `2 * n_chains` if that is larger. Must be at least `n_chains`.
  - <b>`full_sampler`</b>:  Use the full historical ladder when collecting a new reservoir.
  - <b>`equilibration_rounds`</b>:  Extra rounds after a snapshot is inserted or replaced.
  - <b>`initialization_rounds`</b>:  Warmup rounds before the first update.
@@ -59,6 +60,8 @@ Pass an instance as `ptt=` to `train_model` (or through `TrainingConfig(ptt=...)
  - <b>`activation`</b>:  eaDCA: `"fixed"` activates `activation_fraction` of the  inactive couplings per block; `"adaptive"` activates at most that  fraction, only significant candidates within a KL budget.
  - <b>`activation_kl_share`</b>:  Adaptive activation: share of `trust_radius` for the  first update of the new couplings; halved by each recovery.
  - <b>`activation_significance`</b>:  Adaptive activation: standard errors by which a  candidate's pair frequency must differ from the data; 0 disables the test.
+ - <b>`anchor`</b>:  bmDCA: start training at the anchor instead of the profile. The anchor is a  tractable model fitted to the data by maximum likelihood before training; it is  sampled exactly and its log Z is known, so it replaces the profile at the bottom  of the ladder, and the ladder needs fewer models.
+ - <b>`anchor_rank`</b>:  Rank of the anchor (1 to 3). Rank 3 fits a slightly better anchor than  rank 2 but takes about ten times longer to fit.
 
 
 
@@ -105,7 +108,9 @@ __init__(
     validation_min_gain: 'float' = 0.0,
     activation: 'str' = 'fixed',
     activation_kl_share: 'float' = 0.5,
-    activation_significance: 'float' = 3.0
+    activation_significance: 'float' = 3.0,
+    anchor: 'bool' = False,
+    anchor_rank: 'int' = 2
 ) → None
 ```
 
