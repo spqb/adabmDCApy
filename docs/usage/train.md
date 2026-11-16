@@ -4,7 +4,7 @@
 adabmDCA train -d train.fasta -v validation.fasta -o model
 ```
 
-This trains a fully connected Potts model (`bmDCA`) with Parallel Trajectory Tempering, the default strategy: 2,048 chains, 10 local Metropolized Gibbs sweeps per exchange round, learning rate 0.01, and the adaptive optimizer. Because a validation set is given, training stops when the validation log-likelihood per site stops improving. Without `-v`, it stops when the Pearson correlation between the connected correlations of the data and of the model reaches 0.95.
+This trains a fully connected Potts model (`bmDCA`) with Parallel Trajectory Tempering, the default strategy: 10,240 chains, 10 local Metropolized Gibbs sweeps per exchange round, learning rate 0.01, and the adaptive optimizer. Because a validation set is given, training stops when the validation log-likelihood per site stops improving. Without `-v`, it stops when the Pearson correlation between the connected correlations of the data and of the model reaches 0.95.
 
 Sequences are reweighted by default so that clusters of close homologues count less: each sequence gets a weight inversely proportional to the number of sequences within 80% identity of it.
 
@@ -24,6 +24,9 @@ adabmDCA train -d train.fasta -v validation.fasta -o model --nsweeps 100
 adabmDCA train -m eaDCA   -d train.fasta -v validation.fasta -o model_ea
 adabmDCA train --strategy pcd -m edgeDCA -d train.fasta -o model_edge
 adabmDCA train --strategy pcd -m edDCA -d train.fasta -o model_ed --density 0.02
+
+# bmDCA with PTT, starting from the anchor: fewer models in the ladder
+adabmDCA train -d train.fasta -v validation.fasta -o model --ptt-anchor
 
 # Equal weights for all sequences, for instance when the alignment is not redundant
 adabmDCA train -d train.fasta -v validation.fasta -o model --no_reweighting
@@ -45,7 +48,7 @@ adabmDCA train -d train.fasta -v validation.fasta -o model --plot-training-logs
 | `-m`, `--model` | `bmDCA` | `bmDCA`, `eaDCA`, `edDCA` or `edgeDCA` (the last two with PCD only) |
 | `--strategy` | `ptt` | `ptt` or `pcd` |
 | `--alphabet` | `auto` | `protein`, `rna`, `dna`, or custom tokens |
-| `--nchains` | 2048 | Number of Markov chains (per replica with PTT) |
+| `--nchains` | 10240 | Number of Markov chains (per replica with PTT) |
 | `--nsweeps` | 10 | Local sweeps per update (PCD) or per exchange round and replica (PTT) |
 | `--sampler` | `metropolized_gibbs` | Local move: `metropolized_gibbs`, `gibbs` or `metropolis` |
 | `--lr` | 0.01 | Learning rate; an upper bound for the adaptive PTT optimizer. Ignored by `edgeDCA` |
@@ -67,7 +70,7 @@ adabmDCA train -d train.fasta -v validation.fasta -o model --plot-training-logs
 
 Sparse models have their own options: `--gsteps` (10, parameter updates per graph change) and `--factivate` (0.001, fraction of the inactive couplings activated each time) for eaDCA; `--density` (0.02, final fraction of couplings) and `--drate` (0.01, fraction removed per step) for edDCA. For edgeDCA the pseudocount, not `--lr`, sets the size of each update: values closer to 1 give smaller steps, and some datasets need values up to 0.95.
 
-PTT has about thirty further options, all prefixed `--ptt-`. One changes the update rule: PTT updates with the centering trick by default, and `--no-ptt-centering` uses the raw gradient instead, which trains more slowly on several families ([why](../algorithms/training.md#centred-updates)). The defaults rarely need changing; the ones that do are discussed in [Diagnose a run](../algorithms/diagnostics.md#hyperparameters-that-matter-for-diagnosis), and the full list is in `adabmDCA train --help` and the [PTT configuration reference](../api/adabmDCA.ptt.config.md).
+PTT has about thirty further options, all prefixed `--ptt-`. `--ptt-anchor` (bmDCA trained from scratch) starts the ladder at the [anchor](../quantities/anchor.md), a tractable model fitted to the data and sampled exactly, instead of the profile. Fitting it takes from seconds to a few minutes before training starts, and the ladder then needs fewer models ([how much fewer](../quantities/anchor.md#at-the-bottom-of-the-ptt-ladder)). `--ptt-anchor-rank 3` fits a slightly better anchor, about ten times more slowly, than the default rank 2. Another option changes the update rule: PTT updates with the centering trick by default, and `--no-ptt-centering` uses the raw gradient instead, which trains more slowly on several families ([why](../algorithms/training.md#centred-updates)). The defaults rarely need changing; the ones that do are discussed in [Diagnose a run](../algorithms/diagnostics.md#hyperparameters-that-matter-for-diagnosis), and the full list is in `adabmDCA train --help` and the [PTT configuration reference](../api/adabmDCA.ptt.config.md).
 
 ## What you see while it runs
 

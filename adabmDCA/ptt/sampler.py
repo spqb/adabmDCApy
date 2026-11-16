@@ -20,8 +20,9 @@ import torch
 from adabmDCA._validation import validate_integer, validate_seed
 from adabmDCA.exceptions import InputValidationError, OperationCancelledError
 from adabmDCA.lowrank import LowRankPotts
+from adabmDCA.anchor import TreeLowRankPotts
 from adabmDCA.ptt.archive import load_archive, model_id, save_archive
-from adabmDCA.ptt.config import DEFAULT_PTT_N_CHAINS, DEFAULT_PTT_SAMPLER, PTTConfig
+from adabmDCA.ptt.config import DEFAULT_PTT_N_CHAINS, DEFAULT_PTT_RESERVOIR_SIZE, DEFAULT_PTT_SAMPLER, PTTConfig
 from adabmDCA.ptt.health import IMMOBILE_THRESHOLD, bar, pair_health
 from adabmDCA.ptt.kernels import (
     _TIMING_KEYS,
@@ -157,7 +158,7 @@ class PTTSampler:
         sampler: str = DEFAULT_PTT_SAMPLER,
         config: PTTConfig | None = None,
         seed: int = 0,
-        anchor: LowRankPotts | None = None,
+        anchor: LowRankPotts | TreeLowRankPotts | None = None,
         _restoring: bool = False,
     ) -> None:
         """Start a two-replica ladder at an exactly sampled model: a profile or a low-rank anchor.
@@ -174,8 +175,9 @@ class PTTSampler:
             sampler: Local kernel: ``"metropolized_gibbs"``, ``"gibbs"`` or ``"metropolis"``.
             config: PTT settings; defaults to ``PTTConfig()``.
             seed: Random seed of the sampler's own generator.
-            anchor: A :class:`~adabmDCA.lowrank.LowRankPotts` model at the bottom of the ladder
-                instead of the profile: it is sampled exactly and its log Z is known, so it
+            anchor: The anchor (:class:`~adabmDCA.anchor.TreeLowRankPotts`, or
+                :class:`~adabmDCA.lowrank.LowRankPotts` in older archives) at the bottom of the
+                ladder instead of the profile: it is sampled exactly and its log Z is known, so it
                 plays the role of the profile, but it is already coupled.
 
         Raises:
@@ -1634,7 +1636,7 @@ class PTTSampler:
                 self.timings[key] += source.timings[key] - timing_before[key]
             return False
         new_start = len(self.models) - self.config.target_replicas
-        size = self.config.reservoir_size or 10 * len(self.chains[0])
+        size = self.config.reservoir_size or max(DEFAULT_PTT_RESERVOIR_SIZE, 2 * len(self.chains[0]))
         renewal_details = None
         if self.config.mixing_method == "renewal":
             # Collection is spaced by full renewal of the collection replica,

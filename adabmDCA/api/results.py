@@ -1225,6 +1225,10 @@ class TrainingInitialization:
         n_chains: Number of Markov chains.
         effective_pseudocount: Pseudocount applied to the statistics.
         config: The validated :class:`TrainingConfig`.
+        data_pearson: Pearson of the connected correlations of the validation data against those of the
+            training data, the value that a model reproducing the training statistics exactly would reach
+            on the validation curve; ``None`` without validation data.
+        data_slope: The slope of the same comparison.
     """
 
     training: TrainingDatasetSummary
@@ -1234,6 +1238,8 @@ class TrainingInitialization:
     n_chains: int
     effective_pseudocount: float
     config: TrainingConfig
+    data_pearson: float | None = None
+    data_slope: float | None = None
 
 
 @dataclass(frozen=True)

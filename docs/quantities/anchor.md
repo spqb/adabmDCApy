@@ -1,8 +1,13 @@
-# Low-rank Potts models
+# The anchor
 
-A full Potts model couples every pair of positions with its own \(q \times q\) matrix. Sampling it needs Markov chains, and its normalization \(Z\) has no closed form. A **low-rank** Potts model keeps only a few collective modes of the couplings. In exchange it can be fitted by exact maximum likelihood, sampled without Markov chains, and normalized by a low-dimensional integral.
+The **anchor** is an optional starting point of bmDCA training with PTT (`--ptt-anchor`). It is a Potts model that is coupled, unlike the profile, but still tractable: it can be fitted by exact maximum likelihood, sampled without Markov chains, and normalized exactly. It is fitted to the alignment before training and replaces the profile at the bottom of the PTT ladder, so the ladder needs fewer models.
 
-The package uses such a model as an optional starting point of bmDCA training with PTT (`--ptt-anchor-rank K`). The model is fitted to the alignment before training and replaces the profile at the bottom of the PTT ladder. This page builds the model step by step, from the Hopfield–Potts model to its exact sampler. The implementation is in `adabmDCA/lowrank.py`.
+The anchor combines two tractable models:
+
+- a **low-rank** Potts model, the Hopfield–Potts model of [Cocco, Monasson and Weigt (2013)](https://doi.org/10.1371/journal.pcbi.1003176), which keeps only \(K\) collective modes of the couplings (\(K = 2\) by default, `--ptt-anchor-rank`). Written as an RBM with Gaussian hidden units, it is sampled exactly through its low-dimensional latent space, as in the low-rank RBM pre-training of [Béreux et al. (2025)](https://proceedings.iclr.cc/paper_files/paper/2025/hash/4fe1859112230a032c7143a9adc3be78-Abstract-Conference.html);
+- the pair terms of the **Chow–Liu tree** of the alignment, the spanning tree of largest mutual information, which hold the strongest local pair statistics that a few collective modes cannot represent.
+
+This page builds the anchor step by step, from the Hopfield–Potts model to its exact sampler, then adds the tree to it. The implementations are in `adabmDCA/lowrank.py` and `adabmDCA/anchor.py`.
 
 ## From the Potts model to the Hopfield–Potts model
 
@@ -12,7 +17,7 @@ The Potts model of the package (see [Potts model and statistics](model.md)) has 
 E(x) = -\sum_i h_i(x_i) - \frac12 \sum_{i \neq j} J_{ij}(x_i, x_j),
 \]
 
-with \(L q\) fields and about \(L^2 q^2 / 2\) couplings. The Hopfield–Potts model (Cocco, Monasson and Weigt, *PLoS Comput. Biol.* 2013) replaces the couplings with \(K\) **patterns**. Pattern \(k\) assigns a number \(W_{ik}(a)\) to every state \(a\) of every position \(i\). The patterns enter the energy through the overlaps of the sequence with them:
+with \(L q\) fields and about \(L^2 q^2 / 2\) couplings. The Hopfield–Potts model ([Cocco, Monasson and Weigt, *PLoS Comput. Biol.* 2013](https://doi.org/10.1371/journal.pcbi.1003176)) replaces the couplings with \(K\) **patterns**. Pattern \(k\) assigns a number \(W_{ik}(a)\) to every state \(a\) of every position \(i\). The patterns enter the energy through the overlaps of the sequence with them:
 
 \[
 m_k(x) = \sum_i W_{ik}(x_i), \qquad
@@ -175,16 +180,69 @@ where \(h_k\) are the half widths of the box. Each coordinate can be drawn indep
 
 The draws are independent, and exact up to the dropped cells, each of which holds less than \(e^{-50}\) of the mass. On BLAT about 95% of the proposals are accepted, and 100,000 sequences take less than a second on a GPU at every rank up to 3. The cells are built once per model, in 0.2 s for rank 2 and about 9 s for rank 3.
 
+## Adding a tree
+
+A low-rank model describes collective modes, such as the split of a family into subfamilies. It has no place for strong couplings between specific pairs of positions, like the base pairs of an RNA: each would need its own pattern. A **tree model** does the opposite. Take the pair distributions of \(L - 1\) pairs of positions that form a tree (no cycles):
+
+\[
+p_{\text{tree}}(x) = \prod_i f_i(x_i) \prod_{(i,j) \in T} \frac{f_{ij}(x_i, x_j)}{f_i(x_i)\, f_j(x_j)} .
+\]
+
+This is a Potts model with fields \(\log f_i\) and couplings \(\theta_{ij} = \log \frac{f_{ij}}{f_i f_j}\) on the edges of the tree. It is normalized as written (\(\log Z = 0\)), it is sampled exactly by drawing the root and then every position given its parent, and its maximum-likelihood fit is closed-form: the best tree is the spanning tree of largest total mutual information (Chow and Liu, 1968). No optimization is needed.
+
+On RF00023 (\(L = 374\), \(q = 5\)) the tree reaches a log-likelihood of −0.842 per site, against −1.082 for the profile and −0.977 for the rank-3 model. But a tree has no variable that can switch a whole sequence between subfamilies. Projected on the principal components of the data, its samples form a single cloud, where the rank-3 samples show the separate groups of the family. The two models miss opposite things, so the package can combine them:
+
+\[
+p(x, z) \propto \exp\Big( -\frac{\lvert z \rvert^2}{2} + \sum_i \big[ g_i(x_i) + z \cdot W_i(x_i) \big] + \sum_{(i,j) \in T} \theta_{ij}(x_i, x_j) \Big).
+\]
+
+Everything said above about the hidden units still holds, with one change: given \(z\), the positions are no longer independent, but follow a **tree model with fields \(g + z \cdot W\)**.
+
+- **Given \(x\), \(z\) is still Gaussian**, \(p(z \mid x) = \mathcal{N}(m(x), I_K)\), so \(e^{F}\) is still a mixture of unit Gaussians and \(\log Z\) is still a lattice sum.
+- **\(G(z)\) is the log partition function of the tilted tree.** Belief propagation computes it exactly in one pass from the leaves to the roots, at a cost \(O(L q^2)\). A second pass, from the roots to the leaves, gives the single-site and pair marginals of the tree.
+- **The gradient of the likelihood matches moments**, as before. For the pair terms it is \(f_{ij}(a, b)\) minus the pair marginal of the model on each edge, averaged over the lattice points with their weights.
+- **Sampling**: draw \(z\) by rejection, then the sequence by ancestral sampling of the tilted tree, using the same beliefs that gave \(F(z)\).
+
+The fit starts from the Chow–Liu tree and from the mean-field patterns, scaled as for the low-rank model, and optimizes \(g\), \(W\) and \(\theta\) together. It runs first on a lattice of spacing 1.5, which has about a third of the points for \(K = 3\), then on the lattice of spacing 1.
+
+For the rejection step, the bounds of the low-rank sampler rely on the positions being independent given \(z\), which is no longer true. A simpler bound replaces them. \(G\) is still convex, so on a box it lies above its tangent plane at the centre, and the gap between the two is largest at a vertex of the box (see [Cells of the tree model](#cells-of-the-tree-model)).
+
+| RF00023 | Profile | Rank 3 | Tree | Tree + rank 2 | Tree + rank 3 |
+|---|---|---|---|---|---|
+| log-likelihood per site, training | −1.082 | −0.977 | −0.842 | −0.804 | −0.789 |
+| log-likelihood per site, validation | −1.068 | −0.950 | −0.830 | −0.788 | −0.771 |
+| fit | none | 175 s | 0.1 s | 29 s | 270 s |
+| cells of the sampler | none | 57,000 | none | 2,000 | 58,000 |
+| construction of the cells | none | 6 s | none | 0.2 s | 3 s |
+
+With two hidden units, the samples of the combined model recover the groups that the tree alone misses.
+
 ## At the bottom of the PTT ladder
 
-The profile serves at the bottom of the ladder because its samples are exact and its \(\log Z\) is known (see [Normalization, scoring and importance weights](derived.md)). The low-rank model has both properties, so it can take its place:
+The profile serves at the bottom of the ladder because its samples are exact and its \(\log Z\) is known (see [Normalization, scoring and importance weights](derived.md)). The tree plus \(K\) hidden units has both properties, so with `--ptt-anchor` it takes the profile's place:
 
-- training starts with the low-rank model as both rungs, and its Potts parameters \(h\) and \(J\) are the first endpoint;
-- in every round, rung 0 is redrawn exactly from the low-rank model, which is also where new chains start;
-- \(\log Z\) of the ladder starts from the low-rank \(\log Z\) instead of the profile's, and the bridges above it are unchanged;
-- the archive stores \(g\) and \(W\), so resumed training and generation use the same model.
+- training starts with the chosen model as both rungs, and its Potts parameters \(h\) and \(J\) are the first endpoint;
+- in every round, rung 0 is redrawn exactly from that model, which is also where new chains start;
+- \(\log Z\) of the ladder starts from the model's \(\log Z\) instead of the profile's, and the bridges above it are unchanged;
+- the archive stores the model (\(g\), \(W\), and the edges and pair terms of the tree), so resumed training and generation use the same one.
 
-The benefit is largest when the first transitions of training are the hard ones. This happens when the family splits along a few directions into well-separated groups, which a rank-\(K\) model captures exactly from the start. A low-rank model cannot shorten the later part of the ladder, which grows as the full model learns couplings beyond a few positive modes.
+| Options | Starting model |
+|---|---|
+| none | profile |
+| `--ptt-anchor` | Chow–Liu tree plus 2 Gaussian hidden units |
+| `--ptt-anchor --ptt-anchor-rank K` | Chow–Liu tree plus \(K\) Gaussian hidden units (\(K\) from 1 to 3) |
+
+**How much shorter the ladder gets.** A better starting model saves fewer rungs than its likelihood suggests. Adjacent rungs sit at a fixed distance, about 1.65 in units of the square root of the symmetrized KL divergence. The rank-3 model of RF00023 is 7.0 away from the profile, about four rungs. But what the training adds afterwards is different in kind from what the starting model holds, and the two distances add in quadrature: for every later model \(T\), \(d(\text{profile}, T)^2 \approx d(\text{profile}, \text{start})^2 + d(\text{start}, T)^2\) within a few percent. A head start of \(n\) rung lengths on a ladder of \(N\) rungs therefore saves about \(N - \sqrt{N^2 - n^2}\) rungs, not \(n\).
+
+Ladders must be compared at equal likelihood, because runs stop at different points. On RF00023, with the same settings, the number of models in the ladder when the training log-likelihood per site first reaches a level was:
+
+| Log-likelihood per site | Profile | Rank 3 | Tree | Tree + rank 2 |
+|---|---|---|---|---|
+| −0.75 | 8 | 6 | 4 | 3 |
+| −0.70 | 9 | 7 | 6 | 5 |
+| −0.65 | 10 | 8 | 7 | 6 |
+
+The runs from the tree and from the combined model also had a better validation log-likelihood at equal training log-likelihood (−0.67 against −0.695 at −0.65). These are single runs on one family, and the runs from the tree models were stopped after about 500 updates.
 
 ## Technical details
 
@@ -262,6 +320,20 @@ Only the new cells are bounded at each step, and refinement stops when no cell q
 | 100,000 exact samples | 0.5 s | 0.5 s | 0.6 s |
 
 The sums of \(m_B\) and \(M_B\) over the cells also give rigorous lower and upper bounds of \(\log Z\), a few hundredths of a nat apart. The value of \(\log Z\) itself comes from the lattice sum.
+
+### Cells of the tree model
+
+With a tree, the positions are no longer independent given \(z\), and the curvature bounds above do not apply. The convexity of \(G\) is enough. On a box with centre \(c\), the function \(G(c + d) - G(c) - \nabla G(c) \cdot d\) is convex and non-negative, so it reaches its maximum \(r_B\) at one of the \(2^K\) vertices. The Gaussian factor is kept exact:
+
+\[
+F(c) + s \cdot d - \tfrac12 \lvert d \rvert^2 \;\le\; F(c + d) \;\le\; F(c) + s \cdot d - \tfrac12 \lvert d \rvert^2 + r_B, \qquad s = \nabla G(c) - c .
+\]
+
+The envelope is a truncated Gaussian in every coordinate, with density proportional to \(e^{s_k d_k - d_k^2/2}\) on \([-h_k, h_k]\). Its mass is a product of differences of the normal distribution function, and it is sampled by inverting that function. The gap between the upper and lower masses is exactly \(r_B\), which is computed from \(1 + 2^K\) evaluations of \(G\) and one of its gradient, \(\nabla G(z) = \mathbb{E}[m(x) \mid z]\), given by the marginals of the tree.
+
+The cells are built as for the low-rank model. The starting box follows from \(\lvert \partial G / \partial z_k \rvert \le S_k\), which gives \(F(z) - F(0) \le \sum_k (S_k \lvert z_k \rvert - z_k^2/2)\). It is cut into \(8^K\) cells, which are halved along their longest side while \(r_B > 0.3\) and the cell can hold more than \(e^{-20}\) of the mass; cells that cannot hold more than \(e^{-50}\) of it are dropped. Large cells use the flat bound when it is smaller.
+
+For the gradient of the fit, only the lattice points within 18 of the maximum of \(F\) are used: the others carry less than \(e^{-18}\) of each average.
 
 ### The lattice sum
 

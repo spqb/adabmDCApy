@@ -24,6 +24,7 @@ from adabmDCA.fasta import get_tokens
 from adabmDCA.input_loading import AlignmentInput, WeightInput
 from adabmDCA.ptt import PTTConfig, PTTSampler
 from adabmDCA.sampling import prepare_training_sampler
+from adabmDCA.stats import get_correlation_two_points
 from adabmDCA.training import train_eaDCA, train_edDCA, train_edgeDCA, train_graph
 from adabmDCA.training_config import (
     DEFAULT_ACTIVATION_FRACTION,
@@ -134,14 +135,16 @@ def _finish_log(checkpoint, status: str, controller, history, *, error: BaseExce
 
 
 def _fit_anchor(dataset, num_states, rank, pseudocount, frequencies, device, stage_progress):
-    """Fit the low-rank PTT anchor and build its exact sampler, reporting both as ``anchor_fit`` stage events.
+    """Fit the PTT anchor and build its exact sampler, reporting both as ``anchor_fit`` stage events.
+
+    The anchor is the Chow-Liu tree of the data plus ``rank`` Gaussian hidden units.
 
     Events: ``start`` (rank, number of parameters), ``progress`` after every
     likelihood evaluation, and a final ``event`` with the log-likelihoods per
     site of the anchor and of the profile on the training data, and the cost and
     acceptance of the exact sampler.
     """
-    from adabmDCA.lowrank import fit_low_rank_potts
+    from adabmDCA.anchor import fit_tree_low_rank_potts
 
     length = dataset.get_num_residues()
 
@@ -150,7 +153,7 @@ def _fit_anchor(dataset, num_states, rank, pseudocount, frequencies, device, sta
             stage_progress(StageProgress("anchor_fit", kind, 0, current=current, total=total,
                                          details={"rank": rank, **details}))
 
-    emit("start", parameters=length * num_states * (rank + 1))
+    emit("start", parameters=length * num_states * (rank + 1) + (length - 1) * num_states ** 2)
     evaluations = 0
 
     def report(info):
@@ -160,9 +163,9 @@ def _fit_anchor(dataset, num_states, rank, pseudocount, frequencies, device, sta
              lattice_points=info["lattice_points"])
 
     started = time.monotonic()
-    anchor = fit_low_rank_potts(dataset.data, dataset.weights, num_states=num_states, rank=rank,
-                                pseudocount=pseudocount, device=device,
-                                callback=None if stage_progress is None else report)
+    anchor = fit_tree_low_rank_potts(dataset.data, dataset.weights, num_states=num_states, rank=rank,
+                                     pseudocount=pseudocount, device=device,
+                                     callback=None if stage_progress is None else report)
     fit_seconds = time.monotonic() - started
     if stage_progress is None:
         return anchor
@@ -175,7 +178,8 @@ def _fit_anchor(dataset, num_states, rank, pseudocount, frequencies, device, sta
     emit("event", seconds=fit_seconds, evaluations=evaluations,
          log_likelihood=anchor.log_likelihood(dataset.data, dataset.weights) / length,
          profile_log_likelihood=float((weights * profile).sum() / weights.sum()) / length,
-         cells=len(cells.centers), sampler_seconds=sampler_seconds, acceptance=anchor.acceptance,
+         cells=0 if cells is None else len(cells.centers), sampler_seconds=sampler_seconds,
+         acceptance=anchor.acceptance,
          log_z=anchor.log_z)
     return anchor
 
@@ -295,7 +299,7 @@ def train_model(
             It receives a :class:`StageProgress` with ``stage``, ``kind``,
             completed and total work, and stage-specific details. These
             events do not add metric rows or alter the ``progress`` callback.
-            With a low-rank anchor, the ``anchor_fit`` stage reports its fit
+            With a PTT anchor, the ``anchor_fit`` stage reports its fit
             before training starts.
         on_initialized: Optional callback taking one
             :class:`TrainingInitialization` event. It runs once after input
@@ -473,6 +477,10 @@ def train_model(
             dtype=resolved_dtype,
         )
 
+    # The validation curves cannot be expected to pass the agreement between the two data sets themselves.
+    data_pearson = data_slope = None
+    if fi_val is not None and fij_val is not None:
+        data_pearson, data_slope = get_correlation_two_points(fij=fij_val, pij=fij_target, fi=fi_val, pi=fi_target)
     initialization = TrainingInitialization(
         training=_dataset_summary(dataset, loaded_inputs.training_alignment),
         validation=(
@@ -485,6 +493,8 @@ def train_model(
         n_chains=int(n_chains),
         effective_pseudocount=float(effective_pseudocount),
         config=training_config,
+        data_pearson=data_pearson,
+        data_slope=data_slope,
     )
     if on_initialized is not None:
         on_initialized(initialization)
@@ -497,9 +507,9 @@ def train_model(
                 raise InputValidationError("PTT archive token order or training restart state is incompatible.")
         else:
             anchor = None
-            if training_config.ptt.anchor_rank:
+            if training_config.ptt.anchor:
                 if model_type != "bmDCA" or loaded_inputs.initial_params is not None:
-                    raise InputValidationError("A low-rank PTT anchor requires bmDCA trained from scratch.")
+                    raise InputValidationError("A PTT anchor requires bmDCA trained from scratch.")
                 anchor = _fit_anchor(dataset, num_states, training_config.ptt.anchor_rank, effective_pseudocount,
                                      fi_target, resolved_device, stage_progress)
                 params = anchor.potts_params(resolved_dtype, resolved_device)
@@ -556,7 +566,11 @@ def train_model(
                 "seed": seed,
             },
             "training data": initialization.training.__dict__,
-            "validation data": None if initialization.validation is None else initialization.validation.__dict__,
+            "validation data": None if initialization.validation is None else {
+                **initialization.validation.__dict__,
+                **({} if data_pearson is None else {"pearson_to_training": data_pearson,
+                                                    "slope_to_training": data_slope}),
+            },
             "runtime": {"device": initialization.device, "dtype": initialization.dtype},
             "optimization": optimization,
         }

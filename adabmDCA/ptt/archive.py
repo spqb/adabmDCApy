@@ -145,6 +145,9 @@ def save_archive(sampler, path):
                 group = archive.create_group("anchor")
                 group.create_dataset("fields", data=anchor.fields.cpu().numpy())
                 group.create_dataset("weights", data=anchor.weights.cpu().numpy())
+                if hasattr(anchor, "pairs"):  # the tree of a tree + low-rank model
+                    group.create_dataset("edges", data=anchor.edges.cpu().numpy())
+                    group.create_dataset("pairs", data=anchor.pairs.cpu().numpy())
             archive.create_dataset("lineage", data=sampler.lineage.cpu().numpy())
             archive.create_dataset("rng", data=sampler._rng.cpu().numpy())
             _write_tree(archive.create_group("algorithm"),
@@ -181,6 +184,11 @@ def load_archive(cls, path, *, device="cpu", mode="generate", seed=None):
             # Settings added to PTTConfig after the archive was written take
             # their defaults; settings since removed are dropped.
             valid_config_fields = {field.name for field in fields(PTTConfig)}
+            # Archives written before the single anchor option set a rank (0 for none) and a tree flag.
+            if "anchor_rank" in meta["config"] and "anchor" not in meta["config"]:
+                rank = meta["config"]["anchor_rank"]
+                meta["config"]["anchor"] = bool(rank or meta["config"].get("anchor_tree"))
+                meta["config"]["anchor_rank"] = rank or PTTConfig.anchor_rank
             # Archives written while the natural-gradient update existed store an unset trust
             # radius: it meant 0.01, or 0.001 with that update.
             if "trust_radius" in meta["config"] and meta["config"]["trust_radius"] is None:
@@ -215,10 +223,18 @@ def load_archive(cls, path, *, device="cpu", mode="generate", seed=None):
             algorithm = _read_tree(archive["algorithm"])
             anchor = None
             if "anchor" in archive:
-                from adabmDCA.lowrank import LowRankPotts
+                anchor_fields = torch.from_numpy(archive["anchor/fields"][...])
+                anchor_weights = torch.from_numpy(archive["anchor/weights"][...])
+                if "pairs" in archive["anchor"]:
+                    from adabmDCA.anchor import TreeLowRankPotts
 
-                anchor = LowRankPotts(torch.from_numpy(archive["anchor/fields"][...]),
-                                      torch.from_numpy(archive["anchor/weights"][...]))
+                    anchor = TreeLowRankPotts(anchor_fields, anchor_weights,
+                                              torch.from_numpy(archive["anchor/edges"][...]),
+                                              torch.from_numpy(archive["anchor/pairs"][...]))
+                else:
+                    from adabmDCA.lowrank import LowRankPotts
+
+                    anchor = LowRankPotts(anchor_fields, anchor_weights)
             result = cls(
                 algorithm["profile_params"],
                 tokens=meta["tokens"],

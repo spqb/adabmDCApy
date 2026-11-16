@@ -20,6 +20,8 @@ A Potts model is only as good as the Monte Carlo chains used to train and sample
 
 By default, adabmDCA trains and samples with **Parallel Trajectory Tempering (PTT)**. PTT keeps a ladder of models saved along the training trajectory, from an independent-site profile that can be sampled exactly up to the current model. Configurations swap along this ladder, so fresh, independent ones keep reaching the top, and built-in checks verify that the ladder keeps mixing ([Béreux et al., 2026](https://arxiv.org/abs/2607.27077)). Because the bottom of the ladder has an exactly known normalization, PTT also gives a reliable estimate of the model's partition function. This enables online tracking of the training and validation log-likelihood, and an estimate of the model's entropy. The faster persistent contrastive divergence (`--strategy pcd`) remains available for families without strong cluster structure.
 
+For bmDCA, the ladder can start from a tractable **anchor** model instead of the profile (`--ptt-anchor`). The anchor is fitted to the data before training, sampled exactly and has a known normalization, like the profile, but it already captures part of the correlations, so the ladder needs fewer models. It builds on the exactly sampled low-rank models of [Béreux et al., ICLR 2025](https://proceedings.iclr.cc/paper_files/paper/2025/hash/4fe1859112230a032c7143a9adc3be78-Abstract-Conference.html).
+
 On three large protein families, plain Monte Carlo sampling of trained models did not reach equilibrium within 10,000 sweeps, while PTT samples reproduced every cluster of the data.
 
 ## Features
@@ -143,6 +145,9 @@ If you use adabmDCA in your research, please cite:
 
 - Parallel Trajectory Tempering, when you train or sample with PTT:
   N. Béreux, A. Decelle, C. Furtlehner and B. Seoane, *Equilibrium training of energy-based models with Parallel Trajectory Tempering*, arXiv:2607.27077 (2026). [arXiv:2607.27077](https://arxiv.org/abs/2607.27077)
+
+- The anchor, when you train with `--ptt-anchor`:
+  N. Béreux, A. Decelle, C. Furtlehner, L. Rosset and B. Seoane, *Fast training and sampling of Restricted Boltzmann Machines*, ICLR 2025. [Proceedings](https://proceedings.iclr.cc/paper_files/paper/2025/hash/4fe1859112230a032c7143a9adc3be78-Abstract-Conference.html)
 
 ## License
 

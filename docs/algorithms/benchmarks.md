@@ -236,7 +236,7 @@ Single models sampled with many chains (`sample --strategy pcd`, or training wit
 | | 8,192 | 2.13 → 0.66 ms (3.2×) | 0.84 → 0.80 ms |
 | | 32,768 | 8.2 → 1.3 ms (6.2×) | 3.1 → 1.3 ms (2.5×) |
 
-Both pairs of kernels use the same random numbers. Metropolis gave identical states in these runs; Gibbs differed in at most 4 states in 100,000 after one sweep, from float32 rounding of the shifted fields. Below these numbers of chains, which include the default 2,048 of training, nothing changes: every design tried for fewer chains was at best as fast as the current kernels.
+Both pairs of kernels use the same random numbers. Metropolis gave identical states in these runs; Gibbs differed in at most 4 states in 100,000 after one sweep, from float32 rounding of the shifted fields. Below these numbers of chains nothing changes: every design tried for fewer chains was at best as fast as the current kernels.
 
 **Sparse kernels.** For sparse models, kernels that read only the coupled pairs are selected automatically: on CPU while at most half of the pairs are coupled, on GPU while every position is coupled to at most 40% of the others (60% for Metropolis). On CPU they were 2.3–4× faster for Gibbs-type samplers at 13–32% pair density; on GPU at most 1.5×, and Metropolis was slightly slower. `ADABMDCA_SPARSE=0` forces the dense kernels; results are identical up to floating-point rounding.
 

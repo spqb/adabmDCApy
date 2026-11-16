@@ -5,9 +5,9 @@ Usage:
 
 The history table (``history.csv``, or ``<label>_history.csv``) is written
 during training, one row per update. The run's log, ``events.jsonl`` and
-``training.json`` next to it, when present, supply the target Pearson, the lag
-tolerance and events (pauses, recoveries, the validation stop) marked on the
-curves. Tables written before log format 4, with ``TrainingResult.history``
+``training.json`` next to it, when present, supply the target Pearson, the
+agreement between the validation and the training data, the lag tolerance and
+events (pauses, recoveries, the validation stop) marked on the curves. Tables written before log format 4, with ``TrainingResult.history``
 column names, are read too.
 """
 
@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import os
 from pathlib import Path
 
@@ -86,14 +87,31 @@ def read_training_history(path: str | Path):
 
     Returns ``(history, context)``: a DataFrame with ``history.csv`` column
     names, and a dictionary with the run ``label``, ``model``,
-    ``target_pearson``, ``lag_tolerance`` and ``events`` (a list of dicts).
+    ``target_pearson``, ``target_stops`` (whether the target ends the run: not
+    for PTT with a validation stop), ``data_pearson`` and ``data_slope`` (the
+    validation data against the training data, ``None`` for runs without
+    validation or logged before they were recorded), ``lag_tolerance`` and
+    ``events`` (a list of dicts).
     """
     import pandas as pd
 
     files = _run_files(Path(path))
     history = pd.read_csv(files["history"]).rename(columns=_history_names())
     settings = _log_settings(files["log"])
+
+    def number(key):
+        try:
+            value = float(settings[key])
+        except (KeyError, ValueError):
+            return None
+        return value if math.isfinite(value) else None
+
     context = {
+        # Agreement of the validation data with the training data: the level the validation curves can reach.
+        "data_pearson": number("pearson_to_training"),
+        "data_slope": number("slope_to_training"),
+        # PTT with a validation stop ends on the validation plateau, not on the target Pearson.
+        "target_stops": "lag_tolerance" not in settings or settings.get("validation_stop") != "True",
         "label": files["label"],
         # Older tables recorded a density of 1 for bmDCA too.
         "model": settings.get("model") or (
@@ -109,6 +127,7 @@ def read_training_history(path: str | Path):
         context["model"] = config.get("model_type", context["model"])
         if config.get("ptt"):
             context["lag_tolerance"] = float(config["ptt"].get("lag_tolerance", context["lag_tolerance"] or 0.25))
+            context["target_stops"] = not config["ptt"].get("validation_stop", False)
     if files["events"].is_file():
         with open(files["events"], encoding="utf-8") as handle:
             context["events"] = [json.loads(line) for line in handle if line.strip()]
@@ -199,8 +218,13 @@ def _panel_pearson(ax, history, context):
     _line(ax, x, history["pearson"], color=TRAIN, label="training")
     if _has(history, "pearson_val"):
         _line(ax, x, history["pearson_val"], color=VALIDATION, label="validation")
-    target = context["target_pearson"]
-    ax.axhline(target, color=ACCENT, ls="--", lw=1.2, label=f"target {target:.2f}", zorder=1)
+    if context.get("data_pearson") is not None:
+        level = context["data_pearson"]
+        ax.axhline(level, color=VALIDATION, ls="--", lw=1.1, alpha=0.8, zorder=1,
+                   label=f"validation vs training data {level:.3f}")
+    if context.get("target_stops", True):
+        target = context["target_pearson"]
+        ax.axhline(target, color=ACCENT, ls="--", lw=1.2, label=f"target {target:.2f}", zorder=1)
     _mark(ax, context)
     ax.set_ylabel("Pearson of connected correlations")
     return "Pearson correlation"
@@ -212,6 +236,10 @@ def _panel_slope(ax, history, context):
     if _has(history, "slope_val"):
         _line(ax, x, history["slope_val"], color=VALIDATION, label="validation")
     ax.axhline(1.0, color=MUTED, ls="--", lw=1.1, label="ideal", zorder=1)
+    if context.get("data_slope") is not None:
+        level = context["data_slope"]
+        ax.axhline(level, color=VALIDATION, ls="--", lw=1.1, alpha=0.8, zorder=1,
+                   label=f"validation vs training data {level:.3f}")
     _mark(ax, context)
     ax.set_ylabel("slope")
     return "Correlation slope"

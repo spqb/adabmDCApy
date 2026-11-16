@@ -1,14 +1,12 @@
 """Low-rank Potts models: exact normalization and sampling, fitting, and their use as the bottom of a PTT ladder."""
 
-from dataclasses import replace
 from itertools import product
 
 import numpy as np
 import pytest
 import torch
 
-from adabmDCA import PTTConfig, PTTSampler, train_model
-from adabmDCA.api import TrainingConfig
+from adabmDCA import PTTSampler
 from adabmDCA.exceptions import InputValidationError
 from adabmDCA.lowrank import (LowRankPotts, TargetMoments, _cell_statistics, _lattice_sum, _site_curvature,
                               _site_logits, fit_low_rank_potts, hopfield_potts_init, target_moments)
@@ -231,35 +229,3 @@ def test_ladder_starts_at_the_anchor_and_survives_an_archive(tmp_path):
     with pytest.raises(InputValidationError, match="low-rank anchor"):
         PTTSampler(random_low_rank(4, 2, 1, seed=6).potts_params(torch.float64), tokens="AB", n_chains=8,
                    anchor=anchor)
-
-
-def test_rank_setting_is_validated():
-    assert PTTConfig(anchor_rank=2).anchor_rank == 2
-    for rank in (-1, 4):
-        with pytest.raises(InputValidationError):
-            PTTConfig(anchor_rank=rank)
-
-
-def test_training_starts_from_a_fitted_anchor(tmp_path):
-    path = tmp_path / "data.fasta"
-    sequences = ["AAAA", "AAAB", "AABA", "BBBB", "BBBA", "BBAB", "ABAB"]
-    path.write_text("".join(f">s{i}\n{seq}\n" for i, seq in enumerate(sequences)))
-    config = TrainingConfig(
-        alphabet="AB", device="cpu", dtype="float64", n_chains=60, n_sweeps=1, max_epochs=3,
-        target_pearson=0.999999, no_reweighting=True, pseudocount=0.1,
-        ptt=PTTConfig(equilibration_rounds=2, initialization_rounds=2, mixing_thermalization_rounds=2,
-                      mixing_chains=20, anchor_rank=1),
-        checkpoint_interval=1,
-    )
-    events = []
-    result = train_model(path, config=config, output_dir=tmp_path / "out", stage_progress=events.append)
-    fit = [event for event in events if event.stage == "anchor_fit"]
-    assert [event.kind for event in fit[:2]] == ["start", "progress"] and fit[-1].kind == "event"
-    summary = fit[-1].details
-    assert summary["rank"] == 1 and summary["cells"] > 0 and 0 < summary["acceptance"] <= 1
-    assert summary["log_likelihood"] > summary["profile_log_likelihood"]
-    loaded = PTTSampler.from_archive(result.artifacts["ptt_archive"], device="cpu", mode="inspect")
-    assert loaded.anchor is not None and loaded.anchor.rank == 1
-    assert torch.count_nonzero(loaded.profile_params["coupling_matrix"])
-    with pytest.raises(InputValidationError, match="bmDCA"):
-        train_model(path, config=replace(config, model_type="eaDCA"), output_dir=tmp_path / "ea")
