@@ -7,6 +7,8 @@ Optional Triton kernels for categorical GPU sampling.
 
 **Global Variables**
 ---------------
+- **triton**
+- **tl**
 - **SPARSE_MAX_DEGREE_FRACTION**
 
 ---
