@@ -704,4 +704,4 @@ def test_printed_precision_and_stop_follow_the_options(capsys):
     initialized.config = TrainingConfig(ptt=PTTConfig(validation_stop=True))
     _print_initialization(args, initialized)
     output = capsys.readouterr().out
-    assert "validation plateau (window 200 updates, minimum gain 0)" in output and "Pearson 0.95" not in output
+    assert "validation plateau (window 100 updates, minimum gain 0)" in output and "Pearson 0.95" not in output
