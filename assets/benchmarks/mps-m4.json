@@ -1,0 +1,400 @@
+{
+  "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+  "torch": "2.13.0",
+  "settings": {
+    "output": "/tmp/adabmdca-mps-final.json",
+    "repeats": 3,
+    "chains": 2000,
+    "sweeps": 10,
+    "training_steps": 20,
+    "training_chains": 2000,
+    "training_sweeps": 10,
+    "threads": 4,
+    "rna_train": "example_data/RF00379/splits/RF00379_train.fasta",
+    "rna_validation": "example_data/RF00379/splits/RF00379_validation.fasta",
+    "protein_train": "example_data/cm_russ_natural/splits/cm_russ_natural.train.fasta",
+    "protein_validation": "example_data/cm_russ_natural/splits/cm_russ_natural.test.fasta"
+  },
+  "families": {
+    "RF00379": {
+      "length": 136,
+      "q": 5,
+      "training_sequences": 3060,
+      "validation_sequences": 767,
+      "training": {
+        "numba_cpu": {
+          "seconds": 3.636144082993269,
+          "gradient_steps": 20,
+          "metrics": {
+            "Epochs": 20,
+            "Pearson": 0.13402536511421204,
+            "Slope": 0.023825984448194504,
+            "Pearson_val": 0.09826400876045227,
+            "Slope_val": 0.019131772220134735,
+            "Density": 1.0,
+            "Time": 3.5907089710235596,
+            "Sweeps": 200,
+            "Gradient_steps": 20,
+            "Structure_steps": 0,
+            "Stage": "optimization"
+          }
+        },
+        "metal_mps": {
+          "seconds": 1.6444919579662383,
+          "gradient_steps": 20,
+          "metrics": {
+            "Epochs": 20,
+            "Pearson": 0.13935443758964539,
+            "Slope": 0.024999652057886124,
+            "Pearson_val": 0.10119980573654175,
+            "Slope_val": 0.01988334208726883,
+            "Density": 1.0,
+            "Time": 1.595717191696167,
+            "Sweeps": 200,
+            "Gradient_steps": 20,
+            "Structure_steps": 0,
+            "Stage": "optimization"
+          }
+        },
+        "torch_mps": {
+          "seconds": 45.23935645900201,
+          "gradient_steps": 20,
+          "metrics": {
+            "Epochs": 20,
+            "Pearson": 0.13941094279289246,
+            "Slope": 0.024881448596715927,
+            "Pearson_val": 0.09886576235294342,
+            "Slope_val": 0.019325073808431625,
+            "Density": 1.0,
+            "Time": 45.188793897628784,
+            "Sweeps": 200,
+            "Gradient_steps": 20,
+            "Structure_steps": 0,
+            "Stage": "optimization"
+          }
+        }
+      },
+      "sampling": {
+        "gibbs": {
+          "numba_cpu": {
+            "median_seconds": 0.15637379104737192,
+            "seconds": [
+              0.153216665959917,
+              0.15637379104737192,
+              0.16527983301784843
+            ],
+            "changed_model": {
+              "median_seconds": 0.1644057920202613,
+              "seconds": [
+                0.15749362506903708,
+                0.16976937500294298,
+                0.1644057920202613
+              ]
+            }
+          },
+          "metal_mps": {
+            "median_seconds": 0.060254374984651804,
+            "seconds": [
+              0.059522833093069494,
+              0.060254374984651804,
+              0.061408375040628016
+            ],
+            "changed_model": {
+              "median_seconds": 0.055658708908595145,
+              "seconds": [
+                0.05743516702204943,
+                0.05492516700178385,
+                0.055658708908595145
+              ]
+            }
+          },
+          "torch_mps": {
+            "median_seconds": 0.20188054197933525,
+            "seconds": [
+              0.20244404091499746,
+              0.193708167062141,
+              0.20188054197933525
+            ],
+            "changed_model": null
+          }
+        },
+        "metropolis": {
+          "numba_cpu": {
+            "median_seconds": 0.06073849997483194,
+            "seconds": [
+              0.06117491703480482,
+              0.060436207917518914,
+              0.06073849997483194
+            ],
+            "changed_model": {
+              "median_seconds": 0.061194707988761365,
+              "seconds": [
+                0.061185958911664784,
+                0.061194707988761365,
+                0.061317124986089766
+              ]
+            }
+          },
+          "metal_mps": {
+            "median_seconds": 0.02414570900145918,
+            "seconds": [
+              0.02414570900145918,
+              0.023796542081981897,
+              0.024260250036604702
+            ],
+            "changed_model": {
+              "median_seconds": 0.023098958074115217,
+              "seconds": [
+                0.023495249915868044,
+                0.023098958074115217,
+                0.023014792008325458
+              ]
+            }
+          },
+          "torch_mps": {
+            "median_seconds": 0.20355224993545562,
+            "seconds": [
+              0.204239415936172,
+              0.19717420800589025,
+              0.20355224993545562
+            ],
+            "changed_model": null
+          }
+        },
+        "metropolized_gibbs": {
+          "numba_cpu": {
+            "median_seconds": 0.1746167920064181,
+            "seconds": [
+              0.16626929095946252,
+              0.1746167920064181,
+              0.20592500001657754
+            ],
+            "changed_model": {
+              "median_seconds": 0.17856074997689575,
+              "seconds": [
+                0.1844290419248864,
+                0.1671239580027759,
+                0.17856074997689575
+              ]
+            }
+          },
+          "metal_mps": {
+            "median_seconds": 0.05908637505490333,
+            "seconds": [
+              0.06238691695034504,
+              0.05734562501311302,
+              0.05908637505490333
+            ],
+            "changed_model": {
+              "median_seconds": 0.06239874998573214,
+              "seconds": [
+                0.05887979199178517,
+                0.06387050007469952,
+                0.06239874998573214
+              ]
+            }
+          },
+          "torch_mps": {
+            "median_seconds": 1.1130600409815088,
+            "seconds": [
+              1.1130600409815088,
+              1.105591707979329,
+              1.2119677499867976
+            ],
+            "changed_model": null
+          }
+        }
+      }
+    },
+    "cm_russ_natural": {
+      "length": 96,
+      "q": 21,
+      "training_sequences": 901,
+      "validation_sequences": 225,
+      "training": {
+        "numba_cpu": {
+          "seconds": 5.666777209029533,
+          "gradient_steps": 20,
+          "metrics": {
+            "Epochs": 20,
+            "Pearson": 0.02630527876317501,
+            "Slope": 0.0056109558790922165,
+            "Pearson_val": 0.011970355175435543,
+            "Slope_val": 0.002827035030350089,
+            "Density": 1.0,
+            "Time": 5.632932662963867,
+            "Sweeps": 200,
+            "Gradient_steps": 20,
+            "Structure_steps": 0,
+            "Stage": "optimization"
+          }
+        },
+        "metal_mps": {
+          "seconds": 2.8040965410182253,
+          "gradient_steps": 20,
+          "metrics": {
+            "Epochs": 20,
+            "Pearson": 0.022094618529081345,
+            "Slope": 0.004695094656199217,
+            "Pearson_val": 0.011787023395299911,
+            "Slope_val": 0.002773251151666045,
+            "Density": 1.0,
+            "Time": 2.7748332023620605,
+            "Sweeps": 200,
+            "Gradient_steps": 20,
+            "Structure_steps": 0,
+            "Stage": "optimization"
+          }
+        },
+        "torch_mps": {
+          "seconds": 54.94073787506204,
+          "gradient_steps": 20,
+          "metrics": {
+            "Epochs": 20,
+            "Pearson": 0.029347486793994904,
+            "Slope": 0.006269609555602074,
+            "Pearson_val": 0.01857241988182068,
+            "Slope_val": 0.004393044859170914,
+            "Density": 1.0,
+            "Time": 54.91038393974304,
+            "Sweeps": 200,
+            "Gradient_steps": 20,
+            "Structure_steps": 0,
+            "Stage": "optimization"
+          }
+        }
+      },
+      "sampling": {
+        "gibbs": {
+          "numba_cpu": {
+            "median_seconds": 0.22113037493545562,
+            "seconds": [
+              0.22113037493545562,
+              0.2202392079634592,
+              0.22262954199686646
+            ],
+            "changed_model": {
+              "median_seconds": 0.2254325420362875,
+              "seconds": [
+                0.22955449996516109,
+                0.2247227500192821,
+                0.2254325420362875
+              ]
+            }
+          },
+          "metal_mps": {
+            "median_seconds": 0.10015449998900294,
+            "seconds": [
+              0.0974218329647556,
+              0.10015449998900294,
+              0.10115908295847476
+            ],
+            "changed_model": {
+              "median_seconds": 0.10202649992424995,
+              "seconds": [
+                0.09949291602242738,
+                0.10202649992424995,
+                0.10281837498769164
+              ]
+            }
+          },
+          "torch_mps": {
+            "median_seconds": 0.29282145795878023,
+            "seconds": [
+              0.29282145795878023,
+              0.2900102080311626,
+              0.3004615409299731
+            ],
+            "changed_model": null
+          }
+        },
+        "metropolis": {
+          "numba_cpu": {
+            "median_seconds": 0.05199241708032787,
+            "seconds": [
+              0.051806500065140426,
+              0.05275458295363933,
+              0.05199241708032787
+            ],
+            "changed_model": {
+              "median_seconds": 0.05362112505827099,
+              "seconds": [
+                0.05456904100719839,
+                0.05264899996109307,
+                0.05362112505827099
+              ]
+            }
+          },
+          "metal_mps": {
+            "median_seconds": 0.11326383391860873,
+            "seconds": [
+              0.112799416994676,
+              0.12604054203256965,
+              0.11326383391860873
+            ],
+            "changed_model": {
+              "median_seconds": 0.10926258307881653,
+              "seconds": [
+                0.11076791700907052,
+                0.10926258307881653,
+                0.10440083302091807
+              ]
+            }
+          },
+          "torch_mps": {
+            "median_seconds": 0.31054012500680983,
+            "seconds": [
+              0.31054012500680983,
+              0.30438229197170585,
+              0.3151959590613842
+            ],
+            "changed_model": null
+          }
+        },
+        "metropolized_gibbs": {
+          "numba_cpu": {
+            "median_seconds": 0.24101254192646593,
+            "seconds": [
+              0.24070779199246317,
+              0.24101254192646593,
+              0.24123533302918077
+            ],
+            "changed_model": {
+              "median_seconds": 0.24576870806049556,
+              "seconds": [
+                0.24927662499248981,
+                0.24576870806049556,
+                0.2443254590034485
+              ]
+            }
+          },
+          "metal_mps": {
+            "median_seconds": 0.09895574999973178,
+            "seconds": [
+              0.10897041694261134,
+              0.09895574999973178,
+              0.09358874999452382
+            ],
+            "changed_model": {
+              "median_seconds": 0.10347987501882017,
+              "seconds": [
+                0.10347987501882017,
+                0.09594487503636628,
+                0.10718820907641202
+              ]
+            }
+          },
+          "torch_mps": {
+            "median_seconds": 2.3079273749608546,
+            "seconds": [
+              0.966447458951734,
+              2.3079273749608546,
+              3.93784795794636
+            ],
+            "changed_model": null
+          }
+        }
+      }
+    }
+  }
+}

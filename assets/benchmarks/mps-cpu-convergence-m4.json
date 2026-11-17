@@ -1,0 +1,240 @@
+{
+  "hardware": {
+    "model": "MacBook Air (Mac16,12)",
+    "chip": "Apple M4",
+    "cpu_cores": 10,
+    "performance_cores": 4,
+    "efficiency_cores": 6,
+    "gpu_cores": 8,
+    "unified_memory_gb": 16,
+    "cpu_threads": 4
+  },
+  "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+  "torch": "2.13.0",
+  "numba": "0.68.0",
+  "settings": {
+    "model_type": "bmDCA",
+    "strategy": "PCD",
+    "sampler": "metropolized_gibbs",
+    "dtype": "float32",
+    "n_chains": 2000,
+    "learning_rate": 0.01,
+    "seed": 0,
+    "reweighting_identity": 0.8,
+    "max_gradient_steps": 5000,
+    "sampling_sweeps": 10,
+    "sampling_repeats": 3,
+    "sampling_model": "CPU-trained final model at the requested target, reused on both devices",
+    "remove_duplicate_sequences": true
+  },
+  "families": {
+    "RF00379": {
+      "length": 136,
+      "q": 5,
+      "training_sequences": 2908,
+      "validation_sequences": 738,
+      "target_pearson": 0.952,
+      "n_sweeps": 10,
+      "training": {
+        "cpu": {
+          "wall_seconds": 488.69470991694834,
+          "training_seconds": 488.07519721984863,
+          "gradient_steps": 2221,
+          "metrics": {
+            "Epochs": 2221,
+            "Pearson": 0.9520367980003357,
+            "Slope": 0.9354687333106995,
+            "Pearson_val": 0.8035904169082642,
+            "Slope_val": 0.691209077835083,
+            "Density": 1.0,
+            "Time": 488.07519721984863,
+            "Sweeps": 22210,
+            "Gradient_steps": 2221,
+            "Structure_steps": 0,
+            "Stage": "optimization"
+          }
+        },
+        "mps": {
+          "wall_seconds": 149.46376708406024,
+          "training_seconds": 148.8074951171875,
+          "gradient_steps": 2226,
+          "metrics": {
+            "Epochs": 2226,
+            "Pearson": 0.952048122882843,
+            "Slope": 0.9431010484695435,
+            "Pearson_val": 0.8037616610527039,
+            "Slope_val": 0.6969887018203735,
+            "Density": 1.0,
+            "Time": 148.8074951171875,
+            "Sweeps": 22260,
+            "Gradient_steps": 2226,
+            "Structure_steps": 0,
+            "Stage": "optimization"
+          }
+        }
+      },
+      "sampling": {
+        "gibbs": {
+          "cpu": {
+            "median_seconds": 0.20720750000327826,
+            "seconds": [
+              0.20210291701368988,
+              0.20928820793051273,
+              0.20720750000327826
+            ]
+          },
+          "mps": {
+            "median_seconds": 0.05577191594056785,
+            "seconds": [
+              0.05556758295278996,
+              0.05577191594056785,
+              0.05845079105347395
+            ]
+          }
+        },
+        "metropolis": {
+          "cpu": {
+            "median_seconds": 0.06413087504915893,
+            "seconds": [
+              0.061097666970454156,
+              0.06413087504915893,
+              0.0654960839310661
+            ]
+          },
+          "mps": {
+            "median_seconds": 0.020952707971446216,
+            "seconds": [
+              0.020952707971446216,
+              0.021646499983035028,
+              0.020854457980021834
+            ]
+          }
+        },
+        "metropolized_gibbs": {
+          "cpu": {
+            "median_seconds": 0.2192369169788435,
+            "seconds": [
+              0.21647808304987848,
+              0.2192369169788435,
+              0.22138304205145687
+            ]
+          },
+          "mps": {
+            "median_seconds": 0.056743834051303566,
+            "seconds": [
+              0.057196374982595444,
+              0.056614667060784996,
+              0.056743834051303566
+            ]
+          }
+        }
+      },
+      "input_training_sequences": 3060,
+      "input_validation_sequences": 767
+    },
+    "cm_russ_natural": {
+      "length": 96,
+      "q": 21,
+      "training_sequences": 901,
+      "validation_sequences": 225,
+      "target_pearson": 0.918,
+      "n_sweeps": 10,
+      "training": {
+        "cpu": {
+          "wall_seconds": 844.1715387499426,
+          "training_seconds": 843.9825758934021,
+          "gradient_steps": 2314,
+          "metrics": {
+            "Epochs": 2314,
+            "Pearson": 0.9187113642692566,
+            "Slope": 0.8573873043060303,
+            "Pearson_val": 0.6047280430793762,
+            "Slope_val": 0.5167428851127625,
+            "Density": 1.0,
+            "Time": 843.9825758934021,
+            "Sweeps": 23140,
+            "Gradient_steps": 2314,
+            "Structure_steps": 0,
+            "Stage": "optimization"
+          }
+        },
+        "mps": {
+          "wall_seconds": 284.5156560409814,
+          "training_seconds": 284.36979699134827,
+          "gradient_steps": 2339,
+          "metrics": {
+            "Epochs": 2339,
+            "Pearson": 0.9180000424385071,
+            "Slope": 0.8713553547859192,
+            "Pearson_val": 0.6059197783470154,
+            "Slope_val": 0.5265997648239136,
+            "Density": 1.0,
+            "Time": 284.36979699134827,
+            "Sweeps": 23390,
+            "Gradient_steps": 2339,
+            "Structure_steps": 0,
+            "Stage": "optimization"
+          }
+        }
+      },
+      "sampling": {
+        "gibbs": {
+          "cpu": {
+            "median_seconds": 0.5940729579888284,
+            "seconds": [
+              0.48056745796930045,
+              0.5940729579888284,
+              0.6603859589667991
+            ]
+          },
+          "mps": {
+            "median_seconds": 0.12395124998874962,
+            "seconds": [
+              0.12395124998874962,
+              0.22206137503962964,
+              0.10698704095557332
+            ]
+          }
+        },
+        "metropolis": {
+          "cpu": {
+            "median_seconds": 0.08971054095309228,
+            "seconds": [
+              0.08971054095309228,
+              0.08620391599833965,
+              0.09128483396489173
+            ]
+          },
+          "mps": {
+            "median_seconds": 0.08540216705296189,
+            "seconds": [
+              0.08540216705296189,
+              0.0880205410066992,
+              0.08331474999431521
+            ]
+          }
+        },
+        "metropolized_gibbs": {
+          "cpu": {
+            "median_seconds": 0.48700512503273785,
+            "seconds": [
+              0.5044595840154216,
+              0.48700512503273785,
+              0.4049717909656465
+            ]
+          },
+          "mps": {
+            "median_seconds": 0.058560875011608005,
+            "seconds": [
+              0.057988209067843854,
+              0.058560875011608005,
+              0.061506708967499435
+            ]
+          }
+        }
+      },
+      "input_training_sequences": 901,
+      "input_validation_sequences": 225
+    }
+  }
+}
