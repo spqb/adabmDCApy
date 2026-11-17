@@ -2,12 +2,18 @@ name: GPU release gate
 
 on:
   push:
-    branches: [main, develop, agent-api]
+    branches: [main, develop]
     tags: ['v*']
   workflow_dispatch:
 
 permissions:
   contents: read
+
+# The self-hosted runner is often offline: keep at most one queued run per
+# branch, the newest, instead of a backlog that expires after 24 hours.
+concurrency:
+  group: gpu-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   gpu:

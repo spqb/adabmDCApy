@@ -2,19 +2,46 @@ name: Test adabmDCA
 
 on:
   push:
-    branches: [develop, main, agent-api]
+    branches: [develop, main]
     tags: ['v*']
   pull_request:
-    branches: [main, develop, agent-api]
+    branches: [main, develop]
   workflow_dispatch:
 
 permissions:
   contents: read
 
+# A newer push to the same branch or PR supersedes the running checks.
+concurrency:
+  group: test-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+    - name: ⬇️ Checkout repository
+      uses: actions/checkout@v4
+
+    - name: 🐍 Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
+    - name: 🧹 Ruff
+      run: |
+        python -m pip install "ruff>=0.9"
+        ruff check adabmDCA tests tools
+
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        # Oldest supported and the version used for development.
+        python-version: ['3.10', '3.12']
 
     steps:
     - name: ⬇️ Checkout repository
@@ -23,11 +50,15 @@ jobs:
     - name: 🐍 Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.10'
+        python-version: ${{ matrix.python-version }}
+        cache: pip
+        cache-dependency-path: pyproject.toml
 
     - name: 📦 Install dependencies
       run: |
         python -m pip install --upgrade pip
+        # The runner has no GPU: the CPU wheel avoids downloading the CUDA libraries.
+        python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
         python -m pip install -e . --group dev
 
     - name: 📂 Create test output directory
@@ -36,7 +67,42 @@ jobs:
     - name: 🧪 Run Python API and CLI unit tests
       run: python -m pytest -q --junitxml=test_outputs/pytest.xml
 
-    # Train bmDCA model (quick PCD smoke test with target=0.1)
+    # End-to-end smoke tests of the command line, kept tiny: they check that
+    # each command runs and writes its outputs, not the quality of the models.
+
+    # PTT is the default training strategy.
+    - name: 🧬 Train PTT model
+      run: |
+        adabmDCA train \
+          --data example_data/RF00379/splits/RF00379_train.fasta \
+          --validation example_data/RF00379/splits/RF00379_validation.fasta \
+          --output test_outputs/ \
+          --alphabet rna \
+          --target 0.1 \
+          --nepochs 20 \
+          --nchains 100 \
+          --label ptt_test \
+          --seed 42 \
+          --no-progress
+
+    - name: 🎲 Sample from PTT archive, with diagnostic plots
+      run: |
+        adabmDCA sample \
+          --path_params test_outputs/ptt_test_ptt.h5 \
+          --data example_data/RF00379/splits/RF00379_train.fasta \
+          --validation example_data/RF00379/splits/RF00379_validation.fasta \
+          --plot-sampling-logs \
+          --ngen 100 \
+          --ptt-max-rounds 50 \
+          --alphabet rna \
+          --output test_outputs/ptt_samples
+
+    - name: 🩺 Diagnose PTT run
+      run: |
+        adabmDCA diagnose test_outputs/ \
+          --label ptt_test \
+          --sampling test_outputs/ptt_samples/sampling.json
+
     - name: 🧬 Train bmDCA model
       run: |
         adabmDCA train \
@@ -51,9 +117,9 @@ jobs:
           --nsweeps 1 \
           --nchains 100 \
           --label bmDCA_test \
-          --seed 42
-    
-    # Test contacts prediction using bmDCA parameters
+          --seed 42 \
+          --no-progress
+
     - name: 🔗 Predict contacts (from bmDCA parameters)
       run: |
         adabmDCA contacts \
@@ -61,8 +127,7 @@ jobs:
           --output test_outputs/ \
           --label bmDCA_test \
           --alphabet rna
-    
-    # Test contacts prediction using data file (mean-field)
+
     - name: 🔗 Predict contacts (mean-field from data)
       run: |
         adabmDCA contacts \
@@ -70,8 +135,7 @@ jobs:
           --output test_outputs/ \
           --label mean_field_test \
           --alphabet rna
-    
-    # Test sampling from bmDCA model
+
     - name: 🎲 Sample from bmDCA model
       run: |
         adabmDCA sample \
@@ -84,8 +148,7 @@ jobs:
           --nmeasure 100 \
           --alphabet rna \
           --label sampling_test
-    
-    # Test energy computation
+
     - name: ⚡ Compute energies
       run: |
         adabmDCA energies \
@@ -93,8 +156,7 @@ jobs:
           --path_params test_outputs/bmDCA_test_params.dat.gz \
           --output test_outputs/ \
           --alphabet rna
-    
-    # Test DMS (Deep Mutational Scanning)
+
     - name: 🧪 Deep Mutational Scanning
       run: |
         adabmDCA dms \
@@ -102,8 +164,7 @@ jobs:
           --path_params test_outputs/bmDCA_test_params.dat.gz \
           --output test_outputs/ \
           --alphabet rna
-    
-    # Test thermodynamic integration (entropy computation)
+
     - name: 🌡️ Thermodynamic Integration (entropy)
       run: |
         adabmDCA entropy \
@@ -119,8 +180,7 @@ jobs:
           --nsweeps_theta 1 \
           --nsweeps_zero 1 \
           --label entropy_test
-    
-    # Train eaDCA model
+
     - name: 🧬 Train eaDCA model
       run: |
         adabmDCA train \
@@ -135,9 +195,9 @@ jobs:
           --nsweeps 1 \
           --nchains 100 \
           --label eaDCA_test \
-          --seed 42
-    
-    # Train edDCA model using bmDCA as starting point
+          --seed 42 \
+          --no-progress
+
     - name: 🧬 Train edDCA model (with bmDCA initialization)
       run: |
         adabmDCA train \
@@ -153,39 +213,32 @@ jobs:
           --path_params test_outputs/bmDCA_test_params.dat.gz \
           --path_chains test_outputs/bmDCA_test_chains.fasta \
           --label edDCA_test \
-          --seed 42
-    
-    # Verify output files were created
+          --seed 42 \
+          --no-progress
+
     - name: ✅ Verify output files
       run: |
-        echo "Checking bmDCA outputs..."
-        test -f test_outputs/bmDCA_test_params.dat.gz || (echo "Missing bmDCA params" && exit 1)
-        test -f test_outputs/bmDCA_test_chains.fasta || (echo "Missing bmDCA chains" && exit 1)
-        test -f test_outputs/bmDCA_test.log || (echo "Missing bmDCA log" && exit 1)
-        test -f test_outputs/bmDCA_test_history.csv || (echo "Missing bmDCA history" && exit 1)
-        test -f test_outputs/bmDCA_test_training.json || (echo "Missing bmDCA summary" && exit 1)
-        
-        echo "Checking eaDCA outputs..."
-        test -f test_outputs/eaDCA_test_params.dat.gz || (echo "Missing eaDCA params" && exit 1)
-        test -f test_outputs/eaDCA_test_chains.fasta || (echo "Missing eaDCA chains" && exit 1)
-        test -f test_outputs/eaDCA_test.log || (echo "Missing eaDCA log" && exit 1)
-        test -f test_outputs/eaDCA_test_history.csv || (echo "Missing eaDCA history" && exit 1)
-        test -f test_outputs/eaDCA_test_training.json || (echo "Missing eaDCA summary" && exit 1)
-        
-        echo "Checking edDCA outputs..."
-        test -f test_outputs/edDCA_test_params.dat.gz || (echo "Missing edDCA params" && exit 1)
-        test -f test_outputs/edDCA_test_chains.fasta || (echo "Missing edDCA chains" && exit 1)
-        test -f test_outputs/edDCA_test.log || (echo "Missing edDCA log" && exit 1)
-        test -f test_outputs/edDCA_test_history.csv || (echo "Missing edDCA history" && exit 1)
-        test -f test_outputs/edDCA_test_training.json || (echo "Missing edDCA summary" && exit 1)
-        
-        echo "All required output files exist! ✅"
-    
-    # Upload test artifacts
+        missing=0
+        for file in \
+          ptt_test_ptt.h5 ptt_test_params.dat.gz ptt_test_chains.fasta ptt_test.log \
+          ptt_test_history.csv ptt_test_training.json \
+          ptt_samples/samples.fasta ptt_samples/sampling.json \
+          ptt_samples/ptt_renewal.png ptt_samples/ptt_ladder_health.png ptt_samples/distances.png \
+          bmDCA_test_params.dat.gz bmDCA_test_chains.fasta bmDCA_test.log \
+          bmDCA_test_history.csv bmDCA_test_training.json \
+          eaDCA_test_params.dat.gz eaDCA_test_chains.fasta eaDCA_test.log \
+          eaDCA_test_history.csv eaDCA_test_training.json \
+          edDCA_test_params.dat.gz edDCA_test_chains.fasta edDCA_test.log \
+          edDCA_test_history.csv edDCA_test_training.json
+        do
+          test -f "test_outputs/$file" || { echo "Missing $file"; missing=1; }
+        done
+        exit $missing
+
     - name: 📤 Upload test outputs
       uses: actions/upload-artifact@v4
       if: always()
       with:
-        name: test-outputs
+        name: test-outputs-py${{ matrix.python-version }}
         path: test_outputs/
         retention-days: 7

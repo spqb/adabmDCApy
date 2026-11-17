@@ -16,10 +16,10 @@ def encode_sequence(sequence: Union[str, Iterable[str]], tokens: str) -> np.ndar
     Returns:
         np.ndarray: Array of shape (L,) or (batch_size, L) with the encoded sequence or sequences.
     """
-    letter_map = {l : n for n, l in enumerate(tokens)}
+    letter_map = {token: n for n, token in enumerate(tokens)}
     
     def _encode(sequence):
-        return [letter_map[l] for l in sequence]
+        return [letter_map[token] for token in sequence]
     
     if isinstance(sequence, str):
         return np.array(_encode(sequence))

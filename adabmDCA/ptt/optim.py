@@ -7,7 +7,6 @@ import math
 import torch
 
 from adabmDCA.exceptions import InputValidationError
-from adabmDCA.graph import compute_Dkl_edge_activation
 from adabmDCA.ptt.precision import accumulation_dtype, device_accumulation, diagnostic_double
 from adabmDCA.statmech import compute_energy
 

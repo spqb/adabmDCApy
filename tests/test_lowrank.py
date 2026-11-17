@@ -107,7 +107,6 @@ def test_products_from_the_sequences_match_the_pair_matrix(device):
 
 
 def test_initial_patterns_are_the_top_modes_of_the_correlation_matrix():
-    generator = torch.Generator().manual_seed(7)
     model = random_low_rank(12, 3, 2, scale=0.6, seed=8)
     torch.manual_seed(7)
     states = model.sample(5000)
