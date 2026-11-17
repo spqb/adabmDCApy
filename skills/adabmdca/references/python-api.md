@@ -110,7 +110,7 @@ res.sequences, res.energies, res.to_dataframe()             # sequence, energy, 
 res.local_lambda_fit                                        # slope, intercept, R² of energy vs CDE
 res.ptt_diagnostics["converged"], res.ptt_diagnostics["final_pearson"]
 res.save_bundle("samples")                                  # FASTA, CSV, JSON, logs
-res.save_diagnostic_plots("samples")                        # the --plot figures
+res.save_diagnostic_plots("samples")                        # the --plot-sampling-logs figures
 res.to_ladder_hdf5("samples/ladder_samples.h5")             # needs ptt_return_full_ladder=True
 ```
 

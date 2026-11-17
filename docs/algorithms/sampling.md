@@ -1,6 +1,6 @@
 # Sampling
 
-Generating sequences from a Potts model means running Markov chains until they forget where they started, then reading their states. The hard part is knowing when that has happened. This page describes the local moves, the two sampling strategies and how each decides it is done, and how to read the plots `sample --plot` produces.
+Generating sequences from a Potts model means running Markov chains until they forget where they started, then reading their states. The hard part is knowing when that has happened. This page describes the local moves, the two sampling strategies and how each decides it is done, and how to read the plots `sample --plot-sampling-logs` produces.
 
 ## Local moves
 

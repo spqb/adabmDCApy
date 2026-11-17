@@ -22,7 +22,7 @@ Protocol, per family, with default settings except `--nsweeps 100` for cm_russ_n
 1. bmDCA with **PTT** and the validation set, stopping at the validation plateau;
 2. bmDCA with **PCD**, with `--target` set to the training Pearson the PTT run ended with;
 3. **edgeDCA** with PCD at the same target;
-4. 2,000 sequences from each model: PTT sampling and plain MCMC for the PTT model, plain MCMC for the others, with `--plot` and the validation set as `-v`;
+4. 2,000 sequences from each model: PTT sampling and plain MCMC for the PTT model, plain MCMC for the others, with `--plot-sampling-logs` and the validation set as `-v`;
 5. \(\log Z\) of every model by thermodynamic integration, so that PCD models also get a validation likelihood;
 6. for the bmDCA models of RF00379, RF00023, beta_lactamase, LBD and bkace, 50,000 sweeps of plain MCMC started from the PTT samples and from training sequences ([Equilibrium of the trained models](#equilibrium-of-the-trained-models)).
 

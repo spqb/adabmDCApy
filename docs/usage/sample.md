@@ -3,16 +3,16 @@
 Sample a PTT-trained model through the ladder saved in its archive:
 
 ```bash
-adabmDCA sample -p model/ptt.h5 -d train.fasta -v validation.fasta --plot -o samples
+adabmDCA sample -p model/ptt.h5 -d train.fasta -v validation.fasta --plot-sampling-logs -o samples
 ```
 
 Sample any model, including a PCD-trained one, with plain Markov chain Monte Carlo:
 
 ```bash
-adabmDCA sample --strategy pcd -p model/params.dat.gz -d train.fasta --plot -o samples_mcmc
+adabmDCA sample --strategy pcd -p model/params.dat.gz -d train.fasta --plot-sampling-logs -o samples_mcmc
 ```
 
-Both commands also **check the model**: they verify that the chains have equilibrated and compare the generated sequences with the natural ones. Sampling is the main way to validate a trained model, so run it with `--plot` and a held-out set at least once for every model you intend to use.
+Both commands also **check the model**: they verify that the chains have equilibrated and compare the generated sequences with the natural ones. Sampling is the main way to validate a trained model, so run it with `--plot-sampling-logs` and a held-out set at least once for every model you intend to use.
 
 ## How each strategy decides it is done
 
@@ -30,8 +30,8 @@ The mixing time is measured from natural sequences, so it cannot see states that
 | `-o`, `--output` | required | Output folder |
 | `--ngen` | chains per model in training (PTT), 2048 (plain MCMC) | Number of sequences |
 | `-d`, `--data` | none (required for PTT) | Natural alignment used as reference for mixing, comparisons and likelihoods; normally the training set |
-| `-v`, `--validation` | none | Held-out alignment, normally the validation set of training. With `--plot`, enables the overfitting checks (`--test` is an older alias) |
-| `--plot` | off | Write the diagnostic figures. Requires `-d` |
+| `-v`, `--validation` | none | Held-out alignment, normally the validation set of training. With `--plot-sampling-logs`, enables the overfitting checks (`--test` is an older alias) |
+| `--plot-sampling-logs` | off | Write the diagnostic figures. Requires `-d` |
 | `--strategy` | `ptt` | `ptt` or `pcd` |
 | `--ptt-local-sweeps` | 10 | Local sweeps per replica per exchange round |
 | `--ptt-local-kernel` | `metropolized_gibbs` | Local move; `archived` keeps the one used in training |
@@ -64,7 +64,7 @@ Samples and summary at the top of the output folder:
 | `sampling.json` | Settings, mixing outcome, all diagnostics as numbers |
 | `ladder_samples.h5` | With `--ptt-return-full-ladder`: `--ngen` samples of every ladder model, from the profile (first) to the endpoint (last), drawn at the same rounds. Datasets `sequences` (token indices, models × sequences × sites, tokens in the `tokens` attribute), `energies` (each under its own model) and `models/` (the columns of `ptt.log`) |
 
-Figures, with `--plot`:
+Figures, with `--plot-sampling-logs`:
 
 | Figure | Shows | Strategy |
 | --- | --- | --- |

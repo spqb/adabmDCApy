@@ -19,7 +19,7 @@ def create_parser() -> argparse.ArgumentParser:
     parser.add_argument("-l", "--label", type=str, default=None, help="The run's label (train -l), if any.")
     parser.add_argument(
         "-s", "--sampling", type=str, default=None,
-        help="sampling.json written by 'adabmDCA sample --plot' on this model, to check the finished model.",
+        help="sampling.json written by 'adabmDCA sample --plot-sampling-logs' on this model, to check the finished model.",
     )
     parser.add_argument("--json", action="store_true", help="Print the full report as JSON.")
     return parser

@@ -64,7 +64,7 @@ One object per line with `event`, `step`, `utc`, `sweeps` and event-specific fie
 | `sampling.json` | Settings, mixing outcome, every diagnostic as numbers |
 | `ladder_samples.h5` | With `--ptt-return-full-ladder` |
 | `logs/` | `mix.log`, `sampling.log`, `data_vs_samples.log`, `distances.log`; PTT: `ptt.log`, `ptt_renewal.log`, `ptt_ladder_health.log`, `ptt_replicas.log` |
-| `*.png` | With `--plot`; see [cli.md](cli.md#sample) |
+| `*.png` | With `--plot-sampling-logs`; see [cli.md](cli.md#sample) |
 
 `sampling.json` → `data` keys: `sequences`, `energies`, `cde_sum`, `num_sweeps`, `sampler`, `seed`, `model`, `local_lambda_fit` (slope λ, intercept, R² of energy vs CDE), `data_comparison`, `distance_comparison`, `mixing_history`, `sampling_history`, `warnings`, and for PTT `ptt_diagnostics` with `converged`, `final_pearson`, `final_slope`, `mixing`, `ladder_health`, `models`, `timings_seconds`.
 

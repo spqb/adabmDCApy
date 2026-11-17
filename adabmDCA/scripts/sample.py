@@ -75,7 +75,7 @@ def run(args, *, progress=None):
         weights_path=args.weights,
         clustering_seqid=args.clustering_seqid,
         no_reweighting=args.no_reweighting,
-        collect_diagnostics=args.plot,
+        collect_diagnostics=args.plot_sampling_logs,
         ptt_return_full_ladder=args.ptt_return_full_ladder,
         progress=progress,
     )
@@ -95,7 +95,7 @@ def main(args=None) -> int:
     finally:
         renderer.close()
     artifacts = result.save_bundle(args.output, label=args.label)
-    if args.plot:
+    if args.plot_sampling_logs:
         artifacts.update(result.save_diagnostic_plots(args.output, label=args.label))
     converged = not result.ptt_diagnostics or result.ptt_diagnostics["mixing"]["status"] == "converged"
     print_completion(
@@ -156,7 +156,7 @@ def _configuration(args) -> dict:
         "seed": args.seed,
         "device": args.device,
         "dtype": _dtype_label(args, ptt),
-        "plots": args.plot,
+        "plots": args.plot_sampling_logs,
     }
 
 

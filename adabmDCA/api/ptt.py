@@ -163,7 +163,7 @@ def sample_ptt_sequences(
     if reference_fasta is None:
         raise InputValidationError("PTT sampling requires reference_fasta (--data) for ladder log-likelihoods.")
     if test_fasta is not None and not collect_diagnostics:
-        raise InputValidationError("test_fasta is used only with collect_diagnostics=True (CLI: --plot).")
+        raise InputValidationError("test_fasta is used only with collect_diagnostics=True (CLI: --plot-sampling-logs).")
     if steering_potential is not None:
         from adabmDCA.api.sampling import _validate_steering_strength
 

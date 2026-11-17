@@ -32,7 +32,7 @@ family.sto ─preprocess─► family.fasta ─split-data─► train + test
                                                        │
                                    model/params.dat.gz + model/ptt.h5 + logs
                                                        │
-            sample --plot (validate) ─► energies · dms · contacts · entropy
+            sample --plot-sampling-logs (validate) ─► energies · dms · contacts · entropy
 ```
 
 ```bash
@@ -46,7 +46,7 @@ adabmDCA split-data family family.fasta
 adabmDCA train -d family.train.fasta -v family.test.fasta -o model --ptt-anchor
 
 # 4. Validate the model by sampling it, with diagnostic plots
-adabmDCA sample -p model/ptt.h5 -d family.train.fasta -v family.test.fasta --plot -o samples
+adabmDCA sample -p model/ptt.h5 -d family.train.fasta -v family.test.fasta --plot-sampling-logs -o samples
 
 # 5. Use it
 adabmDCA energies -d sequences.fasta -p model/params.dat.gz -o energies
@@ -62,7 +62,7 @@ Skip steps 1–2 when the user already has a clean aligned FASTA and a validatio
 1. **Training and sampling are long jobs.** PTT training takes minutes for small RNA families and hours for protein families of 200–300 positions, even on a GPU. Run them in the background with output redirected to a file (`> train.out 2>&1`), and follow `model/history.csv`, `model/events.jsonl` and `grep '»' model/adabmDCA.log` instead of the terminal. Add `--no-progress` to `train` so the redirected output stays readable. For a quick check of a pipeline, cap the budget with `--max-gradient-steps 100`, and say the result is not converged.
 2. **No time limit option: use `timeout -s INT`.** `adabmDCA train` has no option to stop after a given time. When the user asks for one, wrap the command, e.g. `timeout -s INT 2h adabmDCA train …` (`timeout` then exits with 124). Send SIGINT, as Ctrl-C does: the run stops cleanly and its log ends with `status: interrupted`. Plain `timeout` sends SIGTERM, which kills the run without closing its log. Either way the folder keeps the model of the last checkpoint (`params.dat.gz`, `chains.fasta`, `ptt.h5`, at most `--checkpoint-interval` updates old) but no `training.json`: report it as not converged, run `adabmDCA diagnose model` (verdict `incomplete`), and continue with `--ptt-resume model/ptt.h5` if the user wants. In Python, pass `is_cancelled` (see [references/python-api.md](references/python-api.md)). Sampling has no time limit either; bound it with `--ptt-max-rounds` or `--max_nsweeps`.
 3. **Never overwrite a previous run.** Use a new `-o` folder (or `-l label`) per run. Only `--ptt-resume` reuses a folder, deliberately.
-4. **A finished training run is not a validated model.** Always read `training.json` → `data.stop_reason` and `data.converged`, then sample the model with `--plot` and a held-out set, and run `adabmDCA diagnose model -s check/sampling.json`, which compares the sampled Pearson with training and flags known failures. See [references/diagnostics.md](references/diagnostics.md).
+4. **A finished training run is not a validated model.** Always read `training.json` → `data.stop_reason` and `data.converged`, then sample the model with `--plot-sampling-logs` and a held-out set, and run `adabmDCA diagnose model -s check/sampling.json`, which compares the sampled Pearson with training and flags known failures. See [references/diagnostics.md](references/diagnostics.md).
 5. **Prefer PTT, use PCD to explore.** `--strategy pcd` is 9 to 41 times faster but nothing checks that its chains stay at equilibrium; on clustered protein families PCD models could not be sampled correctly. Train the model the user will rely on with PTT (the CLI default).
 6. **Python defaults differ from the CLI.** `train_model` uses PCD unless `ptt=PTTConfig(...)` is passed; the validation stop needs `PTTConfig(validation_stop=True)`; `sample_sequences` uses plain MCMC unless `ptt=True`; workflow functions default to `alphabet="protein"` (only `load_alignment` and `load_model` on `ptt.h5` detect it).
 7. **Alphabets.** Detection tries DNA, then RNA, then protein. An RNA alignment without any `U` is read as DNA: pass `--alphabet rna`. For custom symbols pass the ordered token string (e.g. `--alphabet ABCD-`) and use the same string in every command that reads that model.

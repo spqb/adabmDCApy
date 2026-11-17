@@ -294,7 +294,7 @@ def add_args_ptt(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
                         help=("Stop when the validation log-likelihood per site plateaus instead of at --target; "
                               "requires --validation. Default: on when --validation is given, off otherwise."))
     ptt_args.add_argument("--ptt-validation-window", type=int, default=None,
-                        help="Validation stop: updates per window of the compared medians (default: 200).")
+                        help="Validation stop: updates per window of the compared medians (default: 100).")
     ptt_args.add_argument("--ptt-validation-min-gain", type=float, default=None,
                         help=("Validation stop: stop when the median validation log-likelihood per site of the last "
                               "window exceeds that of the window before by less than this (default: 0)."))
@@ -561,7 +561,7 @@ def add_args_sample(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     reference_args.add_argument(
         "-v", "--validation", "--test", dest="test", metavar="FASTA", type=str, default=None,
         help=("Held-out alignment, e.g. the validation set used in training (--test is an older alias). "
-              "Used with --plot: its distances to the nearest --data sequence are the yardstick for those of "
+              "Used with --plot-sampling-logs: its distances to the nearest --data sequence are the yardstick for those of "
               "the generated sequences in distances.png (overfitting check); it also enables the PRIVET "
               "test (beta). Without it, only distances to and within --data are plotted."),
     )
@@ -574,7 +574,7 @@ def add_args_sample(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
 
     report_args = parser.add_argument_group("Reporting")
     report_args.add_argument(
-        "--plot", action="store_true",
+        "--plot-sampling-logs", action="store_true",
         help=(
             "Save mixing/renewal, final Cij scatter, and natural-versus-generated PCA plots; "
             "standard sampling also saves its Pearson trajectory. Requires a reference alignment supplied with --data."

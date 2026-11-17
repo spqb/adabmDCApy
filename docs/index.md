@@ -20,7 +20,7 @@ uv tool install adabmDCA                                   # or: python -m pip i
 adabmDCA split-data family family.fasta                    # 80/20 homology-aware split
 adabmDCA train  -d family.train.fasta -v family.test.fasta -o model
 adabmDCA sample -p model/ptt.h5 -d family.train.fasta -v family.test.fasta \
-                --plot -o samples
+                --plot-sampling-logs -o samples
 ```
 
 The first command keeps close homologues on the same side of the split. The second trains a fully connected model and stops when the likelihood of the held-out sequences no longer improves. The third generates 2,000 sequences from the trained model, checks that the sampler has equilibrated, and writes a set of diagnostic plots comparing them with the natural sequences. [Use the package](usage/index.md) walks through each step.

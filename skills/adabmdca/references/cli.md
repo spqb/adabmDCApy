@@ -75,7 +75,7 @@ PTT has about thirty `--ptt-*` options; the defaults rarely need changing. The o
 | `--ptt-anchor` | off | bmDCA from scratch: start the ladder at the anchor, a tractable model fitted to the data, instead of the profile. Recommended: fewer ladder models, faster sampling |
 | `--ptt-anchor-rank` | 2 | Rank of the anchor, 1 to 3 (needs `--ptt-anchor`); 3 for RNA and short proteins, see SKILL.md |
 | `--ptt-validation-stop` / `--no-ptt-validation-stop` | on with `-v` | Stop at the validation plateau |
-| `--ptt-validation-window` | 200 | Updates per compared window |
+| `--ptt-validation-window` | 100 | Updates per compared window |
 | `--ptt-validation-min-gain` | 0 | Minimal gain between windows |
 | `--ptt-target-acceptance` | 0.25 | Swap acceptance that triggers a snapshot insertion |
 | `--ptt-optimizer` | `adaptive` | `sgd` uses the fixed `--lr` |
@@ -112,10 +112,10 @@ Outputs (in `-o`): `params.dat.gz`, `chains.fasta`, `weights.dat`, `history.csv`
 
 ```bash
 # Default whenever the training folder has a ptt.h5: PTT through the archived ladder; -d is required
-adabmDCA sample -p model/ptt.h5 -d train.fasta -v validation.fasta --plot -o samples
+adabmDCA sample -p model/ptt.h5 -d train.fasta -v validation.fasta --plot-sampling-logs -o samples
 
 # Plain MCMC: only when there is no ptt.h5 (PCD-trained or imported models), or as a cross-check
-adabmDCA sample --strategy pcd -p model/params.dat.gz -d train.fasta --plot -o samples_mcmc
+adabmDCA sample --strategy pcd -p model/params.dat.gz -d train.fasta --plot-sampling-logs -o samples_mcmc
 ```
 
 | Option | Default | Meaning |
@@ -125,7 +125,7 @@ adabmDCA sample --strategy pcd -p model/params.dat.gz -d train.fasta --plot -o s
 | `--ngen` | training chains per model (PTT), 2048 (MCMC) | Number of sequences |
 | `-d`, `--data` | required for PTT | Reference alignment, normally the training set |
 | `-v`, `--validation` | none | Held-out set: enables the memorization checks (`distances.png`, PRIVET) |
-| `--plot` | off | Diagnostic figures; requires `-d` |
+| `--plot-sampling-logs` | off | Diagnostic figures; requires `-d` |
 | `--ptt-return-full-ladder` | off | Also write `ladder_samples.h5`: `--ngen` samples of every ladder model, profile first, endpoint last |
 | `--ptt-stationary` | off | Renew the ladder a second time (about twice the cost) |
 | `--ptt-max-rounds` | 20000 | Budget of exchange rounds |
@@ -139,7 +139,7 @@ adabmDCA sample --strategy pcd -p model/params.dat.gz -d train.fasta --plot -o s
 
 Sample as many sequences as training chains when comparing Pearson with training (the PTT default does this).
 
-Outputs: `samples.fasta`, `samples.csv` (`name, sequence, energy, cde_sum`, plus PRIVET columns with `-v`), `sampling.json`, `logs/` (`ptt.log` has log Z, mean energy, entropy and data log-likelihood of every ladder model), and with `--plot`: `cij_scatter.png`, `pca_1_2.png`, `pca_3_4.png`, `data_vs_samples.png`, `distances.png`, `energy_vs_cde.png`, plus `ptt_renewal.png`, `ptt_ladder_health.png` (PTT) or `autocorrelation.png`, `pearson_sampling.png` (MCMC).
+Outputs: `samples.fasta`, `samples.csv` (`name, sequence, energy, cde_sum`, plus PRIVET columns with `-v`), `sampling.json`, `logs/` (`ptt.log` has log Z, mean energy, entropy and data log-likelihood of every ladder model), and with `--plot-sampling-logs`: `cij_scatter.png`, `pca_1_2.png`, `pca_3_4.png`, `data_vs_samples.png`, `distances.png`, `energy_vs_cde.png`, plus `ptt_renewal.png`, `ptt_ladder_health.png` (PTT) or `autocorrelation.png`, `pearson_sampling.png` (MCMC).
 
 ## energies
 

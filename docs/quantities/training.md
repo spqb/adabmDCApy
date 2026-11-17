@@ -132,7 +132,7 @@ As \(\alpha \to 1\) both frequencies tend to \(1/q^2\) and the step vanishes; th
 
 **Pearson target.** Stop when `pearson` ≥ `--target` (0.95).
 
-**Validation plateau.** With validation log-likelihoods \(\ell_t\) at accepted updates and a window \(w\) (`--ptt-validation-window`, 200), after at least \(2w\) updates compute
+**Validation plateau.** With validation log-likelihoods \(\ell_t\) at accepted updates and a window \(w\) (`--ptt-validation-window`, 100), after at least \(2w\) updates compute
 
 \[
 g_t = \operatorname{median}(\ell_{t-w+1},\dots,\ell_t) - \operatorname{median}(\ell_{t-2w+1},\dots,\ell_{t-w}),

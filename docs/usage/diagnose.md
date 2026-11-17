@@ -8,7 +8,7 @@ adabmDCA diagnose model -s check/sampling.json           # with the check of the
 adabmDCA diagnose model -l run1 --json                   # a labelled run, full report as JSON
 ```
 
-It reads `history.csv`, `events.jsonl`, `training.json` and the log of the run in the folder (with `-l`, the files prefixed by that label), and, with `-s`, the `sampling.json` written by `adabmDCA sample --plot` on the finished model. It prints a verdict and the findings behind it:
+It reads `history.csv`, `events.jsonl`, `training.json` and the log of the run in the folder (with `-l`, the files prefixed by that label), and, with `-s`, the `sampling.json` written by `adabmDCA sample --plot-sampling-logs` on the finished model. It prints a verdict and the findings behind it:
 
 | Verdict | Meaning |
 | --- | --- |

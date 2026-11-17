@@ -220,7 +220,7 @@ A pinned `kl` alone is not a symptom, nor is the field rate at its floor with `-
 
 A run can finish cleanly and still produce a model that does not match its own metrics (F6). Before relying on a model:
 
-1. Sample it: `adabmDCA sample -p model/ptt.h5 -d train.fasta -v validation.fasta --plot -o check`.
+1. Sample it: `adabmDCA sample -p model/ptt.h5 -d train.fasta -v validation.fasta --plot-sampling-logs -o check`.
 2. Compare the sampled Pearson (`sampling.json` → `ptt_diagnostics.final_pearson`, also in the summary) with the last training Pearson, at the same number of sequences as training chains. A drop larger than about 0.01 deserves attention.
 3. Look at `ptt_ladder_health.png`: links whose trapped-configuration bar exceeds 2, carried by more than a handful of configurations, hold configurations that stay stuck above them.
 4. Look at `pca_1_2.png` and `data_vs_samples.png`: clusters whose share in the samples is far from ×1 are regions the model or its sampling mis-weights.
@@ -231,7 +231,7 @@ A run can finish cleanly and still produce a model that does not match its own m
 
 ### Checking a PCD model
 
-A PCD model has no ladder, so it can only be sampled with plain MCMC. Run `adabmDCA sample --strategy pcd -p model_pcd/params.dat.gz -d train.fasta --plot --max_nsweeps 10000`, then check:
+A PCD model has no ladder, so it can only be sampled with plain MCMC. Run `adabmDCA sample --strategy pcd -p model_pcd/params.dat.gz -d train.fasta --plot-sampling-logs --max_nsweeps 10000`, then check:
 
 1. **The shape of `pearson_sampling.png`.** The Pearson with the data should rise and settle on a plateau. If it rises above its final level and then declines, the model was trained out of equilibrium. It reproduces the data only during a transient of the sampler, and its equilibrium samples are worse than what training reported. In the benchmarks this happened only with PCD-trained models, including one (RF00023) whose resampling reached its mixing time ([details](benchmarks.md#out-of-equilibrium-training-seen-in-resampling)). Retrain with PTT.
 2. **The mixing time.** The run should report one instead of hitting `--max_nsweeps`. If it hits the budget, the samples are not at equilibrium and the model cannot be validated; on three benchmark protein families this was the case for every PCD model. Retrain with PTT.

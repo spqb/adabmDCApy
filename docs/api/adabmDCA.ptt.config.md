@@ -104,7 +104,7 @@ __init__(
     lag_horizon: 'int' = 200,
     lag_pause_rounds: 'int' = 100,
     validation_stop: 'bool' = False,
-    validation_window: 'int' = 200,
+    validation_window: 'int' = 100,
     validation_min_gain: 'float' = 0.0,
     activation: 'str' = 'fixed',
     activation_kl_share: 'float' = 0.5,

@@ -146,7 +146,7 @@ result.sequences, result.energies
 df = result.to_dataframe()                                 # sequence, energy, cde_sum
 result.local_lambda_fit                                    # slope, intercept, R² of energy vs CDE
 result.save_bundle("samples")                              # FASTA, CSV, JSON, logs
-result.save_diagnostic_plots("samples")                    # the --plot figures
+result.save_diagnostic_plots("samples")                    # the --plot-sampling-logs figures
 ```
 
 For plain MCMC, pass a `DCAModel` or a parameter file and leave `ptt=False`; `n_sweeps` then bounds the mixing-time measurement and `mixing_multiplier` (default 2) sets the generation length in mixing times.

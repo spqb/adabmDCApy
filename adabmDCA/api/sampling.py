@@ -640,7 +640,7 @@ def sample_sequences(
     if collect_diagnostics and reference_fasta is None:
         raise InputValidationError("reference_fasta is required when collect_diagnostics=True.")
     if test_fasta is not None and not collect_diagnostics:
-        raise InputValidationError("test_fasta is used only with collect_diagnostics=True (CLI: --plot).")
+        raise InputValidationError("test_fasta is used only with collect_diagnostics=True (CLI: --plot-sampling-logs).")
     if sampler not in {"gibbs", "metropolis", "metropolized_gibbs"}:
         raise InputValidationError("sampler must be 'gibbs', 'metropolis' or 'metropolized_gibbs'.")
     if dtype not in {"float32", "float64", "bfloat16"}:

@@ -44,7 +44,7 @@ Outputs: `entropy.log`, `entropy.csv` (the integration path: step, field, runnin
 On six benchmark families, \(\log Z\) from the PTT bridge and from thermodynamic integration agreed within 0.015 nats per site, the size of a typical difference between two good models. Two caveats:
 
 - **Thermodynamic integration requires chains that mix.** For models whose chains do not equilibrate, it returns meaningless values: on sparse models that failed to mix, it gave \(\log Z\) of \(10^2\)–\(10^4\) and absurd likelihoods. Check mixing with [`sample`](sample.md) before trusting an integration result.
-- **The PTT estimate is only as good as the ladder.** Poor overlap between neighbouring models makes the bridge noisy. `sample` with `--plot` reports the forward, reverse and BAR estimates of every link with bootstrap errors in `ptt_ladder_health.log`; large disagreements flag a weak link.
+- **The PTT estimate is only as good as the ladder.** Poor overlap between neighbouring models makes the bridge noisy. `sample` with `--plot-sampling-logs` reports the forward, reverse and BAR estimates of every link with bootstrap errors in `ptt_ladder_health.log`; large disagreements flag a weak link.
 
 Both values are in nats **per sequence**. Training logs report log-likelihoods **per site** (divided by \(L\)).
 

@@ -114,7 +114,7 @@ class CliTests(unittest.TestCase):
             original = archive.read_bytes()
             result = run_cli("sample", "--strategy", "ptt", "-p", str(archive), "--data", str(reference),
                              "-o", str(workspace / "generated"), "--ngen", "23", "--label", "check",
-                             "--max_nsweeps", "1", "--device", "cpu", "--plot", "--no_reweighting")
+                             "--max_nsweeps", "1", "--device", "cpu", "--plot-sampling-logs", "--no_reweighting")
             self.assertEqual(result.returncode, 0, result.stderr)
             output = workspace / "generated"
             self.assertEqual((output / "check_samples.fasta").read_text().count(">sequence "), 23)
@@ -381,7 +381,7 @@ class CliTests(unittest.TestCase):
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("bfloat16", result.stdout)
-        self.assertIn("--plot", result.stdout)
+        self.assertIn("--plot-sampling-logs", result.stdout)
 
     def test_sample_plot_option_writes_all_diagnostics(self):
         import torch
@@ -425,7 +425,7 @@ class CliTests(unittest.TestCase):
                 "--device",
                 "cpu",
                 "--no_reweighting",
-                "--plot",
+                "--plot-sampling-logs",
             )
 
             self.assertEqual(completed.returncode, 0, completed.stderr)

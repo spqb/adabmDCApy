@@ -68,7 +68,7 @@ D=example_data/RF00379/splits
 adabmDCA train -d $D/RF00379_train.fasta -v $D/RF00379_validation.fasta -o model
 
 # Generate sequences, check that sampling equilibrated, and plot the diagnostics
-adabmDCA sample -p model/ptt.h5 -d $D/RF00379_train.fasta -v $D/RF00379_validation.fasta --plot -o samples
+adabmDCA sample -p model/ptt.h5 -d $D/RF00379_train.fasta -v $D/RF00379_validation.fasta --plot-sampling-logs -o samples
 
 # Use the model
 adabmDCA contacts -p model/params.dat.gz -o contacts
@@ -79,7 +79,7 @@ adabmDCA entropy  -p model/ptt.h5 -o entropy
 
 For your own alignment, `adabmDCA preprocess` cleans FASTA or Stockholm files, and `adabmDCA split-data family family.fasta` creates a training/validation split that keeps close homologues on the same side.
 
-A finished training run is not yet a validated model. Read the plots written by `sample --plot`: the generated sequences should reproduce the training Pearson and cover every cluster of the data. `adabmDCA <command> --help` lists every option of a command.
+A finished training run is not yet a validated model. Read the plots written by `sample --plot-sampling-logs`: the generated sequences should reproduce the training Pearson and cover every cluster of the data. `adabmDCA <command> --help` lists every option of a command.
 
 ## Python API
 

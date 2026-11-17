@@ -39,8 +39,8 @@ adabmDCA train --strategy pcd -m edDCA -d family.train.fasta -o model_ed    # de
 adabmDCA train -d family.train.fasta -o model --ptt-resume model/ptt.h5 --max-gradient-steps 20000
 
 # Sample
-adabmDCA sample -p model/ptt.h5 -d family.train.fasta -v family.test.fasta --plot -o samples
-adabmDCA sample --strategy pcd -p model/params.dat.gz -d family.train.fasta --plot -o samples_mcmc
+adabmDCA sample -p model/ptt.h5 -d family.train.fasta -v family.test.fasta --plot-sampling-logs -o samples
+adabmDCA sample --strategy pcd -p model/params.dat.gz -d family.train.fasta --plot-sampling-logs -o samples_mcmc
 
 # Analyse
 adabmDCA energies -d sequences.fasta -p model/params.dat.gz -o energies
