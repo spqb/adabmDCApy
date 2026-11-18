@@ -15,7 +15,7 @@ def pytest_configure(config):
         return
     import torch
 
-    from adabmDCA.sampling_triton import is_triton_available
+    from adabmDCA.cuda_kernels.sampling_triton import is_triton_available
 
     if not torch.cuda.is_available() or not is_triton_available():
         raise pytest.UsageError("--require-gpu requires usable CUDA and Triton.")

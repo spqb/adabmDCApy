@@ -9,7 +9,7 @@ def get_seqid(
     s2: Optional[torch.Tensor] = None,
 ) -> torch.Tensor:
     """
-    Returns a tensor containing the sequence identities between two sets of one-hot encoded sequences.
+    Return the number of matching sites for each pair of one-hot encoded sequences.
     - If s2 is provided, computes the sequence identity between the corresponding sequences in s1 and s2.
     - If s2 is a single sequence (L, q), it computes the sequence identities between the dataset s1 and s2.
     - If s2 is none, computes the sequence identity between s1 and a permutation of s1.
@@ -21,20 +21,21 @@ def get_seqid(
     Returns:
         torch.Tensor: Tensor of sequence identities.
     """
-    if len(s1.shape) == 2:
+    if s1.ndim not in (2, 3) or (s2 is not None and s2.ndim not in (2, 3)):
+        raise ValueError("Sequences must have shape (L, q) or (N, L, q).")
+    if s1.ndim == 2:
         s1 = s1.unsqueeze(0)
     if s2 is None:
-        # Pair each shuffled sequence with its neighbour so that no sequence is compared with itself
+        # Pair shuffled neighbours. A single sequence pairs with itself.
         s1 = s1[torch.randperm(s1.shape[0], device=s1.device)]
         s2 = s1.roll(1, dims=0)
-    if len(s2.shape) == 2:
+    if s2.ndim == 2:
         s2 = s2.unsqueeze(0)
-        
-    s1 = s1.view(s1.shape[0], -1)
-    s2 = s2.view(s2.shape[0], -1)
-    seqids = (s1 * s2).sum(1)
-    
-    return seqids
+    if s1.shape[1:] != s2.shape[1:]:
+        raise ValueError("Sequences must have the same length and state count.")
+    if len(s1) != len(s2) and 1 not in (len(s1), len(s2)):
+        raise ValueError("Sequence batches must have equal sizes or one must contain a single sequence.")
+    return (s1 * s2).sum((1, 2))
     
 
 def get_seqid_stats(
@@ -56,17 +57,30 @@ def get_seqid_stats(
             (torch.Tensor) Standard deviation of the sequence identity.
     """
     seqids = get_seqid(s1, s2)
+    if not seqids.is_floating_point():
+        seqids = seqids.to(torch.get_default_dtype())
     if len(seqids) == 1:
         mean_seqid = seqids[0]
-        std_seqid = torch.tensor(0.0, device=seqids.device)
+        std_seqid = seqids.new_zeros(())
     else:
         mean_seqid = seqids.mean()
         std_seqid = seqids.std()
     return mean_seqid, std_seqid
 
 
+def _zerosum_couplings(couplings: torch.Tensor) -> torch.Tensor:
+    return couplings - (
+        couplings.mean(dim=1, keepdim=True)
+        + couplings.mean(dim=3, keepdim=True)
+        - couplings.mean(dim=(1, 3), keepdim=True)
+    )
+
+
 def set_zerosum_gauge(params: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
-    """Sets the zero-sum gauge on the coupling matrix.
+    """Project coupling blocks to zero-sum form for contact scoring.
+
+    The returned fields are copies of the original fields. A gauge
+    transformation of the full probability model also requires field shifts.
     
     Args:
         params (Dict[str, torch.Tensor]): Parameters of the model.
@@ -76,15 +90,16 @@ def set_zerosum_gauge(params: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor
             "bias": torch.Tensor of shape (L, q)
             "coupling_matrix": torch.Tensor of shape (L, q, L, q)
     """
-    params = {key: value.clone() for key, value in params.items()}
-    coupling_matrix = params["coupling_matrix"]
-    coupling_matrix -= coupling_matrix.mean(dim=1, keepdim=True) + \
-                       coupling_matrix.mean(dim=3, keepdim=True) - \
-                       coupling_matrix.mean(dim=(1, 3), keepdim=True)
-    
-    params["coupling_matrix"] = coupling_matrix
-    
-    return params
+    return {key: _zerosum_couplings(value) if key == "coupling_matrix" else value.clone()
+            for key, value in params.items()}
+
+
+def _gap_index(tokens: str, num_states: int) -> int:
+    if len(tokens) != num_states:
+        raise ValueError("Alphabet length must match the number of states.")
+    if "-" not in tokens:
+        raise ValueError(f"Gap symbol '-' not found in alphabet: {tokens}")
+    return tokens.index("-")
 
 
 def get_contact_map(
@@ -103,36 +118,26 @@ def get_contact_map(
     Returns:
         np.ndarray: Contact map.
     """
-    q = params["coupling_matrix"].shape[1]
-    device = params["coupling_matrix"].device
-
-    # Zero-sum gauge  
-    params = set_zerosum_gauge(params)
-    
-    # Get index of the gap symbol
-    if "-" not in tokens:
-        raise ValueError(f"Gap symbol '-' not found in alphabet: {tokens}")
-    gap_idx = tokens.index("-")
-    
-    Jij = params["coupling_matrix"]
+    Jij = params["coupling_matrix"].detach()
+    q = Jij.shape[1]
+    gap_idx = _gap_index(tokens, q)
+    if Jij.dtype in (torch.float16, torch.bfloat16):
+        Jij = Jij.float()
+    # The quadratic Potts energy uses only the symmetric part of the couplings.
+    Jij = _zerosum_couplings((Jij + Jij.permute(2, 3, 0, 1)).mul_(0.5))
     # Take all the entries of the coupling matrix except where the gap is involved
-    mask = torch.arange(q, device=device) != gap_idx
+    mask = torch.arange(q, device=Jij.device) != gap_idx
     Jij_reduced = Jij[:, mask, :, :][:, :, :, mask]
 
     # Compute the Frobenius norm
-    cm = torch.sqrt(torch.square(Jij_reduced).sum([1, 3]))
-    # Set to zero the diagonal
-    cm = cm - torch.diag(cm.diag())
-    # Compute the average-product corrected Frobenius norm
-    cm_sum = cm.sum()
-    if torch.isclose(cm_sum, torch.zeros((), device=device, dtype=cm.dtype)):
-        Fapc = cm
-    else:
-        Fapc = cm - torch.outer(cm.sum(1), cm.sum(0)) / cm_sum
-    # set to zero the diagonal
-    Fapc = Fapc - torch.diag(Fapc.diag())
-
-    return Fapc.cpu().numpy()
+    cm = Jij_reduced.square().sum((1, 3)).sqrt()
+    cm = ((cm + cm.T) * 0.5).fill_diagonal_(0)
+    row_sums = cm.sum(1)
+    total = row_sums.sum()
+    if total > 0:
+        scaled = row_sums / total.sqrt()
+        cm = (cm - torch.outer(scaled, scaled)).fill_diagonal_(0)
+    return cm.cpu().numpy()
 
 
 def get_mf_contact_map(
@@ -159,19 +164,17 @@ def get_mf_contact_map(
         raise ValueError(f"pseudo_count must be between 0 and 1, got {pseudo_count}")
 
     device = data.device
-    dtype = data.dtype
     L, q = data.shape[1], data.shape[2]
 
-    # Get index of the gap symbol
-    if "-" not in tokens:
-        raise ValueError(f"Gap symbol '-' not found in alphabet: {tokens}")
-    gap_idx = tokens.index("-")
+    gap_idx = _gap_index(tokens, q)
     state_mask = torch.arange(q, device=device) != gap_idx
     state_idx = torch.where(state_mask)[0]
     q_reduced = len(state_idx)
 
     if q_reduced < 1:
         raise ValueError("At least one non-gap state is required to compute mfDCA contacts")
+    if data.dtype in (torch.float16, torch.bfloat16):
+        data = data.float()
     
     fi = get_freq_single_point(data=data, weights=weights, pseudo_count=pseudo_count)
     fij = get_freq_two_points(data=data, weights=weights, pseudo_count=pseudo_count)
@@ -183,15 +186,16 @@ def get_mf_contact_map(
 
     # Mean-field DCA inverts the reduced Potts covariance matrix and uses the
     # negative inverse as the coupling matrix in the reference-state gauge.
-    Jij_reduced = -torch.linalg.inv(covariance).reshape(L, q_reduced, L, q_reduced)
+    try:
+        Jij_reduced = -torch.linalg.inv(covariance).reshape(L, q_reduced, L, q_reduced)
+    except torch.linalg.LinAlgError as exc:
+        raise ValueError("Mean-field covariance is singular. Use a larger positive pseudocount.") from exc
 
-    Jij = torch.zeros((L, q, L, q), device=device, dtype=dtype)
-    for a_reduced, a_full in enumerate(state_idx):
-        for b_reduced, b_full in enumerate(state_idx):
-            Jij[:, a_full, :, b_full] = Jij_reduced[:, a_reduced, :, b_reduced]
+    Jij = Jij_reduced.new_zeros((L, q, L, q))
+    Jij[:, state_idx[:, None], :, state_idx] = Jij_reduced.permute(1, 3, 0, 2)
 
     params = {
-        "bias": torch.zeros((L, q), device=device, dtype=dtype),
+        "bias": Jij.new_zeros((L, q)),
         "coupling_matrix": Jij,
     }
 

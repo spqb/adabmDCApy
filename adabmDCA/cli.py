@@ -5,7 +5,7 @@ from contextlib import contextmanager
 from adabmDCA.exceptions import AdabmDCAError
 
 COMMANDS = {
-    "train": "adabmDCA.scripts.train",
+    "train": "adabmDCA.training.cli",
     "sample": "adabmDCA.scripts.sample",
     "contacts": "adabmDCA.scripts.contacts",
     "energies": "adabmDCA.scripts.energies",
@@ -14,8 +14,8 @@ COMMANDS = {
     "entropy": "adabmDCA.scripts.td_integration",
     "reintegrate": "adabmDCA.scripts.reintegrate",
     "split-data": "adabmDCA.scripts.split_data",
-    "plot-training-log": "adabmDCA.plot_training_log",
-    "plot_training_log": "adabmDCA.plot_training_log",
+    "plot-training-log": "adabmDCA.training.plot",
+    "plot_training_log": "adabmDCA.training.plot",
     "preprocess": "adabmDCA.scripts.preprocess",
     "diagnose": "adabmDCA.scripts.diagnose",
 }

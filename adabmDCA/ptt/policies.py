@@ -21,7 +21,7 @@ from adabmDCA.graph import (
 from adabmDCA.ptt.optim import _PTTOptimizer
 from adabmDCA.ptt.precision import accumulation_dtype, device_accumulation
 from adabmDCA.stats import get_freq_two_points
-from adabmDCA.training_control import StopReason
+from adabmDCA.training.control import StopReason
 from adabmDCA.utils import get_mask_save
 
 

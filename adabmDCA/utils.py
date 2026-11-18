@@ -181,6 +181,6 @@ def parse_log_file(log_path: str) -> Tuple[Dict[str, str], Dict[str, np.ndarray]
     Returns:
         Tuple[Dict[str, str], Dict[str, np.ndarray]]: Dictionary containing metadata and training data.
     """
-    from adabmDCA.plot_training_log import parse_training_log
+    from adabmDCA.training.plot import parse_training_log
 
     return parse_training_log(log_path)

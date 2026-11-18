@@ -273,7 +273,7 @@ def categorical_sampler(method: str) -> Callable:
 
 def onehot_sampler(method: str) -> Callable:
     """One-hot adapter with the standard sampler signature and PyTorch fallback."""
-    from adabmDCA.sampling import get_sampler
+    from adabmDCA.cuda_kernels.sampling import get_sampler
 
     fallback = torch.jit.script(get_sampler(method))
 

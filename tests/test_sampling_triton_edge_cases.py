@@ -3,7 +3,7 @@
 import pytest
 import torch
 
-from adabmDCA import sampling_triton as triton_sampling
+from adabmDCA.cuda_kernels import sampling_triton as triton_sampling
 
 cuda = pytest.mark.skipif(not torch.cuda.is_available(), reason="CUDA is required for Triton kernels")
 

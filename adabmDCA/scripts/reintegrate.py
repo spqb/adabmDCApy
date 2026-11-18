@@ -24,8 +24,8 @@ def create_parser() -> argparse.ArgumentParser:
 
 
 def _config_from_args(args):
-    from adabmDCA.scripts.train import ptt_config_from_args
-    from adabmDCA.training_config import TrainingConfig
+    from adabmDCA.training.cli import ptt_config_from_args
+    from adabmDCA.training.config import TrainingConfig
 
     return TrainingConfig(
         model_type=args.model,
@@ -87,7 +87,7 @@ def main(args=None) -> int:
     resolve_alphabet(args)
 
     from adabmDCA.scripts._frontend import print_completion, print_configuration, print_header
-    from adabmDCA.scripts.train import initialization_callback, make_renderer, stage_callback
+    from adabmDCA.training.cli import initialization_callback, make_renderer, stage_callback
 
     print_header("Reintegrated DCA model training")
     print_configuration(

@@ -14,7 +14,7 @@ from adabmDCA.ptt.policies import _make_policy
 from adabmDCA.serialization import to_jsonable
 from adabmDCA.statmech import compute_entropy, compute_log_likelihood
 from adabmDCA.stats import get_correlation_two_points, get_freq_single_point, get_freq_two_points
-from adabmDCA.training_control import StopReason, TrainingMetrics
+from adabmDCA.training.control import StopReason, TrainingMetrics
 from adabmDCA.utils import get_mask_save
 
 

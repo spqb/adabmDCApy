@@ -1,8 +1,13 @@
+from contextlib import contextmanager
 from pathlib import Path
 
+import pytest
 import torch
 
+from adabmDCA import io
+from adabmDCA.exceptions import OutputSerializationError
 from adabmDCA.io import load_params, save_params
+from adabmDCA.statmech import compute_energy, enumerate_states
 
 TOKENS = "AB-"
 
@@ -105,3 +110,131 @@ def test_models_and_alphabet_detection_read_compressed_parameters(tmp_path: Path
     args = Namespace(alphabet="auto", path_params=rna)
     resolve_alphabet(args)
     assert args.alphabet == "rna"
+
+
+@pytest.mark.parametrize("suffix", [".dat", ".dat.gz"])
+def test_open_params_text_modes_are_safe(tmp_path, suffix):
+    path = tmp_path / ("params" + suffix)
+    with io.open_params(path, "wt") as handle:
+        handle.write("h 0 A 1\n")
+    original = path.read_bytes()
+    for mode in ("r", "rt"):
+        with io.open_params(path, mode) as handle:
+            assert handle.read() == "h 0 A 1\n"
+    for mode in ("rb", "a", "r+", "x", "invalid"):
+        with pytest.raises(ValueError, match="mode"):
+            io.open_params(path, mode)
+    assert path.read_bytes() == original
+
+
+@pytest.mark.parametrize("suffix", [".dat", ".dat.gz"])
+def test_loader_reads_one_snapshot_across_atomic_replacement(tmp_path, monkeypatch, suffix):
+    path = tmp_path / ("params" + suffix)
+    new = tmp_path / ("replacement" + suffix)
+    for file, value in ((path, 1), (new, 2)):
+        with io.open_params(file, "w") as handle:
+            handle.write(f"h 0 A {value}\n")
+    dimensions = io._parameter_dimensions
+
+    def replace_after_first_pass(handle, tokens):
+        shape = dimensions(handle, tokens)
+        if new.exists():
+            new.replace(path)
+        return shape
+
+    monkeypatch.setattr(io, "_parameter_dimensions", replace_after_first_pass)
+    assert load_params(path, "AB", "cpu")["bias"][0, 0].item() == 1
+    assert load_params(path, "AB", "cpu")["bias"][0, 0].item() == 2
+
+
+def test_atomic_save_preserves_existing_file_on_invalid_model_or_failed_write(tmp_path, monkeypatch):
+    path = tmp_path / "params.dat.gz"
+    params = _symmetric_params()
+    save_params(path, params, TOKENS)
+    original = path.read_bytes()
+    invalid = {**params, "bias": torch.full_like(params["bias"], torch.nan)}
+    with pytest.raises(ValueError, match="finite"):
+        save_params(path, invalid, TOKENS)
+    assert path.read_bytes() == original
+
+    @contextmanager
+    def failing_output(temporary, *, compressed):
+        class Writer:
+            def write(self, text):
+                handle.write(text[:12])
+                raise OSError("simulated write failure")
+
+        with temporary.open("w", encoding="utf-8") as handle:
+            yield Writer()
+
+    monkeypatch.setattr(io, "_open_params_output", failing_output)
+    with pytest.raises(OutputSerializationError, match="simulated write failure"):
+        save_params(path, params, TOKENS)
+    assert path.read_bytes() == original
+    assert list(tmp_path.iterdir()) == [path]
+
+
+@pytest.mark.parametrize("numeric", [False, True])
+def test_text_saves_preserve_effective_energies(numeric, tmp_path):
+    path = tmp_path / "params.dat.gz"
+    params = _symmetric_params().copy()
+    coupling = params["coupling_matrix"]
+    coupling[0, 0, 2, 1] = 2
+    coupling[2, 1, 0, 0] = 6
+    coupling[1, 2, 1, 2] = 2
+    coupling[1, 2, 1, 0] = 7  # Same-site off-diagonal values contribute no energy.
+    states = enumerate_states(3, len(TOKENS))
+    if numeric:
+        io.save_params_oldformat(path, params)
+        loaded = io.load_params_oldformat(path, "cpu")
+    else:
+        save_params(path, params, TOKENS)
+        loaded = load_params(path, TOKENS, "cpu")
+    torch.testing.assert_close(compute_energy(states, loaded), compute_energy(states, params))
+    assert loaded["coupling_matrix"][0, 0, 2, 1].item() == 4
+
+
+def test_numeric_legacy_writer_with_symmetric_mask_writes_one_triangle(tmp_path):
+    params = _symmetric_params()
+    mask = params["coupling_matrix"] != 0
+    path = tmp_path / "numeric.dat"
+    io.save_params_oldformat(path, params, mask)
+    assert all(int(row[1]) < int(row[2]) for row in map(str.split, path.read_text().splitlines()) if row[0] == "J")
+    for key, value in params.items():
+        torch.testing.assert_close(io.load_params_oldformat(path, "cpu")[key], value, rtol=0, atol=0)
+
+
+@pytest.mark.parametrize(("records", "message"), [
+    ("h 0 A 1\n", "Duplicate bias record"),
+    ("J 0 1 A B 2\nJ 0 1 A B 3\n", "Duplicate coupling record"),
+    ("J 0 1 A B 2\nJ 0 1 B A 3\nJ 0 1 A B 3\n", "Duplicate coupling record"),
+    ("unknown 0 1 A B 2\n", "Unknown parameter record"),
+])
+def test_parser_rejects_invalid_or_repeated_records(tmp_path, monkeypatch, records, message):
+    monkeypatch.setattr(io, "_CHUNK_SIZE", 2)
+    path = tmp_path / "params.dat"
+    path.write_text("h 0 A 0\nh 1 B 0\n" + records, encoding="utf-8")
+    with pytest.raises(ValueError, match=message):
+        load_params(path, "AB", "cpu")
+
+
+def test_deprecated_loader_accepts_a_bias_only_file(tmp_path):
+    path = tmp_path / "params.dat"
+    path.write_text("h 0 A 1\nh 0 B 2\n", encoding="utf-8")
+    with pytest.warns(DeprecationWarning, match="load_params_old"):
+        params = io.load_params_old(path, "AB", "cpu")
+    torch.testing.assert_close(params["bias"], torch.tensor([[1., 2.]]))
+    assert not params["coupling_matrix"].any()
+
+
+@pytest.mark.parametrize(("chains", "expected"), [
+    ([0, 1, 0], ("ABA",)),
+    (["ABA", "BAB"], ("ABA", "BAB")),
+    (torch.tensor([[[1, 0], [0, 1]]], dtype=torch.bfloat16), ("AB",)),
+])
+def test_save_chains_uses_one_fasta_header_per_decoded_sequence(tmp_path, chains, expected):
+    path = tmp_path / "chains.fasta"
+    io.save_chains(path, chains, "AB")
+    assert path.read_text().splitlines() == [
+        line for i, sequence in enumerate(expected) for line in (f">chain_{i}", sequence)
+    ]

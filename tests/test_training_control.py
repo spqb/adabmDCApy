@@ -4,7 +4,7 @@ import pytest
 import torch
 
 from adabmDCA.training import train_eaDCA, train_edDCA
-from adabmDCA.training_control import (
+from adabmDCA.training.control import (
     StopReason,
     TrainingCancelled,
     TrainingController,

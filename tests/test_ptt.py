@@ -335,7 +335,7 @@ def test_ptt_centering_uses_connected_correlations_and_centred_fields():
 
 
 def test_ptt_optimizer_configuration_and_cli_are_ptt_specific(tmp_path):
-    from adabmDCA.scripts.train import create_parser, run
+    from adabmDCA.training.cli import create_parser, run
 
     parsed = create_parser().parse_args([
         "--data", "unused.fasta", "--strategy", "ptt", "--ptt-optimizer", "adaptive", "--ptt-trust-radius", "0.002",
@@ -546,7 +546,7 @@ def test_unsupported_training_modes():
 
 
 def test_ptt_chain_default_matches_standard_training():
-    from adabmDCA.scripts.train import create_parser
+    from adabmDCA.training.cli import create_parser
 
     standard = TrainingConfig()
     ptt = TrainingConfig(ptt=PTTConfig())
@@ -564,7 +564,7 @@ def test_ptt_chain_default_matches_standard_training():
 
 
 def test_ptt_swaps_factor_cli_name_and_help_order():
-    from adabmDCA.scripts.train import create_parser
+    from adabmDCA.training.cli import create_parser
 
     parser = create_parser()
     parsed = parser.parse_args([
@@ -587,8 +587,8 @@ def test_cli_training_sampling_entropy(training_case, tmp_path):
     from adabmDCA.scripts.sample import run as sample_run
     from adabmDCA.scripts.td_integration import create_parser as entropy_parser
     from adabmDCA.scripts.td_integration import run as entropy_run
-    from adabmDCA.scripts.train import create_parser as train_parser
-    from adabmDCA.scripts.train import run as train_run
+    from adabmDCA.training.cli import create_parser as train_parser
+    from adabmDCA.training.cli import run as train_run
 
     data, _ = training_case
     result = train_run(
@@ -754,7 +754,7 @@ def test_endpoint_loader_does_not_read_sampler_arrays(tmp_path, monkeypatch):
 def test_validation_early_stop_resume_and_progress(training_case, tmp_path, monkeypatch):
     data, config = training_case
     events = []
-    monkeypatch.setattr("adabmDCA.ptt.training.get_correlation_two_points", lambda **kwargs: (0.5, 1.0))
+    monkeypatch.setattr("adabmDCA.training.ptt.get_correlation_two_points", lambda **kwargs: (0.5, 1.0))
     stopped = train_model(
         data, config=replace(config, target_pearson=0.0), output_dir=tmp_path / "stopped", progress=events.append
     )
@@ -862,7 +862,7 @@ def test_trial_cancellation_preserves_last_committed_archive(training_case, tmp_
 
 
 def test_ptt_log_remains_readable_by_existing_plotter(training_case, tmp_path):
-    from adabmDCA.plot_training_log import parse_training_log
+    from adabmDCA.training.plot import parse_training_log
 
     data, config = training_case
     result = train_model(data, config=config, output_dir=tmp_path / "logged")
@@ -1002,7 +1002,7 @@ def test_resume_into_the_same_folder_rewrites_history_and_appends_events(trainin
 
 
 def test_validation_plateau_compares_window_medians_and_ignores_spikes():
-    from adabmDCA.ptt.training import validation_plateau
+    from adabmDCA.training.ptt import validation_plateau
 
     rising = [0.01 * step for step in range(40)]
     assert validation_plateau(rising, 10, 0.0) is None
@@ -1033,7 +1033,7 @@ def test_validation_stop_ends_training_on_the_validation_plateau(training_case, 
 
 
 def test_validation_stop_cli_and_configuration():
-    from adabmDCA.scripts.train import create_parser
+    from adabmDCA.training.cli import create_parser
 
     parsed = create_parser().parse_args([
         "--data", "unused.fasta", "--strategy", "ptt", "--ptt-validation-stop", "--ptt-validation-window", "50",
@@ -1047,7 +1047,7 @@ def test_validation_stop_cli_and_configuration():
 
 
 def test_training_cli_plots_the_training_curves_of_a_ptt_run(tmp_path, capsys):
-    from adabmDCA.scripts.train import create_parser, main
+    from adabmDCA.training.cli import create_parser, main
 
     data = tmp_path / "data.fasta"
     data.write_text("".join(f">s{i}\n{sequence}\n" for i, sequence in enumerate(("AAB", "ABA", "BAB", "BBA", "AAA", "BBB"))))
@@ -1086,7 +1086,7 @@ def test_failed_renewal_names_configurations_only_local_moves_can_free():
 
 
 def test_failure_message_recommends_more_sweeps_only_for_immobile_configurations():
-    from adabmDCA.ptt.training import _mixing_failure_summary
+    from adabmDCA.training.ptt import _mixing_failure_summary
 
     config = PTTConfig()
     mixing = {"model_version": 9, "rounds": 100, "method": "renewal", "warmup_rounds": 30, "acceptance": [0.3, 0.6],

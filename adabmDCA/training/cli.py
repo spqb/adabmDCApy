@@ -12,8 +12,8 @@ from typing import TYPE_CHECKING, Any, ClassVar
 
 from adabmDCA.parser import add_args_train
 from adabmDCA.ptt.config import DEFAULT_PTT_MAX_EPOCHS
-from adabmDCA.training_config import DEFAULT_MAX_EPOCHS
-from adabmDCA.training_log import (
+from adabmDCA.training.config import DEFAULT_MAX_EPOCHS
+from adabmDCA.training.log import (
     HEADER_EVERY,
     NOTABLE_EVENTS,
     describe_event,
@@ -24,7 +24,7 @@ from adabmDCA.training_log import (
 
 if TYPE_CHECKING:
     from adabmDCA.api.results import TrainingProgress
-    from adabmDCA.training_control import StageProgress
+    from adabmDCA.training.control import StageProgress
 
 
 def create_parser() -> argparse.ArgumentParser:
@@ -165,7 +165,7 @@ class _PTTProgressRenderer:
     def _pearson_status(self) -> str:
         if self._validation_stop is None:
             return f"Pearson {self._number(self._pearson)}/{self._target_pearson:.3f}"
-        from adabmDCA.ptt.training import validation_window_gain
+        from adabmDCA.training.ptt import validation_window_gain
 
         window, min_gain = self._validation_stop
         values = [self._validation[step] for step in sorted(self._validation)]
@@ -427,7 +427,7 @@ def run(args: argparse.Namespace, *, progress: Any = None, stage_progress: Any =
     from adabmDCA.scripts._frontend import resolve_alphabet
 
     resolve_alphabet(args)
-    from adabmDCA.api.training import train_model
+    from adabmDCA.training.api import train_model
 
     return train_model(
         args.data,
@@ -489,7 +489,7 @@ def main(args: argparse.Namespace | None = None) -> int:
     serialized = result.save_bundle(args.output, label=args.label)
     artifacts = {**result.artifacts, **serialized}
     if getattr(args, "plot_training_logs", False):
-        from adabmDCA.plot_training_log import plot_training_history
+        from adabmDCA.training.plot import plot_training_history
 
         plots = plot_training_history(artifacts["history"])
         artifacts["training plots"] = plots["overview"].parent
@@ -528,7 +528,7 @@ def initialization_callback(args: argparse.Namespace, renderer):
     def initialized(info) -> None:
         _print_initialization(args, info)
         if isinstance(renderer, _PTTProgressRenderer):
-            from adabmDCA.training_log import columns_for_config
+            from adabmDCA.training.log import columns_for_config
 
             renderer.set_columns(columns_for_config(info.config, validation=info.validation is not None))
             ptt = info.config.ptt
@@ -540,7 +540,7 @@ def initialization_callback(args: argparse.Namespace, renderer):
 
 def _final_summary(result) -> dict[str, Any]:
     """Key end-of-run figures; everything else is in training.json and history.csv."""
-    from adabmDCA.training_log import format_cell
+    from adabmDCA.training.log import format_cell
 
     final = result.final_metrics
 

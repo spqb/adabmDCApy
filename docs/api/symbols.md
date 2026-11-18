@@ -8,8 +8,8 @@
 - [`adabmDCA.alignment`](./adabmDCA.alignment.md#module-adabmdcaalignment): Alignment containers and FASTA/Stockholm input-output helpers.
 - [`adabmDCA.input_loading`](./adabmDCA.input_loading.md#module-adabmdcainput_loading): Shared, side-effect-free loading of alignments and sequence weights.
 - [`adabmDCA.preprocessing`](./adabmDCA.preprocessing.md#module-adabmdcapreprocessing): Pure and file-oriented multiple-sequence-alignment preprocessing.
-- [`adabmDCA.training_config`](./adabmDCA.training_config.md#module-adabmdcatraining_config): Canonical configuration values and validation for DCA training.
-- [`adabmDCA.training_control`](./adabmDCA.training_control.md#module-adabmdcatraining_control): Shared lifecycle primitives for DCA training routines.
+- [`adabmDCA.training.config`](./adabmDCA.training.config.md#module-adabmdcatrainingconfig): Canonical configuration values and validation for DCA training.
+- [`adabmDCA.training.control`](./adabmDCA.training.control.md#module-adabmdcatrainingcontrol): Shared lifecycle primitives for DCA training routines.
 - [`adabmDCA.api.contacts`](./adabmDCA.api.contacts.md#module-adabmdcaapicontacts): High-level contact-prediction operations.
 - [`adabmDCA.api.diagnostics`](./adabmDCA.api.diagnostics.md#module-adabmdcaapidiagnostics): Turn the files of a training run (and optionally a sampling check) into a verdict.
 - [`adabmDCA.api.entropy`](./adabmDCA.api.entropy.md#module-adabmdcaapientropy): High-level thermodynamic-integration entropy estimation.
@@ -24,7 +24,7 @@
 - [`adabmDCA.api.scoring`](./adabmDCA.api.scoring.md#module-adabmdcaapiscoring): High-level sequence-energy operations.
 - [`adabmDCA.serialization`](./adabmDCA.serialization.md#module-adabmdcaserialization): Portable and atomic serialization helpers for results, logs and archives.
 - [`adabmDCA.api.splitting`](./adabmDCA.api.splitting.md#module-adabmdcaapisplitting): High-level API for homology-aware alignment splitting.
-- [`adabmDCA.api.training`](./adabmDCA.api.training.md#module-adabmdcaapitraining): High-level DCA training workflow.
+- [`adabmDCA.training.api`](./adabmDCA.training.api.md#module-adabmdcatrainingapi): High-level DCA training workflow.
 - [`adabmDCA.checkpoint`](./adabmDCA.checkpoint.md#module-adabmdcacheckpoint): Training checkpoints and the versioned human-readable training log.
 - [`adabmDCA.cobalt`](./adabmDCA.cobalt.md#module-adabmdcacobalt)
 - [`adabmDCA.dataset`](./adabmDCA.dataset.md#module-adabmdcadataset)
@@ -38,8 +38,8 @@
 - [`adabmDCA.ptt.mixing`](./adabmDCA.ptt.mixing.md#module-adabmdcapttmixing): Replica-index autocorrelation analysis used by PTT's TRWA experiment.
 - [`adabmDCA.ptt.sampler`](./adabmDCA.ptt.sampler.md#module-adabmdcapttsampler): Parallel Trajectory Tempering with snapshot retention and mixing recovery.
 - [`adabmDCA.resampling`](./adabmDCA.resampling.md#module-adabmdcaresampling)
-- [`adabmDCA.sampling`](./adabmDCA.sampling.md#module-adabmdcasampling)
-- [`adabmDCA.sampling_triton`](./adabmDCA.sampling_triton.md#module-adabmdcasampling_triton): Optional Triton kernels for categorical GPU sampling.
+- [`adabmDCA.cuda_kernels.sampling`](./adabmDCA.cuda_kernels.sampling.md#module-adabmdcacuda_kernelssampling)
+- [`adabmDCA.cuda_kernels.sampling_triton`](./adabmDCA.cuda_kernels.sampling_triton.md#module-adabmdcacuda_kernelssampling_triton): Optional Triton kernels for categorical GPU sampling.
 - [`adabmDCA.statmech`](./adabmDCA.statmech.md#module-adabmdcastatmech)
 - [`adabmDCA.steering`](./adabmDCA.steering.md#module-adabmdcasteering): Steered sampling: a user potential added to the DCA Hamiltonian.
 - [`adabmDCA.stats`](./adabmDCA.stats.md#module-adabmdcastats)
@@ -55,16 +55,16 @@
 - [`preprocessing.AlignmentProcessingConfig`](./adabmDCA.preprocessing.md#class-alignmentprocessingconfig): Transformations applied by `preprocess_alignment`, in this order.
 - [`preprocessing.AlignmentProcessingReport`](./adabmDCA.preprocessing.md#class-alignmentprocessingreport): What `preprocess_alignment` changed.
 - [`preprocessing.AlignmentProcessingResult`](./adabmDCA.preprocessing.md#class-alignmentprocessingresult): Outcome of `preprocess_alignment`.
-- [`training_config.ConfigurationError`](./adabmDCA.training_config.md#class-configurationerror): Raised when a training configuration is internally inconsistent.
-- [`training_config.TrainingConfig`](./adabmDCA.training_config.md#class-trainingconfig): All settings of one training run, validated on construction.
-- [`training_control.CheckpointStore`](./adabmDCA.training_control.md#class-checkpointstore): Persistence interface used by the training controller.
-- [`training_control.StageProgress`](./adabmDCA.training_control.md#class-stageprogress): Transient stage update; separate from committed metric records.
-- [`training_control.StopReason`](./adabmDCA.training_control.md#class-stopreason): Reason why a training strategy stopped.
-- [`training_control.TrainingCancelled`](./adabmDCA.training_control.md#class-trainingcancelled): Internal cancellation signal raised by the shared controller.
-- [`training_control.TrainingController`](./adabmDCA.training_control.md#class-trainingcontroller): Coordinate one training run without owning its numerical updates.
-- [`training_control.TrainingCounters`](./adabmDCA.training_control.md#class-trainingcounters): Progress counters of a training run.
-- [`training_control.TrainingLimits`](./adabmDCA.training_control.md#class-traininglimits): Step budgets of a training run; `None` means no limit.
-- [`training_control.TrainingMetrics`](./adabmDCA.training_control.md#class-trainingmetrics): Common metrics emitted after a meaningful training step.
+- [`training_config.ConfigurationError`](./adabmDCA.training.config.md#class-configurationerror): Raised when a training configuration is internally inconsistent.
+- [`training_config.TrainingConfig`](./adabmDCA.training.config.md#class-trainingconfig): All settings of one training run, validated on construction.
+- [`training_control.CheckpointStore`](./adabmDCA.training.control.md#class-checkpointstore): Persistence interface used by the training controller.
+- [`training_control.StageProgress`](./adabmDCA.training.control.md#class-stageprogress): Transient stage update; separate from committed metric records.
+- [`training_control.StopReason`](./adabmDCA.training.control.md#class-stopreason): Reason why a training strategy stopped.
+- [`training_control.TrainingCancelled`](./adabmDCA.training.control.md#class-trainingcancelled): Internal cancellation signal raised by the shared controller.
+- [`training_control.TrainingController`](./adabmDCA.training.control.md#class-trainingcontroller): Coordinate one training run without owning its numerical updates.
+- [`training_control.TrainingCounters`](./adabmDCA.training.control.md#class-trainingcounters): Progress counters of a training run.
+- [`training_control.TrainingLimits`](./adabmDCA.training.control.md#class-traininglimits): Step budgets of a training run; `None` means no limit.
+- [`training_control.TrainingMetrics`](./adabmDCA.training.control.md#class-trainingmetrics): Common metrics emitted after a meaningful training step.
 - [`exceptions.AdabmDCAError`](./adabmDCA.exceptions.md#class-adabmdcaerror): Base class for recoverable errors raised by adabmDCA.
 - [`exceptions.AlignmentError`](./adabmDCA.exceptions.md#class-alignmenterror): Base class for alignment input and processing errors.
 - [`exceptions.AlignmentFormatError`](./adabmDCA.exceptions.md#class-alignmentformaterror): Raised when an alignment format cannot be detected or parsed.
@@ -151,7 +151,7 @@
 - [`serialization.write_numpy_text`](./adabmDCA.serialization.md#function-write_numpy_text): Write a NumPy array as an atomic text artifact.
 - [`serialization.write_text`](./adabmDCA.serialization.md#function-write_text): Write UTF-8 text atomically.
 - [`splitting.split_alignment`](./adabmDCA.api.splitting.md#function-split_alignment): Split an alignment into training and test sets that are not too similar.
-- [`training.train_model`](./adabmDCA.api.training.md#function-train_model): Train a DCA model from an alignment and return its in-memory result.
+- [`training.train_model`](./adabmDCA.training.api.md#function-train_model): Train a DCA model from an alignment and return its in-memory result.
 - [`cobalt.has_neighbours`](./adabmDCA.cobalt.md#function-has_neighbours): Check if a sequence 'seq' has neighbours in the database 'db', that is, sequences
 - [`cobalt.prune_redundant_sequences`](./adabmDCA.cobalt.md#function-prune_redundant_sequences): Prunes sequences from X such that no sequence has more than 'seqid_th' fraction of its residues identical to any other sequence in the set.
 - [`cobalt.run_cobalt`](./adabmDCA.cobalt.md#function-run_cobalt): Runs the Cobalt algorithm to split the input MSA into training and test sets.
@@ -206,38 +206,38 @@
 - [`mixing.replica_autocorrelation`](./adabmDCA.ptt.mixing.md#function-replica_autocorrelation): Normalized C(t) for (rounds, replicas, chains) origin labels.
 - [`sampler.bridge_increment`](./adabmDCA.ptt.sampler.md#function-bridge_increment): Return log(Z_upper/Z_lower) from samples of the lower Hamiltonian.
 - [`resampling.compute_mixing_time`](./adabmDCA.resampling.md#function-compute_mixing_time): Computes the mixing time using the t and t/2 method. The sampling will halt when the mixing time is reached or
-- [`sampling.get_sampler`](./adabmDCA.sampling.md#function-get_sampler): Returns the sampling function corresponding to the chosen method.
-- [`sampling.gibbs_sampling`](./adabmDCA.sampling.md#function-gibbs_sampling): Gibbs sampling. Attempts L * nsweeps mutations to each sequence in 'chains'.
-- [`sampling.gibbs_step_independent_sites`](./adabmDCA.sampling.md#function-gibbs_step_independent_sites): Performs a single mutation using the Gibbs sampler. This version selects different random sites for each chain. It is
-- [`sampling.gibbs_step_uniform_sites`](./adabmDCA.sampling.md#function-gibbs_step_uniform_sites): Performs a single mutation using the Gibbs sampler. In this version, the mutation is attempted at the same sites for all chains.
-- [`sampling.metropolis_sampling`](./adabmDCA.sampling.md#function-metropolis_sampling): Metropolis sampling. Attempts L * nsweeps mutations to each sequence in 'chains'.
-- [`sampling.metropolis_step_independent_sites`](./adabmDCA.sampling.md#function-metropolis_step_independent_sites): Performs a single mutation using the Metropolis sampler. This version selects different random sites for each chain. It is
-- [`sampling.metropolis_step_uniform_sites`](./adabmDCA.sampling.md#function-metropolis_step_uniform_sites): Performs a single mutation using the Metropolis sampler. In this version, the mutation is attempted at the same sites for all chains.
-- [`sampling.metropolized_gibbs_sampling`](./adabmDCA.sampling.md#function-metropolized_gibbs_sampling): Metropolized Gibbs sampling. Attempts L * nsweeps updates to each sequence in 'chains'.
-- [`sampling.metropolized_gibbs_sampling_categorical`](./adabmDCA.sampling.md#function-metropolized_gibbs_sampling_categorical): Metropolized Gibbs sampling of integer states of shape (N, L).
-- [`sampling.metropolized_gibbs_step_uniform_sites`](./adabmDCA.sampling.md#function-metropolized_gibbs_step_uniform_sites): Performs a single Metropolized Gibbs update at the same site for all chains.
-- [`sampling.prepare_fixed_model_sampler`](./adabmDCA.sampling.md#function-prepare_fixed_model_sampler): Prepare a sampler and parameters for a model that will not be updated.
-- [`sampling.prepare_sampler`](./adabmDCA.sampling.md#function-prepare_sampler): Select the fastest sampler for `device`.
-- [`sampling.prepare_training_sampler`](./adabmDCA.sampling.md#function-prepare_training_sampler): Prepare sampling for training with optional BF16 coupling storage.
-- [`sampling.sampling_profile`](./adabmDCA.sampling.md#function-sampling_profile): Samples from the profile model defined by the local biases only.
-- [`sampling.sampling_profile_categorical`](./adabmDCA.sampling.md#function-sampling_profile_categorical): Sample integer states (N,L) from the uncoupled profile, without encoding.
-- [`sampling_triton.exchange_log_acceptance_categorical_triton`](./adabmDCA.sampling_triton.md#function-exchange_log_acceptance_categorical_triton): Compute Hamiltonian-exchange log acceptance from categorical states.
-- [`sampling_triton.exchange_log_acceptance_sparse_triton`](./adabmDCA.sampling_triton.md#function-exchange_log_acceptance_sparse_triton): Hamiltonian-exchange log acceptance from sparse coupling layouts, or `None` if a graph is dense.
-- [`sampling_triton.gibbs_sampling_categorical_triton`](./adabmDCA.sampling_triton.md#function-gibbs_sampling_categorical_triton): Run Gibbs sampling directly on contiguous int32 categorical states.
-- [`sampling_triton.gibbs_sampling_triton`](./adabmDCA.sampling_triton.md#function-gibbs_sampling_triton): Run Gibbs updates, keeping each chain in registers across short chunks.
-- [`sampling_triton.gibbs_step_independent_sites_triton`](./adabmDCA.sampling_triton.md#function-gibbs_step_independent_sites_triton): Apply one fused Gibbs update at an independently drawn site per chain (CUDA, Triton).
-- [`sampling_triton.is_triton_available`](./adabmDCA.sampling_triton.md#function-is_triton_available): Return whether Triton was imported successfully.
-- [`sampling_triton.metropolis_sampling_categorical_triton`](./adabmDCA.sampling_triton.md#function-metropolis_sampling_categorical_triton): Run Metropolis sampling directly on contiguous int32 categorical states.
-- [`sampling_triton.metropolis_sampling_replicas_categorical_triton`](./adabmDCA.sampling_triton.md#function-metropolis_sampling_replicas_categorical_triton): Sample a stack of PTT replicas in one sequence of Triton launches.
-- [`sampling_triton.metropolis_sampling_triton`](./adabmDCA.sampling_triton.md#function-metropolis_sampling_triton): Run Metropolis updates with `steps_per_launch` updates per kernel.
-- [`sampling_triton.metropolis_step_independent_sites_triton`](./adabmDCA.sampling_triton.md#function-metropolis_step_independent_sites_triton): Apply one fused Metropolis update at an independently drawn site per chain (CUDA, Triton).
-- [`sampling_triton.metropolized_gibbs_row_layout`](./adabmDCA.sampling_triton.md#function-metropolized_gibbs_row_layout): Stacked couplings `(R, L, q, L, q)` as the rows read by the dense Metropolized Gibbs kernel.
-- [`sampling_triton.metropolized_gibbs_sampling_categorical_triton`](./adabmDCA.sampling_triton.md#function-metropolized_gibbs_sampling_categorical_triton): Metropolized Gibbs sampling of contiguous CUDA int32 states (N, L).
-- [`sampling_triton.metropolized_gibbs_sampling_replicas_categorical_triton`](./adabmDCA.sampling_triton.md#function-metropolized_gibbs_sampling_replicas_categorical_triton): Metropolized Gibbs sampling of a stack of replicas in one sequence of launches.
-- [`sampling_triton.metropolized_gibbs_sampling_replicas_triton`](./adabmDCA.sampling_triton.md#function-metropolized_gibbs_sampling_replicas_triton): Metropolized Gibbs sampling of a stack of replicas, from couplings in their original layout.
-- [`sampling_triton.metropolized_gibbs_sampling_triton`](./adabmDCA.sampling_triton.md#function-metropolized_gibbs_sampling_triton): Metropolized Gibbs sampling of one-hot chains; see `metropolized_gibbs_sampling_categorical_triton`.
-- [`sampling_triton.sparse_coupling_layout`](./adabmDCA.sampling_triton.md#function-sparse_coupling_layout): The sparse layout of stacked couplings `(R, L, q, L, q)` if it pays off for `method`, else `None`.
-- [`sampling_triton.transpose_couplings_for_metropolized_gibbs`](./adabmDCA.sampling_triton.md#function-transpose_couplings_for_metropolized_gibbs): View (L, q, L, q) couplings as (site, source_site, source_state, state).
+- [`sampling.get_sampler`](./adabmDCA.cuda_kernels.sampling.md#function-get_sampler): Returns the sampling function corresponding to the chosen method.
+- [`sampling.gibbs_sampling`](./adabmDCA.cuda_kernels.sampling.md#function-gibbs_sampling): Gibbs sampling. Attempts L * nsweeps mutations to each sequence in 'chains'.
+- [`sampling.gibbs_step_independent_sites`](./adabmDCA.cuda_kernels.sampling.md#function-gibbs_step_independent_sites): Performs a single mutation using the Gibbs sampler. This version selects different random sites for each chain. It is
+- [`sampling.gibbs_step_uniform_sites`](./adabmDCA.cuda_kernels.sampling.md#function-gibbs_step_uniform_sites): Performs a single mutation using the Gibbs sampler. In this version, the mutation is attempted at the same sites for all chains.
+- [`sampling.metropolis_sampling`](./adabmDCA.cuda_kernels.sampling.md#function-metropolis_sampling): Metropolis sampling. Attempts L * nsweeps mutations to each sequence in 'chains'.
+- [`sampling.metropolis_step_independent_sites`](./adabmDCA.cuda_kernels.sampling.md#function-metropolis_step_independent_sites): Performs a single mutation using the Metropolis sampler. This version selects different random sites for each chain. It is
+- [`sampling.metropolis_step_uniform_sites`](./adabmDCA.cuda_kernels.sampling.md#function-metropolis_step_uniform_sites): Performs a single mutation using the Metropolis sampler. In this version, the mutation is attempted at the same sites for all chains.
+- [`sampling.metropolized_gibbs_sampling`](./adabmDCA.cuda_kernels.sampling.md#function-metropolized_gibbs_sampling): Metropolized Gibbs sampling. Attempts L * nsweeps updates to each sequence in 'chains'.
+- [`sampling.metropolized_gibbs_sampling_categorical`](./adabmDCA.cuda_kernels.sampling.md#function-metropolized_gibbs_sampling_categorical): Metropolized Gibbs sampling of integer states of shape (N, L).
+- [`sampling.metropolized_gibbs_step_uniform_sites`](./adabmDCA.cuda_kernels.sampling.md#function-metropolized_gibbs_step_uniform_sites): Performs a single Metropolized Gibbs update at the same site for all chains.
+- [`sampling.prepare_fixed_model_sampler`](./adabmDCA.cuda_kernels.sampling.md#function-prepare_fixed_model_sampler): Prepare a sampler and parameters for a model that will not be updated.
+- [`sampling.prepare_sampler`](./adabmDCA.cuda_kernels.sampling.md#function-prepare_sampler): Select the fastest sampler for `device`.
+- [`sampling.prepare_training_sampler`](./adabmDCA.cuda_kernels.sampling.md#function-prepare_training_sampler): Prepare sampling for training with optional BF16 coupling storage.
+- [`sampling.sampling_profile`](./adabmDCA.cuda_kernels.sampling.md#function-sampling_profile): Samples from the profile model defined by the local biases only.
+- [`sampling.sampling_profile_categorical`](./adabmDCA.cuda_kernels.sampling.md#function-sampling_profile_categorical): Sample integer states (N,L) from the uncoupled profile, without encoding.
+- [`sampling_triton.exchange_log_acceptance_categorical_triton`](./adabmDCA.cuda_kernels.sampling_triton.md#function-exchange_log_acceptance_categorical_triton): Compute Hamiltonian-exchange log acceptance from categorical states.
+- [`sampling_triton.exchange_log_acceptance_sparse_triton`](./adabmDCA.cuda_kernels.sampling_triton.md#function-exchange_log_acceptance_sparse_triton): Hamiltonian-exchange log acceptance from sparse coupling layouts, or `None` if a graph is dense.
+- [`sampling_triton.gibbs_sampling_categorical_triton`](./adabmDCA.cuda_kernels.sampling_triton.md#function-gibbs_sampling_categorical_triton): Run Gibbs sampling directly on contiguous int32 categorical states.
+- [`sampling_triton.gibbs_sampling_triton`](./adabmDCA.cuda_kernels.sampling_triton.md#function-gibbs_sampling_triton): Run Gibbs updates, keeping each chain in registers across short chunks.
+- [`sampling_triton.gibbs_step_independent_sites_triton`](./adabmDCA.cuda_kernels.sampling_triton.md#function-gibbs_step_independent_sites_triton): Apply one fused Gibbs update at an independently drawn site per chain (CUDA, Triton).
+- [`sampling_triton.is_triton_available`](./adabmDCA.cuda_kernels.sampling_triton.md#function-is_triton_available): Return whether Triton was imported successfully.
+- [`sampling_triton.metropolis_sampling_categorical_triton`](./adabmDCA.cuda_kernels.sampling_triton.md#function-metropolis_sampling_categorical_triton): Run Metropolis sampling directly on contiguous int32 categorical states.
+- [`sampling_triton.metropolis_sampling_replicas_categorical_triton`](./adabmDCA.cuda_kernels.sampling_triton.md#function-metropolis_sampling_replicas_categorical_triton): Sample a stack of PTT replicas in one sequence of Triton launches.
+- [`sampling_triton.metropolis_sampling_triton`](./adabmDCA.cuda_kernels.sampling_triton.md#function-metropolis_sampling_triton): Run Metropolis updates with `steps_per_launch` updates per kernel.
+- [`sampling_triton.metropolis_step_independent_sites_triton`](./adabmDCA.cuda_kernels.sampling_triton.md#function-metropolis_step_independent_sites_triton): Apply one fused Metropolis update at an independently drawn site per chain (CUDA, Triton).
+- [`sampling_triton.metropolized_gibbs_row_layout`](./adabmDCA.cuda_kernels.sampling_triton.md#function-metropolized_gibbs_row_layout): Stacked couplings `(R, L, q, L, q)` as the rows read by the dense Metropolized Gibbs kernel.
+- [`sampling_triton.metropolized_gibbs_sampling_categorical_triton`](./adabmDCA.cuda_kernels.sampling_triton.md#function-metropolized_gibbs_sampling_categorical_triton): Metropolized Gibbs sampling of contiguous CUDA int32 states (N, L).
+- [`sampling_triton.metropolized_gibbs_sampling_replicas_categorical_triton`](./adabmDCA.cuda_kernels.sampling_triton.md#function-metropolized_gibbs_sampling_replicas_categorical_triton): Metropolized Gibbs sampling of a stack of replicas in one sequence of launches.
+- [`sampling_triton.metropolized_gibbs_sampling_replicas_triton`](./adabmDCA.cuda_kernels.sampling_triton.md#function-metropolized_gibbs_sampling_replicas_triton): Metropolized Gibbs sampling of a stack of replicas, from couplings in their original layout.
+- [`sampling_triton.metropolized_gibbs_sampling_triton`](./adabmDCA.cuda_kernels.sampling_triton.md#function-metropolized_gibbs_sampling_triton): Metropolized Gibbs sampling of one-hot chains; see `metropolized_gibbs_sampling_categorical_triton`.
+- [`sampling_triton.sparse_coupling_layout`](./adabmDCA.cuda_kernels.sampling_triton.md#function-sparse_coupling_layout): The sparse layout of stacked couplings `(R, L, q, L, q)` if it pays off for `method`, else `None`.
+- [`sampling_triton.transpose_couplings_for_metropolized_gibbs`](./adabmDCA.cuda_kernels.sampling_triton.md#function-transpose_couplings_for_metropolized_gibbs): View (L, q, L, q) couplings as (site, source_site, source_state, state).
 - [`statmech.compute_energy`](./adabmDCA.statmech.md#function-compute_energy): Compute the DCA energy for a batch of sequences.
 - [`statmech.compute_entropy`](./adabmDCA.statmech.md#function-compute_entropy): Compute the entropy of the DCA model.
 - [`statmech.compute_logZ_exact`](./adabmDCA.statmech.md#function-compute_logz_exact): Compute the log-partition function of the model.

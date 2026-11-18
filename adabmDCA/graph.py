@@ -15,12 +15,18 @@ def compute_density(mask: torch.Tensor) -> float:
         float: Density.
     """
     L, q, _, _ = mask.shape
-    density = mask.sum() / (q**2 * L * (L-1))
-    
+    if L < 2 or q == 0:
+        return 0.0
+    active = mask.count_nonzero() - mask.diagonal(dim1=0, dim2=2).count_nonzero()
+    density = active / (q**2 * L * (L - 1))
     return density.item()
 
 
 # Element-wise activation functions
+
+def _kl_terms(target: torch.Tensor, model: torch.Tensor) -> torch.Tensor:
+    return torch.xlogy(target, target) - torch.xlogy(target, model)
+
 
 def compute_Dkl_element_activation(
     fij: torch.Tensor,
@@ -37,7 +43,7 @@ def compute_Dkl_element_activation(
     """
     L = fij.shape[0]
     # Compute the Dkl of each coupling
-    Dkl = fij * (torch.log(fij) - torch.log(pij)) + (1. - fij) * (torch.log(1. - fij) - torch.log(1. - pij))
+    Dkl = _kl_terms(fij, pij) + _kl_terms(1 - fij, 1 - pij)
     # The auto-correlations have not to be considered
     Dkl[torch.arange(L), :, torch.arange(L), :] = -float("inf")
     
@@ -76,7 +82,8 @@ def rank_inactive_elements(Dkl: torch.Tensor, mask: torch.Tensor) -> torch.Tenso
     L, q = mask.shape[:2]
     eligible = get_mask_save(L, q, device=mask.device) & ~mask.bool()
     candidates = eligible.flatten().nonzero().squeeze(1)
-    scores = torch.nan_to_num(Dkl.flatten()[candidates], nan=-float("inf"))
+    scores = Dkl.flatten()[candidates]
+    scores = torch.where(scores.isnan(), -torch.inf, scores)
     return candidates[torch.argsort(scores, descending=True, stable=True)]
 
 
@@ -129,7 +136,7 @@ def compute_Dkl_edge_activation(
     """
     L = fij.shape[0]
     # Compute the Dkl of each edge
-    Dkl = torch.sum(fij * (torch.log(fij) - torch.log(pij)), dim=(1, 3))
+    Dkl = _kl_terms(fij, pij).sum(dim=(1, 3))
     # The auto-correlations have not to be considered and the lower triangular part of the Dkl matrix is set to -inf
     Dkl_idx_inf = torch.tril_indices(L, L, offset=0)
     Dkl[Dkl_idx_inf[0], Dkl_idx_inf[1]] = -float("inf")
@@ -153,13 +160,15 @@ def compute_sym_Dkl(
         torch.Tensor: Kullback-Leibler divergence matrix.
     """
     
-    exp_J = torch.exp(-params["coupling_matrix"])
-    denominator = pij * (exp_J - 1.) + 1.
-    # Add small epsilon for numerical stability to avoid division by zero
-    denominator = torch.clamp(denominator, min=1e-10)
-    Dkl = pij * params["coupling_matrix"] * (1. - exp_J / denominator)
-    
-    return Dkl
+    coupling = params["coupling_matrix"]
+    dtype = torch.promote_types(torch.promote_types(pij.dtype, coupling.dtype), torch.float32)
+    p, coupling = pij.to(dtype), coupling.to(dtype)
+    after_removal = torch.sigmoid(p.log() - torch.log1p(-p) - coupling)
+    # expm1 keeps the difference in probabilities accurate when the coupling is small.
+    change = torch.expm1(-coupling.clamp(min=-1, max=1))
+    small_delta = -p * (1 - p) * change / (1 + p * change)
+    delta = torch.where(coupling.abs() <= 1, small_delta, p - after_removal)
+    return (coupling * delta).clamp_min(0)
 
 
 def compute_Dkl_decimation(
@@ -177,10 +186,14 @@ def compute_Dkl_decimation(
         torch.Tensor: Kullback-Leibler divergence matrix.
     """
     
-    exp_J = torch.exp(-params["coupling_matrix"])
-    Dkl = pij * params["coupling_matrix"] + torch.log(exp_J * pij + 1 - pij)
-    
-    return Dkl
+    coupling = params["coupling_matrix"]
+    dtype = torch.promote_types(torch.promote_types(pij.dtype, coupling.dtype), torch.float32)
+    p, coupling = pij.to(dtype), coupling.to(dtype)
+    log_z = torch.logaddexp(torch.log1p(-p), p.log() - coupling)
+    small_log_z = torch.log1p(p * torch.expm1(-coupling.clamp(min=-1, max=1)))
+    log_z = torch.where(coupling.abs() <= 1, small_log_z, log_z)
+    dkl = (p * coupling + log_z).clamp_min(0)
+    return torch.where((p == 0) | (p == 1), 0.0, dkl)
 
 
 def update_mask_decimation(
@@ -188,7 +201,10 @@ def update_mask_decimation(
     Dkl: torch.Tensor,
     drate: float,
 ) -> torch.Tensor:
-    """Updates the mask by removing the n_remove couplings with the smallest Dkl.
+    """Remove the lowest-scoring active off-site entries from a symmetric mask.
+
+    Count each entry once and clear both orientations. A positive rate removes
+    at least one entry when candidates remain.
 
     Args:
         mask (torch.Tensor): Mask.
@@ -199,12 +215,27 @@ def update_mask_decimation(
         torch.Tensor: Updated mask.
     """
     
-    n_remove = int((mask.sum().item() // 2) * drate) * 2
-    # Only consider the active couplings
-    Dkl_active = torch.where(mask, Dkl, float("inf")).reshape(-1)
-    _, idx_remove = torch.topk(-Dkl_active, n_remove)
-    mask = mask.reshape(-1).scatter_(0, idx_remove, 0.0).reshape(mask.shape)
-    
+    if not 0 <= drate <= 1:
+        raise ValueError("The decimation rate must be in [0, 1].")
+    if drate == 0:
+        return mask
+    L, q = mask.shape[:2]
+    eligible = mask.bool() & get_mask_save(L, q, device=mask.device)
+    active = eligible.flatten().nonzero().squeeze(1)
+    if active.numel() == 0:
+        return mask
+    count = min(active.numel(), max(1, int(active.numel() * drate)))
+    if count < active.numel():
+        scores = Dkl.flatten()[active]
+        scores = torch.where(scores.isnan(), torch.inf, scores)
+        cutoff = torch.topk(scores, count, largest=False, sorted=False).values.max()
+        better = (scores < cutoff).nonzero().squeeze(1)
+        # Flat indices are already ordered, so ties are reproducible across devices.
+        tied = (scores == cutoff).nonzero().squeeze(1)[:count - len(better)]
+        active = active[torch.cat((better, tied))]
+    i, a, j, b = torch.unravel_index(active, mask.shape)
+    mask[i, a, j, b] = 0
+    mask[j, b, i, a] = 0
     return mask
 
 

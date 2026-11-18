@@ -54,8 +54,8 @@ jobs:
           adabmDCA.alignment \
           adabmDCA.input_loading \
           adabmDCA.preprocessing \
-          adabmDCA.training_config \
-          adabmDCA.training_control \
+          adabmDCA.training.config \
+          adabmDCA.training.control \
           adabmDCA.api.contacts \
           adabmDCA.api.diagnostics \
           adabmDCA.api.entropy \
@@ -70,7 +70,7 @@ jobs:
           adabmDCA.api.scoring \
           adabmDCA.serialization \
           adabmDCA.api.splitting \
-          adabmDCA.api.training \
+          adabmDCA.training.api \
           adabmDCA.checkpoint \
           adabmDCA.cobalt \
           adabmDCA.dataset \
@@ -84,8 +84,8 @@ jobs:
           adabmDCA.ptt.mixing \
           adabmDCA.ptt.sampler \
           adabmDCA.resampling \
-          adabmDCA.sampling \
-          adabmDCA.sampling_triton \
+          adabmDCA.cuda_kernels.sampling \
+          adabmDCA.cuda_kernels.sampling_triton \
           adabmDCA.statmech \
           adabmDCA.steering \
           adabmDCA.stats \

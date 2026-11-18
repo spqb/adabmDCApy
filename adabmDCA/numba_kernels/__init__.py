@@ -1,6 +1,6 @@
 """Multithreaded CPU kernels compiled with Numba (optional: ``pip install adabmDCA[cpu]``).
 
-On CPU, :mod:`adabmDCA.sampling` and the PTT sampler use these kernels when
+On CPU, :mod:`adabmDCA.cuda_kernels.sampling` and the PTT sampler use these kernels when
 Numba is installed; otherwise they run PyTorch code. Both sample the same
 distributions. The number of threads follows ``torch.get_num_threads()``, and
 the environment variable ``ADABMDCA_NUMBA=0`` disables the kernels (see

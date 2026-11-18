@@ -19,8 +19,8 @@ import torch
 
 from adabmDCA._validation import validate_integer, validate_seed
 from adabmDCA.exceptions import InputValidationError, OperationCancelledError
-from adabmDCA.lowrank import LowRankPotts
-from adabmDCA.anchor import TreeLowRankPotts
+from adabmDCA.anchor.lowrank import LowRankPotts
+from adabmDCA.anchor.anchor import TreeLowRankPotts
 from adabmDCA.ptt.archive import load_archive, model_id, save_archive
 from adabmDCA.ptt.config import DEFAULT_PTT_N_CHAINS, DEFAULT_PTT_RESERVOIR_SIZE, DEFAULT_PTT_SAMPLER, PTTConfig
 from adabmDCA.ptt.health import IMMOBILE_THRESHOLD, bar, pair_health
@@ -35,7 +35,7 @@ from adabmDCA.ptt.kernels import (
 )
 from adabmDCA.ptt.mixing import MixingEstimate, RenewalEstimate, process_replica_experiment, renewal_forecast
 from adabmDCA.ptt.precision import accumulation_dtype, device_accumulation, diagnostic_double
-from adabmDCA.sampling import sampling_profile_categorical
+from adabmDCA.cuda_kernels.sampling import sampling_profile_categorical
 from adabmDCA.statmech import compute_energy
 from adabmDCA.steering import SteeredKernel, Steering
 
@@ -175,8 +175,8 @@ class PTTSampler:
             sampler: Local kernel: ``"metropolized_gibbs"``, ``"gibbs"`` or ``"metropolis"``.
             config: PTT settings; defaults to ``PTTConfig()``.
             seed: Random seed of the sampler's own generator.
-            anchor: The anchor (:class:`~adabmDCA.anchor.TreeLowRankPotts`, or
-                :class:`~adabmDCA.lowrank.LowRankPotts` in older archives) at the bottom of the
+            anchor: The anchor (:class:`~adabmDCA.anchor.anchor.TreeLowRankPotts`, or
+                :class:`~adabmDCA.anchor.lowrank.LowRankPotts` in older archives) at the bottom of the
                 ladder instead of the profile: it is sampled exactly and its log Z is known, so it
                 plays the role of the profile, but it is already coupled.
 
@@ -491,7 +491,7 @@ class PTTSampler:
                 raise InputValidationError("BF16 PTT sampling requires CUDA.")
             if self.models[0]["bias"].dtype != torch.float32:
                 raise InputValidationError("BF16 PTT sampling requires float32 parameters.")
-            from adabmDCA.sampling import _validate_bfloat16_sampling
+            from adabmDCA.cuda_kernels.sampling import _validate_bfloat16_sampling
 
             try:
                 _validate_bfloat16_sampling(self.device)

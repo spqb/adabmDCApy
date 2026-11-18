@@ -9,7 +9,7 @@ from contextlib import contextmanager
 import torch
 
 from adabmDCA.ptt.precision import device_accumulation
-from adabmDCA.sampling import prepare_sampler
+from adabmDCA.cuda_kernels.sampling import prepare_sampler
 from adabmDCA.statmech import compute_energy
 
 _TIMING_KEYS = ("local_sampling_seconds", "exchange_seconds", "permutation_seconds")
@@ -38,7 +38,7 @@ def _numba_categorical_sampler(name, device):
 
 def _bfloat16_categorical_sampler(name):
     """Triton kernel for ``name`` reading a BF16 copy of the couplings (CUDA)."""
-    from adabmDCA.sampling_triton import (
+    from adabmDCA.cuda_kernels.sampling_triton import (
         gibbs_sampling_categorical_triton,
         metropolis_sampling_categorical_triton,
         metropolized_gibbs_sampling_categorical_triton,
@@ -61,7 +61,7 @@ def _prepare_categorical_sampler(name, device, coupling_dtype=None):
 
         if is_mps_available():
             metal = categorical_sampler(name)
-            from adabmDCA.sampling import get_sampler
+            from adabmDCA.cuda_kernels.sampling import get_sampler
             fallback = None
 
             def mps_dispatch(chains, params, nsweeps, beta=1.0):
@@ -80,7 +80,7 @@ def _prepare_categorical_sampler(name, device, coupling_dtype=None):
         return numba_sampler
     if device.type == "cuda":
         try:
-            from adabmDCA.sampling_triton import (
+            from adabmDCA.cuda_kernels.sampling_triton import (
                 gibbs_sampling_categorical_triton,
                 is_triton_available,
                 metropolis_sampling_categorical_triton,
@@ -103,7 +103,7 @@ def _prepare_categorical_sampler(name, device, coupling_dtype=None):
 
 def _prepare_metropolized_gibbs_sampler(device):
     """Single-model Metropolized Gibbs: Triton on CUDA, Numba on CPU when installed, else PyTorch."""
-    from adabmDCA.sampling import metropolized_gibbs_sampling_categorical
+    from adabmDCA.cuda_kernels.sampling import metropolized_gibbs_sampling_categorical
 
     if device.type == "mps":
         # The one-hot PyTorch implementation uses GEMM rather than a large
@@ -120,7 +120,7 @@ def _prepare_metropolized_gibbs_sampler(device):
 
     if device.type == "cuda":
         try:
-            from adabmDCA.sampling_triton import is_triton_available, metropolized_gibbs_sampling_categorical_triton
+            from adabmDCA.cuda_kernels.sampling_triton import is_triton_available, metropolized_gibbs_sampling_categorical_triton
 
             if is_triton_available():
                 return metropolized_gibbs_sampling_categorical_triton
@@ -180,7 +180,7 @@ def _prepare_replica_sampler(name, device, coupling_dtype=None):
     if name not in ("metropolis", "metropolized_gibbs") or device.type != "cuda":
         return None
     try:
-        from adabmDCA.sampling_triton import (
+        from adabmDCA.cuda_kernels.sampling_triton import (
             is_triton_available,
             metropolis_sampling_replicas_categorical_triton,
             metropolized_gibbs_sampling_replicas_triton,
@@ -230,7 +230,7 @@ def _prepare_exchange_kernel(device):
             return exchange_log_acceptance
     if device.type == "cuda":
         try:
-            from adabmDCA.sampling_triton import (
+            from adabmDCA.cuda_kernels.sampling_triton import (
                 exchange_log_acceptance_categorical_triton,
                 exchange_log_acceptance_sparse_triton,
                 is_triton_available,

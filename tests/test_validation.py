@@ -12,7 +12,7 @@ from adabmDCA.exceptions import InputValidationError, ModelLoadError
 from adabmDCA.api.sampling import sample_sequences
 from adabmDCA.api.splitting import split_alignment
 from adabmDCA.io import load_params
-from adabmDCA.training_config import ConfigurationError
+from adabmDCA.training.config import ConfigurationError
 
 
 @pytest.mark.parametrize("record", ["h 0 A {value}", "J 0 1 A B {value}"])

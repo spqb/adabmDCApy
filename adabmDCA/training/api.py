@@ -23,10 +23,10 @@ from adabmDCA.exceptions import InputValidationError, OperationCancelledError
 from adabmDCA.fasta import get_tokens
 from adabmDCA.input_loading import AlignmentInput, WeightInput
 from adabmDCA.ptt import PTTConfig, PTTSampler
-from adabmDCA.sampling import prepare_training_sampler
+from adabmDCA.cuda_kernels.sampling import prepare_training_sampler
 from adabmDCA.stats import get_correlation_two_points
 from adabmDCA.training import train_eaDCA, train_edDCA, train_edgeDCA, train_graph
-from adabmDCA.training_config import (
+from adabmDCA.training.config import (
     DEFAULT_ACTIVATION_FRACTION,
     DEFAULT_ACTIVATION_STEPS,
     DEFAULT_ALPHABET,
@@ -47,7 +47,7 @@ from adabmDCA.training_config import (
     DEFAULT_TARGET_PEARSON,
     TrainingConfig,
 )
-from adabmDCA.training_control import (
+from adabmDCA.training.control import (
     StageProgress,
     StopReason,
     TrainingCancelled,
@@ -144,7 +144,7 @@ def _fit_anchor(dataset, num_states, rank, pseudocount, frequencies, device, sta
     site of the anchor and of the profile on the training data, and the cost and
     acceptance of the exact sampler.
     """
-    from adabmDCA.anchor import fit_tree_low_rank_potts
+    from adabmDCA.anchor.anchor import fit_tree_low_rank_potts
 
     length = dataset.get_num_residues()
 
@@ -601,7 +601,7 @@ def train_model(
 
     try:
         if ptt_sampler is not None:
-            from adabmDCA.ptt.training import train_ptt
+            from adabmDCA.training.ptt import train_ptt
 
             chains, params, history = train_ptt(
                 ptt_sampler=ptt_sampler, fi_target=fi_target, fij_target=fij_target, mask=mask,

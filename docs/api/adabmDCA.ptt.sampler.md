@@ -132,7 +132,7 @@ Both replicas start at `params`; training then moves the endpoint. To continue f
  - <b>`sampler`</b>:  Local kernel: `"metropolized_gibbs"`, `"gibbs"` or `"metropolis"`.
  - <b>`config`</b>:  PTT settings; defaults to `PTTConfig()`.
  - <b>`seed`</b>:  Random seed of the sampler's own generator.
- - <b>`anchor`</b>:  The anchor (`adabmDCA.anchor.TreeLowRankPotts`, or  `adabmDCA.lowrank.LowRankPotts` in older archives) at the bottom of the
+ - <b>`anchor`</b>:  The anchor (`adabmDCA.anchor.anchor.TreeLowRankPotts`, or  `adabmDCA.anchor.lowrank.LowRankPotts` in older archives) at the bottom of the
  - <b>`ladder instead of the profile`</b>:  it is sampled exactly and its log Z is known, so it plays the role of the profile, but it is already coupled.
 
 

@@ -11,7 +11,7 @@ from adabmDCA.api import TrainingConfig, sample_sequences
 from adabmDCA.exceptions import ConvergenceError, InputValidationError
 from adabmDCA.graph import select_inactive_elements
 from adabmDCA.ptt.policies import _ElementActivationPolicy, _pack_elements, _unpack_elements
-from adabmDCA.training_control import TrainingController
+from adabmDCA.training.control import TrainingController
 from adabmDCA.utils import get_mask_save
 
 

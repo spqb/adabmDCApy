@@ -10,9 +10,9 @@ import torch
 from adabmDCA import PTTConfig, PTTSampler, train_model
 from adabmDCA.api import TrainingConfig
 from adabmDCA.exceptions import InputValidationError
-from adabmDCA.lowrank import TargetMoments
+from adabmDCA.anchor.lowrank import TargetMoments
 from adabmDCA.statmech import compute_energy
-from adabmDCA.anchor import TreeLowRankPotts, _lattice_sum, chow_liu_tree, fit_tree_low_rank_potts
+from adabmDCA.anchor.anchor import TreeLowRankPotts, _lattice_sum, chow_liu_tree, fit_tree_low_rank_potts
 
 # A forest with two components and edges stored in both orientations.
 EDGES = torch.tensor([(0, 1), (2, 1), (1, 3), (4, 5)])
@@ -163,7 +163,7 @@ def test_ladder_starts_at_the_anchor_and_survives_an_archive(tmp_path, rank):
 
 
 def test_anchor_setting_is_validated_and_parsed():
-    from adabmDCA.scripts.train import create_parser, ptt_config_from_args
+    from adabmDCA.training.cli import create_parser, ptt_config_from_args
 
     assert not PTTConfig().anchor and PTTConfig().anchor_rank == 2
     with pytest.raises(InputValidationError):

@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 import torch
 
-from adabmDCA.sampling import gibbs_sampling, metropolis_sampling, prepare_sampler
+from adabmDCA.cuda_kernels.sampling import gibbs_sampling, metropolis_sampling, prepare_sampler
 
 
 class SamplingTests(unittest.TestCase):
@@ -28,7 +28,7 @@ class SamplingTests(unittest.TestCase):
             torch.testing.assert_close(self.chains, original)
 
     def test_sampling_matches_original_implementation(self):
-        from adabmDCA.sampling import gibbs_step_uniform_sites, metropolis_step_uniform_sites
+        from adabmDCA.cuda_kernels.sampling import gibbs_step_uniform_sites, metropolis_step_uniform_sites
 
         cases = ((gibbs_sampling, gibbs_step_uniform_sites), (metropolis_sampling, metropolis_step_uniform_sites))
         for sampler, step in cases:
@@ -91,7 +91,7 @@ class SamplingTests(unittest.TestCase):
 @unittest.skipUnless(torch.cuda.is_available(), "CUDA is required for Triton sampling tests")
 class TritonSamplingTests(unittest.TestCase):
     def test_replica_metropolis_matches_sequential_controlled_updates(self):
-        from adabmDCA.sampling_triton import (
+        from adabmDCA.cuda_kernels.sampling_triton import (
             _metropolis_steps_triton,
             _replica_metropolis_steps_triton,
             is_triton_available,
@@ -131,7 +131,7 @@ class TritonSamplingTests(unittest.TestCase):
         torch.testing.assert_close(actual, expected, rtol=0, atol=0)
 
     def test_categorical_exchange_matches_dense_energy_reference(self):
-        from adabmDCA.sampling_triton import exchange_log_acceptance_categorical_triton, is_triton_available
+        from adabmDCA.cuda_kernels.sampling_triton import exchange_log_acceptance_categorical_triton, is_triton_available
         from adabmDCA.statmech import exchange_log_acceptance
 
         if not is_triton_available():
@@ -171,7 +171,7 @@ class TritonSamplingTests(unittest.TestCase):
             torch.testing.assert_close(actual, expected, rtol=2e-5, atol=2e-5)
 
     def test_public_independent_site_kernels_update_chains_in_place(self):
-        from adabmDCA.sampling_triton import (
+        from adabmDCA.cuda_kernels.sampling_triton import (
             gibbs_step_independent_sites_triton,
             is_triton_available,
             metropolis_step_independent_sites_triton,
@@ -195,7 +195,7 @@ class TritonSamplingTests(unittest.TestCase):
             torch.testing.assert_close(returned.sum(dim=-1), torch.ones_like(returned[..., 0]))
 
     def test_fused_independent_site_steps_match_controlled_pytorch_updates(self):
-        from adabmDCA.sampling_triton import (
+        from adabmDCA.cuda_kernels.sampling_triton import (
             _gibbs_step_independent_triton,
             _metropolis_step_independent_triton,
             is_triton_available,
@@ -247,7 +247,7 @@ class TritonSamplingTests(unittest.TestCase):
         torch.testing.assert_close(actual_metropolis, expected_metropolis, rtol=0, atol=0)
 
     def test_fused_gibbs_steps_match_controlled_categorical_sampling(self):
-        from adabmDCA.sampling_triton import _gibbs_steps_triton, is_triton_available
+        from adabmDCA.cuda_kernels.sampling_triton import _gibbs_steps_triton, is_triton_available
 
         if not is_triton_available():
             self.skipTest("Triton is unavailable")
@@ -277,7 +277,7 @@ class TritonSamplingTests(unittest.TestCase):
         torch.testing.assert_close(actual, expected, rtol=0, atol=0)
 
     def test_fused_steps_match_pytorch_for_controlled_random_numbers(self):
-        from adabmDCA.sampling_triton import _metropolis_steps_triton, is_triton_available
+        from adabmDCA.cuda_kernels.sampling_triton import _metropolis_steps_triton, is_triton_available
 
         if not is_triton_available():
             self.skipTest("Triton is unavailable")

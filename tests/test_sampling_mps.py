@@ -12,7 +12,7 @@ import torch
 from adabmDCA.mps_kernels import is_mps_available
 from adabmDCA.mps_kernels import sampling as metal
 from adabmDCA.mps_kernels.random import SOURCE as RANDOM_SOURCE
-from adabmDCA.sampling import prepare_sampler
+from adabmDCA.cuda_kernels.sampling import prepare_sampler
 from adabmDCA.statmech import compute_energy
 
 pytestmark = pytest.mark.skipif(not is_mps_available(), reason="Metal shaders unavailable")

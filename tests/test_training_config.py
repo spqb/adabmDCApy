@@ -2,9 +2,9 @@ import inspect
 
 import pytest
 
-from adabmDCA.api.training import train_model
+from adabmDCA.training.api import train_model
 from adabmDCA.parser import add_args_train
-from adabmDCA.training_config import (
+from adabmDCA.training.config import (
     DEFAULT_ACTIVATION_FRACTION,
     DEFAULT_ACTIVATION_STEPS,
     DEFAULT_ALPHABET,
@@ -148,12 +148,12 @@ def test_advanced_runtime_values_are_serialized():
 def test_cli_forwards_checkpoint_interval():
     from unittest.mock import patch
 
-    from adabmDCA.scripts.train import create_parser, run
+    from adabmDCA.training.cli import create_parser, run
 
     args = create_parser().parse_args(
         ["-d", "alignment.fasta", "--checkpoint-interval", "7", "--alphabet", "protein"]
     )
-    with patch("adabmDCA.api.training.train_model") as train:
+    with patch("adabmDCA.training.api.train_model") as train:
         run(args)
     assert train.call_args.kwargs["checkpoint_interval"] == 7
 
@@ -203,10 +203,10 @@ def test_checkpoint_schedule_and_early_final_save(tmp_path, interval, saved_epoc
 def test_cli_stops_on_validation_by_default_when_a_validation_set_is_given(extra, expected):
     from unittest.mock import patch
 
-    from adabmDCA.scripts.train import create_parser, run
+    from adabmDCA.training.cli import create_parser, run
 
     args = create_parser().parse_args(["-d", "alignment.fasta", "--alphabet", "protein", *extra])
-    with patch("adabmDCA.api.training.train_model") as train:
+    with patch("adabmDCA.training.api.train_model") as train:
         run(args)
     assert train.call_args.kwargs["ptt"].validation_stop is expected
 
@@ -214,11 +214,11 @@ def test_cli_stops_on_validation_by_default_when_a_validation_set_is_given(extra
 def test_cli_validation_set_does_not_imply_ptt_options_for_pcd():
     from unittest.mock import patch
 
-    from adabmDCA.scripts.train import create_parser, run
+    from adabmDCA.training.cli import create_parser, run
 
     args = create_parser().parse_args(
         ["-d", "alignment.fasta", "--alphabet", "protein", "-v", "validation.fasta", "--strategy", "pcd"]
     )
-    with patch("adabmDCA.api.training.train_model") as train:
+    with patch("adabmDCA.training.api.train_model") as train:
         run(args)
     assert train.call_args.kwargs["ptt"] is None

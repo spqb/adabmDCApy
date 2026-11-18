@@ -10,7 +10,7 @@ from adabmDCA import PTTConfig, PTTSampler, train_model
 from adabmDCA.api import TrainingConfig
 from adabmDCA.exceptions import InputValidationError
 from adabmDCA.ptt.optim import _PTTOptimizer
-from adabmDCA.ptt.training import _LAG_PAUSE_COOLDOWN
+from adabmDCA.training.ptt import _LAG_PAUSE_COOLDOWN
 from adabmDCA.statmech import compute_energy
 from adabmDCA.stats import get_freq_single_point, get_freq_two_points
 from tests import test_ptt as helpers
@@ -231,7 +231,7 @@ def test_drift_tails_are_monitored():
 
 
 def test_adaptive_optimizer_lag_configuration_and_cli():
-    from adabmDCA.scripts.train import create_parser
+    from adabmDCA.training.cli import create_parser
 
     parsed = create_parser().parse_args([
         "--data", "unused.fasta", "--strategy", "ptt", "--ptt-lag-tolerance", "0.3", "--ptt-lag-horizon", "50",

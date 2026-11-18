@@ -20,7 +20,7 @@ from adabmDCA.serialization import (
     write_numpy,
     write_text,
 )
-from adabmDCA.training_config import TrainingConfig
+from adabmDCA.training.config import TrainingConfig
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -1340,7 +1340,7 @@ class TrainingResult:
         Returns:
             The written path.
         """
-        from adabmDCA.training_log import columns_for_config, history_columns, history_rows
+        from adabmDCA.training.log import columns_for_config, history_columns, history_rows
 
         validation = self.initialization is not None and self.initialization.validation is not None
         columns = (columns_for_config(self.config, validation=validation) if self.config is not None

@@ -16,7 +16,7 @@ _EXPORTS = {
     "load_ptt_endpoint": "adabmDCA.ptt.archive",
     "MixingEstimate": "adabmDCA.ptt.mixing",
     "RenewalEstimate": "adabmDCA.ptt.mixing",
-    "train_ptt": "adabmDCA.ptt.training",
+    "train_ptt": "adabmDCA.training.ptt",
 }
 
 __all__ = list(_EXPORTS)

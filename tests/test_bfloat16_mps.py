@@ -7,8 +7,8 @@ from adabmDCA import DCAModel, load_model, sample_sequences, train_model
 from adabmDCA.alignment import Alignment
 from adabmDCA.mps_kernels import sampling as metal
 from adabmDCA.mps_kernels.runtime import is_mps_available
-from adabmDCA.sampling import prepare_fixed_model_sampler, prepare_training_sampler
-from adabmDCA.training_config import TrainingConfig
+from adabmDCA.cuda_kernels.sampling import prepare_fixed_model_sampler, prepare_training_sampler
+from adabmDCA.training.config import TrainingConfig
 
 pytestmark = pytest.mark.skipif(
     not is_mps_available() or not torch.backends.mps.is_macos_or_newer(14, 0),

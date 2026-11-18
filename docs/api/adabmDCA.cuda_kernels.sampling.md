@@ -1,8 +1,8 @@
 <!-- markdownlint-disable -->
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/cuda_kernels/sampling.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
-# <kbd>module</kbd> `adabmDCA.sampling`
+# <kbd>module</kbd> `adabmDCA.cuda_kernels.sampling`
 
 
 
@@ -10,7 +10,7 @@
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling.py#L7"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/cuda_kernels/sampling.py#L7"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `sampling_profile_categorical`
 
@@ -27,7 +27,7 @@ Sample integer states (N,L) from the uncoupled profile, without encoding.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling.py#L14"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/cuda_kernels/sampling.py#L14"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `sampling_profile`
 
@@ -55,7 +55,7 @@ Samples from the profile model defined by the local biases only.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling.py#L39"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/cuda_kernels/sampling.py#L39"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `gibbs_step_uniform_sites`
 
@@ -88,7 +88,7 @@ Performs a single mutation using the Gibbs sampler. In this version, the mutatio
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling.py#L68"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/cuda_kernels/sampling.py#L68"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `gibbs_step_independent_sites`
 
@@ -121,7 +121,7 @@ Performs a single mutation using the Gibbs sampler. This version selects differe
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling.py#L105"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/cuda_kernels/sampling.py#L105"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `gibbs_sampling`
 
@@ -156,7 +156,7 @@ Gibbs sampling. Attempts L * nsweeps mutations to each sequence in 'chains'.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling.py#L133"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/cuda_kernels/sampling.py#L133"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `metropolis_step_uniform_sites`
 
@@ -189,7 +189,7 @@ Performs a single mutation using the Metropolis sampler. In this version, the mu
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling.py#L171"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/cuda_kernels/sampling.py#L171"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `metropolis_step_independent_sites`
 
@@ -222,7 +222,7 @@ Performs a single mutation using the Metropolis sampler. This version selects di
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling.py#L213"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/cuda_kernels/sampling.py#L213"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `metropolis_sampling`
 
@@ -257,7 +257,7 @@ Metropolis sampling. Attempts L * nsweeps mutations to each sequence in 'chains'
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling.py#L241"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/cuda_kernels/sampling.py#L241"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `metropolized_gibbs_step_uniform_sites`
 
@@ -292,7 +292,7 @@ A new residue b different from the current one a is proposed from the site condi
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling.py#L286"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/cuda_kernels/sampling.py#L286"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `metropolized_gibbs_sampling`
 
@@ -347,7 +347,7 @@ Each update draws one site, shared by all chains, proposes a different state b f
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling.py#L357"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/cuda_kernels/sampling.py#L357"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `get_sampler`
 
@@ -378,7 +378,7 @@ Returns the sampling function corresponding to the chosen method.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling.py#L380"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/cuda_kernels/sampling.py#L380"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `prepare_sampler`
 
@@ -393,7 +393,7 @@ CUDA uses the fused Triton kernels when Triton is installed. MPS uses the fused 
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling.py#L445"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/cuda_kernels/sampling.py#L445"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `prepare_fixed_model_sampler`
 
@@ -413,7 +413,7 @@ BF16 mode keeps biases, chains, statistics, and energy calculations in float32. 
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling.py#L470"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/cuda_kernels/sampling.py#L470"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `prepare_training_sampler`
 

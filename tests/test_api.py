@@ -200,7 +200,7 @@ class HighLevelApiTests(unittest.TestCase):
         import torch
 
         from adabmDCA.training import train_edgeDCA
-        from adabmDCA.training_control import TrainingController, TrainingLimits
+        from adabmDCA.training.control import TrainingController, TrainingLimits
 
         fi = torch.full((2, 2), 0.5)
         fij = torch.full((2, 2, 2, 2), 0.25)

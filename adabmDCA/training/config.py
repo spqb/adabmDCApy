@@ -15,7 +15,7 @@ from adabmDCA.ptt.config import (
     DEFAULT_PTT_SAMPLER,
     PTTConfig,
 )
-from adabmDCA.training_control import TrainingLimits
+from adabmDCA.training.control import TrainingLimits
 
 
 class _DefaultInt(int):

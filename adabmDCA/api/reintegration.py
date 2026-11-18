@@ -12,7 +12,7 @@ import torch
 
 from adabmDCA.alignment import Alignment
 from adabmDCA.api.results import ReintegrationResult, TrainingInitialization, TrainingProgress
-from adabmDCA.api.training import train_model
+from adabmDCA.training.api import train_model
 from adabmDCA.dataset import DatasetDCA
 from adabmDCA.exceptions import InputValidationError
 from adabmDCA.input_loading import (
@@ -22,8 +22,8 @@ from adabmDCA.input_loading import (
     load_alignment,
     load_sequence_weights,
 )
-from adabmDCA.training_config import TrainingConfig
-from adabmDCA.training_control import StageProgress
+from adabmDCA.training.config import TrainingConfig
+from adabmDCA.training.control import StageProgress
 from adabmDCA.utils import get_device, get_dtype
 
 

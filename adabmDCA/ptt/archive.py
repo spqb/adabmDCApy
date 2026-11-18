@@ -226,13 +226,13 @@ def load_archive(cls, path, *, device="cpu", mode="generate", seed=None):
                 anchor_fields = torch.from_numpy(archive["anchor/fields"][...])
                 anchor_weights = torch.from_numpy(archive["anchor/weights"][...])
                 if "pairs" in archive["anchor"]:
-                    from adabmDCA.anchor import TreeLowRankPotts
+                    from adabmDCA.anchor.anchor import TreeLowRankPotts
 
                     anchor = TreeLowRankPotts(anchor_fields, anchor_weights,
                                               torch.from_numpy(archive["anchor/edges"][...]),
                                               torch.from_numpy(archive["anchor/pairs"][...]))
                 else:
-                    from adabmDCA.lowrank import LowRankPotts
+                    from adabmDCA.anchor.lowrank import LowRankPotts
 
                     anchor = LowRankPotts(anchor_fields, anchor_weights)
             result = cls(

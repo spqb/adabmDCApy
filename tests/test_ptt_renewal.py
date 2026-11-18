@@ -302,7 +302,7 @@ def _training_case(tmp_path):
 
 
 def test_training_cli_maps_renewal_options():
-    from adabmDCA.scripts.train import create_parser
+    from adabmDCA.training.cli import create_parser
 
     parsed = create_parser().parse_args([
         "--strategy", "ptt", "--data", "unused.fasta", "--ptt-mixing-method", "renewal", "--ptt-renewal-tolerance", "0.05",

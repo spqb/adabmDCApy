@@ -24,7 +24,7 @@ class CliTests(unittest.TestCase):
     def test_strategy_defaults_and_choices_across_scripts(self):
         from adabmDCA.scripts.sample import create_parser as sample_parser
         from adabmDCA.scripts.td_integration import create_parser as entropy_parser
-        from adabmDCA.scripts.train import create_parser as train_parser
+        from adabmDCA.training.cli import create_parser as train_parser
 
         cases = (
             (train_parser(), ["-d", "alignment.fasta"], []),
@@ -147,8 +147,8 @@ class CliTests(unittest.TestCase):
 
     def test_ptt_stage_status_carries_current_pearson(self):
         from adabmDCA.api.results import TrainingProgress
-        from adabmDCA.scripts.train import _PTTProgressRenderer
-        from adabmDCA.training_control import StageProgress
+        from adabmDCA.training.cli import _PTTProgressRenderer
+        from adabmDCA.training.control import StageProgress
 
         stream = io.StringIO()
         renderer = _PTTProgressRenderer(target_pearson=0.95, max_steps=100, stream=stream)
@@ -166,8 +166,8 @@ class CliTests(unittest.TestCase):
         self.assertIn("step 0/100 | Pearson 0.610/0.950 | collecting reservoir 2/2 samples", output)
 
     def test_ptt_interactive_checkpoint_status_keeps_time_moving(self):
-        from adabmDCA.scripts.train import _PTTProgressRenderer
-        from adabmDCA.training_control import StageProgress
+        from adabmDCA.training.cli import _PTTProgressRenderer
+        from adabmDCA.training.control import StageProgress
 
         class Terminal(io.StringIO):
             def isatty(self):
@@ -186,9 +186,9 @@ class CliTests(unittest.TestCase):
 
     def test_ptt_progress_is_concise_by_default_and_detailed_on_request(self):
         from adabmDCA.api.results import TrainingProgress
-        from adabmDCA.scripts.train import _PTTProgressRenderer
-        from adabmDCA.training_control import StageProgress
-        from adabmDCA.training_log import history_columns
+        from adabmDCA.training.cli import _PTTProgressRenderer
+        from adabmDCA.training.control import StageProgress
+        from adabmDCA.training.log import history_columns
 
         metrics = {
             "Pearson": 0.72,
@@ -453,7 +453,7 @@ class CliTests(unittest.TestCase):
         # Python 3.13 displays shared metavars once for grouped aliases.
         self.assertIn("--validation", result.stdout)
         self.assertIn("--val", result.stdout)
-        from adabmDCA.scripts.train import create_parser
+        from adabmDCA.training.cli import create_parser
 
         for flag in ("-v", "--validation", "--val"):
             parsed = create_parser().parse_args(["-d", "train.fasta", flag, "validation.fasta"])
@@ -646,8 +646,8 @@ if __name__ == "__main__":
 
 def test_ptt_status_shows_the_validation_plateau_test_instead_of_the_pearson_target():
     from adabmDCA.api.results import TrainingProgress
-    from adabmDCA.ptt.training import validation_window_gain
-    from adabmDCA.scripts.train import _PTTProgressRenderer
+    from adabmDCA.training.ptt import validation_window_gain
+    from adabmDCA.training.cli import _PTTProgressRenderer
 
     plain = _PTTProgressRenderer(target_pearson=0.95, max_steps=100, stream=io.StringIO())
     plain(TrainingProgress(epoch=1, metrics={"Pearson": 0.72, "LL_val": -0.9}, gradient_steps=1))
@@ -676,7 +676,7 @@ def test_printed_precision_and_stop_follow_the_options(capsys):
     from types import SimpleNamespace
 
     from adabmDCA.scripts.sample import _configuration, create_parser
-    from adabmDCA.scripts.train import _print_initialization, create_parser as train_parser
+    from adabmDCA.training.cli import _print_initialization, create_parser as train_parser
 
     def sample_label(*options):
         args = create_parser().parse_args(["-p", "model.h5", "-o", "out", "--ngen", "10", *options])

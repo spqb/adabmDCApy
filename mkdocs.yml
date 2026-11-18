@@ -37,7 +37,7 @@ nav:
   - Python API:
       - Overview: api/index.md
       - Symbols: api/symbols.md
-      - Training: api/adabmDCA.api.training.md
+      - Training: api/adabmDCA.training.api.md
       - Sampling: api/adabmDCA.api.sampling.md
       - PTT workflows: api/adabmDCA.api.ptt.md
       - Models: api/adabmDCA.api.model.md
@@ -53,7 +53,7 @@ nav:
       - Reintegration: api/adabmDCA.api.reintegration.md
       - Splitting: api/adabmDCA.api.splitting.md
       - Input loading: api/adabmDCA.input_loading.md
-      - Training configuration: api/adabmDCA.training_config.md
+      - Training configuration: api/adabmDCA.training.config.md
 theme:
   name: material
   logo: assets/images/logo-header.png

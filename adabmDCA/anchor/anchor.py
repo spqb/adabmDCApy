@@ -1,6 +1,6 @@
 """The anchor of PTT training: a tree + low-rank Potts model with exact sampling and normalization.
 
-The model adds the pair terms of a tree to the low-rank model of :mod:`adabmDCA.lowrank`:
+The model adds the pair terms of a tree to the low-rank model of :mod:`adabmDCA.anchor.lowrank`:
 
     p(x, z) ∝ exp(-|z|^2 / 2 + sum_i [g_i(x_i) + z . W_i(x_i)] + sum_{(i, j) in tree} theta_ij(x_i, x_j)),
 
@@ -31,7 +31,7 @@ from dataclasses import fields as dataclass_fields
 import numpy as np
 import torch
 
-from adabmDCA.lowrank import (
+from adabmDCA.anchor.lowrank import (
     _LATTICE_DEPTH,
     _LATTICE_STEP,
     _MAX_CELLS,
@@ -256,7 +256,7 @@ def _chunk(length, num_states):
 @torch.no_grad()
 def _lattice_sum(tree, fields, weights, pairs, start=None, *, step=_LATTICE_STEP, depth=_LATTICE_DEPTH,
                  gradient=False, workspace=None):
-    """``log of the integral of exp(F)`` as a lattice sum, as in :func:`adabmDCA.lowrank._lattice_sum`.
+    """``log of the integral of exp(F)`` as a lattice sum, as in :func:`adabmDCA.anchor.lowrank._lattice_sum`.
 
     With ``gradient`` also its derivatives with respect to ``fields``, ``weights``
     and ``pairs``: the single-site and pair marginals of the tilted tree, averaged
@@ -294,8 +294,9 @@ def _lattice_sum(tree, fields, weights, pairs, start=None, *, step=_LATTICE_STEP
     granule = max(16, chunk // 16)
 
     def padded(count):
-        """Batch sizes are powers of two below 1/16 of a chunk and multiples of it above: the GPU allocator then
-        sees only a few tensor shapes and reuses its memory, where batches of every size would fragment it."""
+        """Round CUDA batch sizes so the allocator can reuse memory across batches."""
+        if device.type != "cuda":
+            return count
         if count < granule:
             return 1 << max(4, (count - 1).bit_length())
         return min(chunk, -(-count // granule) * granule)
@@ -680,8 +681,8 @@ def fit_tree_low_rank_potts(
         pseudocount: Weight of the uniform distribution in the fitted target.
         l2: L2 penalty on the weights, in the gauge where the weights of every site sum to zero.
         max_iterations: Largest number of evaluations of the likelihood.
-        tolerance: Stop a stage when 100 L-BFGS iterations lower the negative log-likelihood per sequence
-            by less than this.
+        tolerance: Stop a stage when a block of L-BFGS iterations lowers the negative log-likelihood per sequence
+            by less than this. Blocks contain up to 25 iterations on the coarse lattice and 100 on the fine lattice.
         device: Device of the fit; defaults to that of ``states``.
         verbose: Print the objective every 100 evaluations.
         callback: Called after every evaluation with a dict: ``evaluation``, ``max_evaluations``,
@@ -747,7 +748,7 @@ def fit_tree_low_rank_potts(
         candidates.append((objective(x, _COARSE_STEP, gradient=False)[0], x))
     parameters = min(candidates, key=lambda candidate: candidate[0])[1].clone().requires_grad_(True)
 
-    for step in (_COARSE_STEP, _LATTICE_STEP):
+    for step, max_iter, max_eval in ((_COARSE_STEP, 25, 32), (_LATTICE_STEP, 100, 125)):
         progress["start"] = None
 
         def closure(step=step):
@@ -763,14 +764,14 @@ def fit_tree_low_rank_potts(
             return torch.tensor(loss, dtype=torch.float64, device=device)
 
         def new_optimizer():
-            return torch.optim.LBFGS([parameters], max_iter=100, max_eval=125, line_search_fn="strong_wolfe",
+            return torch.optim.LBFGS([parameters], max_iter=max_iter, max_eval=max_eval, line_search_fn="strong_wolfe",
                                      tolerance_grad=1e-10, tolerance_change=1e-14, history_size=20)
 
         optimizer = new_optimizer()
         previous = math.inf
         while progress["evaluations"] < max_iterations:
             try:
-                loss = float(optimizer.step(closure))  # the objective before these 100 iterations
+                loss = float(optimizer.step(closure))  # the objective at the start of the block
             except IndexError:  # a failed line search of torch's L-BFGS: restart it from the current point
                 optimizer = new_optimizer()
                 continue

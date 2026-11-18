@@ -8,7 +8,7 @@ import torch
 
 from adabmDCA import PTTSampler
 from adabmDCA.exceptions import InputValidationError
-from adabmDCA.lowrank import (LowRankPotts, TargetMoments, _cell_statistics, _lattice_sum, _site_curvature,
+from adabmDCA.anchor.lowrank import (LowRankPotts, TargetMoments, _cell_statistics, _lattice_sum, _site_curvature,
                               _site_logits, fit_low_rank_potts, hopfield_potts_init, target_moments)
 from adabmDCA.statmech import compute_energy
 

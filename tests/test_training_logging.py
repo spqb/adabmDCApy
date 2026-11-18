@@ -7,7 +7,7 @@ import pytest
 from adabmDCA import Alignment, train_model
 from adabmDCA.dataset import DatasetDCA
 from adabmDCA.input_loading import AlignmentLoadConfig
-from adabmDCA.plot_training_log import parse_training_log, plot_training_history, read_training_history
+from adabmDCA.training.plot import parse_training_log, plot_training_history, read_training_history
 
 
 def _training_kwargs(tmp_path: Path, *, model_type: str = "bmDCA"):
@@ -112,7 +112,7 @@ def test_history_is_written_during_training(tmp_path: Path):
 
 
 def test_cli_configuration_contains_resolved_dataset_statistics(tmp_path: Path, capsys):
-    from adabmDCA.scripts.train import create_parser, main
+    from adabmDCA.training.cli import create_parser, main
 
     fasta = tmp_path / "input.fa"
     fasta.write_text(">s1\nAA\n>s2\nAB\n>s3\nBA\n>s4\nBB\n", encoding="utf-8")
@@ -133,7 +133,7 @@ def test_cli_configuration_contains_resolved_dataset_statistics(tmp_path: Path, 
 
 def test_failed_training_writes_terminal_status(tmp_path: Path):
     with (
-        patch("adabmDCA.api.training.train_graph", side_effect=RuntimeError("numerical failure")),
+        patch("adabmDCA.training.api.train_graph", side_effect=RuntimeError("numerical failure")),
         pytest.raises(RuntimeError, match="numerical failure"),
     ):
         train_model(**_training_kwargs(tmp_path))

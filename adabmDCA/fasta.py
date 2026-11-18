@@ -1,9 +1,13 @@
+from math import isqrt
 from typing import Iterable, Union
 
 import numpy as np
 import torch
 
 from adabmDCA.alphabet import get_tokens  # noqa: F401  (re-exported: imported from this module elsewhere)
+
+_WEIGHT_ENCODING_ELEMENTS = 1 << 23
+_WEIGHT_TILE_ELEMENTS = 1 << 20
 
 
 def encode_sequence(sequence: Union[str, Iterable[str]], tokens: str) -> np.ndarray:
@@ -22,18 +26,8 @@ def encode_sequence(sequence: Union[str, Iterable[str]], tokens: str) -> np.ndar
         return [letter_map[token] for token in sequence]
     
     if isinstance(sequence, str):
-        return np.array(_encode(sequence))
-    elif isinstance(sequence, np.ndarray):
-        sequence = list(sequence)
-        return np.array(list(map(_encode, sequence)))
-    elif isinstance(sequence, torch.Tensor):
-        sequence = sequence.cpu().numpy()
-        sequence = list(sequence)
-        return np.array(list(map(_encode, sequence)))
-    elif isinstance(sequence, list):
-        return np.array(list(map(_encode, sequence)))
-    else:        
-        raise ValueError("Input sequence must be either a string or a numpy array.")
+        return np.asarray(_encode(sequence), dtype=np.int64)
+    return np.asarray([_encode(row) for row in sequence], dtype=np.int64)
 
 
 def decode_sequence(sequence: Union[np.ndarray, torch.Tensor, list], tokens: str) -> Union[str, np.ndarray]:
@@ -52,34 +46,68 @@ def decode_sequence(sequence: Union[np.ndarray, torch.Tensor, list], tokens: str
     if isinstance(sequence, list):
         sequence = np.array(sequence)
     elif isinstance(sequence, torch.Tensor):
-        sequence = sequence.cpu().numpy()
+        sequence = sequence.detach().cpu()
+        if sequence.dtype == torch.bfloat16:
+            sequence = sequence.float()
+        sequence = sequence.numpy()
     if not isinstance(sequence, np.ndarray):
         raise TypeError("Input sequence must be either a numpy array, a list or a torch tensor.")
-    sequence = sequence.astype(int)
-    
-    def _decode(sequence):
-        return ''.join([tokens[aa] for aa in sequence])
-    
-    if sequence.ndim == 1:
-        return _decode(sequence)
-    elif sequence.ndim == 2:
-        sequence = list(sequence)
-        return np.array(list(map(_decode, sequence)))
-    elif sequence.ndim == 3:
+    if sequence.dtype.kind not in "biuf":
+        raise ValueError("Encoded sequences must contain real numeric values.")
+    if sequence.ndim == 3:
         if sequence.shape[2] != len(tokens):
             raise ValueError("The last dimension of the input one-hot encoded sequence must be equal to the length of the alphabet.")
+        if not np.all((sequence == 0) | (sequence == 1)) or not np.all((sequence == 1).sum(axis=2) == 1):
+            raise ValueError("Each one-hot row must contain exactly one 1 and otherwise zeros.")
         sequence = np.argmax(sequence, axis=2)
-        sequence = list(sequence)
-        return np.array(list(map(_decode, sequence)))
-    else:
+    elif sequence.ndim not in (1, 2):
         raise ValueError("Input sequence must be either a 1D, 2D or a 3D (one-hot encoded) iterable.")
+    if not np.all((sequence >= 0) & (sequence < len(tokens))):
+        raise ValueError("Encoded states must be valid indices into the alphabet.")
+    if sequence.dtype.kind == "f" and not np.all(sequence == np.floor(sequence)):
+        raise ValueError("Encoded states must be integers.")
+    sequence = sequence.astype(np.intp, copy=False)
+
+    def _decode(row):
+        return "".join(tokens[aa] for aa in row)
+
+    if sequence.ndim == 1:
+        return _decode(sequence)
+    return np.asarray([_decode(row) for row in sequence], dtype=str)
 
 
-def _get_sequence_weight(s: torch.Tensor, data: torch.Tensor, L: int, th: float):
-    seq_id = torch.sum(s == data, dim=1) / L
-    n_clust = torch.sum(seq_id > th)
-    
-    return 1.0 / n_clust
+def _count_sequence_neighbors(data: torch.Tensor, th: float) -> torch.Tensor:
+    """Count neighbors in bounded tiles, using a matrix product when a dense encoding fits."""
+    size, length = data.shape
+    # Compare integer counts to avoid rounding an identity threshold up to 1.
+    minimum = round(th * length)
+    if minimum / length <= th:
+        minimum += 1
+    counts = torch.empty(size, dtype=torch.int64, device=data.device)
+    if not data.is_floating_point():
+        indices = data.long()
+        low, high = torch.stack(torch.aminmax(indices)).tolist()
+        classes = high - low + 1
+        if size * length * classes <= _WEIGHT_ENCODING_ELEMENTS:
+            encoded = torch.zeros((size, length, classes), dtype=torch.float32, device=data.device)
+            encoded.scatter_(-1, (indices - low).unsqueeze(-1), 1)
+            rows = encoded.flatten(1)
+            chunk = max(1, _WEIGHT_TILE_ELEMENTS // size)
+            # Mixed precision can round integer match counts before thresholding.
+            with torch.autocast(device_type=data.device.type, enabled=False):
+                for start in range(0, size, chunk):
+                    block = rows[start:start + chunk]
+                    counts[start:start + len(block)] = ((block @ rows.T) >= minimum).sum(dim=1)
+            return counts
+
+    chunk = max(1, isqrt(_WEIGHT_TILE_ELEMENTS // length))
+    for start in range(0, size, chunk):
+        block = data[start:start + chunk]
+        count = counts[start:start + len(block)].zero_()
+        for other in data.split(chunk):
+            matches = (block[:, None, :] == other[None, :, :]).sum(dim=-1)
+            count += (matches >= minimum).sum(dim=1)
+    return counts
 
 
 def compute_weights(
@@ -88,8 +116,10 @@ def compute_weights(
     device: torch.device = torch.device("cpu"),
     dtype: torch.dtype = torch.float32,
 ) -> torch.Tensor:
-    """Computes the weight to be assigned to each sequence 's' in 'data' as 1 / n_clust, where 'n_clust' is the number of sequences
-    that have a sequence identity with 's' > th (including 's' itself).
+    """Weight each sequence by the reciprocal of its neighbor count.
+
+    Each sequence counts itself. Other sequences count when their identity is
+    strictly greater than the threshold.
 
     Args:
         data (Union[np.ndarray, torch.Tensor]): Input dataset. Must be either a (batch_size, L) or a (batch_size, L, q) (one-hot encoded) array.
@@ -100,18 +130,24 @@ def compute_weights(
     Returns:
         torch.Tensor: Array with the weights of the sequences.
     """
-    if len(data.shape) not in (2, 3):
+    if not 0 <= th <= 1:
+        raise ValueError("The sequence identity threshold must be in [0, 1].")
+    data = torch.as_tensor(data, device=device)
+    if data.ndim not in (2, 3):
         raise ValueError("'data' must be either a (batch_size, L) or a (batch_size, L, q) (one-hot encoded) array.")
-    if isinstance(data, np.ndarray):
-        data = torch.tensor(data, device=device)
-    if len(data.shape) == 3:
-        data_encoded = data.argmax(dim=2)
-    else:
-        data_encoded = data
-    _, L = data_encoded.shape
-    weights = torch.vstack([_get_sequence_weight(s, data_encoded, L, th) for s in data_encoded]).view(-1)
-
-    return weights.to(dtype)
+    if data.shape[1] == 0 or (data.ndim == 3 and data.shape[2] == 0):
+        raise ValueError("Sequences must have at least one site and state.")
+    if data.is_complex():
+        raise ValueError("Sequence encodings must contain real values.")
+    if len(data) == 0 or th == 1:
+        return torch.ones(len(data), device=device, dtype=dtype)
+    if data.is_floating_point() and not torch.isfinite(data).all():
+        raise ValueError("Sequence encodings must contain finite values.")
+    if data.ndim == 3:
+        data = (data.to(torch.uint8) if data.dtype == torch.bool else data).argmax(dim=-1)
+    counts = _count_sequence_neighbors(data, th)
+    precision = torch.float64 if dtype == torch.float64 else torch.float32
+    return counts.to(precision).reciprocal().to(dtype)
 
 
 def validate_alphabet(sequences: Iterable[str], tokens: str):

@@ -4,7 +4,7 @@ These pages are generated from the current Python source with `lazydocs`. Begin 
 
 | Workflow | Modules |
 | --- | --- |
-| Train and resume | [Training](adabmDCA.api.training.md), [PTT configuration](adabmDCA.ptt.config.md), [Training configuration](adabmDCA.training_config.md) |
+| Train and resume | [Training](adabmDCA.training.api.md), [PTT configuration](adabmDCA.ptt.config.md), [Training configuration](adabmDCA.training.config.md) |
 | Generate and steer | [Sampling](adabmDCA.api.sampling.md), [PTT workflows](adabmDCA.api.ptt.md), [Steering](adabmDCA.steering.md), [PTT sampler](adabmDCA.ptt.sampler.md) |
 | Work with results | [Model object](adabmDCA.api.model.md), [Result objects](adabmDCA.api.results.md) |
 | Analyze | [Scoring](adabmDCA.api.scoring.md), [Contacts](adabmDCA.api.contacts.md), [Mutations](adabmDCA.api.mutations.md), [Entropy](adabmDCA.api.entropy.md), [Diagnostics](adabmDCA.api.diagnostics.md) |

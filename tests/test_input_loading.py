@@ -19,7 +19,7 @@ from adabmDCA.input_loading import (
     load_alignment,
     load_sequence_weights,
 )
-from adabmDCA.training_config import TrainingConfig
+from adabmDCA.training.config import TrainingConfig
 
 
 def test_loading_policy_reports_filtering_and_duplicates():

@@ -405,7 +405,7 @@ def prepare_sampler(sampling_method: str, device: torch.device) -> Callable:
     scripted_sampler = torch.jit.script(sampler)
     if device.type == "cuda":
         try:
-            from adabmDCA.sampling_triton import (
+            from adabmDCA.cuda_kernels.sampling_triton import (
                 gibbs_sampling_triton,
                 is_triton_available,
                 metropolis_sampling_triton,
@@ -434,7 +434,7 @@ def _validate_bfloat16_sampling(device: torch.device) -> None:
         if not is_mps_available() or not torch.backends.mps.is_macos_or_newer(14, 0):
             raise ValueError("bfloat16 sampling requires enabled MPS kernels and macOS 14 or newer")
         return
-    from adabmDCA.sampling_triton import is_triton_available
+    from adabmDCA.cuda_kernels.sampling_triton import is_triton_available
 
     if device.type != "cuda" or not torch.cuda.is_available() or not is_triton_available():
         raise ValueError("bfloat16 sampling requires CUDA and Triton or supported MPS kernels")

@@ -5,7 +5,7 @@ import torch
 
 from adabmDCA import PTTSampler
 from adabmDCA.ptt import sampler as sampler_module
-from adabmDCA.sampling import sampling_profile, sampling_profile_categorical
+from adabmDCA.cuda_kernels.sampling import sampling_profile, sampling_profile_categorical
 from tests.test_ptt import profile
 
 DEVICES = ['cpu', pytest.param('mps', marks=pytest.mark.skipif(not torch.backends.mps.is_available(), reason='Requires MPS'))]

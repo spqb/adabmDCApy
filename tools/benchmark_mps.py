@@ -26,7 +26,7 @@ import torch
 from adabmDCA import load_alignment, train_model
 from adabmDCA.mps_kernels import is_mps_available
 from adabmDCA.numba_kernels import is_numba_available
-from adabmDCA.sampling import prepare_sampler
+from adabmDCA.cuda_kernels.sampling import prepare_sampler
 
 
 @contextlib.contextmanager

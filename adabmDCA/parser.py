@@ -1,6 +1,6 @@
 import argparse
 
-from adabmDCA.training_config import (
+from adabmDCA.training.config import (
     DEFAULT_ACTIVATION_FRACTION,
     DEFAULT_ACTIVATION_STEPS,
     DEFAULT_CHECKPOINT_INTERVAL,

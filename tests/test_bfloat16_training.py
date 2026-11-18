@@ -8,12 +8,12 @@ import pytest
 import torch
 
 from adabmDCA import DCAModel, sample_sequences, train_model
-from adabmDCA import sampling_triton as kernels
+from adabmDCA.cuda_kernels import sampling_triton as kernels
 from adabmDCA.alignment import Alignment
 from adabmDCA.exceptions import InputValidationError
 from adabmDCA.parser import add_args_sample, add_args_train
-from adabmDCA.sampling import prepare_fixed_model_sampler, prepare_training_sampler
-from adabmDCA.training_config import TrainingConfig
+from adabmDCA.cuda_kernels.sampling import prepare_fixed_model_sampler, prepare_training_sampler
+from adabmDCA.training.config import TrainingConfig
 
 CUDA_BF16 = torch.cuda.is_available() and kernels.is_triton_available() and torch.cuda.get_device_capability()[0] >= 8
 gpu = pytest.mark.skipif(not CUDA_BF16, reason="Ampere+ CUDA and Triton required")

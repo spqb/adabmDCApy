@@ -19,7 +19,7 @@ import math
 import os
 from pathlib import Path
 
-from adabmDCA.training_config import DEFAULT_TARGET_PEARSON
+from adabmDCA.training.config import DEFAULT_TARGET_PEARSON
 
 TRAIN = "#31688E"
 VALIDATION = "#E76F51"
@@ -33,7 +33,7 @@ STOP = "#263238"
 
 def _history_names() -> dict[str, str]:
     """``TrainingResult.history`` keys of older tables mapped to ``history.csv`` names."""
-    from adabmDCA.training_log import history_columns
+    from adabmDCA.training.log import history_columns
 
     return {column.key: column.name
             for column in history_columns(model_type="eaDCA", ptt_optimizer="adaptive", validation=True)}

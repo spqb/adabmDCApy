@@ -49,5 +49,5 @@ def test_explicit_custom_does_not_inspect_inputs():
 
 
 def test_cli_training_defaults_to_auto():
-    from adabmDCA.scripts.train import create_parser
+    from adabmDCA.training.cli import create_parser
     assert create_parser().parse_args(['-d', 'data.fa']).alphabet == 'auto'

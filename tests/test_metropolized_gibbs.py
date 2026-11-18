@@ -8,7 +8,7 @@ import torch
 
 from adabmDCA import PTTSampler
 from adabmDCA.exceptions import InputValidationError
-from adabmDCA.sampling import metropolized_gibbs_sampling_categorical
+from adabmDCA.cuda_kernels.sampling import metropolized_gibbs_sampling_categorical
 from adabmDCA.statmech import compute_energy
 from tests import test_ptt as helpers
 
@@ -84,7 +84,7 @@ def controlled_reference(states, biases, couplings, sites, uniforms, beta=1.0):
 @cuda
 @pytest.mark.parametrize("dtype", [torch.float32, torch.float64])
 def test_triton_kernel_matches_controlled_reference(dtype):
-    from adabmDCA.sampling_triton import (
+    from adabmDCA.cuda_kernels.sampling_triton import (
         _replica_metropolized_gibbs_steps_triton,
         transpose_couplings_for_metropolized_gibbs,
     )
@@ -109,7 +109,7 @@ def test_triton_kernel_matches_controlled_reference(dtype):
 
 @cuda
 def test_triton_replica_kernel_samples_exact_distributions():
-    from adabmDCA.sampling_triton import (
+    from adabmDCA.cuda_kernels.sampling_triton import (
         metropolized_gibbs_sampling_replicas_categorical_triton,
         transpose_couplings_for_metropolized_gibbs,
     )
@@ -127,7 +127,7 @@ def test_triton_replica_kernel_samples_exact_distributions():
 
 @pytest.mark.parametrize("scripted", [False, True])
 def test_one_hot_reference_sampler_samples_exact_distribution(scripted):
-    from adabmDCA.sampling import get_sampler
+    from adabmDCA.cuda_kernels.sampling import get_sampler
 
     torch.manual_seed(21)
     params = random_potts(3, 3, scale=1.2, seed=6)
@@ -143,7 +143,7 @@ def test_one_hot_reference_sampler_samples_exact_distribution(scripted):
 @cuda
 @pytest.mark.parametrize("coupling_dtype", [None, torch.bfloat16])
 def test_single_model_triton_sampler_samples_exact_distribution(coupling_dtype):
-    from adabmDCA.sampling_triton import metropolized_gibbs_sampling_triton
+    from adabmDCA.cuda_kernels.sampling_triton import metropolized_gibbs_sampling_triton
 
     torch.manual_seed(12)
     params = random_potts(3, 3, scale=1.0, seed=9, dtype=torch.float32, device="cuda")
@@ -159,15 +159,15 @@ def test_single_model_triton_sampler_samples_exact_distribution(coupling_dtype):
 
 def test_sampler_registry_and_public_sampling_accept_metropolized_gibbs(tmp_path, monkeypatch):
     from adabmDCA import DCAModel
-    from adabmDCA.sampling import metropolized_gibbs_sampling, prepare_sampler
-    from adabmDCA.training_config import SAMPLERS
+    from adabmDCA.cuda_kernels.sampling import metropolized_gibbs_sampling, prepare_sampler
+    from adabmDCA.training.config import SAMPLERS
 
     assert "metropolized_gibbs" in SAMPLERS
     monkeypatch.setenv("ADABMDCA_NUMBA", "0")  # the TorchScript fallback on CPU
     assert prepare_sampler("metropolized_gibbs", torch.device("cpu")).name == metropolized_gibbs_sampling.__name__
     monkeypatch.delenv("ADABMDCA_NUMBA")
     if torch.cuda.is_available():
-        from adabmDCA.sampling_triton import is_triton_available, metropolized_gibbs_sampling_triton
+        from adabmDCA.cuda_kernels.sampling_triton import is_triton_available, metropolized_gibbs_sampling_triton
 
         if is_triton_available():
             assert prepare_sampler("metropolized_gibbs", torch.device("cuda")) is metropolized_gibbs_sampling_triton
@@ -178,7 +178,7 @@ def test_sampler_registry_and_public_sampling_accept_metropolized_gibbs(tmp_path
 
 
 def test_wide_index_threshold():
-    from adabmDCA.sampling_triton import _needs_wide_indices
+    from adabmDCA.cuda_kernels.sampling_triton import _needs_wide_indices
 
     assert not _needs_wide_indices(14_000, 307, 21)
     assert _needs_wide_indices(10, 2207, 21)  # (L*q)**2 >= 2**31
@@ -188,7 +188,7 @@ def test_wide_index_threshold():
 @cuda
 def test_wide_index_kernels_match_int32_kernels(monkeypatch):
     """Forcing the int64 path must not change any trajectory."""
-    from adabmDCA import sampling_triton as st
+    from adabmDCA.cuda_kernels import sampling_triton as st
 
     generator = torch.Generator(device="cuda").manual_seed(9)
     models = [random_potts(11, 6, scale=0.7, seed=seed, dtype=torch.float32, device="cuda") for seed in (3, 4)]
@@ -257,7 +257,7 @@ def sparse_potts(length, num_states, pairs, *, seed=0, dtype=torch.float64, devi
 @cuda
 @pytest.mark.parametrize("dtype", [torch.float32, torch.float64])
 def test_sparse_triton_kernel_matches_controlled_reference(dtype):
-    from adabmDCA.sampling_triton import _replica_metropolized_gibbs_sparse_steps_triton, sparse_coupling_layout
+    from adabmDCA.cuda_kernels.sampling_triton import _replica_metropolized_gibbs_sparse_steps_triton, sparse_coupling_layout
 
     # Two replicas with different graphs; the widest site has 2 of 10 neighbours.
     models = [sparse_potts(10, 5, [(0, 3), (3, 7), (1, 8)], seed=1, dtype=dtype),
@@ -278,7 +278,7 @@ def test_sparse_triton_kernel_matches_controlled_reference(dtype):
 
 @cuda
 def test_sparse_triton_samplers_sample_exact_distributions():
-    from adabmDCA.sampling_triton import (
+    from adabmDCA.cuda_kernels.sampling_triton import (
         metropolized_gibbs_sampling_categorical_triton,
         metropolized_gibbs_sampling_replicas_triton,
         sparse_coupling_layout,
@@ -300,7 +300,7 @@ def test_sparse_triton_samplers_sample_exact_distributions():
 @cuda
 @pytest.mark.parametrize("symmetric", [False, True])
 def test_sparse_triton_exchange_matches_the_one_hot_energies(symmetric):
-    from adabmDCA.sampling_triton import exchange_log_acceptance_sparse_triton
+    from adabmDCA.cuda_kernels.sampling_triton import exchange_log_acceptance_sparse_triton
 
     lower = sparse_potts(8, 4, [(0, 4), (2, 3)], seed=4, dtype=torch.float32)
     upper = sparse_potts(8, 4, [(0, 4), (1, 6), (2, 5)], seed=5, dtype=torch.float32)
@@ -321,7 +321,7 @@ def test_sparse_triton_exchange_matches_the_one_hot_energies(symmetric):
 
 @cuda
 def test_replica_sampler_falls_back_to_the_dense_kernel_on_full_graphs():
-    from adabmDCA.sampling_triton import (
+    from adabmDCA.cuda_kernels.sampling_triton import (
         metropolized_gibbs_sampling_replicas_categorical_triton,
         metropolized_gibbs_sampling_replicas_triton,
         sparse_coupling_layout,
@@ -344,7 +344,7 @@ def test_replica_sampler_falls_back_to_the_dense_kernel_on_full_graphs():
 @cuda
 @pytest.mark.parametrize("method", ["gibbs", "metropolis"])
 def test_sparse_gibbs_and_metropolis_match_their_dense_kernels(method, monkeypatch):
-    from adabmDCA import sampling_triton as st
+    from adabmDCA.cuda_kernels import sampling_triton as st
 
     sample = {"gibbs": st.gibbs_sampling_categorical_triton,
               "metropolis": st.metropolis_sampling_categorical_triton}[method]
@@ -371,7 +371,7 @@ def test_sparse_gibbs_and_metropolis_match_their_dense_kernels(method, monkeypat
 
 @cuda
 def test_sparse_metropolis_replicas_match_the_dense_kernel(monkeypatch):
-    from adabmDCA import sampling_triton as st
+    from adabmDCA.cuda_kernels import sampling_triton as st
 
     models = [sparse_potts(10, 5, [(0, 3), (3, 7)], seed=1), sparse_potts(10, 5, [(2, 9)], seed=2)]
     biases = torch.stack([m["bias"] for m in models])
@@ -388,7 +388,7 @@ def test_sparse_metropolis_replicas_match_the_dense_kernel(monkeypatch):
 @cuda
 @pytest.mark.parametrize("method", ["gibbs", "metropolis"])
 def test_sparse_gibbs_and_metropolis_sample_exact_distributions(method):
-    from adabmDCA import sampling_triton as st
+    from adabmDCA.cuda_kernels import sampling_triton as st
 
     sample = {"gibbs": st.gibbs_sampling_categorical_triton,
               "metropolis": st.metropolis_sampling_categorical_triton}[method]
@@ -402,7 +402,7 @@ def test_sparse_gibbs_and_metropolis_sample_exact_distributions(method):
 
 def row_inputs(models, states, dtype=None):
     """Row layout, shifted biases and column states of the row kernel for stacked models."""
-    from adabmDCA.sampling_triton import _row_biases, metropolized_gibbs_row_layout
+    from adabmDCA.cuda_kernels.sampling_triton import _row_biases, metropolized_gibbs_row_layout
 
     rows = metropolized_gibbs_row_layout(torch.stack([m["coupling_matrix"] for m in models]), dtype)
     biases = _row_biases(torch.stack([m["bias"] for m in models]), rows.shape[-1])
@@ -416,7 +416,7 @@ def row_inputs(models, states, dtype=None):
 )
 def test_row_tiles_cover_all_but_the_last_state(num_states, itemsize, expected):
     pytest.importorskip("triton")
-    from adabmDCA.sampling_triton import _row_tiles
+    from adabmDCA.cuda_kernels.sampling_triton import _row_tiles
 
     vector, first, second = _row_tiles(num_states, itemsize)
     assert (vector, first, second) == expected
@@ -426,7 +426,7 @@ def test_row_tiles_cover_all_but_the_last_state(num_states, itemsize, expected):
 
 @cuda
 def test_row_layout_holds_the_couplings_relative_to_the_last_state():
-    from adabmDCA.sampling_triton import metropolized_gibbs_row_layout
+    from adabmDCA.cuda_kernels.sampling_triton import metropolized_gibbs_row_layout
 
     models = [random_potts(6, 21, seed=seed, dtype=torch.float32, device="cuda") for seed in (1, 2)]
     couplings = torch.stack([m["coupling_matrix"] for m in models])
@@ -443,7 +443,7 @@ def test_row_layout_holds_the_couplings_relative_to_the_last_state():
 @pytest.mark.parametrize("num_states", [2, 3, 4, 5, 21, 29])
 def test_row_kernel_matches_controlled_reference(num_states):
     """Same random inputs as the reference: the shifted fields differ by float32 rounding only."""
-    from adabmDCA.sampling_triton import _replica_metropolized_gibbs_rows_steps_triton
+    from adabmDCA.cuda_kernels.sampling_triton import _replica_metropolized_gibbs_rows_steps_triton
 
     length, num_chains, steps = 7, 77, 40
     models = [random_potts(length, num_states, scale=0.8, seed=seed, dtype=torch.float32, device="cuda")
@@ -472,7 +472,7 @@ def test_row_kernel_matches_controlled_reference(num_states):
 @pytest.mark.parametrize("coupling_dtype", [None, torch.bfloat16])
 @pytest.mark.parametrize("num_states", [3, 5])
 def test_row_kernel_samples_exact_distributions(coupling_dtype, num_states):
-    from adabmDCA.sampling_triton import (
+    from adabmDCA.cuda_kernels.sampling_triton import (
         _row_kernel_applies,
         metropolized_gibbs_sampling_categorical_triton,
         metropolized_gibbs_sampling_replicas_triton,
@@ -504,7 +504,7 @@ def test_row_kernel_samples_exact_distributions(coupling_dtype, num_states):
 
 @cuda
 def test_row_kernel_handles_nearly_deterministic_conditionals():
-    from adabmDCA.sampling_triton import metropolized_gibbs_sampling_categorical_triton
+    from adabmDCA.cuda_kernels.sampling_triton import metropolized_gibbs_sampling_categorical_triton
 
     torch.manual_seed(0)
     for favoured in (0, 2):  # a middle state and the last one, which the rows do not store
@@ -519,7 +519,7 @@ def test_row_kernel_handles_nearly_deterministic_conditionals():
 
 @cuda
 def test_float64_models_and_small_populations_keep_the_per_chain_kernel():
-    from adabmDCA.sampling_triton import _row_kernel_applies
+    from adabmDCA.cuda_kernels.sampling_triton import _row_kernel_applies
 
     params = random_potts(4, 5, device="cuda")
     assert not _row_kernel_applies(params["bias"], params["coupling_matrix"].dtype, 5, 10_000)
@@ -533,7 +533,7 @@ def test_float64_models_and_small_populations_keep_the_per_chain_kernel():
 @pytest.mark.parametrize("num_states", [2, 5, 21])
 def test_gibbs_row_kernel_matches_the_per_chain_kernel(num_states):
     """Same sites and uniforms: the shifted fields differ by float32 rounding only."""
-    from adabmDCA.sampling_triton import _gibbs_steps_triton, _replica_metropolized_gibbs_rows_steps_triton
+    from adabmDCA.cuda_kernels.sampling_triton import _gibbs_steps_triton, _replica_metropolized_gibbs_rows_steps_triton
 
     length, num_chains, steps = 7, 77, 40
     model = random_potts(length, num_states, scale=0.8, seed=3, dtype=torch.float32, device="cuda")
@@ -557,7 +557,7 @@ def test_gibbs_row_kernel_matches_the_per_chain_kernel(num_states):
 @pytest.mark.parametrize("coupling_dtype", [torch.float32, torch.bfloat16])
 @pytest.mark.parametrize("num_states", [2, 5, 21])
 def test_metropolis_columns_kernel_matches_the_per_program_kernel(num_states, coupling_dtype):
-    from adabmDCA.sampling_triton import _metropolis_columns_steps_triton, _metropolis_steps_triton
+    from adabmDCA.cuda_kernels.sampling_triton import _metropolis_columns_steps_triton, _metropolis_steps_triton
 
     length, num_chains, steps = 7, 77, 40
     model = random_potts(length, num_states, scale=0.8, seed=4, dtype=torch.float32, device="cuda")
@@ -584,7 +584,7 @@ def test_metropolis_columns_kernel_matches_the_per_program_kernel(num_states, co
 @pytest.mark.parametrize("coupling_dtype", [None, torch.bfloat16])
 @pytest.mark.parametrize("method", ["gibbs", "metropolis"])
 def test_large_gibbs_and_metropolis_populations_sample_exact_distributions(method, coupling_dtype):
-    from adabmDCA import sampling_triton as st
+    from adabmDCA.cuda_kernels import sampling_triton as st
 
     sample = {"gibbs": st.gibbs_sampling_categorical_triton,
               "metropolis": st.metropolis_sampling_categorical_triton}[method]
@@ -607,7 +607,7 @@ def test_large_gibbs_and_metropolis_populations_sample_exact_distributions(metho
 @pytest.mark.parametrize("method", ["gibbs", "metropolis"])
 def test_large_gibbs_and_metropolis_populations_follow_the_small_population_kernels(method, monkeypatch):
     """The kernels for many chains draw the same random numbers as the others."""
-    from adabmDCA import sampling_triton as st
+    from adabmDCA.cuda_kernels import sampling_triton as st
 
     sample = {"gibbs": st.gibbs_sampling_categorical_triton,
               "metropolis": st.metropolis_sampling_categorical_triton}[method]
@@ -632,7 +632,7 @@ def test_large_gibbs_and_metropolis_populations_follow_the_small_population_kern
 
 @cuda
 def test_gibbs_and_metropolis_keep_their_kernels_for_small_populations_and_float64():
-    from adabmDCA.sampling_triton import _metropolis_columns_applies, _rows_launch
+    from adabmDCA.cuda_kernels.sampling_triton import _metropolis_columns_applies, _rows_launch
 
     bias = torch.zeros(4, 21, device="cuda")
     assert not _metropolis_columns_applies(bias.double(), torch.float64, 21, 50_000)

@@ -15,8 +15,8 @@ import wandb
 
 from adabmDCA.serialization import to_jsonable
 from adabmDCA.io import save_chains, save_params
-from adabmDCA.training_config import DEFAULT_CHECKPOINT_INTERVAL, TrainingConfig
-from adabmDCA.training_log import (
+from adabmDCA.training.config import DEFAULT_CHECKPOINT_INTERVAL, TrainingConfig
+from adabmDCA.training.log import (
     HEADER_EVERY,
     PHASES,
     columns_for_config,

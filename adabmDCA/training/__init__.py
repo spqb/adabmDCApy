@@ -10,11 +10,11 @@ from adabmDCA.graph import (
     decimate_graph,
 )
 from adabmDCA.stats import get_correlation_two_points, get_freq_single_point, get_freq_two_points
-from adabmDCA.training_config import (
+from adabmDCA.training.config import (
     DEFAULT_INNER_GRADIENT_STEPS,
     EDGE_EMPIRICAL_PSEUDOCOUNT,
 )
-from adabmDCA.training_control import (
+from adabmDCA.training.control import (
     StopReason,
     TrainingController,
     TrainingHistory,

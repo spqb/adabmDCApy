@@ -24,7 +24,7 @@ from adabmDCA.input_loading import (
 from adabmDCA.privet import DEFAULT_WINDOW as DEFAULT_PRIVET_WINDOW
 from adabmDCA.privet import privet
 from adabmDCA.resampling import compute_mixing_time
-from adabmDCA.sampling import prepare_fixed_model_sampler
+from adabmDCA.cuda_kernels.sampling import prepare_fixed_model_sampler
 from adabmDCA.statmech import compute_energy
 from adabmDCA.stats import (
     extract_Cij_from_freq,

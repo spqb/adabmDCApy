@@ -466,7 +466,7 @@ def replica_sampler(method: str) -> Callable[..., torch.Tensor]:
 
 
 def onehot_sampler(method: str) -> Callable[..., torch.Tensor]:
-    """A sampler of one-hot chains ``(N, L, q)``, the interface of :mod:`adabmDCA.sampling`."""
+    """A sampler of one-hot chains ``(N, L, q)``, the interface of :mod:`adabmDCA.cuda_kernels.sampling`."""
 
     def sampler(chains, params, nsweeps, beta=1.0):
         states = sample_categorical(method, chains.argmax(-1), params, nsweeps, beta)

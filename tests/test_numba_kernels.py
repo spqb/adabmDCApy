@@ -113,7 +113,7 @@ def test_explicit_sites_update_only_those_sites():
 
 def test_cpu_dispatch_uses_numba_unless_disabled(monkeypatch):
     from adabmDCA.ptt import PTTSampler
-    from adabmDCA.sampling import prepare_sampler
+    from adabmDCA.cuda_kernels.sampling import prepare_sampler
 
     assert prepare_sampler("gibbs", torch.device("cpu")).__name__ == "gibbs_sampling_numba"
     params = random_potts(3, 2, torch.float64)

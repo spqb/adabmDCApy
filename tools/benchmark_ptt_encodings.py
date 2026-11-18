@@ -21,7 +21,7 @@ import torch
 
 from adabmDCA import PTTConfig, PTTSampler, load_alignment, train_model
 from adabmDCA.ptt import sampler as sampler_module
-from adabmDCA.sampling import sampling_profile
+from adabmDCA.cuda_kernels.sampling import sampling_profile
 
 
 @contextlib.contextmanager

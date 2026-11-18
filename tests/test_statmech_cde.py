@@ -56,3 +56,16 @@ def test_get_cde_rejects_non_one_hot_sequences():
     }
     with pytest.raises(ValueError, match="one-hot"):
         get_cde(torch.tensor([[1.0, 1.0], [0.0, 1.0]]), params)
+    with pytest.raises(ValueError, match="one-hot"):
+        get_cde(torch.tensor([[1.0 + 1e-9, 0.0], [0.0, 1.0]], dtype=torch.float64), params)
+
+
+def test_symmetric_cde_fast_path_matches_conditionals():
+    blocks = torch.tensor([[0.2, 0.7], [-0.3, 0.4]], dtype=torch.float64)
+    couplings = torch.zeros(2, 2, 2, 2, dtype=blocks.dtype)
+    couplings[0, :, 1, :] = blocks
+    couplings[1, :, 0, :] = blocks.T
+    params = {"bias": torch.tensor([[0.1, -0.2], [0.0, 0.3]], dtype=blocks.dtype),
+              "coupling_matrix": couplings}
+    sequence = one_hot(torch.tensor([1, 0]), num_classes=2).to(blocks)
+    torch.testing.assert_close(get_cde(sequence, params), _reference_cde(sequence, params))

@@ -27,7 +27,7 @@ from adabmDCA.exceptions import (
 )
 from adabmDCA.functional import one_hot
 from adabmDCA.input_loading import AlignmentInput, AlignmentLoadConfig, load_alignment
-from adabmDCA.sampling import prepare_sampler
+from adabmDCA.cuda_kernels.sampling import prepare_sampler
 from adabmDCA.statmech import compute_energy
 from adabmDCA.utils import init_chains, resample_sequences
 

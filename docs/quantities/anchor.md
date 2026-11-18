@@ -7,7 +7,7 @@ The anchor combines two tractable models:
 - a **low-rank** Potts model, the Hopfield–Potts model of [Cocco, Monasson and Weigt (2013)](https://doi.org/10.1371/journal.pcbi.1003176), which keeps only \(K\) collective modes of the couplings (\(K = 2\) by default, `--ptt-anchor-rank`). Written as an RBM with Gaussian hidden units, it is sampled exactly through its low-dimensional latent space, as in the low-rank RBM pre-training of [Béreux et al. (2025)](https://proceedings.iclr.cc/paper_files/paper/2025/hash/4fe1859112230a032c7143a9adc3be78-Abstract-Conference.html);
 - the pair terms of the **Chow–Liu tree** of the alignment, the spanning tree of largest mutual information, which hold the strongest local pair statistics that a few collective modes cannot represent.
 
-This page builds the anchor step by step, from the Hopfield–Potts model to its exact sampler, then adds the tree to it. The implementations are in `adabmDCA/lowrank.py` and `adabmDCA/anchor.py`.
+This page builds the anchor step by step, from the Hopfield–Potts model to its exact sampler, then adds the tree to it. The implementations are in `adabmDCA/anchor/lowrank.py` and `adabmDCA/anchor/anchor.py`.
 
 ## From the Potts model to the Hopfield–Potts model
 
