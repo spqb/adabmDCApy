@@ -15,7 +15,7 @@ from conftest import pytest_configure as configure_gpu_gate
 def test_gate_rejects_missing_hardware(cuda, triton, capability, bfloat16):
     with (
         patch("torch.cuda.is_available", return_value=cuda),
-        patch("adabmDCA.sampling_triton.is_triton_available", return_value=triton),
+        patch("adabmDCA.cuda_kernels.sampling_triton.is_triton_available", return_value=triton),
         patch("torch.cuda.get_device_capability", return_value=(capability, 0)),
         patch("torch.cuda.is_bf16_supported", return_value=bfloat16),
         pytest.raises(pytest.UsageError, match="requires"),
@@ -27,7 +27,7 @@ def test_gate_registers_skip_enforcement_on_supported_hardware():
     config = Mock()
     with (
         patch("torch.cuda.is_available", return_value=True),
-        patch("adabmDCA.sampling_triton.is_triton_available", return_value=True),
+        patch("adabmDCA.cuda_kernels.sampling_triton.is_triton_available", return_value=True),
         patch("torch.cuda.get_device_capability", return_value=(8, 0)),
         patch("torch.cuda.is_bf16_supported", return_value=True),
     ):
