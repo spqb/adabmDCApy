@@ -44,8 +44,8 @@ jobs:
 
     - name: 📝 Generate API documentation with lazydocs
       run: |
-        # Keep this list aligned with the public modules exposed by adabmDCA.
-        # Command-line adapters and private implementation modules are excluded.
+        # Generate one page per listed module, including package __init__ modules.
+        # Keep private implementation modules out of this list.
         python tools/lazydocs_rst.py \
           --output-path docs/api \
           --overview-file symbols.md \
@@ -94,7 +94,6 @@ jobs:
           adabmDCA.training \
           adabmDCA.utils
 
-        sed -i 's/Overview: symbols.md/Overview: index.md/' docs/api/.pages
         python tools/postprocess_api_docs.py docs/api
         python - <<'PY'
         from pathlib import Path
