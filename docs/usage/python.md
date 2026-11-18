@@ -164,30 +164,10 @@ health  = backend.ladder_health()                          # per-link overlap an
 
 ### Steered sampling
 
-`sample_sequences` can bias sampling toward sequences with a property you care about, then correct the bias. You provide a potential \(V(x, s)\); sampling targets \(p_s(x) \propto e^{-E(x) - V(x,s)}\), so low \(V\) is favoured. The potential receives a batch of sequences and the strength \(s\), returns one number per sequence, and must be 0 when \(s = 0\).
-
-```python
-import numpy as np
-
-def gc_potential(sequences, strength):
-    gc = np.array([sum(c in "GC" for c in s) / max(1, len(s.replace("-", ""))) for s in sequences])
-    return -strength * gc                                  # favour GC-rich sequences
-
-steered = sample_sequences(
-    model="model/ptt.h5", ptt=True, alphabet="rna", n_sequences=1000,
-    steering_potential=gc_potential, steering_strength=20.0,
-)
-steered.steering                                           # strength, acceptance, effective sample size, log Z ratio
-w = np.exp(steered.log_importance_weights - steered.log_importance_weights.max())
-gc = np.array([sum(c in "GC" for c in s) / len(s) for s in steered.sequences])
-model_gc_mean = np.average(gc, weights=w)                  # estimate for the unsteered model
-```
-
-By default the potential receives aligned strings, which suits external tools (folding, structure predictors). `steering_input="onehot"` passes a tensor of shape `(n, L, q)`, faster for potentials written in PyTorch.
-
-Each move proposes a block of Gibbs updates of the Potts model and accepts it with probability \(\min(1, e^{-\Delta V})\), so the potential is called once per chain and move; the block length adapts during warmup (`steering_proposal_steps`). With PTT, steered rungs of increasing strength are added above the trained model, keeping their swap acceptance above `ptt_steering_acceptance`, and the result reports \(\log Z_s - \log Z_0\).
-
-The importance weights correct averages back to the original model only while the steered and original distributions overlap. Check `steered.steering["effective_sample_size"]`: when it falls to a few sequences (a warning is then added), the corrected averages rest on those few sequences. Weaken the steering or collect more samples. See [the mathematics](../quantities/derived.md#steering-and-importance-weights).
+Use `SteeringConfig` to pass hard distance windows, linear Hamming biases, or
+batched costs to `sample_sequences`. The
+[steering guide](steering.md) shows fixed-model PCD, PTT with a callback,
+and how to plot warmup from the returned history.
 
 ## Other workflows
 

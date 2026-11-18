@@ -134,4 +134,4 @@ The cluster numbers are recomputed for every run and do not correspond between p
 
 ## Steered sampling
 
-From Python, sampling can be biased toward sequences with a chosen property, with importance weights that correct averages back to the unbiased model. With PTT, steered rungs of increasing strength are added above the final model, so mixing is still checked by renewal from the profile. See [Python workflows](../usage/python.md#steered-sampling) and the [mathematics](../quantities/derived.md#steering-and-importance-weights).
+The [structured steering API](../usage/steering.md) enforces hard support on every rung, adds linear costs to the fields, and applies other costs through a block Metropolis correction. PTT connects the exact bottom model to the training checkpoints, then ramps the soft costs and inverse temperature above the endpoint. Warmup checks endpoint agreement and population renewal. The older callback interface supports [importance weighting](../quantities/derived.md#steering-and-importance-weights) for overlapping soft targets.

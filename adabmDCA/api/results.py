@@ -625,9 +625,11 @@ class SamplingResult:
             averages over these sequences into averages under the unsteered model,
             ``<g>_p = mean(exp(log_w) * g)``. PTT normalizes them with its estimate
             of ``log Z_s - log Z_0``; ordinary sampling self-normalizes them to mean 1.
-        steering: Steered sampling only: ``strength``, ``input``, proposal block
-            length and acceptance, ``effective_sample_size`` of the weights, and for
-            PTT ``log_z_ratio`` and the rung ``strengths``.
+        steering: Steering diagnostics. Structured steering includes ``history``
+            with pilot blocks, warmup rounds, retained production batches,
+            convergence checks, and running entropy estimates when requested.
+            The legacy callback reports its strength, proposal acceptance,
+            importance ESS, and for PTT its rung strengths and log Z ratio.
         ladder_samples: PTT with ``ptt_return_full_ladder`` only: ``sequences``
             ``(models, n, L)`` token indices of every ladder model, from the profile
             (first) to the endpoint (last, the same samples as ``sequences``),
@@ -717,6 +719,7 @@ class SamplingResult:
             data["cde_sum"] = self.cde_sum
         if self.steering_potentials is not None:
             data["steering_potential"] = self.steering_potentials
+        if self.log_importance_weights is not None:
             data["log_importance_weight"] = self.log_importance_weights
         privet = self.distance_comparison.get("privet")
         if privet:

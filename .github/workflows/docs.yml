@@ -88,6 +88,8 @@ jobs:
           adabmDCA.cuda_kernels.sampling_triton \
           adabmDCA.statmech \
           adabmDCA.steering \
+          adabmDCA.steering.sampling \
+          adabmDCA.steering.support \
           adabmDCA.stats \
           adabmDCA.training \
           adabmDCA.utils

@@ -11,6 +11,7 @@ nav:
       - Split an alignment · split-data: usage/split-data.md
       - Train models · train: usage/train.md
       - Generate sequences · sample: usage/sample.md
+      - Steer sampling in Python: usage/steering.md
       - Score sequences · energies: usage/energies.md
       - Mutation scan · dms: usage/dms.md
       - Contact prediction · contacts: usage/contacts.md
@@ -44,7 +45,9 @@ nav:
       - Results: api/adabmDCA.api.results.md
       - PTT configuration: api/adabmDCA.ptt.config.md
       - PTT sampler: api/adabmDCA.ptt.sampler.md
-      - Steering: api/adabmDCA.steering.md
+      - Steering: api/adabmDCA.steering.sampling.md
+      - Steering constraints: api/adabmDCA.steering.support.md
+      - Legacy steering callback: api/adabmDCA.steering.md
       - Scoring: api/adabmDCA.api.scoring.md
       - Contacts: api/adabmDCA.api.contacts.md
       - Mutations: api/adabmDCA.api.mutations.md

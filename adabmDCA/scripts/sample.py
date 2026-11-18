@@ -37,7 +37,11 @@ def resolve_ngen(args) -> None:
 
 def run(args, *, progress=None):
     """Execute sampling from parsed CLI arguments and return its result."""
+    from adabmDCA.exceptions import InputValidationError
     from adabmDCA.scripts._frontend import resolve_alphabet
+
+    if args.strategy == "ptt" and args.beta != 1.0:
+        raise InputValidationError("CLI PTT sampling requires beta=1. Use the Python API for temperature steering.")
 
     resolve_alphabet(args)
     resolve_ngen(args)

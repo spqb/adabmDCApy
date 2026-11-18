@@ -62,6 +62,17 @@ if triton is not None:
         STEPS: tl.constexpr = 1,
         TRANSPOSED: tl.constexpr = False,
         WIDE: tl.constexpr = False,
+        offsets_ptr=None,
+        increases_ptr=None,
+        counts_ptr=None,
+        allowed_ptr=None,
+        NUM_GROUPS: tl.constexpr = 1,
+        GROUP_SIZE: tl.constexpr = 0,
+        GROUP_REMAINDER: tl.constexpr = 0,
+        NUM_WINDOWS: tl.constexpr = 0,
+        BLOCK_WINDOWS: tl.constexpr = 1,
+        MINIMUM: tl.constexpr = (),
+        MAXIMUM: tl.constexpr = (),
     ):
         chain = tl.program_id(0)
         position = tl.arange(0, BLOCK_L)
@@ -79,6 +90,16 @@ if triton is not None:
         background = tl.load(states_ptr + state_row + position, mask=position_mask, other=0)
         if WIDE:
             background = background.to(tl.int64)
+        if offsets_ptr is not None:
+            first_group_chains = GROUP_REMAINDER * (GROUP_SIZE + 1)
+            group = tl.where(chain < first_group_chains, chain // (GROUP_SIZE + 1),
+                             GROUP_REMAINDER + (chain - first_group_chains) // GROUP_SIZE)
+            candidate_mask = candidate_mask & tl.load(
+                allowed_ptr + candidate, mask=candidate < num_states, other=False,
+            )
+            windows = tl.arange(0, BLOCK_WINDOWS)
+            if NUM_WINDOWS:
+                totals = tl.load(counts_ptr + chain * NUM_WINDOWS + windows, mask=windows < NUM_WINDOWS, other=0)
         # Each program owns a complete chain. Sequential updates can stay in
         # registers without synchronizing with any other program.
         for local_step in range(STEPS):
@@ -86,7 +107,10 @@ if triton is not None:
                 site = tl.load(sites_ptr + chain)
                 uniform_offset = chain
             else:
-                site = tl.load(sites_ptr + step + local_step)
+                if offsets_ptr is not None:
+                    site = tl.load(sites_ptr + (step + local_step) * NUM_GROUPS + group)
+                else:
+                    site = tl.load(sites_ptr + step + local_step)
                 uniform_offset = (step + local_step) * num_chains + chain
             if TRANSPOSED:
                 # (target_site, source_site, source_state, target_state):
@@ -123,14 +147,41 @@ if triton is not None:
                 + interaction
             )
             # Mask after scaling: beta=0 must not turn padded -inf into NaN.
-            logits = tl.where(candidate_mask, beta * field, -float("inf"))
+            if offsets_ptr is None:
+                logits = tl.where(candidate_mask, beta * field, -float("inf"))
+            else:
+                valid = candidate_mask
+                if NUM_WINDOWS:
+                    old = tl.sum(tl.where(position == site, background, 0), axis=0)
+                    old_inc = tl.load(increases_ptr + (site * num_states + old) * NUM_WINDOWS + windows,
+                                      mask=windows < NUM_WINDOWS, other=0)
+                    for window in tl.static_range(NUM_WINDOWS):
+                        current = tl.sum(tl.where(windows == window, totals - old_inc, 0), axis=0)
+                        increase = tl.load(increases_ptr + (site * num_states + candidate) * NUM_WINDOWS + window,
+                                           mask=candidate < num_states, other=0)
+                        proposed = current + increase
+                        valid = valid & (proposed >= MINIMUM[window]) & (proposed <= MAXIMUM[window])
+                offset = tl.load(offsets_ptr + site * num_states + candidate, mask=candidate < num_states, other=0.0)
+                logits = tl.where(valid, beta * field - offset, -float("inf"))
             weights = tl.exp(logits - tl.max(logits, axis=0))
             cumulative = tl.cumsum(weights, axis=0)
             threshold = tl.load(uniforms_ptr + uniform_offset) * tl.sum(weights, axis=0)
-            new_state = tl.minimum(tl.sum((threshold > cumulative).to(tl.int32), axis=0), num_states - 1)
+            if offsets_ptr is None:
+                new_state = tl.minimum(tl.sum((threshold > cumulative).to(tl.int32), axis=0), num_states - 1)
+            else:
+                # Threshold can round to the last CDF value in float32.
+                # The sentinel fallback picks the last positive weight.
+                selected = tl.min(tl.where((threshold < cumulative) & (weights > 0), candidate, BLOCK_Q), axis=0)
+                new_state = tl.where(selected < BLOCK_Q, selected, tl.max(tl.where(weights > 0, candidate, 0), axis=0))
+                if NUM_WINDOWS:
+                    new_inc = tl.load(increases_ptr + (site * num_states + new_state) * NUM_WINDOWS + windows,
+                                      mask=windows < NUM_WINDOWS, other=0)
+                    totals += new_inc - old_inc
             background = tl.where(position == site, new_state.to(background.dtype), background)
             if STEPS == 1:
                 tl.store(states_ptr + state_row + site, new_state)
+        if offsets_ptr is not None and NUM_WINDOWS:
+            tl.store(counts_ptr + chain * NUM_WINDOWS + windows, totals, mask=windows < NUM_WINDOWS)
         if STEPS > 1:
             tl.store(states_ptr + state_row + position, background, mask=position_mask)
 
@@ -1722,6 +1773,26 @@ def _gibbs_steps_triton(
             TRANSPOSED=transpose_couplings,
             WIDE=_needs_wide_indices(num_chains, length, num_states),
             num_warps=num_warps,
+        )
+
+
+def steered_gibbs_steps_triton(states, bias, couplings, sites, uniforms, offsets, increments, totals, allowed,
+                              minimum, maximum, beta, *, steps_per_launch=32):
+    """Update a constrained categorical batch with an independent schedule per group."""
+    size, length = states.shape
+    q = bias.shape[1]
+    groups = sites.shape[1]
+    block_l, block_q = triton.next_power_of_2(length), triton.next_power_of_2(q)
+    for first in range(0, len(sites), steps_per_launch):
+        _gibbs_step_kernel[(size,)](
+            states, bias, couplings, sites, uniforms, first, size, length, q, beta,
+            BLOCK_L=block_l, BLOCK_Q=block_q, INDEPENDENT=False, TRANSPOSED=True,
+            STEPS=min(steps_per_launch, len(sites) - first), WIDE=_needs_wide_indices(size, length, q),
+            offsets_ptr=offsets, increases_ptr=increments, counts_ptr=totals, allowed_ptr=allowed,
+            NUM_GROUPS=groups, GROUP_SIZE=size // groups, GROUP_REMAINDER=size % groups,
+            NUM_WINDOWS=len(minimum), BLOCK_WINDOWS=triton.next_power_of_2(max(1, len(minimum))),
+            MINIMUM=minimum, MAXIMUM=maximum,
+            num_warps=_per_chain_warps(block_l, block_q),
         )
 
 

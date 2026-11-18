@@ -5,7 +5,7 @@ from __future__ import annotations
 import math
 from collections.abc import Callable, Sequence
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 import torch
@@ -41,6 +41,9 @@ from adabmDCA.steering import (
     importance_warning,
 )
 from adabmDCA.utils import init_chains, resample_sequences
+
+if TYPE_CHECKING:
+    from adabmDCA.steering.sampling import SteeringConfig
 
 ProgressCallback = Callable[[SamplingProgress], None]
 CancellationHook = Callable[[], bool]
@@ -428,6 +431,7 @@ def sample_sequences(
     alphabet: str | None = None,
     device: str = "auto",
     dtype: str | None = None,
+    steering: SteeringConfig | None = None,
     steering_potential: SteeringPotential | None = None,
     steering_strength: float = 1.0,
     steering_input: SteeringInput = "sequences",
@@ -451,10 +455,11 @@ def sample_sequences(
     PTT sampling (``ptt=True``, a PTT archive, or a :class:`PTTSampler` as
     ``model``) instead uses the replica ladder saved during training: the exact
     profile, the models flagged during training and the endpoint. It runs at
-    ``beta=1``, ignores ``n_sweeps``, and equilibrates until its mixing check
-    passes. A :class:`PTTSampler` passed as ``model`` is forked, not modified.
-    Every result includes the summed context-dependent entropy (CDE) of each
-    sequence and, when identifiable, a least-squares fit of energy against it.
+    ``beta=1`` by default, ignores ``n_sweeps``, and equilibrates until its mixing check
+    passes. An explicit structured target or a colder ``beta`` uses the
+    steered ladder and its endpoint diagnostics. A :class:`PTTSampler` passed as ``model`` is forked, not modified.
+    The ordinary sampling paths also report the summed context-dependent
+    entropy (CDE) and, when identifiable, a least-squares fit of energy against it.
 
     **Steered (importance) sampling.** With ``steering_potential``, sequences are
     drawn from ``p_s(x) ∝ exp(-beta * H(x) - V(x, s))`` instead, where
@@ -499,7 +504,7 @@ def sample_sequences(
             ``reference_fasta`` is given.
         sampler: ``"metropolized_gibbs"``, ``"gibbs"`` or ``"metropolis"``. For PTT,
             select the local update with ``ptt_local_kernel`` instead.
-        beta: Inverse temperature (ordinary sampling only).
+        beta: Inverse Potts temperature. Explicit steering weights are in reduced-energy units.
         seed: Random seed.
         initial_sequences: Ordinary sampling: starting configurations instead of
             random sequences. A FASTA/Stockholm path, an :class:`Alignment`, a list
@@ -541,6 +546,8 @@ def sample_sequences(
         device: ``"auto"``, ``"cpu"``, ``"cuda"`` or ``"mps"``.
         dtype: ``"float32"``, ``"float64"`` or ``"bfloat16"`` (CUDA/MPS, unsteered
             sampling only; CUDA only with PTT); ``None`` means ``"float32"``, or the archive's precision.
+        steering: Structured fields, hard Hamming windows, weighted callbacks, and
+            automatic warmup. See :class:`SteeringConfig`.
         steering_potential: Optional ``potential(batch, strength)`` added to the
             DCA energy, returning one value per sequence (list, NumPy array or
             tensor) and ``0`` at strength 0. ``None`` samples the model itself.
@@ -584,7 +591,24 @@ def sample_sequences(
     """
     from adabmDCA.ptt import PTTSampler
 
-    if ptt or isinstance(model, PTTSampler):
+    parallel = ptt or isinstance(model, PTTSampler)
+    if steering is not None or (parallel and beta > 1.0 and steering_potential is None):
+        from adabmDCA.steering.sampling import SteeringConfig, _sample_steered_sequences
+
+        if (steering_potential is not None or initial_sequences is not None
+                or initial_distribution is not None or ptt_return_full_ladder or collect_diagnostics):
+            raise InputValidationError(
+                "Structured steering uses its own initialization and diagnostics. "
+                "It cannot be combined with legacy steering, explicit initial sequences, "
+                "full ladder export, or reference-alignment plots."
+            )
+        return _sample_steered_sequences(
+            model=model, n_sequences=n_sequences, steering=steering if steering is not None else SteeringConfig(),
+            ptt=parallel, beta=beta, seed=seed, device=device, alphabet=alphabet, dtype=dtype,
+            max_rounds=ptt_max_rounds if parallel else n_sweeps, renewal_tolerance=ptt_renewal_tolerance,
+            progress=progress, is_cancelled=is_cancelled,
+        )
+    if parallel:
         if (initial_sequences is not None or initial_distribution is not None or not measure_mixing_time
                 or record_every != 1):
             raise InputValidationError(

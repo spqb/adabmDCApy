@@ -105,6 +105,79 @@ energies = model.compute_energies(list(validation.sequences))
 contacts = model.compute_contact_map()
 ```
 
+### Steered sampling
+
+Use `SteeringConfig` to specify the support and the reduced-energy bias. This
+example uses a 193-site RNA model and an aligned reference string `start`.
+
+```python
+from adabmDCA import HammingBias, HammingWindow, SteeringConfig, sample_sequences
+
+steering = SteeringConfig(
+    allowed_tokens="ACGU",
+    windows=(HammingWindow(start, 5, 10),),
+    distance_biases=(HammingBias(start, 0.1),),
+    entropy=True,
+)
+result = sample_sequences(
+    model="model/ptt.h5", ptt=True, steering=steering,
+    beta=1.25, n_sequences=1024, ptt_max_rounds=1000,
+)
+print(result.steering["status"], result.steering["entropy"])
+```
+
+The reduced energy is `beta * H + sum(weight * cost)` within the allowed
+support. Linear Hamming costs are folded into the fields, and inclusive
+windows are enforced during proposals. Add deterministic
+`WeightedPotential(callback, weight)` terms to `SteeringConfig.potentials`
+for other costs. Each callback takes a batch of aligned sequences and
+returns one finite unweighted value per sequence. It can also take
+categorical indices with `input="categorical"`. The sampler reuses these
+values across weights. `beta > 1` cools the Potts model with the specified
+bias weights fixed.
+
+Steering is available through the Python API using `sample_sequences` with
+`steering=SteeringConfig(...)`. Steered PTT also accepts a standalone Potts
+file. With `ptt=True`
+and `beta > 1`, the API builds a temperature ladder even without another bias.
+
+The steering summary records rank-normalized split R-hat and ESS on
+independent group-mean traces. PTT also tracks refresh from the exact bottom
+of the ladder. A PTT archive trained with `--ptt-anchor` uses its exact anchor
+at the bottom for unrestricted or alphabet-only support. Joint Hamming
+windows use an exact constrained profile at the bottom and keep the restricted
+training anchor on the ladder. PTT entropy uses adjacent Bennett ratios and
+reports its Monte Carlo uncertainty. If warmup exhausts the budget, output
+draws and entropy are marked provisional.
+
+Use `result.steering["history"]` to plot a structured steering run. The
+`warmup` and `production` records have absolute round numbers, elapsed time,
+endpoint observables and group means, acceptance rates, and cumulative
+callback evaluations. Production records correspond to retained batches and
+average acceptance over each batch interval. Endpoint means use the full
+chain population, including when the last batch retains fewer chains. PTT
+also records rung energies, available callback means, and the old population
+count on each rung. Rung arrays follow `history["rungs"]` from bottom to top.
+Callback columns follow `history["potential_indices"]`, which indexes the
+original configuration and skips zero-weight callbacks. Distance columns
+follow `history["windows"]`.
+
+The `checks` records give R-hat and ESS at each stopping check. The `pilot`
+records show the ladder and swap acceptance before each insertion. When
+entropy is enabled, `history["entropy"]` gives running log Z and entropy after
+1, 2, 4, … retained batches and at the final batch. These histories are
+included when the result is saved as JSON.
+
+```python
+import matplotlib.pyplot as plt
+
+warmup = result.steering["history"]["warmup"]
+plt.plot([row["round"] for row in warmup],
+         [row["observables"]["reduced_energy"] for row in warmup])
+plt.xlabel("Round")
+plt.ylabel("Mean reduced energy")
+```
+
 ## Use with AI agents
 
 [`skills/adabmdca`](skills/) is an Agent Skill that teaches coding agents such as Claude Code or Codex to run adabmDCA and check its results. Copy it to `~/.claude/skills/` (or your agent's skills folder); see [skills/README.md](skills/README.md).

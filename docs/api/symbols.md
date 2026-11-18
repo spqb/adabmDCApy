@@ -277,3 +277,10 @@
 ---
 
 _This file was automatically generated via [lazydocs](https://github.com/ml-tooling/lazydocs)._
+
+## Structured steering
+
+- [SteeringConfig](adabmDCA.steering.sampling.md#steeringconfig)
+- [WeightedPotential](adabmDCA.steering.sampling.md#weightedpotential)
+- [HammingWindow](adabmDCA.steering.support.md#hammingwindow)
+- [HammingBias](adabmDCA.steering.support.md#hammingbias)

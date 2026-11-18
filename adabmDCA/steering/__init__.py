@@ -228,7 +228,7 @@ class SteeredKernel:
 
     def __call__(self, chains: torch.Tensor, params: dict[str, torch.Tensor], nsweeps: int,
                  beta: float = 1.0) -> torch.Tensor:
-        """Sampler interface of :mod:`adabmDCA.sampling`: return the advanced one-hot chains."""
+        """Sampler interface of :mod:`adabmDCA.cuda_kernels.sampling`: return the advanced one-hot chains."""
         return self.run(chains, params, nsweeps, beta)[0]
 
 
@@ -260,7 +260,7 @@ def _fused_gibbs(device: str) -> Callable[..., torch.Tensor] | None:
     if not device.startswith("cuda"):
         return None
     try:
-        from adabmDCA.sampling_triton import gibbs_sampling_categorical_triton, is_triton_available
+        from adabmDCA.cuda_kernels.sampling_triton import gibbs_sampling_categorical_triton, is_triton_available
     except ImportError:
         return None
     return gibbs_sampling_categorical_triton if is_triton_available() else None

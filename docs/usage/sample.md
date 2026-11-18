@@ -118,4 +118,4 @@ long_run = sample_sequences(
 long_run.sampling_history     # nsweeps (from 0), pearson, slope, mean_energy
 ```
 
-Python can also **steer** sampling toward sequences with a property of your choice and reweight them back to the model; see [Python workflows](python.md#steered-sampling).
+The [Python steering API](steering.md) supports hard distance windows, weighted potentials, and colder sampling.

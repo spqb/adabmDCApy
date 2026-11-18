@@ -64,6 +64,22 @@ class CliTests(unittest.TestCase):
         with patch("adabmDCA.scripts._frontend.resolve_alphabet"), self.assertRaises(InputValidationError):
             run(incompatible)
 
+    def test_steering_is_python_only(self):
+        from adabmDCA.exceptions import InputValidationError
+        from adabmDCA.scripts.sample import create_parser, run
+
+        parser = create_parser()
+        required = ["-p", "model.h5", "-o", "out", "--ngen", "20"]
+        help_text = parser.format_help()
+        for option in ("--allowed-tokens", "--hamming-window", "--hamming-bias",
+                       "--weighted-potential", "--steering-chains", "--steering-entropy"):
+            self.assertNotIn(option, help_text)
+        args = parser.parse_args([*required, "--strategy", "ptt", "--beta", "1.5"])
+        with self.assertRaisesRegex(InputValidationError, "Use the Python API"):
+            run(args)
+        args = parser.parse_args([*required, "--strategy", "pcd", "--beta", "1.5"])
+        self.assertEqual(args.beta, 1.5)
+
     def test_ptt_sampling_defaults_to_ten_local_sweeps(self):
         from adabmDCA.scripts.sample import create_parser
 
