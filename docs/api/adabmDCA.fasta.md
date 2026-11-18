@@ -10,7 +10,7 @@
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/fasta.py#L9"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/fasta.py#L13"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `encode_sequence`
 
@@ -36,7 +36,7 @@ Encodes a sequence or a list of sequences into a numeric format.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/fasta.py#L39"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/fasta.py#L33"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `decode_sequence`
 
@@ -68,7 +68,7 @@ Takes a numeric sequence or list of seqences in input an returns the correspondi
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/fasta.py#L85"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/fasta.py#L113"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `compute_weights`
 
@@ -81,7 +81,9 @@ compute_weights(
 ) → Tensor
 ```
 
-Computes the weight to be assigned to each sequence 's' in 'data' as 1 / n_clust, where 'n_clust' is the number of sequences that have a sequence identity with 's' > th (including 's' itself).
+Weight each sequence by the reciprocal of its neighbor count.
+
+Each sequence counts itself. Other sequences count when their identity is strictly greater than the threshold.
 
 
 
@@ -101,7 +103,7 @@ Computes the weight to be assigned to each sequence 's' in 'data' as 1 / n_clust
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/fasta.py#L117"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/fasta.py#L153"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `validate_alphabet`
 

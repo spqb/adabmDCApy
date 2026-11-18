@@ -9,8 +9,12 @@
 
 **Global Variables**
 ---------------
+- **control**
+- **config**
 - **DEFAULT_INNER_GRADIENT_STEPS**
 - **EDGE_EMPIRICAL_PSEUDOCOUNT**
+- **log**
+- **api**
 
 ---
 

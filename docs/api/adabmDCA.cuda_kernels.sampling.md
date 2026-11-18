@@ -327,7 +327,7 @@ Metropolized Gibbs sampling. Attempts L * nsweeps updates to each sequence in 'c
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/sampling/metropolized_gibbs_sampling_categorical#L313"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/cuda_kernels/sampling/metropolized_gibbs_sampling_categorical#L313"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `metropolized_gibbs_sampling_categorical`
 

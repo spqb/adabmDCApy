@@ -18,7 +18,7 @@
 get_seqid(s1: Tensor, s2: Optional[Tensor] = None) → Tensor
 ```
 
-Returns a tensor containing the sequence identities between two sets of one-hot encoded sequences.
+Return the number of matching sites for each pair of one-hot encoded sequences.
 - If s2 is provided, computes the sequence identity between the corresponding sequences in s1 and s2.
 - If s2 is a single sequence (L, q), it computes the sequence identities between the dataset s1 and s2.
 - If s2 is none, computes the sequence identity between s1 and a permutation of s1.
@@ -39,7 +39,7 @@ Returns a tensor containing the sequence identities between two sets of one-hot 
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/dca.py#L40"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/dca.py#L41"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `get_seqid_stats`
 
@@ -67,7 +67,7 @@ get_seqid_stats(s1: Tensor, s2: Optional[Tensor] = None) → Tuple[Tensor, Tenso
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/dca.py#L68"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/dca.py#L79"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `set_zerosum_gauge`
 
@@ -75,7 +75,9 @@ get_seqid_stats(s1: Tensor, s2: Optional[Tensor] = None) → Tuple[Tensor, Tenso
 set_zerosum_gauge(params: Dict[str, Tensor]) → Dict[str, Tensor]
 ```
 
-Sets the zero-sum gauge on the coupling matrix.
+Project coupling blocks to zero-sum form for contact scoring.
+
+The returned fields are copies of the original fields. A gauge transformation of the full probability model also requires field shifts.
 
 
 
@@ -94,7 +96,7 @@ Sets the zero-sum gauge on the coupling matrix.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/dca.py#L90"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/dca.py#L105"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `get_contact_map`
 
@@ -122,7 +124,7 @@ Computes the contact map from the model coupling matrix.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/dca.py#L138"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/dca.py#L143"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `get_mf_contact_map`
 

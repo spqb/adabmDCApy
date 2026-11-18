@@ -7,10 +7,13 @@
 
 
 
+**Global Variables**
+---------------
+- **nan**
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/stats.py#L19"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/stats.py#L38"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `get_freq_single_point`
 
@@ -45,7 +48,7 @@ Computes the single point frequencies of the input MSA.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/stats.py#L70"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/stats.py#L81"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `get_freq_two_points`
 
@@ -82,7 +85,7 @@ Computes the 2-points statistics of the input MSA.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/stats.py#L101"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/stats.py#L104"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `generate_unique_triplets`
 
@@ -108,12 +111,12 @@ Generates a set of unique triplets of positions. Used to compute the 3-points st
 
 **Returns:**
 
- - <b>`torch.Tensor`</b>:  Tensor of shape (ntriplets, 3) containing the indices of the triplets.
+ - <b>`torch.Tensor`</b>:  Indices of up to ntriplets unique triplets, with shape (count, 3).
 
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/stats.py#L153"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/stats.py#L148"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `get_freq_three_points`
 
@@ -150,7 +153,7 @@ Computes the 3-body connected correlation statistics of the input MSAs.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/stats.py#L201"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/stats.py#L192"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `get_covariance_matrix`
 
@@ -181,7 +184,7 @@ Computes the weighted covariance matrix of the input multi sequence alignment.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/stats.py#L231"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/stats.py#L215"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `extract_Cij_from_freq`
 
@@ -216,7 +219,7 @@ Extracts the lower triangular part of the covariance matrices of the natural dat
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/stats.py#L269"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/stats.py#L243"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `extract_Cij_from_seqs`
 
@@ -246,12 +249,12 @@ Extracts the lower triangular part of the covariance matrices of the natural dat
 
 **Returns:**
 
- - <b>`Tuple[torch.Tensor, torch.Tensor]`</b>:  Two-point frequencies of the natural data and generated data.
+ - <b>`Tuple[torch.Tensor, torch.Tensor]`</b>:  Selected connected correlations of the natural and generated data.
 
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/stats.py#L296"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/stats.py#L270"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `get_correlation_two_points`
 
@@ -265,7 +268,7 @@ get_correlation_two_points(
 ) → Tuple[float, float]
 ```
 
-Computes the Pearson coefficient and the slope between the two-point frequencies of data and chains.
+Compute Pearson correlation and absolute regression slope for connected correlations.
 
 
 
@@ -281,7 +284,7 @@ Computes the Pearson coefficient and the slope between the two-point frequencies
 
 **Returns:**
 
- - <b>`Tuple[float, float]`</b>:  Pearson correlation coefficient of the two-sites statistics and slope of the interpolating line.
+ - <b>`Tuple[float, float]`</b>:  Pearson correlation and absolute least-squares slope. Undefined values are NaN.
 
 
 

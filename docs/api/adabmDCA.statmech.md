@@ -25,7 +25,7 @@ The answer is cached per tensor and recomputed after in-place changes, so kernel
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/statmech.py#L28"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/statmech.py#L31"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `compute_energy`
 
@@ -55,7 +55,7 @@ Compute the DCA energy for a batch of sequences.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/statmech.py#L57"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/statmech.py#L59"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `get_cde`
 
@@ -88,7 +88,7 @@ For each site `i`, hold all other residues fixed, evaluate the model probability
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/statmech.py#L133"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/statmech.py#L135"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `compute_log_likelihood`
 
@@ -121,7 +121,7 @@ Compute the log-likelihood per residue of the model.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/statmech.py#L153"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/statmech.py#L171"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `enumerate_states`
 
@@ -143,17 +143,21 @@ Enumerate all possible states of a system of L sites and q states.
 
 **Returns:**
 
- - <b>`torch.Tensor`</b>:  All possible states.
+ - <b>`torch.Tensor`</b>:  All possible states as float32 one-hot vectors. To compute an  exact partition function without storing this tensor, use  `compute_logZ_exact(params=params)`.
 
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/statmech.py#L175"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/statmech.py#L196"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `compute_logZ_exact`
 
 ```python
-compute_logZ_exact(all_states: Tensor, params: Dict[str, Tensor]) → float
+compute_logZ_exact(
+    all_states: Tensor | None = None,
+    params: Optional[Dict[str, Tensor]] = None,
+    batch_size: int = 4096
+) → float
 ```
 
 Compute the log-partition function of the model.
@@ -162,8 +166,9 @@ Compute the log-partition function of the model.
 
 **Args:**
 
- - <b>`all_states`</b> (torch.Tensor):  All possible states of the system.
+ - <b>`all_states`</b>:  All possible states as one-hot vectors. If omitted, states  are generated from the model dimensions in batches.
  - <b>`params`</b> (Dict[str, torch.Tensor]):  Parameters of the model.
+ - <b>`batch_size`</b>:  Maximum number of states to score together.
 
 
 
@@ -174,7 +179,7 @@ Compute the log-partition function of the model.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/statmech.py#L194"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/statmech.py#L236"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `compute_entropy`
 
@@ -201,7 +206,7 @@ Compute the entropy of the DCA model.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/statmech.py#L215"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/statmech.py#L257"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `exchange_log_acceptance`
 
@@ -214,7 +219,7 @@ Deterministic log Metropolis acceptance for Hamiltonian exchange.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/statmech.py#L271"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/statmech.py#L312"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `iterate_tap`
 
@@ -227,7 +232,7 @@ iterate_tap(
 ) → Tensor
 ```
 
-Iterates the TAP equations until convergence.
+Iterate the TAP equations up to the sweep limit.
 
 
 
@@ -242,7 +247,7 @@ Iterates the TAP equations until convergence.
 
 **Returns:**
 
- - <b>`torch.Tensor`</b>:  Fixed point magnetizations of the TAP equations.
+ - <b>`torch.Tensor`</b>:  The last magnetizations. A warning is emitted if a positive  sweep limit is reached before the convergence threshold.
 
 
 

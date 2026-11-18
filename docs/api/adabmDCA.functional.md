@@ -18,7 +18,7 @@
 one_hot(x: Tensor, num_classes: int = -1, dtype: dtype = torch.float32) → Tensor
 ```
 
-A fast one-hot encoding function faster than the PyTorch one working with torch.int32 and returning a float Tensor. Works for both 1D (single sequence) and 2D (batch of sequences) tensors.
+Encode int32 or int64 indices directly into a tensor of the requested dtype.
 
 
 

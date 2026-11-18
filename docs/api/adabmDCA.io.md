@@ -3,39 +3,29 @@
 <a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/io.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 # <kbd>module</kbd> `adabmDCA.io`
-
-
-
+FASTA and text parameter I/O.
 
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/io.py#L17"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/io.py#L32"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `save_chains`
 
 ```python
 save_chains(
-    fname: str,
-    chains: Union[list, ndarray, Tensor],
+    fname: str | Path,
+    chains: str | list | ndarray | Tensor,
     tokens: str
 ) → None
 ```
 
-Saves the chains in a fasta file.
-
-
-
-**Args:**
-
- - <b>`fname`</b> (str):  Path to the file where to save the chains.
- - <b>`chains`</b> (Union[list, np.ndarray, torch.Tensor]):  Iterable with sequences in string, categorical or one-hot encoded format.
- - <b>`tokens`</b> (str):  "protein", "dna", "rna" or another string with the alphabet to be used.
+Save aligned strings, categorical sequences or one-hot batches to FASTA.
 
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/io.py#L52"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/io.py#L58"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `is_gzip`
 
@@ -43,12 +33,12 @@ Saves the chains in a fasta file.
 is_gzip(fname: Union[str, Path]) → bool
 ```
 
-Whether a file is gzip-compressed, judged by its content rather than its name.
+Whether a file starts with the gzip signature.
 
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/io.py#L58"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/io.py#L82"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `open_params`
 
@@ -56,170 +46,101 @@ Whether a file is gzip-compressed, judged by its content rather than its name.
 open_params(fname: Union[str, Path], mode: str = 'r') → IO[str]
 ```
 
-Open a parameter file as text; gzip is detected on reading and chosen by a `.gz` name on writing.
+Open a text parameter file in r/rt or w/wt mode.
+
+Reads detect gzip by content. Writes use gzip for paths ending in .gz.
 
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/io.py#L69"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/io.py#L238"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `load_params`
 
 ```python
 load_params(
-    fname: str,
+    fname: str | Path,
     tokens: str,
     device: device,
     dtype: dtype = torch.float32
 ) → Dict[str, Tensor]
 ```
 
-Import parameters from the established `J`/`h` text format.
+Read letter-based J/h records, including gzip files regardless of their name.
 
-Gzip-compressed files (such as `params.dat.gz`) are read transparently, whatever their name. The file is parsed in two streaming passes so memory use is bounded by the final tensors and a small coupling chunk. Files containing one or both coupling triangles are supported.
-
-
-
-**Args:**
-
- - <b>`fname`</b> (str):  Path of the file that stores the parameters.
- - <b>`tokens`</b> (str):  "protein", "dna", "rna" or another string with a compatible alphabet to be used.
- - <b>`device`</b> (torch.device):  Device where to store the parameters.
- - <b>`dtype`</b> (torch.dtype):  Data type of the parameters. Defaults to torch.float32.
-
-
-
-**Returns:**
-
- - <b>`Dict[str, torch.Tensor]`</b>:  Parameters of the model.
-        - "bias": Tensor of shape (L, q) - local biases.
-        - "coupling_matrix": Tensor of shape (L, q, L, q) - coupling matrix.
+Missing entries are zero. Opposite coupling orientations add for legacy compatibility, while repeated records for the same oriented entry are invalid.
 
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/io.py#L210"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/io.py#L252"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `load_params_old`
 
 ```python
 load_params_old(
-    fname: str,
+    fname: str | Path,
     tokens: str,
     device: device,
     dtype: dtype = torch.float32
 ) → Dict[str, Tensor]
 ```
 
-Import the parameters of the model from a file.
-
-
-
-**Args:**
-
- - <b>`fname`</b> (str):  Path of the file that stores the parameters.
- - <b>`tokens`</b> (str):  "protein", "dna", "rna" or another string with a compatible alphabet to be used.
- - <b>`device`</b> (torch.device):  Device where to store the parameters.
- - <b>`dtype`</b> (torch.dtype):  Data type of the parameters. Defaults to torch.float32.
-
-
-
-**Returns:**
-
- - <b>`Dict[str, torch.Tensor]`</b>:  Parameters of the model.
-        - "bias": Tensor of shape (L, q) - local biases.
-        - "coupling_matrix": Tensor of shape (L, q, L, q) - coupling matrix.
+Deprecated alias for loading letter-based parameters.
 
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/io.py#L290"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
-
-## <kbd>function</kbd> `save_params`
-
-```python
-save_params(
-    fname: str,
-    params: Dict[str, Tensor],
-    tokens: str,
-    mask: Optional[Tensor] = None
-) → None
-```
-
-Save parameters in the established `J`/`h` text format.
-
-Couplings are streamed in bounded chunks using the canonical `i < j` triangle. A supplied symmetric mask is collapsed onto that triangle. A file name ending in `.gz` is written gzip-compressed.
-
-
-
-**Args:**
-
- - <b>`fname`</b> (str):  Path to the file where to save the parameters.
- - <b>`params`</b> (Dict[str, torch.Tensor]):  Parameters of the model.
-        - "bias": Tensor of shape (L, q) - local biases.
-        - "coupling_matrix": Tensor of shape (L, q, L, q) - coupling matrix.
- - <b>`tokens`</b> (str):  "protein", "dna", "rna" or another string with a compatible alphabet to be used.
- - <b>`mask`</b> (Optional[torch.Tensor]):  Tensor of shape (L, q, L, q) - Mask of the coupling matrix that determines which are the non-zero entries.  If None, the lower-triangular part of the coupling matrix is masked. Defaults to None.
-
-
----
-
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/io.py#L373"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/io.py#L263"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `load_params_oldformat`
 
 ```python
 load_params_oldformat(
-    fname: str,
+    fname: str | Path,
     device: device,
     dtype: dtype = torch.float32
 ) → Dict[str, Tensor]
 ```
 
-Import the parameters of the model from a file. Assumes the old DCA format.
-
-
-
-**Args:**
-
- - <b>`fname`</b> (str):  Path of the file that stores the parameters.
- - <b>`device`</b> (torch.device):  Device where to store the parameters.
- - <b>`dtype`</b> (torch.dtype):  Data type of the parameters. Defaults to torch.float32.
-
-
-
-**Returns:**
-
- - <b>`Dict[str, torch.Tensor]`</b>:  Parameters of the model.
-        - "bias": Tensor of shape (L, q) - local biases.
-        - "coupling_matrix": Tensor of shape (L, q, L, q) - coupling matrix.
+Load legacy J/h records that identify states by their integer indices.
 
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/io.py#L420"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/io.py#L348"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+
+## <kbd>function</kbd> `save_params`
+
+```python
+save_params(
+    fname: str | Path,
+    params: Dict[str, Tensor],
+    tokens: str,
+    mask: Optional[Tensor] = None
+) → None
+```
+
+Atomically save letter-based J/h records, using gzip for .gz paths.
+
+Off-site pairs use the effective symmetric couplings and are written once. Selected same-site diagonal terms are absorbed into the fields. A mask selects an off-site interaction if either orientation is set.
+
+
+---
+
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/io.py#L363"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `save_params_oldformat`
 
 ```python
 save_params_oldformat(
-    fname: str,
+    fname: str | Path,
     params: Dict[str, Tensor],
     mask: Optional[Tensor] = None
 ) → None
 ```
 
-Saves the parameters of the model in a file. Assumes the old DCA format.
-
-
-
-**Args:**
-
- - <b>`fname`</b> (str):  Path to the file where to save the parameters.
- - <b>`params`</b> (Dict[str, torch.Tensor]):  Parameters of the model.
-        - "bias": Tensor of shape (L, q) - local biases.
-        - "coupling_matrix": Tensor of shape (L, q, L, q) - coupling matrix.
- - <b>`mask`</b> (Optional[torch.Tensor]):  Tensor of shape (L, q, L, q) - Mask of the coupling matrix that determines which are the non-zero entries.  If None, the lower-triangular part of the coupling matrix is masked. Defaults to None.
+Atomically save legacy J/h records with integer state indices.
 
 
 

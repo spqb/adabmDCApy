@@ -35,7 +35,7 @@ Computes the density of active couplings in the coupling matrix.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/graph.py#L25"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/graph.py#L31"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `compute_Dkl_element_activation`
 
@@ -61,7 +61,7 @@ Computes the Kullback-Leibler divergence matrix of all the possible couplings.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/graph.py#L47"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/graph.py#L53"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `select_inactive_elements`
 
@@ -94,7 +94,7 @@ Entries are counted once per symmetric pair (i < j). Only inactive entries are e
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/graph.py#L74"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/graph.py#L80"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `rank_inactive_elements`
 
@@ -107,7 +107,7 @@ Flat indices of the inactive unique (i < j) coupling entries, by decreasing Dkl.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/graph.py#L83"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/graph.py#L90"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `activate_elements`
 
@@ -120,7 +120,7 @@ Activates the unique entries at the flat `indices` together with their transpose
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/graph.py#L92"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/graph.py#L99"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `activate_graph_elements`
 
@@ -153,7 +153,7 @@ Updates the interaction graph by activating a fraction of the inactive couplings
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/graph.py#L117"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/graph.py#L124"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `compute_Dkl_edge_activation`
 
@@ -179,7 +179,7 @@ Computes the Kullback-Leibler divergence matrix of all the possible edges.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/graph.py#L141"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/graph.py#L148"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `compute_sym_Dkl`
 
@@ -205,7 +205,7 @@ Computes the symmetric Kullback-Leibler divergence matrix between the initial di
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/graph.py#L165"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/graph.py#L174"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `compute_Dkl_decimation`
 
@@ -231,7 +231,7 @@ Computes the Kullback-Leibler divergence matrix between the initial distribution
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/graph.py#L186"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/graph.py#L199"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `update_mask_decimation`
 
@@ -239,7 +239,9 @@ Computes the Kullback-Leibler divergence matrix between the initial distribution
 update_mask_decimation(mask: Tensor, Dkl: Tensor, drate: float) → Tensor
 ```
 
-Updates the mask by removing the n_remove couplings with the smallest Dkl.
+Remove the lowest-scoring active off-site entries from a symmetric mask.
+
+Count each entry once and clear both orientations. A positive rate removes at least one entry when candidates remain.
 
 
 
@@ -258,7 +260,7 @@ Updates the mask by removing the n_remove couplings with the smallest Dkl.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/graph.py#L211"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/graph.py#L242"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `decimate_graph`
 
