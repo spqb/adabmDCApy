@@ -287,6 +287,77 @@ Compute Pearson correlation and absolute regression slope for connected correlat
  - <b>`Tuple[float, float]`</b>:  Pearson correlation and absolute least-squares slope. Undefined values are NaN.
 
 
+---
+
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/stats.py#L355"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+
+## <kbd>function</kbd> `compare_three_point_correlations`
+
+```python
+compare_three_point_correlations(
+    data: Tensor,
+    samples: Tensor,
+    q: int,
+    data_weights: Optional[Tensor] = None,
+    gap_index: Optional[int] = 0,
+    n_seeds: int = 3000,
+    max_triplets: int = 2000,
+    max_pair_correlation: float = 0.1,
+    frequency_range: Tuple[float, float] = (0.05, 0.95),
+    z_threshold: float = 5.0,
+    seed: int = 0,
+    chunk: int = 4096
+) → dict
+```
+
+Connected three-point correlations of data and samples on resolvable, not pairwise-implied triplets.
+
+A connected correlation `C_ijk(a, b, c)` of one-hot indicators is not a three-body interaction: pairwise models produce it too. Two selections keep the comparison informative:
+
+
+- no strong pair: the correlation coefficient of each two of the three  states, in the data, is below `max_pair_correlation` in absolute value.  Near-redundant states would turn `C_ijk` into a rescaled two-point  correlation (for indicators `x^2 = x`, so `x_u = x_v` gives  `C_uvw = (1 - 2 f_u) C_uw`). States are non-gap and have data  frequencies within `frequency_range`;
+- resolvable: `z = max(|C_data| / SE_data, |C_samples| / SE_samples)`  is at least `z_threshold`. The standard errors are the weighted  standard deviation of the product of the three centred indicators over  the square root of the effective number of sequences: the sum of the  data weights (as given, so without reweighting every sequence counts as  independent and the error is optimistic) and the number of samples.  Taking the larger ratio does not reward agreement between data and  samples. With about 10^7 candidates, about five pure-noise ones reach  `z = 5`.
+
+The search cannot enumerate all triplets. It draws `n_seeds` random state pairs that pass the selection and computes their correlation with every third state in one matrix product per data chunk. Of the triplets above the threshold it keeps a random sample of `max_triplets`, so that the comparison covers moderate correlations as well as the largest. The data are also split at random into two halves: the Pearson correlation of the selected triplets between them is the `noise_ceiling`, the agreement the data allow (slightly optimistic, since the selection used all the data).
+
+
+
+**Args:**
+
+ - <b>`data`</b>:  Integer-encoded data `(N, L)`.
+ - <b>`samples`</b>:  Integer-encoded `(M, L)` or one-hot `(M, L, q)` samples.
+ - <b>`q`</b>:  Number of states.
+ - <b>`data_weights`</b>:  Sequence weights of the data; `None` weighs them equally.
+ - <b>`gap_index`</b>:  Index of the gap state, excluded; `None` keeps all states.
+ - <b>`n_seeds`</b>:  Random seed pairs.
+ - <b>`max_triplets`</b>:  Largest number of triplets returned.
+ - <b>`max_pair_correlation`</b>:  Largest absolute pair correlation coefficient.
+ - <b>`frequency_range`</b>:  Allowed data frequencies of the three states.
+ - <b>`z_threshold`</b>:  Smallest signal-to-noise ratio.
+ - <b>`seed`</b>:  Seed of the seed pairs and of the half split.
+ - <b>`chunk`</b>:  Sequences per one-hot block.
+
+
+
+**Returns:**
+ `triplets` (`(K, 3, 2)` array of `(site, state)`), `data`, `samples` and `z` (one value per triplet), `pearson`, `slope`, `r2` (`r2_about_identity`), `noise_ceiling` and `noise_ceiling_r2` (the same two measures between the data halves), `n_seeds`, `n_candidates` (triplets passing the pair and frequency selection), `n_resolved` (of them, above the threshold), `n_eff_data`, `n_samples` and the selection settings.
+
+
+---
+
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/stats.py#L511"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+
+## <kbd>function</kbd> `r2_about_identity`
+
+```python
+r2_about_identity(reference, generated) → float
+```
+
+`1 - sum (generated - reference)^2 / sum (reference - mean)^2`.
+
+Unlike the Pearson correlation it penalizes a wrong scale (a slope away from 1) and an offset as well as scatter: it is 1 only when the points lie on the diagonal, and can be negative.
+
+
 
 
 ---

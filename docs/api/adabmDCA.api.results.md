@@ -12,7 +12,7 @@ Result objects returned by the high-level adabmDCA API.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L33"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L34"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `ModelMetadata`
 Portable description of a loaded DCA model.
@@ -62,7 +62,7 @@ Number of states per site, `q`.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L62"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L63"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `to_dict`
 
@@ -74,7 +74,7 @@ Return a JSON-compatible document with the result type and schema version.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L66"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L67"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `to_json`
 
@@ -99,7 +99,7 @@ Write the metadata as a versioned JSON document.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L79"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L80"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `EnergyResult`
 DCA energies of scored sequences, returned by `score_sequences`.
@@ -143,7 +143,7 @@ __init__(
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L176"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L177"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `save`
 
@@ -167,7 +167,7 @@ Write the result in the format given by `format` or by the file extension.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L189"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L190"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `save_bundle`
 
@@ -191,7 +191,7 @@ Write `<stem>.fasta`, `<stem>.csv` and `<stem>.json` to `directory`.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L165"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L166"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `to_csv`
 
@@ -214,7 +214,7 @@ Write `to_dataframe` as CSV.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L131"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L132"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `to_dataframe`
 
@@ -226,7 +226,7 @@ Return one row per sequence: name (if known), sequence, energy and CDE columns.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L103"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L104"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `to_dict`
 
@@ -238,7 +238,7 @@ Return a portable representation of the result.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L147"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L148"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `to_fasta`
 
@@ -261,7 +261,7 @@ Write the sequences to FASTA, with energies in the headers.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L119"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L120"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `to_json`
 
@@ -286,7 +286,7 @@ Write `to_dict` as JSON.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L207"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L208"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `ContactMapResult`
 Contact scores returned by `predict_contacts`.
@@ -326,7 +326,7 @@ __init__(
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L299"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L300"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `save`
 
@@ -350,7 +350,7 @@ Write the result in the format given by `format` or by the file extension.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L312"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L313"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `save_bundle`
 
@@ -377,7 +377,7 @@ Write the matrix (`.txt`, `.csv`, `.npy`) and a JSON summary to `directory`.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L266"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L267"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `save_matrix`
 
@@ -400,7 +400,7 @@ Write the scores as headerless `i,j,score` lines, the format of `adabmDCA contac
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L277"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L278"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `to_csv`
 
@@ -423,7 +423,7 @@ Write `to_long_dataframe` as CSV with a header.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L227"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L228"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `to_dict`
 
@@ -435,7 +435,7 @@ Return a JSON-compatible document with the result type and schema version.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L241"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L242"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `to_json`
 
@@ -459,7 +459,7 @@ Write `to_dict` as JSON.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L253"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L254"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `to_long_dataframe`
 
@@ -471,7 +471,7 @@ Return one row per matrix entry: `position_i`, `position_j` (0-based) and `score
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L288"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L289"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `to_npy`
 
@@ -495,7 +495,7 @@ Write the `(L, L)` score matrix as a NumPy `.npy` file.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L332"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L333"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `MutationRecord`
 One single-site mutant from `scan_mutations`.
@@ -545,7 +545,7 @@ Historical, zero-based mutation label used by the CLI.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L360"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L361"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `to_dict`
 
@@ -558,7 +558,7 @@ Return the record as a flat dictionary, one row of `MutationScanResult.to_datafr
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L373"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L374"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `MutationScanResult`
 All single-site mutants of a sequence, returned by `scan_mutations`.
@@ -604,7 +604,7 @@ Energy differences of all mutants, in the order of `mutations`.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L457"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L458"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `save`
 
@@ -628,7 +628,7 @@ Write the result in the format given by `format` or by the file extension.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L470"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L471"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `save_bundle`
 
@@ -655,7 +655,7 @@ Write the FASTA library, CSV table and JSON summary to `directory`.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L446"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L447"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `to_csv`
 
@@ -678,7 +678,7 @@ Write `to_dataframe` as CSV.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L424"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L425"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `to_dataframe`
 
@@ -690,7 +690,7 @@ Return one row per mutant, with 0- and 1-based positions and `delta_energy`.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L398"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L399"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `to_dict`
 
@@ -702,7 +702,7 @@ Return a JSON-compatible document with the result type and schema version.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L430"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L431"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `to_fasta`
 
@@ -727,7 +727,7 @@ Positions in the headers are 0-based, as in `adabmDCA dms`.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L412"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L413"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `to_json`
 
@@ -752,7 +752,7 @@ Write `to_dict` as JSON.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L489"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L490"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `SamplingProgress`
 Progress event passed to the `progress` callback of `sample_sequences`.
@@ -793,7 +793,7 @@ __init__(
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L510"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L511"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `ProfileSplitResult`
 Training/test split of an alignment, returned by `split_alignment`.
@@ -839,7 +839,7 @@ __init__(
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L568"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L569"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `save_bundle`
 
@@ -862,7 +862,7 @@ Write `<prefix>.train.fasta`, `<prefix>.test.fasta` and `<prefix>.split.json`.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L536"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L537"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `to_dict`
 
@@ -874,7 +874,7 @@ Return a JSON-compatible document with the result type and schema version.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L556"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L557"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `to_json`
 
@@ -899,7 +899,7 @@ Write `to_dict` as JSON.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L588"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L589"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `SamplingResult`
 Generated sequences and diagnostics, returned by `sample_sequences`.
@@ -920,10 +920,14 @@ Generated sequences and diagnostics, returned by `sample_sequences`.
  - <b>`warnings`</b>:  Non-fatal issues, e.g. an unconverged mixing estimate.
  - <b>`sampling_dtype`</b>:  Precision used for sampling.
  - <b>`ptt_diagnostics`</b>:  PTT only: mixing, renewal and ladder-health diagnostics.
+ - <b>`ptt_configurations`</b>:  PTT only: at the end of sampling, the age of every  configuration of each replica (`ages_k`) and the downward swap  probability of every upper configuration of each pair  (`mobility_down_k` for `k -> k+1`, same order as `ages_{k+1}`),  with `rounds`, `old_age`, `tolerance`, `immobile_threshold`  and `active_start`. Saved as `logs/ptt_ages.npz`, not in JSON.
  - <b>`cde_sum`</b>:  Summed context-dependent entropy of each sequence.
  - <b>`local_lambda_fit`</b>:  Least-squares fit of energy against `cde_sum`, if identifiable.
  - <b>`cij_reference`</b>:  Reference connected correlations, when diagnostics were collected.
  - <b>`cij_generated`</b>:  Generated connected correlations, when diagnostics were collected.
+ - <b>`fi_reference`</b>:  Reference single-site frequencies `(L, q)`, when diagnostics were collected.
+ - <b>`fi_generated`</b>:  Generated single-site frequencies `(L, q)`, when diagnostics were collected.
+ - <b>`three_point`</b>:  Connected three-point correlations of reference and samples on  selected triplets (`adabmDCA.stats.compare_three_point_correlations`),  when diagnostics were collected. Its summary, without the per-triplet  arrays, is `three_point_comparison` in `to_dict`; the triplets  are written to `logs/three_point.log`.
  - <b>`pca_reference`</b>:  Reference sequences projected on their principal components.
  - <b>`pca_generated`</b>:  Generated sequences projected on the same components.
  - <b>`data_comparison`</b>:  With diagnostics and a reference: the share of data and  samples in each cluster of the data (k-means on the principal  components) and their energy distributions under the model.
@@ -956,6 +960,9 @@ __init__(
     local_lambda_fit: 'dict[str, float | int] | None' = None,
     cij_reference: 'ndarray | None' = None,
     cij_generated: 'ndarray | None' = None,
+    fi_reference: 'ndarray | None' = None,
+    fi_generated: 'ndarray | None' = None,
+    three_point: 'dict[str, Any] | None' = None,
     pca_reference: 'ndarray | None' = None,
     pca_generated: 'ndarray | None' = None,
     pca_explained_variance_ratio: 'ndarray | None' = None,
@@ -964,7 +971,8 @@ __init__(
     steering_potentials: 'ndarray | None' = None,
     log_importance_weights: 'ndarray | None' = None,
     steering: 'dict[str, Any]' = <factory>,
-    ladder_samples: 'dict[str, Any] | None' = None
+    ladder_samples: 'dict[str, Any] | None' = None,
+    ptt_configurations: 'dict[str, Any] | None' = None
 ) → None
 ```
 
@@ -977,7 +985,7 @@ __init__(
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L759"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L781"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `save`
 
@@ -1001,7 +1009,7 @@ Write the result in the format given by `format` or by the file extension.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L820"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L842"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `save_bundle`
 
@@ -1030,7 +1038,7 @@ PTT results also get `logs/ptt.log` and, when available, ladder-health and renew
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L967"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L1020"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `save_diagnostic_plots`
 
@@ -1059,7 +1067,7 @@ Plots whose data were not collected (see `collect_diagnostics` of `sample_sequen
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L748"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L770"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `to_csv`
 
@@ -1082,7 +1090,7 @@ Write `to_dataframe` as CSV.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L706"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L728"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `to_dataframe`
 
@@ -1096,7 +1104,7 @@ PRIVET columns are `NaN` for sequences left out of the comparison (beyond `n_mea
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L667"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L685"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `to_dict`
 
@@ -1108,7 +1116,7 @@ Return a JSON-compatible document with the result type and schema version.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L733"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L755"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `to_fasta`
 
@@ -1131,7 +1139,7 @@ Write the sequences as FASTA, with energies in the headers.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L694"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L716"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `to_json`
 
@@ -1155,7 +1163,7 @@ Write `to_dict` as JSON.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L772"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L794"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `to_ladder_hdf5`
 
@@ -1187,7 +1195,7 @@ The file holds `sequences` (uint8 token indices, `(models, n, L)`), `energies` (
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L1171"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L1213"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `TrainingProgress`
 One accepted update, passed to the `progress` callback of `train_model`.
@@ -1230,7 +1238,7 @@ __init__(
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L1194"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L1236"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `TrainingDatasetSummary`
 Size and filtering of one training or validation alignment.
@@ -1275,7 +1283,7 @@ __init__(
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L1219"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L1261"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `TrainingInitialization`
 Resolved training setup, passed to `on_initialized` of `train_model`.
@@ -1322,7 +1330,7 @@ __init__(
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L1248"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L1290"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `TrainingResult`
 Outcome of `train_model`.
@@ -1392,7 +1400,7 @@ Last value of every history quantity, or an empty mapping before any update.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L1294"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L1336"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `history_dataframe`
 
@@ -1404,7 +1412,7 @@ Return the history as a DataFrame, one row per recorded update.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L1363"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L1405"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `save_bundle`
 
@@ -1431,7 +1439,7 @@ Write a JSON summary, and the history table unless training already wrote it.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L1337"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L1379"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `to_csv`
 
@@ -1454,7 +1462,7 @@ Write the history with the columns and names of `history.csv`.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L1300"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L1342"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `to_dict`
 
@@ -1466,7 +1474,7 @@ Return a portable summary without embedding model or chain tensors.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L1325"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L1367"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `to_json`
 
@@ -1491,7 +1499,7 @@ Write `to_dict` as JSON.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L1388"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L1430"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `ReintegrationResult`
 Outcome of `reintegrate_model`.
@@ -1533,7 +1541,7 @@ __init__(
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L1438"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L1480"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `save_bundle`
 
@@ -1558,7 +1566,7 @@ Files are named `<label>_msa.fasta`, `<label>_weights.dat` and `<label>_reintegr
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L1410"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L1452"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `to_dict`
 
@@ -1570,7 +1578,7 @@ Return a JSON-compatible document with the result type and schema version.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L1426"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L1468"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `to_json`
 
@@ -1595,7 +1603,7 @@ Write `to_dict` as JSON.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L1460"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L1502"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `ThermodynamicIntegrationProgress`
 Progress event passed to the `progress` callback of `estimate_entropy`.
@@ -1636,7 +1644,7 @@ __init__(
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L1481"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L1523"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `ThermodynamicIntegrationResult`
 Outcome of `estimate_entropy`.
@@ -1678,7 +1686,7 @@ __init__(
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L1504"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L1546"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `history_dataframe`
 
@@ -1690,7 +1698,7 @@ Return the integration history as a DataFrame, one row per step.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L1561"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L1603"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `save_bundle`
 
@@ -1714,7 +1722,7 @@ Write `<label>.log`, `<label>.csv` and `<label>.json` to `directory`.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L1535"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L1577"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `to_csv`
 
@@ -1737,7 +1745,7 @@ Write the integration history as CSV.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L1508"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L1550"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `to_dict`
 
@@ -1749,7 +1757,7 @@ Return a JSON-compatible document with the result type and schema version.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L1523"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L1565"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `to_json`
 
@@ -1773,7 +1781,7 @@ Write `to_dict` as JSON.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L1546"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/results.py#L1588"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `to_log`
 

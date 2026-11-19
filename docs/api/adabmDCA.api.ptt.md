@@ -97,7 +97,7 @@ Equilibrate the ladder in place, then collect endpoint samples.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/ptt.py#L477"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/ptt.py#L507"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `estimate_ptt_entropy`
 
@@ -146,7 +146,7 @@ estimate_ptt_entropy(model="output/ptt.h5", device="cuda").entropy  # 131.2
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/ptt.py#L437"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/ptt.py#L467"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `PTTEntropyResult`
 Entropy of a PTT model, returned by `estimate_ptt_entropy`.
@@ -196,7 +196,7 @@ __init__(
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/ptt.py#L468"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/ptt.py#L498"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `to_dict`
 
@@ -208,7 +208,7 @@ Return a JSON-compatible document with the result type and schema version.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/ptt.py#L472"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/ptt.py#L502"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `to_json`
 

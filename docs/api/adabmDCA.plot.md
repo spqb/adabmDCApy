@@ -166,7 +166,7 @@ Plot PTT population renewal for the warmup and, if it ran, the stationary phase.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/plot.py#L524"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/plot.py#L532"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `plot_ptt_ladder_health`
 
@@ -184,16 +184,14 @@ Panels:
 
 
 - swap acceptance per link: the mean and the median, 10% and 1% quantiles  of the per-configuration acceptance against random partners, for upper  configurations moving down and lower ones moving up. The ladder is built  so that means sit near the 0.25 target; low quantiles reveal  configurations that rarely cross;
-- trapped configurations per link: mean age of the configurations that  practically cannot move down (swap probability below the immobility  threshold) divided by that of the others. Near 1, immobility is  transient; well above 1, configurations stay stuck above that link;
-- configuration ages per replica: median and 99th percentile of the rounds  since birth at the bottom; an old tail that starts at one replica marks  a bottleneck below it;
-- flow: the fraction of configurations at each replica that reached the top  since birth. With free diffusion it rises smoothly from 0 at the bottom  to 1 at the top; a step marks a bottleneck.
+- trapped configurations per link: mean age of the configurations that  practically cannot move down (swap probability below the immobility  threshold) divided by that of the others. The tick on each bar is the  95% quantile of the same ratio for random groups of configurations of  the same size (the null of the age test,  `adabmDCA.ptt.health.age_permutation_test`). Colours: grey, within  chance; amber, immobile configurations older than chance but renewed  (slow link); red, older than chance and more of them older than the  renewal time than the renewal tolerance allows (blocking link). Labels: share of  immobile configurations, how many of them are older than the renewal  time, and the p-value of the age test.
 
-Free energies, effective sample sizes and Crooks slopes are in the log only.
+The title gives the renewal time, or says in red that renewal failed and how many configurations were never renewed. Free energies, effective sample sizes and Crooks slopes are in the log only.
 
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/plot.py#L650"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/plot.py#L676"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `plot_distance_comparison`
 
@@ -208,7 +206,7 @@ Left: all-pair distance distributions within the training sequences, within the 
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/plot.py#L716"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/plot.py#L754"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `plot_privet`
 
@@ -216,14 +214,18 @@ Left: all-pair distance distributions within the training sequences, within the 
 plot_privet(figure: Figure, privet: dict) → Figure
 ```
 
-PRIVET: the null law, the excess of samples near the training set, and per-sample scores.
+PRIVET: the null law of nearest-neighbour distances and the samples against it.
 
-Left: cumulative distribution of the (reweighted) training sequences' distances to their nearest other training sequence (steps) and the fitted extreme-value law (line), on a log scale to show the lower tail; the band is the fitted window. Middle: the same law against the distances of the generated and held-out sequences to their nearest training sequence; a generated curve above the null at small distances is an excess of sequences close to the training set, scored in the title (most improbable group, log10 probability under the null). Right: per sample, ``log10 p_train` against `log10 p_test``; flagged samples lie below the dashed line `delta_p = threshold`.
+Left: cumulative distribution of the (reweighted) training sequences' distances to their nearest other training sequence (steps) and the fitted extreme-value law (line), on a log scale to show the lower tail; the band is the fitted window. The box gives the largest ratio between fit and data inside the window: the p-values are only as good as the fit at its left edge.
+
+Right: the same law against the distances of the generated and held-out sequences to their nearest training sequence, with their medians in the legend. Above the null (red area) samples lie closer to the training set than training sequences lie to each other: an excess there is memorization, scored in the title (most improbable group, log10 probability under the null). Below the held-out curve (blue area) samples lie farther from the training set than the held-out sequences: the model generates sequences outside the family. With a random split the held-out curve follows the null and the two areas meet. A split by identity clustering keeps held-out sequences away from the training set, so the blue area starts late; when the held-out median exceeds the null median by more than a quarter, a note says so, and samples right of the null are already farther than a typical family member.
+
+Per-sample scores (`delta_p`, `n_pleaks`) are in `privet` and in the sample table, not plotted.
 
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/plot.py#L802"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/plot.py#L875"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `plot_data_comparison`
 
@@ -243,7 +245,7 @@ Panels: the data on its first two principal components, coloured by cluster (k-m
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/plot.py#L868"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/plot.py#L941"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `plot_energy_cde_scatter`
 
@@ -261,7 +263,7 @@ Plot sequence energies against summed CDE and their fitted line.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/plot.py#L912"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/plot.py#L985"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `plot_cij_scatter`
 
@@ -276,10 +278,69 @@ plot_cij_scatter(
 
 Plot reference versus generated connected two-site correlations.
 
+The box gives the Pearson correlation, the R² about the identity (which also penalizes a slope away from 1) and the slope.
+
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/plot.py#L982"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/plot.py#L1100"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+
+## <kbd>function</kbd> `plot_fi_scatter`
+
+```python
+plot_fi_scatter(ax: Axes, fi_data: ndarray, fi_gen: ndarray) → Axes
+```
+
+Plot reference versus generated single-site frequencies.
+
+Training fits them directly, so a departure points at the sampling (equilibration, temperature) more than at the model.
+
+
+---
+
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/plot.py#L1115"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+
+## <kbd>function</kbd> `plot_three_point_scatter`
+
+```python
+plot_three_point_scatter(
+    ax: Axes,
+    three_point: dict,
+    min_triplets: int = 20
+) → Axes
+```
+
+Plot reference versus generated connected three-point correlations.
+
+Uses the triplets of `adabmDCA.stats.compare_three_point_correlations`: no strong pair among the three states, non-gap states of intermediate frequency, and a signal-to-noise ratio of at least its `z_threshold`. The box gives the Pearson correlation, the R² about the identity (1 only when the points lie on the diagonal: it also penalizes a slope away from 1) and the slope; the first two also between two random halves of the data, the agreement the data allow. With fewer than `min_triplets` resolved triplets the panel says the data cannot resolve three-point correlations.
+
+
+---
+
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/plot.py#L1154"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+
+## <kbd>function</kbd> `plot_statistics_scatter`
+
+```python
+plot_statistics_scatter(
+    figure: Figure,
+    fi_data: ndarray,
+    fi_gen: ndarray,
+    Cij_data: ndarray,
+    Cij_gen: ndarray,
+    three_point: dict | None = None,
+    pearson: float | None = None
+) → Figure
+```
+
+Single-site frequencies, connected two-site and three-point correlations, reference against samples.
+
+One row: `plot_fi_scatter`, `plot_cij_scatter` and, when `three_point` is given, `plot_three_point_scatter`.
+
+
+---
+
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/plot.py#L1176"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `plot_scatter_correlations`
 
@@ -318,7 +379,7 @@ Plots the scatter plot of the data and generated Cij and Cijk values.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/plot.py#L1032"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/plot.py#L1226"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `plot_contact_map`
 

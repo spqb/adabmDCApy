@@ -12,7 +12,7 @@ High-level sequence-generation operations.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/sampling.py#L403"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/sampling.py#L404"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `sample_sequences`
 
@@ -149,7 +149,7 @@ steered.steering["effective_sample_size"], steered.log_importance_weights[:3]
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/sampling.py#L897"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/sampling.py#L908"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `generate_sequences`
 

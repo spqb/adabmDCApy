@@ -82,6 +82,19 @@ Write a pandas-compatible dataframe atomically.
 
 <a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/serialization.py#L117"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
+## <kbd>function</kbd> `write_npz`
+
+```python
+write_npz(path: 'str | Path', arrays: 'dict[str, Any]') → Path
+```
+
+Write NumPy arrays as a compressed `.npz` file atomically.
+
+
+---
+
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/serialization.py#L129"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+
 ## <kbd>function</kbd> `write_text`
 
 ```python
@@ -93,7 +106,7 @@ Write UTF-8 text atomically.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/serialization.py#L122"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/serialization.py#L134"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `write_numpy`
 
@@ -106,7 +119,7 @@ Write a NumPy array atomically without altering the requested suffix.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/serialization.py#L132"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/serialization.py#L144"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `write_numpy_text`
 
@@ -119,7 +132,7 @@ Write a NumPy array as an atomic text artifact.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/serialization.py#L137"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/serialization.py#L149"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `resolve_format`
 

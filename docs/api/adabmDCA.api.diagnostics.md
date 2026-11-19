@@ -18,7 +18,7 @@ The rules follow the "Diagnose a run" guide (docs/algorithms/diagnostics.md): ea
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/diagnostics.py#L526"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/diagnostics.py#L537"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `diagnose_run`
 

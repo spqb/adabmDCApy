@@ -155,6 +155,7 @@
 - [`serialization.to_jsonable`](./adabmDCA.serialization.md#function-to_jsonable): Recursively convert a value to plain JSON types.
 - [`serialization.write_dataframe`](./adabmDCA.serialization.md#function-write_dataframe): Write a pandas-compatible dataframe atomically.
 - [`serialization.write_json`](./adabmDCA.serialization.md#function-write_json): Write strict UTF-8 JSON atomically.
+- [`serialization.write_npz`](./adabmDCA.serialization.md#function-write_npz): Write NumPy arrays as a compressed `.npz` file atomically.
 - [`serialization.write_numpy`](./adabmDCA.serialization.md#function-write_numpy): Write a NumPy array atomically without altering the requested suffix.
 - [`serialization.write_numpy_text`](./adabmDCA.serialization.md#function-write_numpy_text): Write a NumPy array as an atomic text artifact.
 - [`serialization.write_text`](./adabmDCA.serialization.md#function-write_text): Write UTF-8 text atomically.
@@ -200,12 +201,15 @@
 - [`plot.plot_data_comparison`](./adabmDCA.plot.md#function-plot_data_comparison): Compare samples with the data: clusters of the data and energy distributions.
 - [`plot.plot_distance_comparison`](./adabmDCA.plot.md#function-plot_distance_comparison): Hamming distances within and between natural and generated sequences.
 - [`plot.plot_energy_cde_scatter`](./adabmDCA.plot.md#function-plot_energy_cde_scatter): Plot sequence energies against summed CDE and their fitted line.
+- [`plot.plot_fi_scatter`](./adabmDCA.plot.md#function-plot_fi_scatter): Plot reference versus generated single-site frequencies.
 - [`plot.plot_pearson_sampling`](./adabmDCA.plot.md#function-plot_pearson_sampling): Plots the Pearson correlation coefficient over sampling time.
-- [`plot.plot_privet`](./adabmDCA.plot.md#function-plot_privet): PRIVET: the null law, the excess of samples near the training set, and per-sample scores.
+- [`plot.plot_privet`](./adabmDCA.plot.md#function-plot_privet): PRIVET: the null law of nearest-neighbour distances and the samples against it.
 - [`plot.plot_ptt_autocorrelation`](./adabmDCA.plot.md#function-plot_ptt_autocorrelation): Plot replica-index autocorrelation and the two PTT time estimates.
 - [`plot.plot_ptt_ladder_health`](./adabmDCA.plot.md#function-plot_ptt_ladder_health): Plot how configurations move through a PTT ladder.
 - [`plot.plot_ptt_renewal`](./adabmDCA.plot.md#function-plot_ptt_renewal): Plot PTT population renewal for the warmup and, if it ran, the stationary phase.
 - [`plot.plot_scatter_correlations`](./adabmDCA.plot.md#function-plot_scatter_correlations): Plots the scatter plot of the data and generated Cij and Cijk values.
+- [`plot.plot_statistics_scatter`](./adabmDCA.plot.md#function-plot_statistics_scatter): Single-site frequencies, connected two-site and three-point correlations, reference against samples.
+- [`plot.plot_three_point_scatter`](./adabmDCA.plot.md#function-plot_three_point_scatter): Plot reference versus generated connected three-point correlations.
 - [`mixing.exponential_autocorrelation_time`](./adabmDCA.ptt.mixing.md#function-exponential_autocorrelation_time): Fit the reference tail window: first zero / 3 through twice that zero.
 - [`mixing.exponential_decay`](./adabmDCA.ptt.mixing.md#function-exponential_decay)
 - [`mixing.integrated_autocorrelation_time`](./adabmDCA.ptt.mixing.md#function-integrated_autocorrelation_time): Self-consistent window t >= 6 tau_int(t), with C(0)/2.
@@ -258,6 +262,7 @@
 - [`statmech.iterate_tap`](./adabmDCA.statmech.md#function-iterate_tap): Iterate the TAP equations up to the sweep limit.
 - [`steering.importance_summary`](./adabmDCA.steering.md#function-importance_summary): Log importance weights back to the unsteered model and their effective sample size.
 - [`steering.importance_warning`](./adabmDCA.steering.md#function-importance_warning): A warning when the importance weights are too concentrated to reweight reliably.
+- [`stats.compare_three_point_correlations`](./adabmDCA.stats.md#function-compare_three_point_correlations): Connected three-point correlations of data and samples on resolvable, not pairwise-implied triplets.
 - [`stats.extract_Cij_from_freq`](./adabmDCA.stats.md#function-extract_cij_from_freq): Extracts the lower triangular part of the covariance matrices of the natural data and generated data starting from the frequencies.
 - [`stats.extract_Cij_from_seqs`](./adabmDCA.stats.md#function-extract_cij_from_seqs): Extracts the lower triangular part of the covariance matrices of the natural data and generated data starting from the sequences.
 - [`stats.generate_unique_triplets`](./adabmDCA.stats.md#function-generate_unique_triplets): Generates a set of unique triplets of positions. Used to compute the 3-points statistics.
@@ -266,6 +271,7 @@
 - [`stats.get_freq_single_point`](./adabmDCA.stats.md#function-get_freq_single_point): Computes the single point frequencies of the input MSA.
 - [`stats.get_freq_three_points`](./adabmDCA.stats.md#function-get_freq_three_points): Computes the 3-body connected correlation statistics of the input MSAs.
 - [`stats.get_freq_two_points`](./adabmDCA.stats.md#function-get_freq_two_points): Computes the 2-points statistics of the input MSA.
+- [`stats.r2_about_identity`](./adabmDCA.stats.md#function-r2_about_identity): `1 - sum (generated - reference)^2 / sum (reference - mean)^2`.
 - [`training.compute_gradient`](./adabmDCA.training.md#function-compute_gradient): Computes the gradient of the log-likelihood of the model using PyTorch.
 - [`training.train_eaDCA`](./adabmDCA.training.md#function-train_eadca): Fits an eaDCA model on the training data and saves the results in a file.
 - [`training.train_edDCA`](./adabmDCA.training.md#function-train_eddca): Fits an edDCA model on the training data and saves the results in a file.
