@@ -452,9 +452,20 @@ def _check_sampling(
             )
         pairs = (ptt.get("ladder_health") or {}).get("pairs") or []
         immobile = [_float(pair.get("immobile_down_fraction")) or 0.0 for pair in pairs]
+        blocking = [f"{pair['lower']}->{pair['upper']}" for pair in pairs if pair.get("trapping") == "blocking"]
+        if blocking:
+            findings.add(
+                "warning",
+                "blocking_links",
+                f"Link(s) {', '.join(blocking)} hold more immobile configurations older than the renewal "
+                "time than the renewal tolerance allows: they keep the ladder from renewing.",
+                "Raise --ptt-local-sweeps so local moves free them, or retrain with a model between "
+                "those rungs.",
+                "F6",
+            )
         if immobile:
             indicators["max_immobile_down_fraction"] = _round(max(immobile))
-            if max(immobile) >= 0.01:
+            if max(immobile) >= 0.01 and not blocking:
                 findings.add(
                     "info",
                     "trapped_links",

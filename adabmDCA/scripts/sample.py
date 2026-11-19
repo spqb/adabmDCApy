@@ -93,20 +93,27 @@ def main(args=None) -> int:
     resolve_ngen(args)
     print_header("Sampling from a DCA model")
     print_configuration(_configuration(args))
+    import time
+
     renderer = _SamplingProgressRenderer(diagnostic=args.diagnostic)
+    start = time.perf_counter()
     try:
         result = run(args, progress=renderer)
     finally:
         renderer.close()
+    sampled = time.perf_counter()
     artifacts = result.save_bundle(args.output, label=args.label)
     if args.plot_sampling_logs:
         artifacts.update(result.save_diagnostic_plots(args.output, label=args.label))
+    finished = time.perf_counter()
     converged = not result.ptt_diagnostics or result.ptt_diagnostics["mixing"]["status"] == "converged"
     print_completion(
         "Sampling completed successfully." if converged else "PTT round budget exhausted; endpoint samples retained.",
         metrics={
             "sequences": len(result.sequences),
             "sweeps": result.num_sweeps,
+            "elapsed time": (f"{_duration(finished - start)} (sampling and diagnostics {_duration(sampled - start)}, "
+                             f"writing outputs {_duration(finished - sampled)})"),
             "mean energy": f"{result.energies.mean():.3f}",
             "standard deviation": f"{result.energies.std():.3f}",
             **({"fitted lambda (E vs summed CDE)": f"{result.local_lambda_fit['lambda']:.6g}",
@@ -116,6 +123,7 @@ def main(args=None) -> int:
                {"lambda fit": f"unavailable: {result.warnings[-1]}"}),
             **(_ptt_summary(result.ptt_diagnostics) if result.ptt_diagnostics else {}),
             **(_distance_summary(result.distance_comparison) if result.distance_comparison else {}),
+            **(_three_point_summary(result.three_point) if result.three_point else {}),
         },
         artifacts=artifacts,
     )
@@ -189,6 +197,17 @@ def _distance_summary(distances: dict) -> dict:
     return metrics
 
 
+def _three_point_summary(three_point: dict) -> dict:
+    """Connected three-point correlations on triplets without a strong pair, as in statistics_scatter.png."""
+    resolved = f"{three_point['n_resolved']} of {three_point['n_candidates']} candidate triplets resolved"
+    if three_point.get("pearson") is None:
+        return {"three-point correlations": f"{resolved}; too few to compare"}
+    return {"three-point correlations": (
+        f"Pearson {three_point['pearson']:.3f} (data halves {three_point['noise_ceiling']:.3f}), "
+        f"R² {three_point['r2']:.3f} (data halves {three_point['noise_ceiling_r2']:.3f}), "
+        f"slope {three_point['slope']:.3f}, {len(three_point['data'])} shown; {resolved}")}
+
+
 def _duration(seconds: float) -> str:
     minutes, seconds = divmod(int(seconds), 60)
     hours, minutes = divmod(minutes, 60)
@@ -225,6 +244,11 @@ def _ptt_summary(diagnostics: dict) -> dict:
     if health and health["pairs"]:
         pairs = health["pairs"]
         summary["endpoint log Z (BAR)"] = f"{health['log_z_bar']:.3f} +- {health['log_z_bar_error']:.3f}"
+        labels = [pair.get("trapping") for pair in pairs if pair.get("trapping")]
+        if labels:
+            summary["trapping per link"] = " · ".join(
+                f"{label} {labels.count(label)}" for label in ("blocking", "slow", "noise", "none")
+                if labels.count(label))
         aged = [pair for pair in pairs if pair.get("immobile_mean_age") is not None]
         if aged:
             # Long-lived immobile configurations are trapped; brief immobility clears by local moves.
@@ -368,6 +392,8 @@ class _SamplingProgressRenderer:
                 f"ESS fwd/rev {pair['ess_forward']:.3f}/{pair['ess_reverse']:.3f} | "
                 f"Crooks slope {slope} | acceptance {pair['mean_acceptance']:.3f} | "
                 f"immobile down/up {pair['immobile_down_fraction']:.4f}/{pair['immobile_up_fraction']:.4f}"
+                + (f" | trapping {pair['trapping']}" if pair.get("trapping") else "")
+                + (f" (age test p {pair['immobile_age_p']:.1e})" if pair.get("immobile_age_p") is not None else "")
             )
 
     def _write(self, message: str) -> None:

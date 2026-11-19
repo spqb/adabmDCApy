@@ -17,6 +17,7 @@ from adabmDCA.serialization import (
     result_document,
     write_dataframe,
     write_json,
+    write_npz,
     write_numpy,
     write_text,
 )
@@ -603,10 +604,23 @@ class SamplingResult:
         warnings: Non-fatal issues, e.g. an unconverged mixing estimate.
         sampling_dtype: Precision used for sampling.
         ptt_diagnostics: PTT only: mixing, renewal and ladder-health diagnostics.
+        ptt_configurations: PTT only: at the end of sampling, the age of every
+            configuration of each replica (``ages_k``) and the downward swap
+            probability of every upper configuration of each pair
+            (``mobility_down_k`` for ``k -> k+1``, same order as ``ages_{k+1}``),
+            with ``rounds``, ``old_age``, ``tolerance``, ``immobile_threshold``
+            and ``active_start``. Saved as ``logs/ptt_ages.npz``, not in JSON.
         cde_sum: Summed context-dependent entropy of each sequence.
         local_lambda_fit: Least-squares fit of energy against ``cde_sum``, if identifiable.
         cij_reference: Reference connected correlations, when diagnostics were collected.
         cij_generated: Generated connected correlations, when diagnostics were collected.
+        fi_reference: Reference single-site frequencies ``(L, q)``, when diagnostics were collected.
+        fi_generated: Generated single-site frequencies ``(L, q)``, when diagnostics were collected.
+        three_point: Connected three-point correlations of reference and samples on
+            selected triplets (:func:`adabmDCA.stats.compare_three_point_correlations`),
+            when diagnostics were collected. Its summary, without the per-triplet
+            arrays, is ``three_point_comparison`` in :meth:`to_dict`; the triplets
+            are written to ``logs/three_point.log``.
         pca_reference: Reference sequences projected on their principal components.
         pca_generated: Generated sequences projected on the same components.
         data_comparison: With diagnostics and a reference: the share of data and
@@ -654,6 +668,9 @@ class SamplingResult:
     local_lambda_fit: dict[str, float | int] | None = None
     cij_reference: np.ndarray | None = field(default=None, repr=False, compare=False)
     cij_generated: np.ndarray | None = field(default=None, repr=False, compare=False)
+    fi_reference: np.ndarray | None = field(default=None, repr=False, compare=False)
+    fi_generated: np.ndarray | None = field(default=None, repr=False, compare=False)
+    three_point: dict[str, Any] | None = field(default=None, repr=False, compare=False)
     pca_reference: np.ndarray | None = field(default=None, repr=False, compare=False)
     pca_generated: np.ndarray | None = field(default=None, repr=False, compare=False)
     pca_explained_variance_ratio: np.ndarray | None = field(default=None, repr=False, compare=False)
@@ -663,6 +680,7 @@ class SamplingResult:
     log_importance_weights: np.ndarray | None = None
     steering: dict[str, Any] = field(default_factory=dict)
     ladder_samples: dict[str, Any] | None = field(default=None, repr=False, compare=False)
+    ptt_configurations: dict[str, Any] | None = field(default=None, repr=False, compare=False)
 
     def to_dict(self) -> dict[str, Any]:
         """Return a JSON-compatible document with the result type and schema version."""
@@ -687,6 +705,10 @@ class SamplingResult:
                 "steering": self.steering,
                 "steering_potentials": self.steering_potentials,
                 "log_importance_weights": self.log_importance_weights,
+                "three_point_comparison": None if self.three_point is None else {
+                    key: value for key, value in self.three_point.items()
+                    if key not in ("triplets", "data", "samples", "z")
+                },
                 "warnings": self.warnings,
             },
         )
@@ -871,6 +893,21 @@ class SamplingResult:
             artifacts["distances_log"] = write_dataframe(
                 logs / f"{prefix}distances.log", pd.DataFrame(columns), index=False,
             )
+        if self.three_point is not None and len(self.three_point.get("data", [])):
+            import pandas as pd
+
+            triplets = np.asarray(self.three_point["triplets"])
+            tokens = getattr(self.model, "tokens", None)
+            columns = {}
+            for index in range(3):
+                columns[f"site_{index + 1}"] = triplets[:, index, 0]
+                states = triplets[:, index, 1]
+                columns[f"state_{index + 1}"] = [tokens[state] for state in states] if tokens else states
+            columns.update(reference=self.three_point["data"], generated=self.three_point["samples"],
+                           z=self.three_point["z"])
+            artifacts["three_point_log"] = write_dataframe(
+                logs / f"{prefix}three_point.log", pd.DataFrame(columns), index=False,
+            )
         if self.ptt_diagnostics:
             import pandas as pd
 
@@ -882,10 +919,8 @@ class SamplingResult:
                 artifacts["ptt_ladder_health_log"] = write_dataframe(
                     logs / f"{prefix}ptt_ladder_health.log", pd.DataFrame(health["pairs"]), index=False,
                 )
-                if health.get("replicas"):
-                    artifacts["ptt_replicas_log"] = write_dataframe(
-                        logs / f"{prefix}ptt_replicas.log", pd.DataFrame(health["replicas"]), index=False,
-                    )
+            if self.ptt_configurations:
+                artifacts["ptt_ages"] = write_npz(logs / f"{prefix}ptt_ages.npz", self.ptt_configurations)
             history = self.ptt_diagnostics.get("renewal_history")
             if history is not None:
                 rows = [
@@ -933,6 +968,24 @@ class SamplingResult:
         plt.close(figure)
         return path
 
+    def _save_statistics_plot(self, path: Path, plot_dpi: int, *, pearson: float | None = None) -> Path:
+        """Single-site, two-site and three-point statistics in one row; only Cij without frequencies."""
+        import matplotlib.pyplot as plt
+
+        from adabmDCA.plot import plot_cij_scatter, plot_statistics_scatter
+
+        if self.fi_reference is None or self.fi_generated is None:
+            figure, axis = plt.subplots(dpi=plot_dpi, figsize=(6, 6))
+            plot_cij_scatter(axis, self.cij_reference, self.cij_generated, pearson=pearson)
+        else:
+            figure = plt.figure(dpi=plot_dpi, figsize=(17, 5.8) if self.three_point is not None else (11.5, 5.8))
+            plot_statistics_scatter(figure, self.fi_reference, self.fi_generated, self.cij_reference,
+                                    self.cij_generated, three_point=self.three_point, pearson=pearson)
+        figure.tight_layout()
+        figure.savefig(path, dpi=plot_dpi)
+        plt.close(figure)
+        return path
+
     def _save_privet_plot(self, folder: Path, prefix: str) -> Path | None:
         privet = self.distance_comparison.get("privet")
         if not privet:
@@ -942,7 +995,7 @@ class SamplingResult:
         from adabmDCA.plot import plot_privet
 
         path = folder / f"{prefix}privet.png"
-        figure = plt.figure(dpi=192, figsize=(15, 4.8))
+        figure = plt.figure(dpi=192, figsize=(12.5, 5))
         plot_privet(figure, privet)
         figure.tight_layout()
         figure.savefig(path, dpi=192, facecolor="white")
@@ -981,7 +1034,6 @@ class SamplingResult:
             import matplotlib.pyplot as plt
 
             from adabmDCA.plot import (
-                plot_cij_scatter,
                 plot_PCA,
                 plot_ptt_autocorrelation,
                 plot_ptt_ladder_health,
@@ -998,7 +1050,7 @@ class SamplingResult:
                    else {"ptt_mixing_plot": folder / f"{prefix}ptt_mixing.png"}),
                 **({"ptt_ladder_health_plot": folder / f"{prefix}ptt_ladder_health.png"}
                    if self.ptt_diagnostics.get("ladder_health") else {}),
-                "cij_scatter_plot": folder / f"{prefix}cij_scatter.png",
+                "statistics_scatter_plot": folder / f"{prefix}statistics_scatter.png",
                 "pca_1_2_plot": folder / f"{prefix}pca_1_2.png",
                 "pca_3_4_plot": folder / f"{prefix}pca_3_4.png",
             }
@@ -1038,21 +1090,15 @@ class SamplingResult:
                 plt.close(figure)
 
             if "ptt_ladder_health_plot" in paths:
-                figure = plt.figure(dpi=plot_dpi, figsize=(12, 8.5))
+                figure = plt.figure(dpi=plot_dpi, figsize=(12, 5.4))
                 plot_ptt_ladder_health(figure, self.ptt_diagnostics["ladder_health"],
                                        mixing=self.ptt_diagnostics.get("mixing"))
                 figure.tight_layout()
                 figure.savefig(paths["ptt_ladder_health_plot"], dpi=plot_dpi)
                 plt.close(figure)
 
-            figure, axis = plt.subplots(dpi=plot_dpi, figsize=(6, 6))
-            plot_cij_scatter(
-                axis, self.cij_reference, self.cij_generated,
-                pearson=self.ptt_diagnostics.get("final_pearson"),
-            )
-            figure.tight_layout()
-            figure.savefig(paths["cij_scatter_plot"], dpi=plot_dpi)
-            plt.close(figure)
+            self._save_statistics_plot(paths["statistics_scatter_plot"], plot_dpi,
+                                       pearson=self.ptt_diagnostics.get("final_pearson"))
 
             for pc1, pc2, path_key in ((0, 1, "pca_1_2_plot"), (2, 3, "pca_3_4_plot")):
                 figure = plt.figure(dpi=plot_dpi, figsize=(7, 6.5))
@@ -1095,7 +1141,7 @@ class SamplingResult:
 
         import matplotlib.pyplot as plt
 
-        from adabmDCA.plot import plot_autocorrelation, plot_cij_scatter, plot_PCA, plot_pearson_sampling
+        from adabmDCA.plot import plot_autocorrelation, plot_PCA, plot_pearson_sampling
 
         folder = Path(directory)
         folder.mkdir(parents=True, exist_ok=True)
@@ -1103,7 +1149,7 @@ class SamplingResult:
         paths = {
             "autocorrelation_plot": folder / f"{prefix}autocorrelation.png",
             "pearson_plot": folder / f"{prefix}pearson_sampling.png",
-            "cij_scatter_plot": folder / f"{prefix}cij_scatter.png",
+            "statistics_scatter_plot": folder / f"{prefix}statistics_scatter.png",
             "pca_1_2_plot": folder / f"{prefix}pca_1_2.png",
             "pca_3_4_plot": folder / f"{prefix}pca_3_4.png",
         }
@@ -1132,11 +1178,7 @@ class SamplingResult:
         figure.savefig(paths["pearson_plot"], dpi=plot_dpi)
         plt.close(figure)
 
-        figure, axis = plt.subplots(dpi=plot_dpi, figsize=(6, 6))
-        plot_cij_scatter(axis, self.cij_reference, self.cij_generated)
-        figure.tight_layout()
-        figure.savefig(paths["cij_scatter_plot"], dpi=plot_dpi)
-        plt.close(figure)
+        self._save_statistics_plot(paths["statistics_scatter_plot"], plot_dpi)
 
         for pc1, pc2, path_key in ((0, 1, "pca_1_2_plot"), (2, 3, "pca_3_4_plot")):
             figure = plt.figure(dpi=plot_dpi, figsize=(7, 6.5))

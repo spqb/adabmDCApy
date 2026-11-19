@@ -20,7 +20,6 @@ kernel void move_pair(
     const device long* order0, const device long* order1,
     const device long* ids0, const device long* ids1, device long* ids,
     const device long* birth0, const device long* birth1, device long* birth,
-    const device bool* reached0, const device bool* reached1, device bool* reached,
     const device float* memory0, const device float* memory1, device float* memory,
     device atomic_uint* counts,
     constant uint& n, constant uint& l, constant uint& flags, constant uint& index,
@@ -39,10 +38,6 @@ kernel void move_pair(
             birth[n + row] = swap_b ? birth0[b] : birth1[b];
         }
         if (flags & 2) {
-            reached[row] = swap_a ? reached1[a] : reached0[a];
-            reached[n + row] = swap_b ? reached0[b] : reached1[b];
-        }
-        if (flags & 4) {
             memory[row] = swap_a ? memory1[a] : memory0[a];
             memory[n + row] = swap_b ? memory0[b] : memory1[b];
         }
@@ -53,7 +48,7 @@ kernel void move_pair(
 """
 
 
-def swaps_available(sampler, birth, reached, memory):
+def swaps_available(sampler, birth, memory):
     """Select only the native categorical, unsteered MPS path."""
     if (sampler.device.type != 'mps' or not is_mps_available()
             or os.environ.get('ADABMDCA_MPS_SWAPS', '1') == '0'
@@ -67,11 +62,11 @@ def swaps_available(sampler, birth, reached, memory):
             or any(p['bias'].dtype != torch.float32 or p['coupling_matrix'].dtype != torch.float32 for p in sampler.models)):
         return False
     return all(value is None or (value.device == sampler.device and value.shape == sampler.lineage.shape and value.dtype == dtype)
-               for value, dtype in ((birth, torch.int64), (reached, torch.bool), (memory, torch.float32)))
+               for value, dtype in ((birth, torch.int64), (memory, torch.float32)))
 
 
 @torch.no_grad()
-def swap_and_permute(chains, lineage, log_a, log_u, orders, counts, index, *, birth=None, reached=None, memory=None):
+def swap_and_permute(chains, lineage, log_a, log_u, orders, counts, index, *, birth=None, memory=None):
     """Return two output rows for chains and each enabled metadata tensor.
 
     Input rows are not modified. ``counts[index]`` accumulates accepted chains
@@ -82,7 +77,7 @@ def swap_and_permute(chains, lineage, log_a, log_u, orders, counts, index, *, bi
               'lineage': torch.empty((2, n), device=chains[0].device, dtype=torch.int64)}
     buffers = []
     flags = 0
-    for bit, key, rows in ((1, 'birth', birth), (2, 'reached', reached), (4, 'memory', memory)):
+    for bit, key, rows in ((1, 'birth', birth), (2, 'memory', memory)):
         if rows is None:
             output[key] = None
             buffers.extend((log_a, log_a, log_a))  # Unused, type-independent dummy buffers.

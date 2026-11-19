@@ -139,7 +139,7 @@ adabmDCA sample --strategy pcd -p model/params.dat.gz -d train.fasta --plot-samp
 
 Sample as many sequences as training chains when comparing Pearson with training (the PTT default does this).
 
-Outputs: `samples.fasta`, `samples.csv` (`name, sequence, energy, cde_sum`, plus PRIVET columns with `-v`), `sampling.json`, `logs/` (`ptt.log` has log Z, mean energy, entropy and data log-likelihood of every ladder model), and with `--plot-sampling-logs`: `cij_scatter.png`, `pca_1_2.png`, `pca_3_4.png`, `data_vs_samples.png`, `distances.png`, `energy_vs_cde.png`, plus `ptt_renewal.png`, `ptt_ladder_health.png` (PTT) or `autocorrelation.png`, `pearson_sampling.png` (MCMC).
+Outputs: `samples.fasta`, `samples.csv` (`name, sequence, energy, cde_sum`, plus PRIVET columns with `-v`), `sampling.json`, `logs/` (`ptt.log` has log Z, mean energy, entropy and data log-likelihood of every ladder model), and with `--plot-sampling-logs`: `statistics_scatter.png` (single-site frequencies, Cij, three-point correlations), `pca_1_2.png`, `pca_3_4.png`, `data_vs_samples.png`, `distances.png`, `energy_vs_cde.png`, plus `ptt_renewal.png`, `ptt_ladder_health.png` (PTT) or `autocorrelation.png`, `pearson_sampling.png` (MCMC).
 
 ## energies
 

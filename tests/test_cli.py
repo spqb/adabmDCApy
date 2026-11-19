@@ -155,7 +155,7 @@ class CliTests(unittest.TestCase):
             renewal_log = pd.read_csv(output / "logs" / "check_ptt_renewal.log")
             self.assertEqual(set(renewal_log["phase"]), {"warmup"})
             for filename in (
-                "check_ptt_renewal.png", "check_cij_scatter.png",
+                "check_ptt_renewal.png", "check_statistics_scatter.png",
                 "check_pca_1_2.png", "check_pca_3_4.png",
             ):
                 self.assertTrue((output / filename).is_file(), filename)
@@ -449,7 +449,7 @@ class CliTests(unittest.TestCase):
             for filename in (
                 "autocorrelation.png",
                 "pearson_sampling.png",
-                "cij_scatter.png",
+                "statistics_scatter.png",
                 "pca_1_2.png",
                 "pca_3_4.png",
             ):

@@ -109,7 +109,7 @@ def test_sampling_result_saves_requested_diagnostic_plots(tmp_path: Path, metada
     assert set(artifacts) == {
         "autocorrelation_plot",
         "pearson_plot",
-        "cij_scatter_plot",
+        "statistics_scatter_plot",
         "pca_1_2_plot",
         "pca_3_4_plot",
         "energy_cde_plot",
@@ -146,7 +146,7 @@ def test_ptt_sampling_result_saves_mixing_cij_and_pca_plots(tmp_path: Path, meta
     artifacts = result.save_diagnostic_plots(tmp_path, label="ptt")
 
     assert set(artifacts) == {
-        "ptt_mixing_plot", "cij_scatter_plot", "pca_1_2_plot", "pca_3_4_plot"
+        "ptt_mixing_plot", "statistics_scatter_plot", "pca_1_2_plot", "pca_3_4_plot"
     }
     assert all(path.read_bytes().startswith(b"\x89PNG") for path in artifacts.values())
 

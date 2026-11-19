@@ -14,13 +14,13 @@ pytestmark = pytest.mark.skipif(not is_mps_available(), reason='Requires Metal s
 
 
 @pytest.mark.parametrize('n', [1, 7, 129, 2000])
-@pytest.mark.parametrize('enabled', list(product([False, True], repeat=3)))
+@pytest.mark.parametrize('enabled', list(product([False, True], repeat=2)))
 def test_swap_and_permute_matches_tensor_reference(n, enabled):
     generator = torch.Generator().manual_seed(19)
     length = 7
     x = torch.randint(5, (2, n, length), generator=generator, dtype=torch.int32)
     ids = torch.arange(2 * n).reshape(2, n) + 2**40
-    values = {'birth': ids - 2**41, 'reached': (ids % 2).bool(),
+    values = {'birth': ids - 2**41,
               'memory': torch.randn(2, n, generator=generator)}
     log_a = -torch.rand(n, generator=generator)
     log_u = torch.rand(n, generator=generator).log()
@@ -80,7 +80,6 @@ def ladder(replicas, *, mode, sparse=False, reservoir=False):
     sampler.mode = mode
     sampler.start_birth_tracking()
     sampler.birth += 2**40
-    sampler.reached_top = (sampler.lineage % 2).bool()
     sampler.lag_memory = torch.randn(replicas, n, generator=generator).to('mps')
     if reservoir:
         sampler.active_start = 1
@@ -102,7 +101,7 @@ def test_ladder_trajectory_and_all_metadata_match_reference(replicas, mode, spar
     reference.advance(rounds=3, local_sweeps=sweeps, return_samples=False)
     for actual, expected in zip(sampler.chains, reference.chains):
         torch.testing.assert_close(actual, expected, atol=0, rtol=0)
-    for key in ('lineage', 'birth', 'reached_top', 'lag_memory', '_rng'):
+    for key in ('lineage', 'birth', 'lag_memory', '_rng'):
         torch.testing.assert_close(getattr(sampler, key), getattr(reference, key), atol=0, rtol=0)
     assert sampler.acceptance == reference.acceptance
     assert sampler.rounds == reference.rounds and sampler.local_sweeps == reference.local_sweeps

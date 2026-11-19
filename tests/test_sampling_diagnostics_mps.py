@@ -85,5 +85,5 @@ def test_ptt_archive_generation_saves_all_diagnostic_plots(tmp_path):
     assert result.distance_comparison['n_test'] > 0
     result.save_bundle(tmp_path / 'sampled')
     artifacts = result.save_diagnostic_plots(tmp_path / 'sampled')
-    for key in ('pca_1_2_plot', 'pca_3_4_plot', 'distances_plot', 'data_vs_samples_plot', 'cij_scatter_plot'):
+    for key in ('pca_1_2_plot', 'pca_3_4_plot', 'distances_plot', 'data_vs_samples_plot', 'statistics_scatter_plot'):
         assert artifacts[key].is_file()

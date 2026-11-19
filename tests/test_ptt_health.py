@@ -9,7 +9,16 @@ import torch
 from adabmDCA import PTTSampler
 from adabmDCA.api import sample_sequences
 from adabmDCA.exceptions import InputValidationError
-from adabmDCA.ptt.health import bar, crooks_slope, exp_forward, exp_reverse, mobility, pair_health
+from adabmDCA.ptt.health import (
+    age_permutation_test,
+    bar,
+    classify_trapping,
+    crooks_slope,
+    exp_forward,
+    exp_reverse,
+    mobility,
+    pair_health,
+)
 from adabmDCA.statmech import compute_energy
 from tests import test_ptt as helpers
 
@@ -127,6 +136,77 @@ def test_generation_reports_ladder_health_with_plot_and_log(tmp_path):
     assert artifacts["ptt_ladder_health_plot"].read_bytes().startswith(b"\x89PNG")
     log = artifacts["ptt_ladder_health_log"].read_text()
     assert log.startswith("dF_forward,") and "immobile_down_fraction" in log
+    # Per-configuration ages and mobilities, to re-run the age test without sampling again.
+    saved = np.load(artifacts["ptt_ages"])
+    assert {"ages_0", "ages_1", "mobility_down_0", "rounds", "old_age", "tolerance"} <= set(saved.files)
+    assert saved["ages_1"].shape == saved["mobility_down_0"].shape == (health["n_chains"],)
+    immobile = saved["mobility_down_0"] < saved["immobile_threshold"]
+    assert int(immobile.sum()) == health["pairs"][0]["immobile_count"]
+    assert "ptt_configurations" not in result.to_dict()["data"]
     exact_z = torch.logsumexp(-compute_energy(states(), coupled()), 0).item()
     assert abs(health["log_z_bar"] - exact_z) < 4 * health["log_z_bar_error"] + 0.02
     assert np.isfinite(result.ptt_diagnostics["final_pearson"])
+
+
+def test_age_test_is_calibrated_when_immobility_ignores_age():
+    generator = torch.Generator().manual_seed(1)
+    ages = (-300 * torch.rand(4000, generator=generator, dtype=torch.float64).log()).floor()
+    p_values = []
+    for seed in range(40):
+        mask = torch.zeros(4000, dtype=torch.bool)
+        mask[torch.randperm(4000, generator=torch.Generator().manual_seed(seed))[:30]] = True
+        p_values.append(age_permutation_test(ages, mask, draws=400, generator=generator)["p_value"])
+    # Under the null the p-values are uniform: about 10% below 0.1, none extreme.
+    assert 0 < sum(p < 0.1 for p in p_values) <= 10 and min(p_values) > 1e-3
+
+
+def test_age_test_detects_old_immobile_configurations_and_widens_for_small_groups():
+    ages = torch.arange(10_000, dtype=torch.float64) % 600
+    old = ages >= 590  # The oldest 1.7%.
+    test = age_permutation_test(ages, old, draws=2000, generator=torch.Generator().manual_seed(0))
+    assert test["p_value"] == pytest.approx(1 / 2001) and test["ratio"] > 1.9
+    few = torch.zeros(10_000, dtype=torch.bool)
+    few[:6] = True
+    many = torch.zeros(10_000, dtype=torch.bool)
+    many[:600] = True
+    q95 = [age_permutation_test(ages, mask, draws=2000, generator=torch.Generator().manual_seed(0))["null_q95"]
+           for mask in (few, many)]
+    assert q95[0] > q95[1] > 1.0
+    with pytest.raises(ValueError):
+        age_permutation_test(ages, torch.zeros(10_000, dtype=torch.bool))
+
+
+@pytest.mark.parametrize("p, old, expected", [
+    (None, None, "none"), (0.5, 500, "noise"), (1e-4, 500, "blocking"), (1e-4, 5, "slow"), (1e-4, None, "slow"),
+])
+def test_trapping_needs_significance_before_counting_old_configurations(p, old, expected):
+    pairs = [{"immobile_age_p": p, "immobile_old": old}, {"immobile_age_p": 0.9}]
+    classify_trapping(pairs, alpha=0.01, tolerance=0.01, n_chains=10_000)
+    assert pairs[0]["trapping"] == expected
+    assert pairs[0]["trapping_level"] == pytest.approx(0.01 / (2 if p is not None else 1))
+
+
+def test_failed_renewal_reports_old_immobile_configurations_and_red_title(tmp_path):
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    from adabmDCA.plot import plot_ptt_ladder_health
+
+    data = tmp_path / "reference.fasta"
+    data.write_text(">a\nAA\n>b\nBB\n")
+    backend = PTTSampler(profile(), tokens="AB", n_chains=64)
+    backend.models[-1] = coupled()
+    backend.model_version = 1
+    result = sample_sequences(model=backend, reference_fasta=data, n_sequences=64, ptt_local_sweeps=1,
+                              ptt_max_rounds=1, ptt_renewal_tolerance=0.01, collect_diagnostics=True)
+    mixing = result.ptt_diagnostics["mixing"]
+    health = result.ptt_diagnostics["ladder_health"]
+    assert mixing["status"] == "budget_exceeded" and mixing["rounds"] == 1 and mixing["n_chains"] == 64
+    assert health["old_age"] is not None and health["tolerance"] == 0.01
+    assert all(pair["trapping"] in ("none", "noise", "slow", "blocking") for pair in health["pairs"])
+    figure = plt.figure()
+    plot_ptt_ladder_health(figure, health, mixing=mixing)
+    assert "renewal NOT reached within 1 rounds" in figure._suptitle.get_text()
+    plt.close(figure)

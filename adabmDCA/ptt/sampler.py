@@ -23,7 +23,7 @@ from adabmDCA.anchor.lowrank import LowRankPotts
 from adabmDCA.anchor.anchor import TreeLowRankPotts
 from adabmDCA.ptt.archive import load_archive, model_id, save_archive
 from adabmDCA.ptt.config import DEFAULT_PTT_N_CHAINS, DEFAULT_PTT_RESERVOIR_SIZE, DEFAULT_PTT_SAMPLER, PTTConfig
-from adabmDCA.ptt.health import IMMOBILE_THRESHOLD, bar, pair_health
+from adabmDCA.ptt.health import IMMOBILE_THRESHOLD, TRAPPING_ALPHA, bar, classify_trapping, pair_health
 from adabmDCA.ptt.kernels import (
     _TIMING_KEYS,
     LOCAL_KERNELS,
@@ -242,10 +242,8 @@ class PTTSampler:
                 self.chains = [self._bottom_states(params, n_chains) for _ in self.models]
         self.lineage = torch.arange(2 * n_chains, device=self.device).reshape(2, n_chains)
         # Generation-only state: birth rounds of configurations (see
-        # ``measure_renewal``), and whether each configuration has reached the
-        # top replica since its birth (the flow profile of ``ladder_health``).
+        # ``measure_renewal``).
         self.birth = None
-        self.reached_top = None
         # Training state of the 'adaptive' optimizer: per configuration, the
         # energy changes it received from endpoint updates while at the
         # endpoint, decayed over ``config.lag_horizon`` updates. Carried with
@@ -412,7 +410,6 @@ class PTTSampler:
         # Initial configurations predate every round of this generation run; stamping them with the
         # round before it makes ages count from the start of generation, not of training.
         self.birth = torch.full((len(self.models), n_chains), self.rounds - 1, device=self.device, dtype=torch.int64)
-        self.reached_top = torch.zeros_like(self.birth, dtype=torch.bool)
         self.lag_memory = None
         self.generation_start_round = self.rounds
         self.acceptance = [1.0] * (len(self.models) - 1)
@@ -582,9 +579,6 @@ class PTTSampler:
         timer = _PhaseTimer(self.device)
         acceptance = torch.zeros(self.n_active - 1, dtype=torch.float64)
         birth = getattr(self, "birth", None)
-        reached = getattr(self, "reached_top", None)
-        if birth is None or reached is None or reached.shape != birth.shape:
-            reached = None
         memory = getattr(self, "lag_memory", None)
         if memory is not None and memory.shape != (len(self.chains), len(self.chains[0])):
             # Experiments on forks replace populations; their memory is meaningless.
@@ -594,7 +588,7 @@ class PTTSampler:
         if self.device.type == "mps":
             from adabmDCA.mps_kernels.swaps import acceptance_rates, swap_and_permute, swaps_available
 
-            if swaps_available(self, birth, reached, memory):
+            if swaps_available(self, birth, memory):
                 fused_counts = torch.zeros((rounds, self.n_active - 1), dtype=torch.int32, device=self.device)
                 fused_move = swap_and_permute
         elif self.device.type == "cpu" and self.mode == "generate" and len(self.models) == 7:
@@ -603,7 +597,7 @@ class PTTSampler:
             if is_numba_available():
                 from adabmDCA.numba_kernels.swaps import swap_and_permute, swaps_available
 
-                if swaps_available(self, birth, reached, memory):
+                if swaps_available(self, birth, memory):
                     fused_move = swap_and_permute
         # A training checkpoint becomes stale when populations evolve outside
         # its commit. The trainer installs fresh metadata after each commit.
@@ -624,14 +618,13 @@ class PTTSampler:
                                 (self.chains[k], self.chains[k + 1]), (self.lineage[k], self.lineage[k + 1]),
                                 log_a, log_u, orders, fused_counts, step * (self.n_active - 1) + k - self.active_start,
                                 birth=None if birth is None else (birth[k], birth[k + 1]),
-                                reached=None if reached is None else (reached[k], reached[k + 1]),
                                 memory=None if memory is None else (memory[k], memory[k + 1]),
                             )
                             if fused_counts is None:
                                 acceptance[k - self.active_start] += moved["accepted"] / len(log_a)
                             self.chains[k], self.chains[k + 1] = moved["chains"].unbind(0)
                             self.lineage[k:k + 2] = moved["lineage"]
-                            for key, values in (("birth", birth), ("reached", reached), ("memory", memory)):
+                            for key, values in (("birth", birth), ("memory", memory)):
                                 if values is not None:
                                     values[k:k + 2] = moved[key]
                         continue
@@ -657,10 +650,6 @@ class PTTSampler:
                             born = birth[k, swap].clone()
                             birth[k, swap] = birth[k + 1, swap]
                             birth[k + 1, swap] = born
-                        if reached is not None:
-                            kept = reached[k, swap].clone()
-                            reached[k, swap] = reached[k + 1, swap]
-                            reached[k + 1, swap] = kept
                         if memory is not None:
                             kept = memory[k, swap].clone()
                             memory[k, swap] = memory[k + 1, swap]
@@ -672,15 +661,10 @@ class PTTSampler:
                             self.lineage[j] = self.lineage[j][order]
                             if birth is not None:
                                 birth[j] = birth[j][order]
-                            if reached is not None:
-                                reached[j] = reached[j][order]
                             if memory is not None:
                                 memory[j] = memory[j][order]
                             if self.steering_values is not None and self.steering_values[j] is not None:
                                 self.steering_values[j] = self.steering_values[j][order]
-                if reached is not None:
-                    # After the exchanges: whatever sits at the top has reached it.
-                    reached[-1] = True
                 with timer.measure("local_sampling_seconds"):
                     first_local = self.active_start
                     if first_local == 0 and self.reservoir is None:
@@ -688,8 +672,6 @@ class PTTSampler:
                         if birth is not None:
                             # Exact redraws are new configurations.
                             birth[0] = self.rounds
-                        if reached is not None:
-                            reached[0] = False
                         if memory is not None:
                             memory[0] = 0.0
                         first_local = 1
@@ -739,8 +721,6 @@ class PTTSampler:
                         # The reservoir is the source of this ladder: a
                         # configuration enters the active ladder when emitted.
                         birth[self.active_start] = self.rounds
-                    if reached is not None:
-                        reached[self.active_start] = False
                     if memory is not None:
                         memory[self.active_start] = 0.0
                 self.rounds += 1
@@ -867,7 +847,9 @@ class PTTSampler:
         return lower_under_upper - lower_under_lower, upper_under_upper - upper_under_lower
 
     @torch.no_grad()
-    def ladder_health(self, *, bootstrap: int = 200, seed: int = 0) -> dict[str, Any]:
+    def ladder_health(self, *, bootstrap: int = 200, seed: int = 0, old_age: float | None = None,
+                      tolerance: float | None = None, alpha: float = TRAPPING_ALPHA,
+                      configurations: bool = False) -> dict[str, Any]:
         """Bidirectional reweighting diagnostics for every adjacent active pair.
 
         See ``adabmDCA.ptt.health``. Per pair: forward, reverse and BAR free
@@ -877,46 +859,59 @@ class PTTSampler:
         whose average swap probability is below ``IMMOBILE_THRESHOLD``, and
         quantiles of the per-configuration acceptance in both directions. With
         birth tracking, the mean age of immobile and mobile upper configurations
-        is included, and ``replicas`` gives, per replica, the median and 99th
-        percentile of the configuration ages (rounds since birth) and the flow:
-        the fraction of configurations that reached the top replica since birth.
-        Also returns forward and BAR endpoint log Z.
+        is included, with the age test of the immobile ones (``immobile_age_p``,
+        ``immobile_age_null_q95``), and each pair is labelled by
+        ``classify_trapping``. Also returns forward and BAR endpoint log Z.
 
         Args:
             bootstrap: Bootstrap resamples for the error bars.
-            seed: Seed of the bootstrap.
+            seed: Seed of the bootstrap and of the age test.
+            old_age: Age, in rounds, beyond which a configuration missed its
+                renewal: the renewal time, or the rounds since the start of a
+                renewal measurement that failed. ``None`` skips ``blocking``.
+            tolerance: Renewal tolerance, as a fraction of the chains of one replica.
+            alpha: Family-wise level of the age test over the pairs.
+            configurations: Also return ``configurations``: per active
+                replica ``k``, the age of every configuration (``ages_k``,
+                rounds since birth, with birth tracking) and, per pair, the
+                downward swap probability of every upper configuration in the
+                same order (``mobility_down_k``, for the pair ``k -> k+1``).
+                NumPy arrays, for ``logs/ptt_ages.npz``.
 
         Returns:
-            ``pairs`` (one dictionary per adjacent pair), ``replicas`` (one per
-            replica, empty without birth tracking), ``log_z_forward``,
-            ``log_z_bar``, ``log_z_bar_error`` and ``immobile_threshold``.
+            ``pairs`` (one dictionary per adjacent pair), ``log_z_forward``,
+            ``log_z_bar``, ``log_z_bar_error``, ``immobile_threshold``,
+            ``n_chains`` and the ``old_age``, ``tolerance`` and ``alpha`` used.
         """
         generator = torch.Generator().manual_seed(seed)
         pairs = []
         log_z_forward = log_z_bar = self.anchor_log_z
         bar_variance = 0.0
         birth = getattr(self, "birth", None)
+        arrays = {}
+        if configurations and birth is not None:
+            for k in range(self.active_start, len(self.models)):
+                arrays[f"ages_{k}"] = (self.rounds - birth[k]).cpu().numpy()
         for k in range(self.active_start, len(self.models) - 1):
             w_lower, w_upper = self._pair_works(k)
             ages = None if birth is None else self.rounds - birth[k + 1]
-            row = pair_health(w_lower, w_upper, bootstrap=bootstrap, generator=generator, ages=ages)
+            row = pair_health(w_lower, w_upper, bootstrap=bootstrap, generator=generator, ages=ages,
+                              old_age=old_age, keep_mobility=configurations)
             row.update({"lower": k, "upper": k + 1})
+            if configurations:
+                arrays[f"mobility_down_{k}"] = row.pop("mobility_down").numpy()
             pairs.append(row)
             log_z_forward -= row["dF_forward"]
             log_z_bar -= row["dF_bar"]
             bar_variance += row["dF_bar_error"] ** 2
-        replicas = []
-        reached = getattr(self, "reached_top", None)
-        if birth is not None:
-            for k in range(self.active_start, len(self.models)):
-                ages = device_accumulation(self.rounds - birth[k]).cpu()
-                replicas.append({
-                    "replica": k, "age_median": float(ages.median()), "age_q99": float(torch.quantile(ages, 0.99)),
-                    # Fraction of the configurations that reached the top since birth (moving down).
-                    "flow_down": None if reached is None else float(device_accumulation(reached[k]).mean()),
-                })
-        return {"pairs": pairs, "replicas": replicas, "log_z_forward": log_z_forward, "log_z_bar": log_z_bar,
-                "log_z_bar_error": math.sqrt(bar_variance), "immobile_threshold": IMMOBILE_THRESHOLD}
+        n_chains = len(self.chains[-1])
+        classify_trapping(pairs, alpha=alpha, tolerance=tolerance, n_chains=n_chains)
+        result = {"pairs": pairs, "log_z_forward": log_z_forward, "log_z_bar": log_z_bar,
+                  "log_z_bar_error": math.sqrt(bar_variance), "immobile_threshold": IMMOBILE_THRESHOLD,
+                  "n_chains": n_chains, "old_age": old_age, "tolerance": tolerance, "alpha": alpha}
+        if configurations:
+            result["configurations"] = arrays
+        return result
 
     def estimate_mixing_time(
         self,
@@ -1079,7 +1074,6 @@ class PTTSampler:
         self.birth = torch.full(
             (len(self.models), len(self.chains[0])), self.rounds - 1, device=self.device, dtype=torch.int64
         )
-        self.reached_top = torch.zeros_like(self.birth, dtype=torch.bool)
 
     def _renewal_phase(self, *, reference, rounds, limit, stop_when_renewed, rung=None,
                        local_sweeps=1, is_cancelled=None, on_round=None):
@@ -1655,7 +1649,6 @@ class PTTSampler:
                 on_progress=on_progress, before_collect=bridge_normalizer,
             )
             source.birth = None
-            source.reached_top = None
             if batches is None:
                 self.local_sweeps += source.local_sweeps - before
                 for key in _TIMING_KEYS:
@@ -1966,8 +1959,6 @@ class PTTSampler:
             self.lineage.numel(), self.lineage.numel() + len(chains), device=self.device).unsqueeze(0)])
         if self.birth is not None:
             self.birth = torch.cat([self.birth, self.birth[-1:].clone()])
-        if getattr(self, "reached_top", None) is not None:
-            self.reached_top = torch.cat([self.reached_top, torch.zeros_like(self.reached_top[-1:])])
         self.steering_strengths.append(float(strength))
         self.steering_values.append(self.steering(chains, strength, dtype=self.models[base]["bias"].dtype))
         self._steering_kernels.append(kernel)
@@ -1982,8 +1973,6 @@ class PTTSampler:
         self.lineage = self.lineage[:-1]
         if self.birth is not None:
             self.birth = self.birth[:-1]
-        if getattr(self, "reached_top", None) is not None:
-            self.reached_top = self.reached_top[:-1]
         self._replica_params_cache = None
 
     def prepare_steering(

@@ -521,6 +521,14 @@ def plot_ptt_renewal(
     return figure
 
 
+_TRAPPING_COLORS = {"none": "#AAB0B6", "noise": "#AAB0B6", "slow": "#E9A23B", "blocking": "#C0392B"}
+
+
+def _p_text(p: float) -> str:
+    """p-values of the age test; its resolution is about 1e-4."""
+    return "p < 2e-4" if p < 2e-4 else f"p {p:.0e}" if p < 0.01 else f"p {p:.2f}"
+
+
 def plot_ptt_ladder_health(figure: Figure, health: dict, mixing: dict | None = None) -> Figure:
     """Plot how configurations move through a PTT ladder.
 
@@ -533,31 +541,33 @@ def plot_ptt_ladder_health(figure: Figure, health: dict, mixing: dict | None = N
       configurations that rarely cross;
     - trapped configurations per link: mean age of the configurations that
       practically cannot move down (swap probability below the immobility
-      threshold) divided by that of the others. Near 1, immobility is
-      transient; well above 1, configurations stay stuck above that link;
-    - configuration ages per replica: median and 99th percentile of the rounds
-      since birth at the bottom; an old tail that starts at one replica marks
-      a bottleneck below it;
-    - flow: the fraction of configurations at each replica that reached the top
-      since birth. With free diffusion it rises smoothly from 0 at the bottom
-      to 1 at the top; a step marks a bottleneck.
+      threshold) divided by that of the others. The tick on each bar is the
+      95% quantile of the same ratio for random groups of configurations of
+      the same size (the null of the age test,
+      ``adabmDCA.ptt.health.age_permutation_test``). Colours: grey, within
+      chance; amber, immobile configurations older than chance but renewed
+      (slow link); red, older than chance and more of them older than the
+      renewal time than the renewal tolerance allows (blocking link). Labels: share of
+      immobile configurations, how many of them are older than the renewal
+      time, and the p-value of the age test.
 
-    Free energies, effective sample sizes and Crooks slopes are in the log only.
+    The title gives the renewal time, or says in red that renewal failed and
+    how many configurations were never renewed. Free energies, effective
+    sample sizes and Crooks slopes are in the log only.
     """
     pairs = health["pairs"]
-    replicas = health.get("replicas") or []
-    axes = figure.subplots(2, 2)
-    for ax in axes.flat:
+    axes = figure.subplots(1, 2)
+    for ax in axes:
         _style_diagnostic_axis(ax)
     if not pairs:
-        for ax in axes.flat:
+        for ax in axes:
             ax.text(0.5, 0.5, "No adjacent pairs", transform=ax.transAxes, ha="center", va="center")
         return figure
     x = np.arange(len(pairs))
     labels = [f"{pair['lower']}→{pair['upper']}" for pair in pairs]
     floor = 1e-6
 
-    ax = axes[0, 0]
+    ax = axes[0]
     for offset, direction, color, name in ((-0.12, "down", _DIAGNOSTIC_CORAL, "upper replica, moving down"),
                                            (0.12, "up", _DIAGNOSTIC_TEAL, "lower replica, moving up")):
         if f"acceptance_{direction}_q50" not in pairs[0]:
@@ -578,72 +588,88 @@ def plot_ptt_ladder_health(figure: Figure, health: dict, mixing: dict | None = N
     ax.set_ylim(floor / 2, 1.5)
     ax.set_ylabel("per-configuration swap acceptance")
     ax.set_title("Swap acceptance per link: mean and tail", color=_DIAGNOSTIC_TEXT, fontsize=9)
-    ax.legend(frameon=False, fontsize=7, loc="lower left", ncol=2)
+    # Below the axes: the 1% quantiles that matter most sit at the floor.
+    ax.legend(frameon=False, fontsize=7, loc="upper center", bbox_to_anchor=(0.5, -0.22), ncol=3)
 
-    ax = axes[0, 1]
-    ratios, fractions = [], []
+    ax = axes[1]
+    ratios = []
     for pair in pairs:
         immobile_age, mobile_age = pair.get("immobile_mean_age"), pair.get("mobile_mean_age")
         ratios.append(np.nan if immobile_age is None or not mobile_age else immobile_age / mobile_age)
-        fractions.append(pair["immobile_down_fraction"])
     heights = np.nan_to_num(np.asarray(ratios, dtype=float), nan=0.0)
-    colors = [_DIAGNOSTIC_CORAL if ratio > 2 else _DIAGNOSTIC_BLUE for ratio in heights]
+    classified = all("trapping" in pair for pair in pairs)
+    if classified:
+        colors = [_TRAPPING_COLORS[pair["trapping"]] for pair in pairs]
+    else:  # Results saved before the age test: the former fixed threshold of 2.
+        colors = [_DIAGNOSTIC_CORAL if ratio > 2 else _DIAGNOSTIC_BLUE for ratio in heights]
     ax.bar(x, heights, color=colors, width=0.6)
-    ax.axhline(1.0, color="#AAB0B6", lw=1.0, ls="--", label="immobility is transient (1)")
-    ax.axhline(2.0, color=_DIAGNOSTIC_CORAL, lw=0.8, ls=":", label="trapped (2)")
-    top = max(2.5, float(np.nanmax(heights)) * 1.25 if len(heights) else 2.5)
-    for position, ratio, fraction in zip(x, ratios, fractions):
-        text = "none" if fraction == 0 else f"{fraction:.1%}"
-        ax.text(position, (0 if np.isnan(ratio) else ratio) + top * 0.02, text, ha="center", va="bottom",
-                fontsize=7, color=_DIAGNOSTIC_TEXT)
+    nulls = [pair.get("immobile_age_null_q95") for pair in pairs]
+    for position, null in zip(x, nulls):
+        if null is not None:
+            ax.hlines(null, position - 0.36, position + 0.36, color=_DIAGNOSTIC_TEXT, lw=1.6, zorder=3)
+    ax.axhline(1.0, color="#AAB0B6", lw=1.0, ls="--")
+    if not classified:
+        ax.axhline(2.0, color=_DIAGNOSTIC_CORAL, lw=0.8, ls=":")
+    peak = max([float(np.nanmax(heights))] + [null for null in nulls if null is not None])
+    top = max(2.5, peak * 1.3)
+    for position, ratio, null, pair in zip(x, ratios, nulls, pairs):
+        fraction = pair["immobile_down_fraction"]
+        lines = ["none" if fraction == 0 else f"{fraction:.1%}"]
+        if pair.get("immobile_old") is not None:
+            lines.append(f"{pair['immobile_old']} old")
+        if pair.get("immobile_age_p") is not None:
+            lines.append(_p_text(pair["immobile_age_p"]))
+        above = max(0.0 if np.isnan(ratio) else ratio, null or 0.0)
+        ax.text(position, above + top * 0.015, "\n".join(lines), ha="center",
+                va="bottom", fontsize=6.5, color=_DIAGNOSTIC_TEXT, linespacing=1.1)
     ax.set_ylim(0, top)
     ax.set_ylabel("age of immobile / age of mobile configurations")
-    ax.set_title(f"Trapped configurations (labels: fraction with swap probability < {health['immobile_threshold']:g})",
+    ax.set_title(f"Trapped configurations (swap probability < {health['immobile_threshold']:g})\n"
+                 + ("label: share immobile · of them old (missed a renewal) · age-test p" if classified
+                    else "label: share immobile"),
                  color=_DIAGNOSTIC_TEXT, fontsize=9)
-    ax.legend(frameon=False, fontsize=7, loc="upper left")
+    from matplotlib.lines import Line2D
+    from matplotlib.patches import Patch
 
-    for ax in axes[0]:
-        ax.set_xticks(x, labels)
+    handles = [Line2D([], [], color="#AAB0B6", lw=1.0, ls="--", label="ratio 1: no age difference")]
+    if any(null is not None for null in nulls):
+        handles.append(Line2D([], [], color=_DIAGNOSTIC_TEXT, lw=1.6, label="95% of random groups (null)"))
+    if classified:
+        level = pairs[0].get("trapping_level")
+        handles += [
+            Patch(color=_TRAPPING_COLORS["noise"], label="within chance"
+                  + ("" if level is None else f" (p ≥ {level:.0e})")),
+            Patch(color=_TRAPPING_COLORS["slow"], label="slow: older than chance, renewed"),
+            Patch(color=_TRAPPING_COLORS["blocking"], label="blocking: older than chance, and the old ones\n"
+                  "exceed the renewal tolerance"),
+        ]
+    else:
+        handles.append(Line2D([], [], color=_DIAGNOSTIC_CORAL, lw=0.8, ls=":", label="trapped (2)"))
+    # Below the axes, like the left panel: tall bars and their labels fill the top.
+    ax.legend(handles=handles, frameon=False, fontsize=7, loc="upper center", bbox_to_anchor=(0.5, -0.22), ncol=2)
+
+    for ax in axes:
+        # Tilted so that two-digit links (10→11) do not run into each other.
+        ax.set_xticks(x, labels, rotation=35, ha="right", rotation_mode="anchor")
         ax.set_xlabel("adjacent models")
 
-    replica_axis = np.array([row["replica"] for row in replicas])
-    ax = axes[1, 0]
-    if replicas:
-        ax.plot(replica_axis, [max(row["age_median"], 0.5) for row in replicas], "o-", color=_DIAGNOSTIC_BLUE,
-                label="median")
-        ax.plot(replica_axis, [max(row["age_q99"], 0.5) for row in replicas], "s-", color=_DIAGNOSTIC_CORAL,
-                label="99th percentile")
-        ax.set_yscale("log")
-        ax.legend(frameon=False, fontsize=8)
-    else:
-        ax.text(0.5, 0.5, "Ages need birth tracking (generation)", transform=ax.transAxes, ha="center", va="center")
-    ax.set_ylabel("configuration age [exchange rounds]")
-    ax.set_title("Age of the configurations in each replica", color=_DIAGNOSTIC_TEXT, fontsize=9)
-
-    ax = axes[1, 1]
-    flows = [row.get("flow_down") for row in replicas]
-    if replicas and all(flow is not None for flow in flows):
-        ax.plot(replica_axis, flows, "o-", color=_DIAGNOSTIC_BLUE, label="measured")
-        ax.plot([replica_axis[0], replica_axis[-1]], [0.0, 1.0], color="#AAB0B6", ls="--", lw=1.0,
-                label="free diffusion")
-        ax.set_ylim(-0.03, 1.03)
-        ax.legend(frameon=False, fontsize=8, loc="upper left")
-    else:
-        ax.text(0.5, 0.5, "Flow needs birth tracking (generation)", transform=ax.transAxes, ha="center", va="center")
-    ax.set_ylabel("fraction that reached the top since birth")
-    ax.set_title("Flow through the ladder", color=_DIAGNOSTIC_TEXT, fontsize=9)
-    for ax in axes[1]:
-        if replicas:
-            ax.set_xticks(replica_axis)
-        ax.set_xlabel("replica (0 = bottom)")
-
     title = f"PTT ladder health · endpoint log Z (BAR) {health['log_z_bar']:.2f} ± {health['log_z_bar_error']:.2f}"
+    color = _DIAGNOSTIC_TEXT
     if mixing and mixing.get("warmup_rounds") is not None:
         decay = mixing.get("warmup_decay_rounds")
         title += f" · renewal after {mixing['warmup_rounds']} rounds"
         if decay is not None:
             title += f" (decay time {decay:.0f})"
-    figure.suptitle(title, color=_DIAGNOSTIC_TEXT)
+    elif mixing and mixing.get("method") == "renewal" and mixing.get("status") not in (None, "converged"):
+        color = _TRAPPING_COLORS["blocking"]
+        rounds = mixing.get("rounds")
+        title += "\nrenewal NOT reached" + ("" if rounds is None else f" within {rounds} rounds")
+        chains = mixing.get("n_chains") or health.get("n_chains")
+        old = mixing.get("old_fraction_by_model")
+        if chains and old:
+            title += (f": {round(sum(old) * chains)} configurations never renewed "
+                      f"(tolerance {mixing['tolerance'] * chains:.0f})")
+    figure.suptitle(title, color=color)
     return figure
 
 
@@ -710,92 +736,139 @@ def plot_distance_comparison(figure: Figure, distances: dict) -> Figure:
 
 
 def _log10_text(value: float) -> str:
+    if not np.isfinite(value):
+        return "< -300"
     return "0" if value > -0.05 else f"{value:.1f}"
 
 
+_PRIVET_OVER = "#C0392B"
+_PRIVET_UNDER = "#4C5FD5"
+
+
+def _cdf_median(grid: np.ndarray, values) -> float | None:
+    """Smallest grid distance at which a cumulative distribution reaches one half."""
+    reach = np.flatnonzero(np.asarray(values, dtype=float) >= 0.5)
+    return float(grid[reach[0]]) if len(reach) else None
+
+
 def plot_privet(figure: Figure, privet: dict) -> Figure:
-    """PRIVET: the null law, the excess of samples near the training set, and per-sample scores.
+    """PRIVET: the null law of nearest-neighbour distances and the samples against it.
 
     Left: cumulative distribution of the (reweighted) training sequences'
     distances to their nearest other training sequence (steps) and the fitted
     extreme-value law (line), on a log scale to show the lower tail; the band
-    is the fitted window. Middle: the same law against the distances of the
-    generated and held-out sequences to their nearest training sequence; a
-    generated curve above the null at small distances is an excess of
-    sequences close to the training set, scored in the title (most improbable
-    group, log10 probability under the null). Right: per sample, ``log10
-    p_train`` against ``log10 p_test``; flagged samples lie below the dashed
-    line ``delta_p = threshold``.
+    is the fitted window. The box gives the largest ratio between fit and data
+    inside the window: the p-values are only as good as the fit at its left edge.
+
+    Right: the same law against the distances of the generated and held-out
+    sequences to their nearest training sequence, with their medians in the
+    legend. Above the null (red area) samples lie closer to the training set
+    than training sequences lie to each other: an excess there is memorization,
+    scored in the title (most improbable group, log10 probability under the
+    null). Below the held-out curve (blue area) samples lie farther from the
+    training set than the held-out sequences: the model generates sequences
+    outside the family. With a random split the held-out curve follows the
+    null and the two areas meet. A split by identity clustering keeps held-out
+    sequences away from the training set, so the blue area starts late; when
+    the held-out median exceeds the null median by more than a quarter, a note
+    says so, and samples right of the null are already farther than a typical
+    family member.
+
+    Per-sample scores (``delta_p``, ``n_pleaks``) are in ``privet`` and in the
+    sample table, not plotted.
     """
-    axes = figure.subplots(1, 3)
+    axes = figure.subplots(1, 2)
     for ax in axes:
         _style_diagnostic_axis(ax)
-    threshold = privet["threshold"]
     fit = privet["fit"]
     cdf = privet["cdf"]
     grid = np.asarray(cdf["distance"])
     observed = np.asarray(cdf["train_train"])
+    fitted = np.asarray(cdf["fitted"])
     reach = np.flatnonzero(observed >= 0.999)
     right = min(1.0, 1.25 * grid[reach[0]]) if len(reach) else 1.0
     floor = 0.2 / max(privet["n_generated"], 1)
+    top = 1.5
+    box = {"boxstyle": "round,pad=0.4", "facecolor": "white", "edgecolor": "#CED4DA", "alpha": 0.9}
 
     def curve(ax, values, **style):
         ax.step(grid, np.clip(np.asarray(values), floor, None), where="post", **style)
 
-    def finish(ax, title):
-        ax.axvspan(*fit["window"], color="#ADB5BD", alpha=0.25, lw=0, label="fitted window")
+    def finish(ax, title, legend_loc):
         ax.set_yscale("log")
-        ax.set_ylim(floor, 1.5)
+        ax.set_ylim(floor, top)
         ax.set_xlim(0.0, right)
         ax.set_xlabel("distance to the nearest training sequence (fraction of sites)")
         ax.set_ylabel("cumulative fraction")
         ax.set_title(title, color=_DIAGNOSTIC_TEXT, fontsize=9)
-        ax.legend(frameon=False, fontsize=7, loc="lower right")
+        ax.legend(frameon=True, framealpha=0.9, edgecolor="none", fontsize=7, loc=legend_loc)
+
+    def median_text(values):
+        median = _cdf_median(grid, values)
+        return "" if median is None else f" (median {median:.2f})"
 
     ax = axes[0]
+    low, high = fit["window"]
+    ax.axvspan(low, high, color="#ADB5BD", alpha=0.25, lw=0, label="fitted window")
     curve(ax, observed, color="#31688E", lw=1.8, label="training → nearest other training (weighted)")
-    ax.plot(grid, np.clip(cdf["fitted"], floor, None), color="#6C757D", lw=1.5,
+    ax.plot(grid, np.clip(fitted, floor, None), color="#6C757D", lw=1.5,
             label=f"{fit['family']} fit (shape {fit['shape']:.2f})")
-    finish(ax, "Null law of nearest-neighbour distances")
+    inside = (grid >= low) & (grid <= high) & (observed > 0) & (fitted > 0)
+    lines = []
+    if inside.any():
+        ratio = fitted[inside] / observed[inside]
+        worst = int(np.argmax(np.abs(np.log(ratio))))
+        lines.append(f"largest fit/data ratio in the window: ×{ratio[worst]:.2g} "
+                     f"at d = {grid[inside][worst]:.2f}")
+    q1, q2 = privet.get("quantile_window", (None, None))
+    if q1 is not None:
+        lines.append(f"window: {q1:.0%} to {q2:.0%} quantiles of the data")
+    lines.append("The line must follow the steps inside the band,\n"
+                 "above all at its left edge: the p-values use it there.")
+    ax.text(0.97, 0.2, "\n".join(lines), transform=ax.transAxes, ha="right", va="bottom", fontsize=7.5,
+            color=_DIAGNOSTIC_TEXT, bbox=box)
+    finish(ax, "Null law of nearest-neighbour distances", "lower right")
 
     ax = axes[1]
-    ax.plot(grid, np.clip(cdf["fitted"], floor, None), color="#6C757D", lw=1.5, label="null (fit)")
-    curve(ax, cdf["generated_train"], color="#E76F51", lw=2.0, label="generated → nearest training")
+    has_test = "test_train" in cdf
+    ax.fill_between(grid, np.clip(fitted, floor, top), top, color=_PRIVET_OVER, alpha=0.13, lw=0,
+                    label="overfitting: closer than training sequences are to each other")
+    if has_test:
+        ax.fill_between(grid, floor, np.clip(np.asarray(cdf["test_train"]), floor, top), step="post",
+                        color=_PRIVET_UNDER, alpha=0.13, lw=0,
+                        label="underfitting: farther than the held-out sequences")
+    ax.plot(grid, np.clip(fitted, floor, None), color="#6C757D", lw=1.5,
+            label="null (fit)" + median_text(fitted))
+    if has_test:
+        curve(ax, cdf["test_train"], color="#2A9D8F", lw=1.5,
+              label="held-out → nearest training" + median_text(cdf["test_train"]))
+    curve(ax, cdf["generated_train"], color="#E76F51", lw=2.0,
+          label="generated → nearest training" + median_text(cdf["generated_train"]))
+    ax.text(0.03, 0.97, "OVERFITTING", transform=ax.transAxes, ha="left", va="top", fontsize=9,
+            weight="bold", color=_PRIVET_OVER, alpha=0.85)
+    if has_test:
+        ax.text(0.97, 0.45, "UNDERFITTING", transform=ax.transAxes, ha="right", va="bottom", fontsize=9,
+                weight="bold", color=_PRIVET_UNDER, alpha=0.85)
+        null_median, test_median = _cdf_median(grid, fitted), _cdf_median(grid, cdf["test_train"])
+        if null_median and test_median and test_median > 1.25 * null_median:
+            ax.text(0.97, 0.43,
+                    f"Held-out sequences lie farther than the null\n"
+                    f"(median {test_median:.2f} vs {null_median:.2f}), as after a split by\n"
+                    f"identity: the blue area starts late. Samples right\n"
+                    f"of the null are already farther than a typical\n"
+                    f"family member.",
+                    transform=ax.transAxes, ha="right", va="top", fontsize=7.5, color=_DIAGNOSTIC_TEXT, bbox=box)
+    else:
+        ax.text(0.97, 0.45, "Give a held-out alignment (--test)\nto mark the underfitting side",
+                transform=ax.transAxes, ha="right", va="bottom", fontsize=7.5, color=_DIAGNOSTIC_TEXT)
     excess = privet["excess_train"]
     title = ("No excess of samples near the training set" if excess["log10_p"] > -1 else
              f"Closest group of samples: {excess['count']} within {excess['distance']:.3f} "
              f"(null {excess['expected']:.1f}), log10 p {_log10_text(excess['log10_p'])}")
     control = privet.get("control")
-    if control is not None and "test_train" in cdf:
-        curve(ax, cdf["test_train"], color="#2A9D8F", lw=1.5, label="held-out → nearest training")
+    if control is not None and has_test:
         title += f"\nheld-out control: log10 p {_log10_text(control['excess_train']['log10_p'])}"
-    finish(ax, title)
-
-    ax = axes[2]
-    if "log10_p_test" in privet:
-        p_train = np.asarray(privet["log10_p_train"])
-        p_test = np.asarray(privet["log10_p_test"])
-        flagged = (p_train - p_test) < threshold
-        ax.scatter(p_test[~flagged], p_train[~flagged], s=6, color="#ADB5BD", alpha=0.6, rasterized=True,
-                   label="generated")
-        ax.scatter(p_test[flagged], p_train[flagged], s=12, color="#E76F51", label="flagged")
-        low = min(float(p_train.min()), float(p_test.min()), threshold) - 0.5
-        line = np.array([low, 0.0])
-        ax.plot(line, line, color="#6C757D", lw=0.8)
-        ax.plot(line, line + threshold, color=_DIAGNOSTIC_TEXT, ls="--", lw=1.0, label=f"Δp = {threshold:g}")
-        ax.set_xlim(low, 0.2)
-        ax.set_ylim(low, 0.2)
-        ax.set_xlabel("log10 p_test (distance to the held-out set)")
-        ax.set_ylabel("log10 p_train (distance to the training set)")
-        ax.set_title(f"Per sample: {privet['n_flagged']} of {privet['n_generated']} flagged; "
-                     f"N_pleaks {privet['n_pleaks']}, mean Δp {privet['mean_delta_p']:.2f}",
-                     color=_DIAGNOSTIC_TEXT, fontsize=9)
-        ax.legend(frameon=False, fontsize=7, loc="upper left")
-    else:
-        ax.axis("off")
-        ax.text(0.5, 0.5, f"{privet['n_memorized']} of {privet['n_generated']} samples with log10 p_train < "
-                f"{threshold:g}\n\nGive a held-out alignment (--test)\nfor the per-sample Δp and N_pleaks",
-                ha="center", va="center", color=_DIAGNOSTIC_TEXT, fontsize=10, transform=ax.transAxes)
+    finish(ax, title, "lower right")
     return figure
 
 
@@ -915,7 +988,11 @@ def plot_cij_scatter(
     Cij_gen: np.ndarray,
     pearson: float | None = None,
 ) -> Axes:
-    """Plot reference versus generated connected two-site correlations."""
+    """Plot reference versus generated connected two-site correlations.
+
+    The box gives the Pearson correlation, the R² about the identity (which
+    also penalizes a slope away from 1) and the slope.
+    """
     Cij_data = np.asarray(Cij_data).reshape(-1)
     Cij_gen = np.asarray(Cij_gen).reshape(-1)
     if Cij_data.size == 0 or Cij_data.shape != Cij_gen.shape:
@@ -969,7 +1046,8 @@ def plot_cij_scatter(
     ax.set_ylim(limits)
     slope_text = f"{slope:.3f}" if np.isfinite(slope) else "n/a"
     ax.annotate(
-        r"$\rho = $" + f"{pearson:.3f}\n" + r"slope $= $" + slope_text,
+        r"$\rho = $" + f"{pearson:.3f}\n" + r"$R^2 = $" + f"{_r2_about_identity(Cij_data, Cij_gen):.3f}\n"
+        + r"slope $= $" + slope_text,
         xy=(0.05, 0.95),
         xycoords="axes fraction",
         verticalalignment="top",
@@ -978,6 +1056,122 @@ def plot_cij_scatter(
     )
     ax.legend(frameon=False, loc="lower right")
     return ax
+
+def _r2_about_identity(reference: np.ndarray, generated: np.ndarray) -> float:
+    """1 - sum (generated - reference)^2 / sum (reference - mean)^2: 1 only on the diagonal."""
+    reference = np.asarray(reference, dtype=float).reshape(-1)
+    generated = np.asarray(generated, dtype=float).reshape(-1)
+    spread = float(((reference - reference.mean()) ** 2).sum())
+    return float(1 - ((generated - reference) ** 2).sum() / spread) if spread > 0 else float("nan")
+
+
+def _scatter_against_reference(ax: Axes, reference, generated, *, color, size=16) -> tuple[float, float]:
+    """Scatter generated against reference values with the identity and a least-squares line; return (pearson, slope)."""
+    reference = np.asarray(reference, dtype=float).reshape(-1)
+    generated = np.asarray(generated, dtype=float).reshape(-1)
+    _style_diagnostic_axis(ax)
+    centered = reference - reference.mean()
+    denominator = float(centered @ centered)
+    slope = float(centered @ (generated - generated.mean()) / denominator) if denominator > 0 else float("nan")
+    intercept = float(generated.mean() - slope * reference.mean()) if denominator > 0 else float("nan")
+    varied = len(reference) > 1 and reference.std() > 0 and generated.std() > 0
+    pearson = float(np.corrcoef(reference, generated)[0, 1]) if varied else float("nan")
+    lower, upper = min(reference.min(), generated.min()), max(reference.max(), generated.max())
+    padding = 0.04 * (upper - lower) if upper > lower else 0.05
+    limits = (lower - padding, upper + padding)
+    ax.scatter(reference, generated, alpha=0.55, s=size, color=color, edgecolors="white", linewidths=0.25,
+               rasterized=True, zorder=2)
+    ax.plot(limits, limits, ls="dashed", color="#7A7F85", lw=1.2, label="Identity", zorder=1)
+    if np.isfinite(slope):
+        ax.plot(limits, slope * np.asarray(limits) + intercept, color=_DIAGNOSTIC_CORAL, lw=1.8,
+                label="Linear fit", zorder=3)
+    ax.set_aspect("equal", adjustable="box")
+    ax.set_xlim(limits)
+    ax.set_ylim(limits)
+    ax.legend(frameon=False, loc="lower right", fontsize=8)
+    return pearson, slope
+
+
+def _stat_box(ax: Axes, lines: list[str]) -> None:
+    ax.annotate("\n".join(lines), xy=(0.05, 0.95), xycoords="axes fraction", va="top", ha="left", fontsize=8.5,
+                bbox={"boxstyle": "round,pad=0.35", "facecolor": "white", "edgecolor": "#C8CDD2", "alpha": 0.92})
+
+
+def plot_fi_scatter(ax: Axes, fi_data: np.ndarray, fi_gen: np.ndarray) -> Axes:
+    """Plot reference versus generated single-site frequencies.
+
+    Training fits them directly, so a departure points at the sampling
+    (equilibration, temperature) more than at the model.
+    """
+    pearson, slope = _scatter_against_reference(ax, fi_data, fi_gen, color=_DIAGNOSTIC_TEAL, size=10)
+    ax.set_xlabel(r"$f_i$ reference")
+    ax.set_ylabel(r"$f_i$ generated")
+    ax.set_title("Single-site frequencies", color=_DIAGNOSTIC_TEXT, pad=10)
+    _stat_box(ax, [r"$\rho = $" + f"{pearson:.4f}", r"$R^2 = $" + f"{_r2_about_identity(fi_data, fi_gen):.4f}",
+                   r"slope $= $" + f"{slope:.3f}"])
+    return ax
+
+
+def plot_three_point_scatter(ax: Axes, three_point: dict, *, min_triplets: int = 20) -> Axes:
+    """Plot reference versus generated connected three-point correlations.
+
+    Uses the triplets of :func:`adabmDCA.stats.compare_three_point_correlations`:
+    no strong pair among the three states, non-gap states of intermediate
+    frequency, and a signal-to-noise ratio of at least its ``z_threshold``.
+    The box gives the Pearson correlation, the R² about the identity (1 only
+    when the points lie on the diagonal: it also penalizes a slope away from 1)
+    and the slope; the first two also between two random halves of the data,
+    the agreement the data allow. With fewer than ``min_triplets`` resolved triplets the panel
+    says the data cannot resolve three-point correlations.
+    """
+    _style_diagnostic_axis(ax)
+    ax.set_title("Three-point correlations, no strong pair", color=_DIAGNOSTIC_TEXT, pad=10)
+    shown = len(three_point.get("data", []))
+    if shown < min_triplets:
+        ax.text(0.5, 0.5,
+                f"{three_point.get('n_resolved', 0)} of {three_point.get('n_candidates', 0)} candidate triplets\n"
+                f"have a signal-to-noise ratio above {three_point.get('z_threshold', 5):g}:\n"
+                "too few to compare three-point correlations.",
+                transform=ax.transAxes, ha="center", va="center", fontsize=9, color=_DIAGNOSTIC_TEXT)
+        ax.set_xticks([])
+        ax.set_yticks([])
+        return ax
+    _scatter_against_reference(ax, three_point["data"], three_point["samples"], color="#7B5EA7", size=12)
+    ax.set_xlabel(r"$C_{ijk}$ reference")
+    ax.set_ylabel(r"$C_{ijk}$ generated")
+    ceiling = three_point.get("noise_ceiling")
+    _stat_box(ax, [
+        r"$\rho = $" + f"{three_point['pearson']:.3f}" + ("" if ceiling is None else f"  (data halves {ceiling:.3f})"),
+        r"$R^2 = $" + f"{three_point['r2']:.3f}"
+        + ("" if three_point.get("noise_ceiling_r2") is None else f"  (data halves {three_point['noise_ceiling_r2']:.3f})"),
+        r"slope $= $" + f"{three_point['slope']:.3f}",
+        f"{shown} shown of {three_point['n_resolved']} resolved",
+        f"(|r| < {three_point['max_pair_correlation']:g} for each pair, z ≥ {three_point['z_threshold']:g})",
+    ])
+    return ax
+
+
+def plot_statistics_scatter(
+    figure: Figure,
+    fi_data: np.ndarray,
+    fi_gen: np.ndarray,
+    Cij_data: np.ndarray,
+    Cij_gen: np.ndarray,
+    three_point: dict | None = None,
+    pearson: float | None = None,
+) -> Figure:
+    """Single-site frequencies, connected two-site and three-point correlations, reference against samples.
+
+    One row: :func:`plot_fi_scatter`, :func:`plot_cij_scatter` and, when
+    ``three_point`` is given, :func:`plot_three_point_scatter`.
+    """
+    axes = figure.subplots(1, 3 if three_point is not None else 2)
+    plot_fi_scatter(axes[0], fi_data, fi_gen)
+    plot_cij_scatter(axes[1], Cij_data, Cij_gen, pearson=pearson)
+    if three_point is not None:
+        plot_three_point_scatter(axes[2], three_point)
+    return figure
+
 
 def plot_scatter_correlations(
     ax: tuple[Axes, Axes],

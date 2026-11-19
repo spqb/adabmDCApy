@@ -114,6 +114,18 @@ def write_dataframe(path: str | Path, dataframe: Any, **kwargs: Any) -> Path:
     return _atomic_write(path, lambda temporary: dataframe.to_csv(temporary, **kwargs))
 
 
+def write_npz(path: str | Path, arrays: dict[str, Any]) -> Path:
+    """Write NumPy arrays as a compressed ``.npz`` file atomically."""
+    import numpy as np
+
+    def writer(temporary: Path) -> None:
+        # A file handle keeps NumPy from appending ".npz" to the temporary name.
+        with temporary.open("wb") as handle:
+            np.savez_compressed(handle, **{key: np.asarray(value) for key, value in arrays.items()})
+
+    return _atomic_write(path, writer)
+
+
 def write_text(path: str | Path, content: str) -> Path:
     """Write UTF-8 text atomically."""
     return _atomic_write(path, lambda temporary: temporary.write_text(content, encoding="utf-8"))

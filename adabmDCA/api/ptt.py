@@ -142,6 +142,7 @@ def sample_ptt_sequences(
     from adabmDCA.dataset import DatasetDCA
     from adabmDCA.input_loading import AlignmentLoadConfig
     from adabmDCA.stats import (
+        compare_three_point_correlations,
         extract_Cij_from_freq,
         get_correlation_two_points,
         get_freq_single_point,
@@ -207,7 +208,9 @@ def sample_ptt_sequences(
     report("ladder", len(backend.models), len(backend.models), selected_updates=backend.sampling_steps,
            chains_per_model=n_sequences)
     renewal = mixing = None
+    old_age = None
     if mixing_method == "renewal":
+        renewal_start = backend.rounds
         renewal = backend.measure_renewal(local_sweeps=local_sweeps, max_rounds=max_rounds,
                                           tolerance=renewal_tolerance,
                                           blocks_per_warmup=STATIONARY_BLOCKS_PER_WARMUP, stationary=stationary,
@@ -220,6 +223,9 @@ def sample_ptt_sequences(
         # renewal) when it ran, otherwise the warmup length.
         renewal_time = renewal.stationary_rounds if stationary else renewal.warmup_rounds
         spacing = max(1, renewal_time) if renewal.converged else 1
+        # Ladder health counts immobile configurations that missed a renewal:
+        # older than one renewal time, or, when renewal failed, born before it started.
+        old_age = renewal_time if renewal.converged else None
     else:
         mixing = backend.estimate_mixing_time(local_sweeps=local_sweeps, is_cancelled=is_cancelled,
                                              on_progress=report, bounded=True, max_rounds=max_rounds,
@@ -267,6 +273,7 @@ def sample_ptt_sequences(
     final_pearson, final_slope = get_correlation_two_points(fi=fi, pi=pi, fij=fij, pij=pij)
 
     cij_reference = cij_generated = None
+    fi_reference = fi_generated = three_point = None
     pca_reference = pca_generated = pca_explained_variance_ratio = None
     data_comparison = {}
     distance_comparison = {}
@@ -276,6 +283,14 @@ def sample_ptt_sequences(
         )
         cij_reference = cij_reference_tensor.detach().cpu().numpy()
         cij_generated = cij_generated_tensor.detach().cpu().numpy()
+        fi_reference = fi.detach().float().cpu().numpy()
+        fi_generated = pi.detach().float().cpu().numpy()
+        report("three_point", 0, 1)
+        three_point = compare_three_point_correlations(
+            dataset.data, samples, q=len(dataset.tokens), data_weights=dataset.weights,
+            gap_index=dataset.tokens.find("-") if "-" in dataset.tokens else None, seed=seed,
+        )
+        report("three_point", 1, 1, resolved=three_point["n_resolved"], pearson=three_point["pearson"])
         measured = min(n_measure, len(dataset))
         # Draw the reference rows before one-hot encoding: the full alignment
         # can be far larger in one-hot form than the few rows needed.
@@ -303,7 +318,18 @@ def sample_ptt_sequences(
     report("ladder_statistics", len(rows), len(rows))
     # Bidirectional reweighting diagnostics on the final populations; the BAR
     # bridges above use the same pairs.
-    health = backend.ladder_health(seed=seed)
+    if renewal is not None and not renewal.converged:
+        old_age = backend.rounds - renewal_start
+    health = backend.ladder_health(seed=seed, old_age=old_age,
+                                   tolerance=None if renewal is None else renewal.tolerance, configurations=True)
+    configurations = health.pop("configurations")
+    if configurations:
+        # Context to re-run the age test offline from logs/ptt_ages.npz.
+        configurations.update(
+            rounds=backend.rounds, old_age=-1 if old_age is None else old_age,
+            tolerance=float("nan") if renewal is None else renewal.tolerance,
+            immobile_threshold=health["immobile_threshold"], active_start=backend.active_start,
+        )
     report("ladder_health", len(health["pairs"]), len(health["pairs"]), **health)
     model = DCAModel(backend.endpoint_params(), alphabet=backend.tokens)
     ladder_samples = None
@@ -324,6 +350,8 @@ def sample_ptt_sequences(
         mixing_summary = {key: value for key, value in asdict(renewal).items() if key not in history_keys}
         mixing_summary["method"] = "renewal"
         mixing_summary["stationary"] = stationary
+        mixing_summary["rounds"] = renewal.rounds
+        mixing_summary["n_chains"] = len(backend.chains[-1])
         mixing_diagnostics = {
             "mixing": mixing_summary,
             "renewal_history": {key: list(getattr(renewal, key)) for key in history_keys},
@@ -403,6 +431,7 @@ def sample_ptt_sequences(
                          "timings_seconds": dict(backend.timings), "models": rows,
                          "ladder_health": health},
         cij_reference=cij_reference, cij_generated=cij_generated,
+        fi_reference=fi_reference, fi_generated=fi_generated, three_point=three_point,
         pca_reference=pca_reference, pca_generated=pca_generated,
         pca_explained_variance_ratio=pca_explained_variance_ratio,
         data_comparison=data_comparison,
@@ -411,6 +440,7 @@ def sample_ptt_sequences(
         log_importance_weights=log_weights,
         steering=steering_summary,
         ladder_samples=ladder_samples,
+        ptt_configurations=configurations or None,
         warnings=tuple(result_warnings),
     )
 

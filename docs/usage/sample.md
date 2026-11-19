@@ -69,23 +69,23 @@ Figures, with `--plot-sampling-logs`:
 | Figure | Shows | Strategy |
 | --- | --- | --- |
 | `ptt_renewal.png` | Old and fresh fractions of the ladder during sampling | PTT |
-| `ptt_ladder_health.png` | Swap acceptance, trapped configurations, ages and flow along the ladder | PTT |
+| `ptt_ladder_health.png` | Swap acceptance and trapped configurations along the ladder | PTT |
 | `autocorrelation.png` | The mixing-time measurement | plain |
 | `pearson_sampling.png` | Pearson with the data along the sampling run | plain |
-| `cij_scatter.png` | Connected correlations, data vs samples | both |
+| `statistics_scatter.png` | Single-site frequencies, connected two-site and three-point correlations, data vs samples | both |
 | `pca_1_2.png`, `pca_3_4.png` | Natural and generated sequences on the principal components of the data | both |
 | `data_vs_samples.png` | Share of each data cluster in data and samples; energy distributions | both |
 | `distances.png` | Hamming distances within and between sets; nearest-neighbour distances | both |
 | `energy_vs_cde.png` | Energy against summed context-dependent entropy, with fitted slope | both |
 
-Numerical logs, in `logs/`: `mix.log`, `sampling.log` (Pearson, slope and mean chain energy along the run; with `--init-sequences` its first row, at sweep 0, describes the starting sequences), `data_vs_samples.log`, `distances.log`, and for PTT `ptt.log` (one row per ladder model: log Z, mean energy, entropy, likelihood of the data), `ptt_renewal.log`, `ptt_ladder_health.log` and `ptt_replicas.log`. With `-l`, file names are prefixed.
+Numerical logs, in `logs/`: `mix.log`, `sampling.log` (Pearson, slope and mean chain energy along the run; with `--init-sequences` its first row, at sweep 0, describes the starting sequences), `data_vs_samples.log`, `distances.log`, `three_point.log` (the triplets of the three-point panel), and for PTT `ptt.log` (one row per ladder model: log Z, mean energy, entropy, likelihood of the data), `ptt_renewal.log`, `ptt_ladder_health.log` and `ptt_ages.npz` (the age of every configuration of each replica and the downward swap probability of each upper configuration of each link, at the end of sampling, to re-run the age test of the trapped-configurations panel). With `-l`, file names are prefixed.
 
 ## Reading the result in five minutes
 
 1. **Did it converge?** The completion summary and `sampling.json` say whether renewal was reached (PTT) or the mixing time was found (plain MCMC). If not, do not use the samples. With plain MCMC, also look at `pearson_sampling.png`: it should rise and settle. A curve that peaks and then declines means the model was trained out of equilibrium ([details](../algorithms/benchmarks.md#out-of-equilibrium-training-seen-in-resampling)).
-2. **Pearson with the data** (summary, `cij_scatter.png`). What to compare it with depends on the reference given with `-d`. With the training set, the usual choice, expect the final training Pearson: a healthy model loses only 0.003–0.007. With the validation set, expect the final *validation* Pearson of training. Either way, sample as many sequences as training chains (the default for PTT): the Pearson grows with sample size, so smaller samples score lower. The distance checks of point 5 need the training set as `-d`.
+2. **Pearson with the data** (summary, `statistics_scatter.png`). What to compare it with depends on the reference given with `-d`. With the training set, the usual choice, expect the final training Pearson: a healthy model loses only 0.003–0.007. With the validation set, expect the final *validation* Pearson of training. Either way, sample as many sequences as training chains (the default for PTT): the Pearson grows with sample size, so smaller samples score lower. The distance checks of point 5 need the training set as `-d`.
 3. **Clusters** (`pca_1_2.png`, `data_vs_samples.png`). Generated sequences should cover every cluster of the data in roughly the right proportion; ratios between ×0.8 and ×1.25 are typical of well-sampled models.
-4. **Ladder health** (PTT, `ptt_ladder_health.png`). A bar above 2 in the trapped-configurations panel flags a link where configurations stay stuck.
+4. **Ladder health** (PTT, `ptt_ladder_health.png`). In the trapped-configurations panel, grey bars are within chance, amber bars are slow links whose stuck configurations are still renewed, and red bars are links that block renewal. A red title means renewal failed.
 5. **Memorization** (`distances.png`, with `-v`). Generated sequences should not be closer to the training set than held-out sequences are, and none should be identical to a training sequence.
 
 The plots are explained one by one in [Sampling](../algorithms/sampling.md#comparing-samples-with-the-data) and [Diagnose a run](../algorithms/diagnostics.md#checking-a-finished-model).

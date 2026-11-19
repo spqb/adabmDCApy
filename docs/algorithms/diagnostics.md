@@ -194,7 +194,7 @@ A pinned `kl` alone is not a symptom, nor is the field rate at its floor with `-
 **Confirm.**
 
 1. **Sample the finished model independently** and compare its Pearson with the training value at equal sample size. Healthy runs lose 0.003–0.007; the enzyme model above fell from 0.950 to 0.896.
-2. **Read the ladder health** of that sampling: trapped-configuration ratios above 2, carried by more than a few configurations, point to a trapped mode.
+2. **Read the ladder health** of that sampling: amber or red trapped-configuration bars, whose immobile configurations are older than chance, point to a trapped mode.
 3. **Compare cluster weights** (PCA plots, `data_vs_samples.png`) between data and samples.
 4. **For a suspected mode, run long local chains at fixed parameters** from inside and from outside it, and compare occupancies. On cm_russ at update 907 both sides converged to about 20% in the basin after 3·10⁵ sweeps, against 0.95% in the training chains and 1.5% in the data. The test needs a definition of the mode and becomes inconclusive when the barrier is very high.
 
@@ -222,7 +222,7 @@ A run can finish cleanly and still produce a model that does not match its own m
 
 1. Sample it: `adabmDCA sample -p model/ptt.h5 -d train.fasta -v validation.fasta --plot-sampling-logs -o check`.
 2. Compare the sampled Pearson (`sampling.json` → `ptt_diagnostics.final_pearson`, also in the summary) with the last training Pearson, at the same number of sequences as training chains. A drop larger than about 0.01 deserves attention.
-3. Look at `ptt_ladder_health.png`: links whose trapped-configuration bar exceeds 2, carried by more than a handful of configurations, hold configurations that stay stuck above them.
+3. Look at `ptt_ladder_health.png`: amber links hold configurations that stay stuck above them longer than chance allows; red links hold enough of them to block renewal.
 4. Look at `pca_1_2.png` and `data_vs_samples.png`: clusters whose share in the samples is far from ×1 are regions the model or its sampling mis-weights.
 5. Look at `distances.png` ([below](#distances-and-overfitting)): generated sequences should not sit closer to the training set than held-out ones, and none should be identical to a training sequence.
 6. Optionally, sample with `--strategy pcd` as well. Plain MCMC gives a ladder-independent view when it mixes: on the cm_russ model trained at 100 sweeps, PTT sampling gave 0.930 and plain MCMC 0.924 (5,000 sequences, mixing time ≈ 2,300 sweeps), against 0.918 reported by training from 2,000 chains.

@@ -51,7 +51,7 @@ def make_ladder(params, tokens, n):
 def assert_same(actual, expected):
     for a, b in zip(actual.chains, expected.chains):
         torch.testing.assert_close(a, b, atol=0, rtol=0)
-    for key in ('lineage', 'birth', 'reached_top', '_rng'):
+    for key in ('lineage', 'birth', '_rng'):
         torch.testing.assert_close(getattr(actual, key), getattr(expected, key), atol=0, rtol=0)
     assert actual.acceptance == expected.acceptance
     assert actual.rounds == expected.rounds and actual.local_sweeps == expected.local_sweeps

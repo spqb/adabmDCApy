@@ -27,6 +27,7 @@ from adabmDCA.resampling import compute_mixing_time
 from adabmDCA.cuda_kernels.sampling import prepare_fixed_model_sampler
 from adabmDCA.statmech import compute_energy
 from adabmDCA.stats import (
+    compare_three_point_correlations,
     extract_Cij_from_freq,
     get_correlation_two_points,
     get_freq_single_point,
@@ -745,6 +746,7 @@ def sample_sequences(
     mixing_history: dict[str, list[float]] = {}
     sampling_history: dict[str, list[float]] = {}
     cij_reference = cij_generated = None
+    fi_reference = fi_generated = three_point = None
     pca_reference = pca_generated = pca_explained_variance_ratio = None
     data_comparison: dict[str, Any] = {}
     distance_comparison: dict[str, Any] = {}
@@ -826,6 +828,12 @@ def sample_sequences(
         )
         cij_reference = cij_reference_tensor.detach().cpu().numpy()
         cij_generated = cij_generated_tensor.detach().cpu().numpy()
+        fi_reference = fi.detach().float().cpu().numpy()
+        fi_generated = pi.detach().float().cpu().numpy()
+        three_point = compare_three_point_correlations(
+            dataset.data, samples, q=len(dataset.tokens), data_weights=dataset.weights,
+            gap_index=dataset.tokens.find("-") if "-" in dataset.tokens else None, seed=seed,
+        )
         reference_scores, generated_scores, explained_variance_ratio = _compute_pca_scores(reference, samples)
         pca_reference = reference_scores.detach().cpu().numpy()
         pca_generated = generated_scores.detach().cpu().numpy()
@@ -886,6 +894,9 @@ def sample_sequences(
         steering=steering_summary,
         cij_reference=cij_reference,
         cij_generated=cij_generated,
+        fi_reference=fi_reference,
+        fi_generated=fi_generated,
+        three_point=three_point,
         pca_reference=pca_reference,
         pca_generated=pca_generated,
         pca_explained_variance_ratio=pca_explained_variance_ratio,

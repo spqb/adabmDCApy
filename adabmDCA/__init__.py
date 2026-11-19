@@ -30,6 +30,7 @@ _EXPORTS = {
     "get_freq_single_point": "adabmDCA.stats",
     "get_freq_two_points": "adabmDCA.stats",
     "get_freq_three_points": "adabmDCA.stats",
+    "compare_three_point_correlations": "adabmDCA.stats",
     "get_correlation_two_points": "adabmDCA.stats",
     "load_params": "adabmDCA.io",
     "save_params": "adabmDCA.io",

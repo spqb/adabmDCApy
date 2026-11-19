@@ -52,7 +52,7 @@ def make_ladder(params, tokens, n, replicas):
     sampler.prepare_sampling_ladder(n)
     if replicas == 3:
         sampler.mode = 'train'
-        sampler.birth = sampler.reached_top = None
+        sampler.birth = None
         sampler.lag_memory = torch.zeros(replicas, n, device='mps')
     return sampler
 
@@ -60,7 +60,6 @@ def make_ladder(params, tokens, n, replicas):
 def state(sampler):
     return {'chains': torch.stack(sampler.chains).cpu(), 'lineage': sampler.lineage.cpu(),
             'birth': None if sampler.birth is None else sampler.birth.cpu(),
-            'reached': None if sampler.reached_top is None else sampler.reached_top.cpu(),
             'lag': None if sampler.lag_memory is None else sampler.lag_memory.cpu(),
             'rng': sampler._rng.clone(), 'acceptance': list(sampler.acceptance)}
 

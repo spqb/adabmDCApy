@@ -24,13 +24,13 @@ def threads():
 
 
 @pytest.mark.parametrize('n', [1, 129, 2000])
-@pytest.mark.parametrize('enabled', list(product([False, True], repeat=3)))
+@pytest.mark.parametrize('enabled', list(product([False, True], repeat=2)))
 @pytest.mark.parametrize('dtype', [torch.float32, torch.float64])
 def test_movement_matches_reference(n, enabled, dtype):
     generator = torch.Generator().manual_seed(19)
     x = torch.randint(5, (2, n, 7), generator=generator, dtype=torch.int32)
     ids = torch.arange(2 * n).reshape(2, n) + 2**40
-    values = {'birth': ids - 2**41, 'reached': (ids % 2).bool(),
+    values = {'birth': ids - 2**41,
               'memory': torch.randn(2, n, generator=generator, dtype=dtype)}
     log_a = -torch.rand(n, generator=generator, dtype=torch.float64)
     log_u = torch.rand(n, generator=generator).log()
@@ -70,7 +70,6 @@ def ladder(replicas=7, *, dtype=torch.float32, sparse=False, mode='generate'):
     sampler.mode = mode
     sampler.lineage += 2**40
     sampler.birth -= 2**40
-    sampler.reached_top = (sampler.lineage % 2).bool()
     sampler.lag_memory = torch.randn(replicas, 129, generator=torch.Generator().manual_seed(53), dtype=dtype)
     return sampler
 
@@ -78,7 +77,7 @@ def ladder(replicas=7, *, dtype=torch.float32, sparse=False, mode='generate'):
 def assert_same(actual, expected):
     for a, b in zip(actual.chains, expected.chains):
         torch.testing.assert_close(a, b, atol=0, rtol=0)
-    for key in ('lineage', 'birth', 'reached_top', 'lag_memory', '_rng'):
+    for key in ('lineage', 'birth', 'lag_memory', '_rng'):
         a, b = getattr(actual, key), getattr(expected, key)
         if a is None:
             assert b is None
@@ -109,7 +108,7 @@ def test_other_ladders_do_not_dispatch(replicas, mode, monkeypatch):
     from adabmDCA.numba_kernels import swaps
 
     sampler = ladder(replicas, mode=mode)
-    assert not swaps_available(sampler, sampler.birth, sampler.reached_top, sampler.lag_memory)
+    assert not swaps_available(sampler, sampler.birth, sampler.lag_memory)
 
     def forbidden(*args, **kwargs):
         pytest.fail('Fusion must only run for seven-model generation')
@@ -120,18 +119,18 @@ def test_other_ladders_do_not_dispatch(replicas, mode, monkeypatch):
 
 def test_dispatch_disabled_and_steering_reservoir_excluded(monkeypatch):
     sampler = ladder()
-    assert swaps_available(sampler, sampler.birth, sampler.reached_top, sampler.lag_memory)
+    assert swaps_available(sampler, sampler.birth, sampler.lag_memory)
     monkeypatch.setenv('ADABMDCA_NUMBA_SWAPS', '0')
-    assert not swaps_available(sampler, sampler.birth, sampler.reached_top, sampler.lag_memory)
+    assert not swaps_available(sampler, sampler.birth, sampler.lag_memory)
     monkeypatch.delenv('ADABMDCA_NUMBA_SWAPS')
     monkeypatch.setenv('ADABMDCA_NUMBA', '0')
-    assert not swaps_available(sampler, sampler.birth, sampler.reached_top, sampler.lag_memory)
+    assert not swaps_available(sampler, sampler.birth, sampler.lag_memory)
     monkeypatch.delenv('ADABMDCA_NUMBA')
     sampler.steering = object()
-    assert not swaps_available(sampler, sampler.birth, sampler.reached_top, sampler.lag_memory)
+    assert not swaps_available(sampler, sampler.birth, sampler.lag_memory)
     sampler.steering = None
     sampler.reservoir = sampler.chains[0]
-    assert not swaps_available(sampler, sampler.birth, sampler.reached_top, sampler.lag_memory)
+    assert not swaps_available(sampler, sampler.birth, sampler.lag_memory)
 
 
 def test_partial_rounds_keep_exact_acceptance(monkeypatch):
@@ -146,7 +145,7 @@ def test_partial_rounds_keep_exact_acceptance(monkeypatch):
 def test_strided_populations_and_metadata(monkeypatch):
     sampler = ladder(sparse=True)
     sampler.chains = [x.T.contiguous().T for x in sampler.chains]
-    for key in ('lineage', 'birth', 'reached_top', 'lag_memory'):
+    for key in ('lineage', 'birth', 'lag_memory'):
         setattr(sampler, key, getattr(sampler, key).T.contiguous().T)
     reference = sampler.fork()
     sampler.advance(rounds=2, return_samples=False)

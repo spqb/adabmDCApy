@@ -66,7 +66,7 @@ with \(f^\alpha_{ii}(a,b) = \delta_{ab} f^\alpha_i(a)\). The default is \(\alpha
 C_{ij}(a,b) = f_{ij}(a,b) - f_i(a) f_j(b), \qquad i \neq j .
 \]
 
-Raw pair frequencies are dominated by the product of single-site frequencies; the connected correlation keeps only the part that a model with fields alone cannot explain. Comparisons between data and model (training Pearson, `cij_scatter.png`) use all entries \((a, b)\) of all blocks with \(i > j\), \(\binom{L}{2} q^2\) numbers, restricted to the active couplings for sparse models. Agreement on these entries does not exclude disagreement on higher-order statistics or on the weights of separated modes.
+Raw pair frequencies are dominated by the product of single-site frequencies; the connected correlation keeps only the part that a model with fields alone cannot explain. Comparisons between data and model (training Pearson, `statistics_scatter.png`) use all entries \((a, b)\) of all blocks with \(i > j\), \(\binom{L}{2} q^2\) numbers, restricted to the active couplings for sparse models. Agreement on these entries does not exclude disagreement on higher-order statistics or on the weights of separated modes.
 
 ## Likelihood and its gradient
 

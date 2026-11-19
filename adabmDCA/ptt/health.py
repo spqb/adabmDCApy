@@ -18,6 +18,15 @@ both replicas these quantities give, without extra sampling:
   configurations that cannot leave their replica by exchanges, which the
   mean acceptance hides.
 
+With birth tracking, the ages of the immobile configurations tell whether
+they stay stuck. ``age_permutation_test`` compares their mean age with that
+of random groups of the same size drawn from the same replica: under the
+null hypothesis that immobility has nothing to do with age, the immobile
+configurations are such a random group. ``classify_trapping`` then labels each
+link as noise (within chance), slow (older than chance but renewed) or
+blocking (older than chance, with more old immobile configurations than the
+renewal tolerance allows).
+
 All free energies are in nats; errors are bootstrap standard deviations.
 """
 
@@ -28,6 +37,9 @@ import math
 import torch
 
 IMMOBILE_THRESHOLD = 1e-4
+# Family-wise level of the age test over the links of one ladder (Bonferroni).
+TRAPPING_ALPHA = 0.01
+AGE_TEST_DRAWS = 10_000
 
 
 def exp_forward(w_lower: torch.Tensor) -> torch.Tensor:
@@ -126,9 +138,96 @@ def mobility(w_lower: torch.Tensor, w_upper: torch.Tensor):
     return down, up / len(w_upper)
 
 
+def age_permutation_test(ages: torch.Tensor, immobile: torch.Tensor, *, draws: int = AGE_TEST_DRAWS,
+                         generator=None, chunk: int = 256) -> dict:
+    """Are the immobile configurations older than a random group of the same size?
+
+    Null hypothesis: immobility is unrelated to age, so the ``m`` immobile
+    configurations are a uniformly random subset of the ``n`` configurations
+    of the replica. ``draws`` random subsets of size ``m`` give the null
+    distribution of their mean age; since the total age is fixed, the ratio
+    of the mean age of the subset to that of the rest increases with it.
+
+    Args:
+        ages: Age of every configuration of the replica, in rounds.
+        immobile: Boolean mask of the immobile configurations.
+        draws: Random subsets drawn.
+        generator: Optional CPU random generator.
+        chunk: Subsets drawn per batch (memory ``chunk * n``).
+
+    Returns:
+        ``p_value`` (one-sided, ``(1 + #{null >= observed}) / (1 + draws)``,
+        so never below ``1 / (1 + draws)``), the observed ``ratio``, the 50%
+        and 95% quantiles of the null ratio and the null ratios themselves.
+    """
+    ages = ages.cpu().double()
+    immobile = immobile.cpu().bool()
+    n, m = len(ages), int(immobile.sum())
+    if m == 0 or m == n:
+        raise ValueError("The age test needs both immobile and mobile configurations.")
+    total = ages.sum()
+
+    def ratio(subset_sum):
+        return (subset_sum / m) / ((total - subset_sum) / (n - m))
+
+    observed = float(ratio(ages[immobile].sum()))
+    null = []
+    for start in range(0, draws, chunk):
+        size = min(chunk, draws - start)
+        # The first m columns of a random permutation of each row: a uniform subset without replacement.
+        subsets = torch.rand(size, n, generator=generator, dtype=torch.float32).argsort(1)[:, :m]
+        null.append(ratio(ages[subsets].sum(1)))
+    null = torch.cat(null)
+    return {
+        "p_value": float((1 + (null >= observed - 1e-12 * abs(observed)).sum()) / (1 + draws)),
+        "ratio": observed,
+        "null_median": float(null.median()),
+        "null_q95": float(torch.quantile(null, 0.95)),
+        "null": null,
+    }
+
+
+def classify_trapping(pairs: list[dict], *, alpha: float = TRAPPING_ALPHA, tolerance: float | None = None,
+                      n_chains: int | None = None) -> None:
+    """Label each pair in place with ``trapping``: ``none``, ``noise``, ``slow`` or ``blocking``.
+
+    ``none`` without immobile configurations or ages; ``noise`` when the age
+    test does not reject the null at level ``alpha`` divided by the number of
+    tested links. A significant link is ``blocking`` when it also holds more
+    immobile configurations older than the renewal time (``immobile_old``)
+    than the renewal tolerance allows (``tolerance * n_chains``), the count
+    renewal uses when it fails, and ``slow`` otherwise. Without significance
+    old immobile configurations only reflect how many configurations are old
+    overall, as when the round budget is too short for the whole ladder.
+    """
+    tested = [pair for pair in pairs if pair.get("immobile_age_p") is not None]
+    level = alpha / max(len(tested), 1)
+    limit = None if tolerance is None or n_chains is None else tolerance * n_chains
+    for pair in pairs:
+        old = pair.get("immobile_old")
+        if pair.get("immobile_age_p") is None:
+            pair["trapping"] = "none"
+        elif pair["immobile_age_p"] >= level:
+            pair["trapping"] = "noise"
+        elif limit is not None and old is not None and old > limit:
+            pair["trapping"] = "blocking"
+        else:
+            pair["trapping"] = "slow"
+        pair["trapping_level"] = level
+
+
 def pair_health(w_lower: torch.Tensor, w_upper: torch.Tensor, *, bootstrap: int = 200, generator=None,
-                ages: torch.Tensor | None = None, immobile_threshold: float = IMMOBILE_THRESHOLD) -> dict:
-    """All diagnostics for one adjacent pair; ``ages`` are upper-replica ages in rounds, if tracked."""
+                ages: torch.Tensor | None = None, immobile_threshold: float = IMMOBILE_THRESHOLD,
+                old_age: float | None = None, age_test_draws: int = AGE_TEST_DRAWS,
+                keep_mobility: bool = False) -> dict:
+    """All diagnostics for one adjacent pair.
+
+    ``ages`` are upper-replica ages in rounds, if tracked. With them, the
+    immobile configurations get the age test (``age_permutation_test``), and
+    with ``old_age`` the count of those older than it (``immobile_old``).
+    ``keep_mobility`` adds the downward mobility of every upper configuration
+    as ``mobility_down`` (a tensor, not JSON-serializable).
+    """
     w_lower = w_lower.cpu().double()
     w_upper = w_upper.cpu().double()
     forward, reverse = float(exp_forward(w_lower)), float(exp_reverse(w_upper))
@@ -149,6 +248,7 @@ def pair_health(w_lower: torch.Tensor, w_upper: torch.Tensor, *, bootstrap: int 
         "crooks_slope": slope, "crooks_slope_error": slope_error, "crooks_bins": slope_bins,
         "mean_acceptance": float(down.mean()),
         "immobile_down_fraction": float(immobile.double().mean()),
+        "immobile_count": int(immobile.sum()),
         "immobile_up_fraction": float((up < immobile_threshold).double().mean()),
         "log10_mobility_down_q01": float(torch.quantile(down.clamp_min(1e-300).log10(), 0.01)),
         "log10_mobility_down_median": float(down.clamp_min(1e-300).log10().median()),
@@ -162,4 +262,11 @@ def pair_health(w_lower: torch.Tensor, w_upper: torch.Tensor, *, bootstrap: int 
         ages = ages.cpu().double()
         result["immobile_mean_age"] = float(ages[immobile].mean())
         result["mobile_mean_age"] = float(ages[~immobile].mean())
+        test = age_permutation_test(ages, immobile, draws=age_test_draws, generator=generator)
+        result["immobile_age_p"] = test["p_value"]
+        result["immobile_age_null_q95"] = test["null_q95"]
+        if old_age is not None:
+            result["immobile_old"] = int((immobile & (ages > old_age)).sum())
+    if keep_mobility:
+        result["mobility_down"] = down
     return result

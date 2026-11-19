@@ -15,7 +15,7 @@ from adabmDCA.numba_kernels import is_numba_available
 from adabmDCA.numba_kernels.threads import set_kernel_threads
 
 
-def swaps_available(sampler, birth, reached, memory):
+def swaps_available(sampler, birth, memory):
     """Restrict dispatch to unsteered, full, seven-model generation ladders."""
     if (sampler.device.type != 'cpu' or not is_numba_available()
             or os.environ.get('ADABMDCA_NUMBA_SWAPS', '1') == '0'
@@ -31,13 +31,12 @@ def swaps_available(sampler, birth, reached, memory):
                    for x in sampler.chains)):
         return False
     return all(value is None or (value.device.type == 'cpu' and value.shape == (7, n) and value.dtype in dtypes)
-               for value, dtypes in ((birth, (torch.int64,)), (reached, (torch.bool,)),
-                                     (memory, (torch.float32, torch.float64))))
+               for value, dtypes in ((birth, (torch.int64,)), (memory, (torch.float32, torch.float64))))
 
 
 @njit(cache=True, parallel=True)
 def _move_pair(x0, x1, x, log_a, log_u, order0, order1, ids0, ids1, ids,
-               birth0, birth1, birth, reached0, reached1, reached, memory0, memory1, memory, flags):
+               birth0, birth1, birth, memory0, memory1, memory, flags):
     accepted = 0
     for row in prange(x0.shape[0]):
         a, b = order0[row], order1[row]
@@ -52,16 +51,13 @@ def _move_pair(x0, x1, x, log_a, log_u, order0, order1, ids0, ids1, ids,
             birth[0, row] = birth1[a] if swap_a else birth0[a]
             birth[1, row] = birth0[b] if swap_b else birth1[b]
         if flags & 2:
-            reached[0, row] = reached1[a] if swap_a else reached0[a]
-            reached[1, row] = reached0[b] if swap_b else reached1[b]
-        if flags & 4:
             memory[0, row] = memory1[a] if swap_a else memory0[a]
             memory[1, row] = memory0[b] if swap_b else memory1[b]
     return accepted
 
 
 @torch.no_grad()
-def swap_and_permute(chains, lineage, log_a, log_u, orders, counts=None, index=0, *, birth=None, reached=None, memory=None):
+def swap_and_permute(chains, lineage, log_a, log_u, orders, counts=None, index=0, *, birth=None, memory=None):
     """Return permuted rows and an integer acceptance count; inputs stay intact.
 
     ``counts`` and ``index`` are unused, for the shared PTT movement interface.
@@ -72,11 +68,10 @@ def swap_and_permute(chains, lineage, log_a, log_u, orders, counts=None, index=0
     output = {'chains': torch.empty((2, n, length), dtype=torch.int32),
               'lineage': torch.empty((2, n), dtype=torch.int64)}
     buffers, flags = [], 0
-    for bit, key, rows, dtype in ((1, 'birth', birth, torch.int64), (2, 'reached', reached, torch.bool),
-                                 (4, 'memory', memory, torch.float64)):
+    for bit, key, rows, dtype in ((1, 'birth', birth, torch.int64), (2, 'memory', memory, torch.float64)):
         if rows is None:
             output[key] = None
-            dummy = np.empty(0, dtype={torch.int64: np.int64, torch.bool: np.bool_, torch.float64: np.float64}[dtype])
+            dummy = np.empty(0, dtype={torch.int64: np.int64, torch.float64: np.float64}[dtype])
             buffers.extend((dummy, dummy, dummy.reshape(2, 0)))
         else:
             flags |= bit

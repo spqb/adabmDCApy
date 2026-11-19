@@ -299,3 +299,231 @@ def get_correlation_two_points(
     yy = y @ y
     pearson, slope = torch.stack([(xy / (xx.sqrt() * yy.sqrt())).clamp(-1, 1), (xy / xx).abs()]).tolist()
     return pearson, slope
+
+
+def _one_hot_rows(sequences: torch.Tensor, q: int, chunk: int, dtype: torch.dtype):
+    """Yield ``(start, rows)`` with ``rows`` the flattened one-hot encoding ``(n, L * q)`` of a chunk."""
+    for start in range(0, len(sequences), chunk):
+        block = sequences[start:start + chunk]
+        yield start, torch.nn.functional.one_hot(block.long(), q).to(dtype).flatten(1)
+
+
+def _weighted_moments(sequences, weights, q, chunk, dtype):
+    """Weighted one-hot means and covariance ``(L q, L q)``, with weights normalized to one."""
+    weights = (weights / weights.sum()).to(dtype)
+    mean = None
+    for start, rows in _one_hot_rows(sequences, q, chunk, dtype):
+        part = weights[start:start + len(rows)] @ rows
+        mean = part if mean is None else mean + part
+    covariance = torch.zeros(len(mean), len(mean), dtype=dtype, device=mean.device)
+    for start, rows in _one_hot_rows(sequences, q, chunk, dtype):
+        centered = rows - mean
+        covariance += (centered * weights[start:start + len(rows), None]).T @ centered
+    return weights, mean, covariance
+
+
+def _third_moments(sequences, weights, mean, u, v, q, chunk, dtype):
+    """For seed state pairs ``(u, v)``: weighted mean of ``c_u c_v c_w`` and of its square, for every state ``w``."""
+    first = second = None
+    for start, rows in _one_hot_rows(sequences, q, chunk, dtype):
+        centered = rows - mean
+        pair = centered[:, u] * centered[:, v] * weights[start:start + len(rows), None]
+        part1 = pair.T @ centered
+        part2 = (pair * centered[:, u] * centered[:, v]).T @ (centered * centered)
+        first = part1 if first is None else first + part1
+        second = part2 if second is None else second + part2
+    return first, second
+
+
+def _triplet_values(sequences, weights, triplets, q, chunk, dtype):
+    """Connected correlations of explicit state triplets ``(K, 3)`` (flat ``site * q + state`` indices)."""
+    weights = (weights / weights.sum()).to(dtype)
+    columns = torch.unique(triplets)
+    position = torch.searchsorted(columns, triplets)
+    mean = None
+    for start, rows in _one_hot_rows(sequences, q, chunk, dtype):
+        part = weights[start:start + len(rows)] @ rows[:, columns]
+        mean = part if mean is None else mean + part
+    total = torch.zeros(len(triplets), dtype=dtype, device=mean.device)
+    for start, rows in _one_hot_rows(sequences, q, chunk, dtype):
+        centered = rows[:, columns] - mean
+        product = centered[:, position[:, 0]] * centered[:, position[:, 1]] * centered[:, position[:, 2]]
+        total += weights[start:start + len(rows)] @ product
+    return total
+
+
+def compare_three_point_correlations(
+    data: torch.Tensor,
+    samples: torch.Tensor,
+    *,
+    q: int,
+    data_weights: Optional[torch.Tensor] = None,
+    gap_index: Optional[int] = 0,
+    n_seeds: int = 3000,
+    max_triplets: int = 2000,
+    max_pair_correlation: float = 0.1,
+    frequency_range: Tuple[float, float] = (0.05, 0.95),
+    z_threshold: float = 5.0,
+    seed: int = 0,
+    chunk: int = 4096,
+) -> dict:
+    """Connected three-point correlations of data and samples on resolvable, not pairwise-implied triplets.
+
+    A connected correlation ``C_ijk(a, b, c)`` of one-hot indicators is not a
+    three-body interaction: pairwise models produce it too. Two selections keep
+    the comparison informative:
+
+    - no strong pair: the correlation coefficient of each two of the three
+      states, in the data, is below ``max_pair_correlation`` in absolute value.
+      Near-redundant states would turn ``C_ijk`` into a rescaled two-point
+      correlation (for indicators ``x^2 = x``, so ``x_u = x_v`` gives
+      ``C_uvw = (1 - 2 f_u) C_uw``). States are non-gap and have data
+      frequencies within ``frequency_range``;
+    - resolvable: ``z = max(|C_data| / SE_data, |C_samples| / SE_samples)``
+      is at least ``z_threshold``. The standard errors are the weighted
+      standard deviation of the product of the three centred indicators over
+      the square root of the effective number of sequences: the sum of the
+      data weights (as given, so without reweighting every sequence counts as
+      independent and the error is optimistic) and the number of samples.
+      Taking the larger ratio does not reward agreement between data and
+      samples. With about 10^7 candidates, about five pure-noise ones reach
+      ``z = 5``.
+
+    The search cannot enumerate all triplets. It draws ``n_seeds`` random state
+    pairs that pass the selection and computes their correlation with every
+    third state in one matrix product per data chunk. Of the triplets above
+    the threshold it keeps a random sample of ``max_triplets``, so that the
+    comparison covers moderate correlations as well as the largest. The data are also split at random into two
+    halves: the Pearson correlation of the selected triplets between them is
+    the ``noise_ceiling``, the agreement the data allow (slightly optimistic,
+    since the selection used all the data).
+
+    Args:
+        data: Integer-encoded data ``(N, L)``.
+        samples: Integer-encoded ``(M, L)`` or one-hot ``(M, L, q)`` samples.
+        q: Number of states.
+        data_weights: Sequence weights of the data; ``None`` weighs them equally.
+        gap_index: Index of the gap state, excluded; ``None`` keeps all states.
+        n_seeds: Random seed pairs.
+        max_triplets: Largest number of triplets returned.
+        max_pair_correlation: Largest absolute pair correlation coefficient.
+        frequency_range: Allowed data frequencies of the three states.
+        z_threshold: Smallest signal-to-noise ratio.
+        seed: Seed of the seed pairs and of the half split.
+        chunk: Sequences per one-hot block.
+
+    Returns:
+        ``triplets`` (``(K, 3, 2)`` array of ``(site, state)``), ``data``,
+        ``samples`` and ``z`` (one value per triplet), ``pearson``, ``slope``,
+        ``r2`` (:func:`r2_about_identity`), ``noise_ceiling`` and
+        ``noise_ceiling_r2`` (the same two measures between the data halves), ``n_seeds``, ``n_candidates`` (triplets passing the
+        pair and frequency selection), ``n_resolved`` (of them, above the
+        threshold), ``n_eff_data``, ``n_samples`` and the selection settings.
+    """
+    if samples.ndim == 3:
+        samples = samples.argmax(-1)
+    if data.ndim != 2 or samples.ndim != 2 or data.shape[1] != samples.shape[1]:
+        raise ValueError("data and samples must be integer-encoded alignments of the same length.")
+    device = data.device
+    samples = samples.to(device)
+    dtype = torch.float32
+    length = data.shape[1]
+    states = length * q
+    raw_weights = (torch.ones(len(data), device=device) if data_weights is None
+                   else data_weights.reshape(-1).to(device=device, dtype=dtype))
+    n_eff_data = float(raw_weights.sum())
+    wd, fd, cov_d = _weighted_moments(data, raw_weights, q, chunk, dtype)
+    wg, fg, _ = _weighted_moments(samples, torch.ones(len(samples), device=device), q, chunk, dtype)
+    site = torch.arange(states, device=device) // q
+    variance = fd * (1 - fd)
+    correlation = cov_d / torch.sqrt(variance[:, None] * variance[None, :]).clamp_min(1e-12)
+    usable = (fd >= frequency_range[0]) & (fd <= frequency_range[1])
+    if gap_index is not None:
+        usable &= torch.arange(states, device=device) % q != gap_index
+    weak = correlation.abs() < max_pair_correlation
+
+    # Seeds: random pairs of usable states at different sites with a weak correlation.
+    generator = torch.Generator().manual_seed(seed)
+    candidates = torch.nonzero(usable).flatten().cpu()
+    seeds = torch.empty((0, 2), dtype=torch.long)
+    for _ in range(50):
+        if len(seeds) >= n_seeds or len(candidates) < 2:
+            break
+        draw = candidates[torch.randint(len(candidates), (4 * n_seeds, 2), generator=generator)]
+        ok = (site.cpu()[draw[:, 0]] != site.cpu()[draw[:, 1]]) & weak.cpu()[draw[:, 0], draw[:, 1]]
+        seeds = torch.cat([seeds, draw[ok]])[:n_seeds]
+    u, v = seeds[:, 0].to(device), seeds[:, 1].to(device)
+
+    result = {"max_pair_correlation": max_pair_correlation, "frequency_range": list(frequency_range),
+              "z_threshold": z_threshold, "n_seeds": len(u), "n_eff_data": n_eff_data, "n_samples": len(samples)}
+    empty = {"triplets": torch.empty((0, 3, 2), dtype=torch.long).numpy(), "data": [], "samples": [], "z": [],
+             "pearson": None, "slope": None, "noise_ceiling": None, "r2": None, "noise_ceiling_r2": None,
+             "n_candidates": 0, "n_resolved": 0}
+    if len(u) == 0:
+        return {**result, **empty}
+
+    mean_d, square_d = _third_moments(data, wd, fd, u, v, q, chunk, dtype)
+    mean_g, square_g = _third_moments(samples, wg, fg, u, v, q, chunk, dtype)
+    error_d = torch.sqrt((square_d - mean_d ** 2).clamp_min(0) / n_eff_data).clamp_min(1e-12)
+    error_g = torch.sqrt((square_g - mean_g ** 2).clamp_min(0) / len(samples)).clamp_min(1e-12)
+    z = torch.maximum(mean_d.abs() / error_d, mean_g.abs() / error_g)
+    allowed = (usable[None, :] & weak[u] & weak[v]
+               & (site[None, :] != site[u][:, None]) & (site[None, :] != site[v][:, None]))
+    # The same triplet appears once per choice of its seed pair: count and keep it once.
+    flat = torch.nonzero(allowed)
+    keys = torch.sort(torch.stack([u[flat[:, 0]], v[flat[:, 0]], flat[:, 1]], 1), 1).values
+    keys, first = _unique_rows(keys)
+    flat = flat[first]
+    scores = z[flat[:, 0], flat[:, 1]]
+    resolved = scores >= z_threshold
+    result.update(n_candidates=len(flat), n_resolved=int(resolved.sum()))
+    # A random sample of the resolved triplets: the largest z alone would leave out every
+    # correlation of moderate size and turn the scatter into two clouds of opposite sign.
+    count = int(resolved.sum())
+    order = (torch.randperm(count, generator=generator)[:max_triplets].to(device) if count > max_triplets
+             else torch.arange(count, device=device))
+    chosen = flat[resolved][order]
+    if len(chosen) < 2:
+        return {**result, **{key: value for key, value in empty.items() if key not in result}}
+    triplets = keys[resolved][order]
+    values_d = mean_d[chosen[:, 0], chosen[:, 1]]
+    values_g = mean_g[chosen[:, 0], chosen[:, 1]]
+
+    halves = torch.randperm(len(data), generator=generator).to(device)
+    first_half, second_half = halves[: len(data) // 2], halves[len(data) // 2:]
+    half_a = _triplet_values(data[first_half], raw_weights[first_half], triplets, q, chunk, dtype)
+    half_b = _triplet_values(data[second_half], raw_weights[second_half], triplets, q, chunk, dtype)
+
+    a, b = values_d.double().cpu(), values_g.double().cpu()
+    centered = a - a.mean()
+    result.update(
+        triplets=torch.stack([triplets // q, triplets % q], -1).cpu().numpy(),
+        data=a.numpy(), samples=b.numpy(), z=scores[resolved][order].double().cpu().numpy(),
+        pearson=float(torch.corrcoef(torch.stack([a, b]))[0, 1]),
+        slope=float(centered @ (b - b.mean()) / (centered @ centered)),
+        noise_ceiling=float(torch.corrcoef(torch.stack([half_a.double().cpu(), half_b.double().cpu()]))[0, 1]),
+        r2=r2_about_identity(a, b),
+        noise_ceiling_r2=r2_about_identity(half_a.double().cpu(), half_b.double().cpu()),
+    )
+    return result
+
+
+def r2_about_identity(reference, generated) -> float:
+    """``1 - sum (generated - reference)^2 / sum (reference - mean)^2``.
+
+    Unlike the Pearson correlation it penalizes a wrong scale (a slope away
+    from 1) and an offset as well as scatter: it is 1 only when the points lie
+    on the diagonal, and can be negative.
+    """
+    reference = torch.as_tensor(reference, dtype=torch.float64).reshape(-1)
+    generated = torch.as_tensor(generated, dtype=torch.float64).reshape(-1)
+    spread = float(((reference - reference.mean()) ** 2).sum())
+    return float(1 - ((generated - reference) ** 2).sum() / spread) if spread > 0 else float("nan")
+
+
+def _unique_rows(rows: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+    """Unique rows and the index of the first occurrence of each."""
+    unique, inverse = torch.unique(rows, dim=0, return_inverse=True)
+    first = torch.full((len(unique),), len(rows), dtype=torch.long, device=rows.device)
+    first.scatter_reduce_(0, inverse, torch.arange(len(rows), device=rows.device), reduce="amin")
+    return unique, first
