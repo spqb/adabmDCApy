@@ -620,7 +620,7 @@ def sample_sequences(
                 or record_every != 1):
             raise InputValidationError(
                 "initial_sequences, initial_distribution, measure_mixing_time and record_every apply to plain MCMC "
-                "only (--strategy pcd)."
+                "only (--strategy mcmc)."
             )
         if n_sequences is None:
             raise InputValidationError("n_sequences is required.")

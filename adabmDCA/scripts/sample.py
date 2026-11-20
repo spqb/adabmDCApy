@@ -10,10 +10,10 @@ from adabmDCA.parser import add_args_sample
 def create_parser() -> argparse.ArgumentParser:
     from adabmDCA.scripts._frontend import ExplicitOptionParser
     return add_args_sample(ExplicitOptionParser(description=("Sample sequences from a DCA model. PTT uses the PTT (Parallel Trajectory Tempering) "
-                      "sampling strategy; PCD uses normal MCMC sampling.")))
+                      "sampling strategy; MCMC uses plain Markov chain Monte Carlo.")))
 
 
-DEFAULT_PCD_SEQUENCES = 2048
+DEFAULT_MCMC_SEQUENCES = 2048
 
 
 def resolve_ngen(args) -> None:
@@ -23,7 +23,7 @@ def resolve_ngen(args) -> None:
     if args.strategy != "ptt":
         # With --init-sequences, the sampler starts from all of them.
         if args.init_sequences is None:
-            args.ngen = DEFAULT_PCD_SEQUENCES
+            args.ngen = DEFAULT_MCMC_SEQUENCES
         return
     import h5py
 

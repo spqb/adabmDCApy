@@ -439,7 +439,7 @@ def add_args_sample(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     io_args.add_argument(
         "--ngen", type=int, default=None,
         help=("Number of sequences to be generated. Defaults to the number of chains per model used in "
-              "training with --strategy ptt, and to 2048 with --strategy pcd."),
+              "training with --strategy ptt, and to 2048 with --strategy mcmc."),
     )
     io_args.add_argument(
         "-l", "--label", type=str, default=None, help="(Defaults to None). Label to be used for the output files."
@@ -465,7 +465,7 @@ def add_args_sample(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         ),
     )
 
-    standard_args = parser.add_argument_group("PCD sampling (--strategy pcd)")
+    standard_args = parser.add_argument_group("MCMC sampling (--strategy mcmc)")
     standard_args.add_argument(
         "--sampler", type=str, default=DEFAULT_SAMPLER, choices=SAMPLERS,
         help="(Defaults to 'metropolized_gibbs'). Sampling method to be used: 'metropolis', 'gibbs' or 'metropolized_gibbs'.",
@@ -502,8 +502,8 @@ def add_args_sample(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     )
 
     ptt_args = parser.add_argument_group("PTT sampling (--strategy ptt)")
-    parser.add_argument("--strategy", choices=("ptt", "pcd"), default="ptt",
-                        help="Sampling strategy (default: ptt).")
+    parser.add_argument("--strategy", choices=("ptt", "mcmc"), default="ptt",
+                        help="Sampling strategy (default: ptt): 'ptt' or plain 'mcmc'.")
     ptt_args.add_argument("--ptt-local-sweeps", type=int, default=10, help="Local sweeps per PTT exchange round (default: 10).")
     ptt_args.add_argument(
         "--ptt-local-kernel", choices=("archived", "metropolis", "gibbs", "metropolized_gibbs"),
@@ -592,8 +592,8 @@ def add_args_sample(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
 
 
 def add_args_tdint(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
-    parser.add_argument("--strategy", choices=("ptt", "pcd"), default="ptt",
-                        help="Entropy strategy (default: ptt). PTT reads an archive; PCD uses MCMC thermodynamic integration.")
+    parser.add_argument("--strategy", choices=("ptt", "mcmc"), default="ptt",
+                        help="Entropy strategy (default: ptt). PTT reads an archive; MCMC uses thermodynamic integration.")
     parser.add_argument(
         "-p",
         "--path_params",
@@ -602,7 +602,7 @@ def add_args_tdint(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         help="Path to the file containing the parameters of DCA model to sample from.",
     )
     parser.add_argument(
-        "-d", "--data", type=str, default=None, help="Natural alignment (required with --strategy pcd)."
+        "-d", "--data", type=str, default=None, help="Natural alignment (required with --strategy mcmc)."
     )
     parser.add_argument(
         "-t", "--path_targetseq", type=str, default=None,

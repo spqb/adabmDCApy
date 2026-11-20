@@ -14,10 +14,10 @@ def create_parser() -> argparse.ArgumentParser:
         def parse_known_args(self, args=None, namespace=None):
             result, unknown = super().parse_known_args(args, namespace)
             if result.strategy != "ptt" and (result.data is None or result.path_targetseq is None):
-                self.error("--data and --path_targetseq are required with --strategy pcd")
+                self.error("--data and --path_targetseq are required with --strategy mcmc")
             return result, unknown
     return add_args_tdint(EntropyParser(description=("Estimate DCA entropy. PTT uses the PTT (Parallel Trajectory Tempering) sampling strategy; "
-                      "PCD uses normal MCMC sampling for thermodynamic integration.")))
+                      "MCMC uses plain Markov chain Monte Carlo for thermodynamic integration.")))
 
 
 

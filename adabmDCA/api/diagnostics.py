@@ -404,7 +404,7 @@ def _check_training(
             "info",
             "pcd_model",
             "PCD training metrics come from chains that may not be at equilibrium.",
-            "Resample it with sample --strategy pcd -d train.fasta --plot-sampling-logs: the Pearson should "
+            "Resample it with sample --strategy mcmc -d train.fasta --plot-sampling-logs: the Pearson should "
             "settle on a plateau and a mixing time should be found.",
             "PCD",
         )
@@ -589,7 +589,7 @@ def diagnose_run(
             (
                 "Sample it with sample -p ptt.h5 -d train.fasta -v test.fasta --plot-sampling-logs -o check, "
                 if ptt
-                else "Sample it with sample --strategy pcd -p params.dat.gz -d train.fasta -v test.fasta --plot-sampling-logs -o check, "
+                else "Sample it with sample --strategy mcmc -p params.dat.gz -d train.fasta -v test.fasta --plot-sampling-logs -o check, "
             )
             + "then diagnose again with that sampling.json.",
             "F6",

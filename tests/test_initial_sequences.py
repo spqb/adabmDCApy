@@ -91,7 +91,7 @@ def test_cli_starts_plain_mcmc_from_a_fasta_for_a_fixed_number_of_sweeps(tmp_pat
                 tokens="AB-")
     reference = _fasta(tmp_path / "train.fasta")
     args = create_parser().parse_args([
-        "-p", str(params), "-o", str(tmp_path / "out"), "--strategy", "pcd", "--alphabet", "AB-",
+        "-p", str(params), "-o", str(tmp_path / "out"), "--strategy", "mcmc", "--alphabet", "AB-",
         "-d", str(reference), "--init-sequences", str(reference), "--nsweeps", "3", "--record-every", "2",
         "--device", "cpu",
     ])

@@ -115,7 +115,7 @@ Outputs (in `-o`): `params.dat.gz`, `chains.fasta`, `weights.dat`, `history.csv`
 adabmDCA sample -p model/ptt.h5 -d train.fasta -v validation.fasta --plot-sampling-logs -o samples
 
 # Plain MCMC: only when there is no ptt.h5 (PCD-trained or imported models), or as a cross-check
-adabmDCA sample --strategy pcd -p model/params.dat.gz -d train.fasta --plot-sampling-logs -o samples_mcmc
+adabmDCA sample --strategy mcmc -p model/params.dat.gz -d train.fasta --plot-sampling-logs -o samples_mcmc
 ```
 
 | Option | Default | Meaning |
@@ -170,7 +170,7 @@ Writes `contact_map.csv` (`position_i, position_j, score` for every pair, diagon
 
 ```bash
 adabmDCA entropy -p model/ptt.h5 -o entropy                                              # PTT bridge, seconds to minutes
-adabmDCA entropy --strategy pcd -p model/params.dat.gz -d train.fasta -t target.fasta -o entropy_ti   # thermodynamic integration
+adabmDCA entropy --strategy mcmc -p model/params.dat.gz -d train.fasta -t target.fasta -o entropy_ti   # thermodynamic integration
 ```
 
 PTT writes `entropy.json` with `entropy`, `log_z`, `mean_energy`, `free_energy`. Thermodynamic integration (any model, needs chains that mix) writes `entropy.log`, `entropy.csv`, `entropy.json`; options `--nchains` (8192), `--nsteps` (100), `--nsweeps` (100), `--theta_max` (5). Values are in nats per sequence; training logs report per-site log-likelihoods.
