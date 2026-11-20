@@ -13,6 +13,7 @@ Canonical configuration values and validation for DCA training.
 - **DEFAULT_PTT_SAMPLER**
 - **MODEL_TYPES**
 - **SAMPLERS**
+- **ANCHORS**
 - **DEFAULT_MODEL_TYPE**
 - **DEFAULT_ALPHABET**
 - **DEFAULT_LEARNING_RATE**
@@ -30,6 +31,9 @@ Canonical configuration values and validation for DCA training.
 - **DEFAULT_DECIMATION_RATE**
 - **DEFAULT_DEVICE**
 - **DEFAULT_DTYPE**
+- **DEFAULT_ANCHOR**
+- **CLI_DEFAULT_ANCHOR**
+- **DEFAULT_ANCHOR_RANK**
 - **DEFAULT_CHECKPOINT_INTERVAL**
 - **SPARSE_CHECKPOINT_INTERVAL**
 - **DEFAULT_INNER_GRADIENT_STEPS**
@@ -39,7 +43,7 @@ Canonical configuration values and validation for DCA training.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training/config.py#L58"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training/config.py#L63"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `ConfigurationError`
 Raised when a training configuration is internally inconsistent.
@@ -50,7 +54,7 @@ Raised when a training configuration is internally inconsistent.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training/config.py#L62"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training/config.py#L67"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `TrainingConfig`
 All settings of one training run, validated on construction.
@@ -86,6 +90,8 @@ Pass it as `config=` to `train_model`; it then takes precedence over the functio
  - <b>`checkpoint_interval`</b>:  Updates between saved checkpoints; `None` uses the default.
  - <b>`inner_gradient_steps`</b>:  edDCA: largest number of gradient updates to  re-converge the model after each decimation.
  - <b>`edge_empirical_pseudocount`</b>:  edgeDCA: small pseudocount of the target  statistics, which avoids zero frequencies.
+ - <b>`anchor`</b>:  The exactly sampled model training starts from: `"profile"` (independent sites, the  default here; the command line defaults to `"tree-low-rank"`), `"tree-low-rank"` (the Chow-Liu  tree of the data plus `anchor_rank` Gaussian hidden units), `"low-rank"` (the hidden units  alone) or `"tree"`. It is fitted to the data before training. With PTT  it sits at the bottom of the ladder, which then needs fewer models; with PCD it gives the initial  parameters, and exact samples of it the initial chains. Anchors other than the profile apply to  bmDCA trained from scratch; asking for one elsewhere (sparse models, warm starts, PTT resumes,  reintegration) is an error.
+ - <b>`anchor_rank`</b>:  Number of hidden units of the low-rank anchors (1 to 3). Rank 3 fits a slightly  better anchor than rank 2 but takes about ten times longer to fit.
  - <b>`ptt`</b>:  `PTTConfig` to train with PTT, or `None` for PCD.
 
 
@@ -135,6 +141,8 @@ __init__(
     checkpoint_interval: 'int | None' = 500,
     inner_gradient_steps: 'int' = 10000,
     edge_empirical_pseudocount: 'float' = 1e-06,
+    anchor: 'str' = 'profile',
+    anchor_rank: 'int' = 2,
     ptt: 'PTTConfig | None' = None
 ) → None
 ```
@@ -166,7 +174,7 @@ Checkpoint interval in updates, with the default filled in.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training/config.py#L282"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training/config.py#L307"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `as_dict`
 
@@ -178,7 +186,7 @@ Return a serializable snapshot suitable for run metadata.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training/config.py#L261"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training/config.py#L286"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `resolve_pseudocount`
 

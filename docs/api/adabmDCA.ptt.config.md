@@ -60,8 +60,6 @@ Pass an instance as `ptt=` to `train_model` (or through `TrainingConfig(ptt=...)
  - <b>`activation`</b>:  eaDCA: `"fixed"` activates `activation_fraction` of the  inactive couplings per block; `"adaptive"` activates at most that  fraction, only significant candidates within a KL budget.
  - <b>`activation_kl_share`</b>:  Adaptive activation: share of `trust_radius` for the  first update of the new couplings; halved by each recovery.
  - <b>`activation_significance`</b>:  Adaptive activation: standard errors by which a  candidate's pair frequency must differ from the data; 0 disables the test.
- - <b>`anchor`</b>:  bmDCA: start training at the anchor instead of the profile. The anchor is a  tractable model fitted to the data by maximum likelihood before training; it is  sampled exactly and its log Z is known, so it replaces the profile at the bottom  of the ladder, and the ladder needs fewer models.
- - <b>`anchor_rank`</b>:  Rank of the anchor (1 to 3). Rank 3 fits a slightly better anchor than  rank 2 but takes about ten times longer to fit.
 
 
 
@@ -108,9 +106,7 @@ __init__(
     validation_min_gain: 'float' = 0.0,
     activation: 'str' = 'fixed',
     activation_kl_share: 'float' = 0.5,
-    activation_significance: 'float' = 3.0,
-    anchor: 'bool' = False,
-    anchor_rank: 'int' = 2
+    activation_significance: 'float' = 3.0
 ) → None
 ```
 

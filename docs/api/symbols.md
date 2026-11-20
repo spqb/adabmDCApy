@@ -10,6 +10,7 @@
 - [`adabmDCA.preprocessing`](./adabmDCA.preprocessing.md#module-adabmdcapreprocessing): Pure and file-oriented multiple-sequence-alignment preprocessing.
 - [`adabmDCA.training.config`](./adabmDCA.training.config.md#module-adabmdcatrainingconfig): Canonical configuration values and validation for DCA training.
 - [`adabmDCA.training.control`](./adabmDCA.training.control.md#module-adabmdcatrainingcontrol): Shared lifecycle primitives for DCA training routines.
+- [`adabmDCA.api.comparison`](./adabmDCA.api.comparison.md#module-adabmdcaapicomparison): Compare generated sequences with an alignment on the principal components of the alignment.
 - [`adabmDCA.api.contacts`](./adabmDCA.api.contacts.md#module-adabmdcaapicontacts): High-level contact-prediction operations.
 - [`adabmDCA.api.diagnostics`](./adabmDCA.api.diagnostics.md#module-adabmdcaapidiagnostics): Turn the files of a training run (and optionally a sampling check) into a verdict.
 - [`adabmDCA.api.entropy`](./adabmDCA.api.entropy.md#module-adabmdcaapientropy): High-level thermodynamic-integration entropy estimation.
@@ -67,6 +68,7 @@
 - [`control.TrainingCounters`](./adabmDCA.training.control.md#class-trainingcounters): Progress counters of a training run.
 - [`control.TrainingLimits`](./adabmDCA.training.control.md#class-traininglimits): Step budgets of a training run; `None` means no limit.
 - [`control.TrainingMetrics`](./adabmDCA.training.control.md#class-trainingmetrics): Common metrics emitted after a meaningful training step.
+- [`comparison.PCAComparison`](./adabmDCA.api.comparison.md#class-pcacomparison): Natural and generated sequences on the principal components of the natural ones.
 - [`exceptions.AdabmDCAError`](./adabmDCA.exceptions.md#class-adabmdcaerror): Base class for recoverable errors raised by adabmDCA.
 - [`exceptions.AlignmentError`](./adabmDCA.exceptions.md#class-alignmenterror): Base class for alignment input and processing errors.
 - [`exceptions.AlignmentFormatError`](./adabmDCA.exceptions.md#class-alignmentformaterror): Raised when an alignment format cannot be detected or parsed.
@@ -132,6 +134,8 @@
 - [`preprocessing.filter_gap_fraction`](./adabmDCA.preprocessing.md#function-filter_gap_fraction): Remove sequences whose gap fraction is greater than the threshold.
 - [`preprocessing.preprocess_alignment`](./adabmDCA.preprocessing.md#function-preprocess_alignment): Clean a raw alignment for DCA: read, transform, filter and optionally write it.
 - [`preprocessing.remove_insertions`](./adabmDCA.preprocessing.md#function-remove_insertions): Remove dots and lowercase insertion residues from every sequence.
+- [`comparison.compare_pca`](./adabmDCA.api.comparison.md#function-compare_pca): Project an alignment and generated sequences on the principal components of the alignment.
+- [`comparison.pca_figure`](./adabmDCA.api.comparison.md#function-pca_figure): Scatter of two principal components with their marginal histograms, natural and generated superimposed.
 - [`contacts.compute_contact_map`](./adabmDCA.api.contacts.md#function-compute_contact_map): Return only the `(L, L)` contact-score matrix of `predict_contacts`.
 - [`contacts.predict_contacts`](./adabmDCA.api.contacts.md#function-predict_contacts): Predict residue contacts from a DCA model or directly from an alignment.
 - [`diagnostics.diagnose_run`](./adabmDCA.api.diagnostics.md#function-diagnose_run): Indicators and findings for a training run directory, and optionally a sampling check.
@@ -148,7 +152,7 @@
 - [`sampling.sample_sequences`](./adabmDCA.api.sampling.md#function-sample_sequences): Generate sequences from a DCA model, with an energy for each.
 - [`scoring.compute_energies`](./adabmDCA.api.scoring.md#function-compute_energies): Return only the DCA energies of `score_sequences`, without CDE.
 - [`scoring.fit_local_lambda`](./adabmDCA.api.scoring.md#function-fit_local_lambda): Fit E = intercept + lambda * summed CDE by ordinary least squares.
-- [`scoring.score_sequences`](./adabmDCA.api.scoring.md#function-score_sequences): Compute DCA energies of aligned sequences, with their local free energies.
+- [`scoring.score_sequences`](./adabmDCA.api.scoring.md#function-score_sequences): Compute DCA energies of aligned sequences and, with `local_lambda`, their local free energies.
 - [`scoring.summed_cde`](./adabmDCA.api.scoring.md#function-summed_cde): Return summed conditional entropy for each one-hot sequence, in nats.
 - [`serialization.resolve_format`](./adabmDCA.serialization.md#function-resolve_format): Resolve an explicit format or infer it from a filename suffix.
 - [`serialization.result_document`](./adabmDCA.serialization.md#function-result_document): Wrap result data in a stable, versioned document envelope.
