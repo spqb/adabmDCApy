@@ -58,7 +58,8 @@ Define a structured steering target and its sampling diagnostics.
  - <b>`min_rounds`</b>:  Minimum warmup rounds.
  - <b>`min_ess`</b>:  Minimum bulk and tail ESS for each monitored group-mean trace.
  - <b>`rhat`</b>:  Upper bound on rank-normalized split R-hat.
- - <b>`production_spacing`</b>:  Rounds between retained batches.
+ - <b>`production_spacing`</b>:  Rounds between retained batches. Zero takes one final snapshot.
+ - <b>`warmup_seconds`</b>:  Optional wall-clock budget for setup, pilot, and warmup.
  - <b>`ladder_steps`</b>:  Initial number of increments from the trained to steered target.
  - <b>`bridge_steps`</b>:  Initial number of increments between consecutive base models.
  - <b>`pilot_rounds`</b>:  Rounds per PTT pilot block. Zero skips the pilot.
@@ -91,7 +92,8 @@ __init__(
     max_rungs: 'int' = 24,
     min_swap: 'float' = 0.25,
     cache_size: 'int' = 8192,
-    entropy: 'bool' = False
+    entropy: 'bool' = False,
+    warmup_seconds: 'float | None' = None
 ) → None
 ```
 
