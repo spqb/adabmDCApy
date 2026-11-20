@@ -54,6 +54,7 @@ Default: bmDCA, PTT, 10240 chains, 10 Metropolized Gibbs sweeps per exchange rou
 | `--nsweeps` | 10 | Sweeps per update (PCD) or per exchange round (PTT) |
 | `--sampler` | `metropolized_gibbs` | `gibbs`, `metropolis` |
 | `--lr` | 0.01 | Learning rate (upper bound for the adaptive PTT optimizer) |
+| `--no-centered-gradient` | off | Raw gradient instead of the centred one (PCD and PTT); slower, only to reproduce older runs |
 | `--target` | 0.95 | Pearson target on connected correlations |
 | `--max-gradient-steps` | none | Budget of parameter updates |
 | `--max-structure-steps` | none | Budget of graph steps (sparse models) |

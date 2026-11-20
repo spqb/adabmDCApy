@@ -17,6 +17,7 @@ from adabmDCA.ptt import bridge_increment
 from adabmDCA.ptt.optim import _PTTOptimizer
 from adabmDCA.statmech import compute_energy, compute_entropy, compute_log_likelihood, exchange_log_acceptance
 from adabmDCA.stats import get_freq_two_points
+from adabmDCA.training import center_gradient
 
 
 @pytest.fixture(autouse=True)
@@ -235,7 +236,7 @@ def training_case(tmp_path):
 
 
 def test_ptt_sgd_keeps_both_rates_fixed():
-    config = TrainingConfig(learning_rate=0.1, ptt=PTTConfig(optimizer="sgd", centering=False))
+    config = TrainingConfig(learning_rate=0.1, centered_gradient=False, ptt=PTTConfig(optimizer="sgd"))
     optimizer = _PTTOptimizer(config)
     params = profile()
     mask = torch.ones_like(params["coupling_matrix"])
@@ -308,7 +309,7 @@ def test_ptt_trust_region_keeps_rates_positive_inside_the_trust_region():
     assert scales[0] == pytest.approx(0.0, abs=1e-11) and scales[0] > 0
 
 
-def test_ptt_centering_uses_connected_correlations_and_centred_fields():
+def test_centered_gradient_uses_connected_correlations_and_centred_fields():
     torch.manual_seed(0)
     length, states = 4, 3
     mask = torch.ones(length, states, length, states, dtype=torch.float64)
@@ -319,8 +320,7 @@ def test_ptt_centering_uses_connected_correlations_and_centred_fields():
         return samples.mean(0), get_freq_two_points(samples) * mask
 
     (fi, fij), (pi, pij) = frequencies(), frequencies()
-    gradients = _PTTOptimizer._centered({"bias": fi - pi, "coupling_matrix": (fij - pij) * mask},
-                                        fi=fi, pi=pi, mask=mask)
+    gradients = center_gradient({"bias": fi - pi, "coupling_matrix": (fij - pij) * mask}, fi=fi, pi=pi, mask=mask)
 
     def connected(f, ff):
         return ff - torch.einsum("ia,jb->iajb", f, f)
@@ -342,11 +342,6 @@ def test_ptt_optimizer_configuration_and_cli_are_ptt_specific(tmp_path):
     ])
     assert parsed.ptt_optimizer == "adaptive"
     assert parsed.ptt_trust_radius == 0.002
-    assert parsed.ptt_centering is None
-    assert create_parser().parse_args([
-        "--data", "unused.fasta", "--strategy", "ptt", "--no-ptt-centering",
-    ]).ptt_centering is False
-    assert PTTConfig().centering is True
     assert create_parser().parse_args([
         "--data", "unused.fasta", "--strategy", "ptt", "--ptt-optimizer", "sgd",
     ]).ptt_optimizer == "sgd"
@@ -358,8 +353,10 @@ def test_ptt_optimizer_configuration_and_cli_are_ptt_specific(tmp_path):
         ]))
     with pytest.raises(InputValidationError, match="optimizer"):
         PTTConfig(optimizer="unknown")
-    with pytest.raises(InputValidationError, match="centering"):
-        PTTConfig(centering="yes")
+    with pytest.raises(SystemExit):
+        create_parser().parse_args(["--data", "unused.fasta", "--no-ptt-centering"])
+    with pytest.raises(TypeError):
+        PTTConfig(centering=False)
 
 
 def test_ptt_metrics_resume_and_consumers(training_case, tmp_path, monkeypatch):
@@ -446,21 +443,26 @@ def test_ptt_adaptive_resume_preserves_trust_region_state(training_case, tmp_pat
     assert saved.optimizer_state["nominal_rates"] == {"bias": 0.02, "coupling_matrix": 0.02}
 
 
-def test_archives_from_before_centering_resume_uncentered(training_case, tmp_path):
+@pytest.mark.parametrize("former_setting", [None, False, True])
+def test_archives_from_before_the_centered_gradient_setting_resume(training_case, tmp_path, former_setting):
+    # Archives store the centred gradient as a PTT setting "centering", or not at all before it existed.
     data, base = training_case
-    assert base.ptt.centering is True
-    config = replace(base, ptt=replace(base.ptt, centering=False))
+    assert base.centered_gradient is True
+    config = replace(base, centered_gradient=bool(former_setting))
     complete = train_model(data, config=config)
     partial = train_model(data, config=replace(config, max_epochs=1), output_dir=tmp_path / "old")
     archive_path = partial.artifacts["ptt_archive"]
     with h5py.File(archive_path, "r+") as archive:
         metadata = json.loads(archive.attrs["metadata"])
-        del metadata["config"]["centering"]
-        del metadata["training_state"]["settings"]["ptt"]["centering"]
+        del metadata["training_state"]["settings"]["centered_gradient"]
+        if former_setting is not None:
+            metadata["config"]["centering"] = former_setting
+            metadata["training_state"]["settings"]["ptt"]["centering"] = former_setting
         archive.attrs["metadata"] = json.dumps(metadata)
 
-    with pytest.raises(InputValidationError, match="settings: ptt.centering"):
-        train_model(data, config=base, ptt_resume=archive_path)
+    with pytest.raises(InputValidationError, match="settings: centered_gradient"):
+        train_model(data, config=replace(config, centered_gradient=not config.centered_gradient),
+                    ptt_resume=archive_path)
     resumed = train_model(data, config=config, ptt_resume=archive_path)
     torch.testing.assert_close(complete.model.params["coupling_matrix"],
                                resumed.model.params["coupling_matrix"], rtol=0, atol=0)

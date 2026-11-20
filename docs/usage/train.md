@@ -66,6 +66,7 @@ adabmDCA train -d train.fasta -v validation.fasta -o model --plot-training-logs
 | `--checkpoint-interval` | 500 | Updates between saved checkpoints |
 | `--device`, `--dtype` | `auto`, `float32` | See [Installation](../installation.md#choose-a-device) |
 | `--seed` | 0 | Random seed |
+| `--no-centered-gradient` | off | Update with the raw gradient instead of the [centred](../algorithms/training.md#centred-updates) one, with PCD and PTT; trains more slowly |
 | `--diagnostic` | off | Print the full progress table and every event in the terminal (PTT) |
 | `--no-progress` | off | No terminal progress display; the files are still written |
 | `--wandb` | off | Also log metrics to Weights & Biases |
@@ -74,7 +75,7 @@ Sparse models have their own options: `--gsteps` (10, parameter updates per grap
 
 bmDCA trained from scratch starts from the [anchor](../quantities/anchor.md), a tractable model fitted to the data and sampled exactly, instead of the profile. `--anchor` chooses it: `tree-low-rank` (default, the Chow–Liu tree of the data plus Gaussian hidden units), `low-rank`, `tree` or `profile`. Fitting it takes from seconds to a few minutes before training starts. With PTT the ladder then needs fewer models ([how much fewer](../quantities/anchor.md#at-the-bottom-of-the-ptt-ladder)); with PCD the anchor gives the initial parameters, and exact samples of it the initial chains. `--anchor-rank 3` fits a slightly better low-rank anchor, about ten times more slowly, than the default rank 2. The sparse models, warm starts with `-p`, PTT resumes and `reintegrate` start from the profile.
 
-PTT has about thirty further options, all prefixed `--ptt-`. One of them changes the update rule: PTT updates with the centering trick by default, and `--no-ptt-centering` uses the raw gradient instead, which trains more slowly on several families ([why](../algorithms/training.md#centred-updates)). The defaults rarely need changing; the ones that do are discussed in [Diagnose a run](../algorithms/diagnostics.md#hyperparameters-that-matter-for-diagnosis), and the full list is in `adabmDCA train --help` and the [PTT configuration reference](../api/adabmDCA.ptt.config.md).
+PTT has about thirty further options, all prefixed `--ptt-`. The defaults rarely need changing; the ones that do are discussed in [Diagnose a run](../algorithms/diagnostics.md#hyperparameters-that-matter-for-diagnosis), and the full list is in `adabmDCA train --help` and the [PTT configuration reference](../api/adabmDCA.ptt.config.md).
 
 ## What you see while it runs
 
@@ -141,7 +142,7 @@ adabmDCA train -d train.fasta -v validation.fasta -o model \
     --ptt-resume model/ptt.h5 --max-gradient-steps 20000
 ```
 
-The archive restores the ladder, the chains, the optimizer and the random state, so a resumed run continues exactly. Only the update budget, the stopping criteria (`--target` and the `--ptt-validation-*` options), the checkpoint interval and the logging options may change; a run stopped on the validation plateau can thus be continued with `--no-ptt-validation-stop`. Archives written before centering became the default were trained without it and resume only with `--no-ptt-centering`. `history.csv` is rewritten from the archive, and the log and events are appended. Do not resume a run that failed because configurations were trapped: restart it from scratch with more sweeps instead.
+The archive restores the ladder, the chains, the optimizer and the random state, so a resumed run continues exactly. Only the update budget, the stopping criteria (`--target` and the `--ptt-validation-*` options), the checkpoint interval and the logging options may change; a run stopped on the validation plateau can thus be continued with `--no-ptt-validation-stop`. Archives written before centering became the default were trained without it and resume only with `--no-centered-gradient`. `history.csv` is rewritten from the archive, and the log and events are appended. Do not resume a run that failed because configurations were trapped: restart it from scratch with more sweeps instead.
 
 **PCD.** Start from the saved parameters and chains:
 

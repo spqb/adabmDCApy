@@ -188,15 +188,17 @@ def load_archive(cls, path, *, device="cpu", mode="generate", seed=None):
             # radius: it meant 0.01, or 0.001 with that update.
             if "trust_radius" in meta["config"] and meta["config"]["trust_radius"] is None:
                 meta["config"]["trust_radius"] = 0.001 if meta["config"].get("natural_gradient") else 0.01
+            # The centred gradient was a PTT setting, "centering", before it became a training one;
+            # archives written before it existed were trained without it.
+            centered_gradient = meta["config"].get("centering", False)
             meta["config"] = {
                 key: value for key, value in meta["config"].items()
                 if key in valid_config_fields
             }
-            # Archives written before centering became the default were trained without it.
-            meta["config"].setdefault("centering", False)
             resolved_config = asdict(PTTConfig(**meta["config"]))
             if meta["training_state"]:
                 meta["training_state"]["settings"]["ptt"] = resolved_config
+                meta["training_state"]["settings"].setdefault("centered_gradient", centered_gradient)
             meta["config"] = resolved_config
             models, populations = [], []
             for k in range(len(archive["replicas"])):

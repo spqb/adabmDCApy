@@ -57,6 +57,12 @@ def add_args_dca(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         help="Hidden units of the tree-low-rank and low-rank anchors, 1 to 3 (default: 2); ignored by the others.",
     )
     dca_args.add_argument(
+        "--no-centered-gradient", dest="centered_gradient", action="store_false",
+        help=("Update with the raw gradient instead of the centred one, with PCD and PTT. By default the coupling "
+              "step is the difference of connected correlations and the field step takes over the single-site "
+              "part; the raw coupling step repeats the field step and trains more slowly."),
+    )
+    dca_args.add_argument(
         "-v",
         "--validation",
         "--val",
@@ -278,10 +284,6 @@ def add_args_ptt(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     ptt_args.add_argument("--ptt-optimizer", choices=("adaptive", "sgd"), default=None,
                           help=("PTT optimizer: adaptive bounds each update by a KL trust radius and pauses when endpoint "
                                 "chains lag; sgd uses the fixed --lr (default: adaptive)."))
-    ptt_args.add_argument("--ptt-centering", action=argparse.BooleanOptionalAction, default=None,
-                          help=("Update with the centering trick: connected-correlation coupling gradient, field step "
-                                "corrected for the centring offset. Without it the coupling step repeats the field "
-                                "step and the trust region can stop the fields (default: on)."))
     ptt_args.add_argument("--ptt-trust-radius", type=float, default=None,
                         help="Adaptive optimizer: maximum local KL divergence per update (default: 0.01).")
     ptt_args.add_argument("--ptt-lag-tolerance", type=float, default=None,
