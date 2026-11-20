@@ -120,6 +120,7 @@ Read the one that matches the task:
 - [references/outputs.md](references/outputs.md): what each output file contains and how to read it (`params.dat.gz`, `history.csv` columns, `events.jsonl`, `training.json`, `sampling.json`, `ladder_samples.h5`).
 - [references/diagnostics.md](references/diagnostics.md): `adabmDCA diagnose`, how to tell whether a run is healthy, and what to change when it is not.
 - [references/plots.md](references/plots.md): how to read every training and sampling figure, healthy and failing patterns.
+- The `adabmdca-steering` skill (next to this one): steered generation with `SteeringConfig`, substitution windows, callbacks, low temperature, MCMC vs PTT.
 - [references/comparison.md](references/comparison.md): comparing generated or other sequences with the natural alignment (PCA, correlations, energies, distances), and predicted contacts with a PDB structure.
 
 The full documentation is at https://spqb.github.io/adabmDCApy/ and, in a clone, under `docs/`.

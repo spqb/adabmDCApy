@@ -180,7 +180,7 @@ plt.ylabel("Mean reduced energy")
 
 ## Use with AI agents
 
-[`skills/adabmdca`](skills/) is an Agent Skill that teaches coding agents such as Claude Code or Codex to run adabmDCA and check its results. Copy it to `~/.claude/skills/` (or your agent's skills folder); see [skills/README.md](skills/README.md).
+[`skills/adabmdca`](skills/) is an Agent Skill that teaches coding agents such as Claude Code or Codex to run adabmDCA and check its results, and `skills/adabmdca-steering` adds steered generation. Copy them to `~/.claude/skills/` (or your agent's skills folder); see [skills/README.md](skills/README.md).
 
 ## Documentation
 

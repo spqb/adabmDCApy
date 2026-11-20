@@ -129,21 +129,7 @@ health = backend.ladder_health()
 
 ### Steered sampling (Python only)
 
-Bias sampling toward a property with a potential V(x, s) (low V favoured, V = 0 at s = 0), then reweight back to the model:
-
-```python
-import numpy as np
-def gc_potential(sequences, strength):
-    gc = np.array([sum(c in "GC" for c in s) / max(1, len(s.replace("-", ""))) for s in sequences])
-    return -strength * gc
-
-st = sample_sequences(model="model/ptt.h5", ptt=True, alphabet="rna", n_sequences=1000,
-                      steering_potential=gc_potential, steering_strength=20.0)
-st.steering["effective_sample_size"]          # if only a few, corrected averages are unreliable
-w = np.exp(st.log_importance_weights - st.log_importance_weights.max())
-```
-
-`steering_input="onehot"` passes an `(n, L, q)` tensor instead of strings.
+Constraints (substitution windows, allowed letters), Hamming biases, scoring callbacks, low temperature and the steered entropy go through `SteeringConfig`; the separate `adabmdca-steering` skill covers them, including when to use plain MCMC and when PTT.
 
 ## Entropy and reintegration
 
