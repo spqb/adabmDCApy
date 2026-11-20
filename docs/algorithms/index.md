@@ -23,7 +23,8 @@ Most of the machinery of adabmDCA exists to protect that assumption or to check 
 | --- | --- |
 | [Input and reweighting](input.md) | Validation of the alignment, sequence weights, pseudocount, held-out splits |
 | [Training](training.md) | PCD and PTT, one PTT update, ladder maintenance, the adaptive optimizer, sparse models, stopping, recovery, the training plots and output files |
-| [Sampling](sampling.md) | Local samplers, plain MCMC and its mixing time, PTT generation and population renewal, ladder health, the sampling plots |
+| [Sampling](sampling.md) | Local samplers, plain MCMC and its mixing time, PTT generation and population renewal, ladder health, the sampling plots, steered sampling |
+| [The anchor](anchor.md) | The tractable model at the bottom of the ladder: how it is fitted and sampled, and how it is restricted to Hamming windows |
 | [Diagnose a run](diagnostics.md) | Triage of a stalled or failed run, the failure catalogue, checks of a finished model, overfitting tests |
 | [Analysis](analysis.md) | Contacts, energies, mutation scores, entropy, reintegration |
 | [Benchmarks](benchmarks.md) | Measured behaviour on six families: what to expect and how the strategies compare |

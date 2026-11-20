@@ -250,7 +250,7 @@ The runs from the tree and from the combined model also had a better validation 
 
 ## Restricted to Hamming windows
 
-[Steered sampling](../usage/steering.md) can confine every rung to windows \(l_r \le d_r(x) \le u_r\) of substitutions from one or more references. The bottom rung is then the anchor restricted to the windows,
+[Steered sampling](../usage/sample.md#steered-sampling-python) can confine every rung to windows \(l_r \le d_r(x) \le u_r\) of substitutions from one or more references. The bottom rung is then the anchor restricted to the windows,
 
 \[
 p_W(x) \propto e^{-E_A(x)} \prod_r \mathbf 1\{l_r \le d_r(x) \le u_r\},

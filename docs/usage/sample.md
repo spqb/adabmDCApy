@@ -118,4 +118,84 @@ long_run = sample_sequences(
 long_run.sampling_history     # nsweeps (from 0), pearson, slope, mean_energy
 ```
 
-The [Python steering API](steering.md) supports hard distance windows, weighted potentials, and colder sampling.
+## Steered sampling (Python)
+
+Steering samples a model under extra requirements on the sequences: stay within
+a number of substitutions of a reference, avoid gaps, prefer sequences with a
+property computed by your own code, or run colder than the model. Describe the
+requirements with a `SteeringConfig` and pass it to `sample_sequences`. Among
+the allowed sequences, the target is
+
+\[
+p(x) \propto e^{-u(x)}, \qquad u(x) = \beta H(x) + \sum_k b_k\, d(x, r_k) + \sum_j \lambda_j V_j(x),
+\]
+
+where \(H\) is the Potts energy, \(d(x, r_k)\) the number of substitutions from
+a reference \(r_k\), and \(V_j\) a cost computed by a callback.
+
+| Object | Kind | Effect |
+|---|---|---|
+| `allowed_tokens="ACGU"` | Constraint | Only these letters at every site, for example no gaps in an RNA model. |
+| `HammingWindow(reference, minimum, maximum)` | Constraint | Between `minimum` and `maximum` substitutions from `reference`, inclusive. Several windows must all hold. |
+| `HammingBias(reference, weight)` | Potential | Adds `weight` per substitution from `reference`. A positive weight favours nearby sequences. |
+| `WeightedPotential(callback, weight)` | Potential | Adds `weight` times the value your callback returns for each sequence. |
+| `beta` (argument of `sample_sequences`) | Temperature | Values above 1 sharpen the model. The biases and potentials keep their weights. |
+
+**Constraints** are hard: a sequence that breaks one is never produced, and
+inside them the model keeps its own relative probabilities. **Potentials** are
+soft: they reweight sequences without excluding any. Constraints and Hamming
+biases cost almost nothing. A callback is called on every changed sequence, so
+an expensive one, such as a folding energy, sets the speed of the run. It
+receives a list of aligned strings (or token indices with
+`input="categorical"`) and must return one finite number per sequence.
+
+```python
+from adabmDCA import HammingWindow, SteeringConfig, WeightedPotential, sample_sequences
+
+def gc_steps(sequences):
+    return [-sequence.count("GC") for sequence in sequences]
+
+config = SteeringConfig(
+    allowed_tokens="ACGU",
+    windows=(HammingWindow(variant, 0, 15),),
+    potentials=(WeightedPotential(gc_steps, weight=0.5),),
+    chains=2048, warmup_seconds=600,
+)
+mcmc = sample_sequences(model="model/params.dat.gz", steering=config, n_sequences=1024)
+ptt = sample_sequences(model="model/ptt.h5", ptt=True, steering=config, beta=1 / 0.3, n_sequences=1024)
+print(ptt.steering["status"])
+```
+
+**Plain MCMC** runs `chains` chains on the steered target. Each site update
+chooses only among the letters that keep every window satisfied, so the chains
+never leave the allowed set. **PTT** runs a ladder whose bottom rung is the
+training anchor restricted to the constraints, drawn exactly at every round,
+followed by the archived models, the trained model, and a ramp of `beta` and of
+the bias and callback weights up to the target. With `entropy=True`, PTT also
+estimates \(\log Z\) and the entropy of the steered target. How the anchor is
+restricted to the windows is explained in [The anchor](../algorithms/anchor.md#restricting-the-anchor-to-hamming-windows).
+
+**When to use PTT.** MCMC is enough near the model: `beta` close to 1, wide
+windows, weak potentials. Use PTT at low temperature, for narrow windows far
+from typical sequences, when several modes matter, or when you need the
+entropy. The comparison below sampled the Azoarcus group I intron model
+(\(L = 193\), gap-free) at \(T = 0.3\) with 2,048 chains for ten minutes,
+without a window and with at most 15 substitutions from a natural variant.
+
+![Worst split R-hat over time for MCMC and PTT](../figures/steering/mixing.png){ width="900" }
+
+MCMC never approached the convergence threshold. With the window, PTT passed
+the checks after about 250 s. Without a window, neither converged in ten
+minutes, but the final energies show how far MCMC stayed from the target:
+
+![Potts energies of the final sequences for MCMC and PTT](../figures/steering/energies.png){ width="900" }
+
+**Check the result.** `result.steering["status"]` is `"converged"` only when
+split R-hat and bulk and tail ESS pass on independent chain groups, and for
+PTT when the starting population has been renewed. `n_sweeps` (MCMC),
+`ptt_max_rounds` (PTT) and `warmup_seconds` limit the warmup. A run that stops
+at a limit returns provisional sequences with status `warmup_budget_exhausted`
+or `warmup_time_exhausted`. `result.steering` also keeps the warmup trace,
+the diagnostic checks and, for PTT, the ladder, swap rates and renewal. See the
+[steering API reference](../api/adabmDCA.steering.sampling.md) for every
+setting and field.

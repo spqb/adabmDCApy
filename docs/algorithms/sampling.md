@@ -142,4 +142,18 @@ The cluster numbers are recomputed for every run and do not correspond between p
 
 ## Steered sampling
 
-The [structured steering API](../usage/steering.md) enforces hard support on every rung, adds linear costs to the fields, and applies other costs through a block Metropolis correction. PTT connects the exact bottom model to the training checkpoints, then ramps the soft costs and inverse temperature above the endpoint. Warmup checks endpoint agreement and population renewal.
+[Steered sampling](../usage/sample.md#steered-sampling-python) adds hard constraints (allowed letters, Hamming windows) and soft costs (Hamming biases, callbacks, a colder \(\beta\)) to the model. Both strategies apply the constraints inside the local moves and the soft costs on top of them.
+
+**Constrained updates.** Every chain carries its current number of substitutions from each window's reference. A site update looks at each candidate letter, computes how it would change those counts, and draws only among the letters that keep every count inside its window. The current letter always qualifies, so the update never fails, and a chain that starts inside the windows never leaves them. Hamming biases are linear in the counts, so they are added to the fields and cost nothing.
+
+**Callbacks.** A callback sees whole sequences, so it cannot enter a site update. Instead, a block of constrained updates (one sweep by default) is proposed under the model and the biases, and accepted with probability \(\min(1, e^{-\Delta V})\), where \(\Delta V\) is the change in the weighted callback costs. The sites of a block are visited in a random order that is reversed half of the time, which makes the block reversible, so the move is exact for the steered target. The callback runs once per chain and block, and its values are cached.
+
+**The PTT ladder.** Every rung obeys the constraints. From the bottom up:
+
+1. the anchor restricted to the constraints, redrawn exactly at every round (see [The anchor](anchor.md#restricting-the-anchor-to-hamming-windows));
+2. the models saved during training, then the trained model;
+3. a ramp in which \(\beta\) moves from 1 to its target and the bias and callback weights grow from zero, in `ladder_steps` increments.
+
+A short pilot inserts intermediate rungs where swaps are rarely accepted. Warmup then runs until split R-hat and bulk and tail ESS pass on independent chain groups, and until fresh lineages from the bottom have replaced the starting population. With `entropy=True`, the free-energy differences between rungs are added to the exact \(\log Z\) of the restricted anchor.
+
+With windows, every 32 rounds the sampler also proposes a whole new sequence drawn from the bottom rung to every other rung, accepted with the corresponding Metropolis–Hastings ratio. These global moves let rungs jump between separate regions of a narrow window.

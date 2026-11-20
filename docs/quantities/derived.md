@@ -110,7 +110,7 @@ and \(\log[p(x')/p(x)] = -\Delta E\): the partition function cancels. The sum ov
 
 ## Steered targets
 
-[Steered sampling](../usage/steering.md) samples, among the sequences allowed by the constraints \(\mathcal W\), the target
+[Steered sampling](../usage/sample.md#steered-sampling-python) samples, among the sequences allowed by the constraints \(\mathcal W\), the target
 
 \[
 p_W(x) = \frac{e^{-u(x)}}{Z_W}, \qquad u(x) = \beta E(x) + \sum_k b_k\, d(x, r_k) + \sum_j \lambda_j V_j(x).

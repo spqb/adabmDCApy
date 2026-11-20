@@ -167,8 +167,8 @@ health  = backend.ladder_health()                          # per-link overlap an
 
 Use `SteeringConfig` to pass hard distance windows, linear Hamming biases, or
 batched costs to `sample_sequences`. The
-[steering guide](steering.md) shows fixed-model PCD, PTT with a callback,
-and how to plot warmup from the returned history.
+[steered sampling section](sample.md#steered-sampling-python) shows MCMC and PTT with a window and a callback,
+and when to prefer PTT.
 
 ### Comparing other sequences with the data
 
