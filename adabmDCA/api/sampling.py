@@ -33,14 +33,6 @@ from adabmDCA.stats import (
     get_freq_single_point,
     get_freq_two_points,
 )
-from adabmDCA.steering import (
-    SteeredKernel,
-    Steering,
-    SteeringInput,
-    SteeringPotential,
-    importance_summary,
-    importance_warning,
-)
 from adabmDCA.utils import init_chains, resample_sequences
 
 if TYPE_CHECKING:
@@ -69,12 +61,6 @@ def _notify(
 ) -> None:
     if callback is not None:
         callback(SamplingProgress(stage, completed, total, pearson, slope))
-
-
-def _validate_steering_strength(strength: float) -> None:
-    if isinstance(strength, bool) or not isinstance(strength, (int, float)) or not math.isfinite(strength) \
-            or strength == 0:
-        raise InputValidationError("steering_strength must be a finite, non-zero number.")
 
 
 def _initial_states(initial: InitialSequences, model: DCAModel, n_sequences: int | None, seed: int) -> torch.Tensor:
@@ -438,11 +424,6 @@ def sample_sequences(
     device: str = "auto",
     dtype: str | None = None,
     steering: SteeringConfig | None = None,
-    steering_potential: SteeringPotential | None = None,
-    steering_strength: float = 1.0,
-    steering_input: SteeringInput = "sequences",
-    steering_proposal_steps: int | None = None,
-    ptt_steering_acceptance: float = 0.3,
     collect_diagnostics: bool = False,
     ptt_return_full_ladder: bool = False,
     progress: ProgressCallback | None = None,
@@ -467,26 +448,10 @@ def sample_sequences(
     The ordinary sampling paths also report the summed context-dependent
     entropy (CDE) and, when identifiable, a least-squares fit of energy against it.
 
-    **Steered (importance) sampling.** With ``steering_potential``, sequences are
-    drawn from ``p_s(x) ∝ exp(-beta * H(x) - V(x, s))`` instead, where
-    ``V(x, s) = steering_potential(x, s)`` and ``s = steering_strength``: low ``V``
-    is favoured, so return ``-s * score`` to favour high scores. ``V`` is called
-    on batches: a list of aligned sequence strings (``steering_input="sequences"``)
-    or a one-hot tensor ``(n, L, q)`` on the model's device and precision
-    (``"onehot"``), and must return one number per sequence, and ``0`` when
-    ``s == 0``. Each Monte Carlo move proposes ``steering_proposal_steps`` Gibbs
-    updates under the DCA model, at random sites visited in palindromic order
-    (which makes the proposal reversible), and accepts them with probability
-    ``min(1, exp(-ΔV))``. This samples ``p_s`` exactly while calling ``V`` once
-    per chain and move; ``sampler`` and ``ptt_local_kernel`` do not apply to
-    steered moves.
-
-    With PTT, steered rungs of increasing strength are added above the trained
-    endpoint until ``steering_strength`` is reached, keeping the swap acceptance
-    between them at least ``ptt_steering_acceptance``; the ladder's bottom is
-    unchanged, so the mixing check still applies, and PTT also estimates
-    ``log Z_s - log Z_0``. The result's ``log_importance_weights`` turn averages
-    over the steered sequences into averages under the original model.
+    **Steered sampling.** With ``steering``, sequences are drawn under hard
+    alphabet and Hamming constraints, linear distance biases and weighted
+    callback costs, by MCMC or by PTT. See :class:`SteeringConfig` and the
+    steered sampling guide.
 
     Args:
         model: A :class:`DCAModel`, a path to a parameter file or PTT archive, or
@@ -551,23 +516,10 @@ def sample_sequences(
         alphabet: Alphabet of a text parameter file; ``None`` reads it from a PTT
             archive and assumes ``"protein"`` for text files.
         device: ``"auto"``, ``"cpu"``, ``"cuda"`` or ``"mps"``.
-        dtype: ``"float32"``, ``"float64"`` or ``"bfloat16"`` (CUDA/MPS, unsteered
-            sampling only; CUDA only with PTT); ``None`` means ``"float32"``, or the archive's precision.
+        dtype: ``"float32"``, ``"float64"`` or ``"bfloat16"`` (CUDA/MPS; CUDA only
+            with PTT); ``None`` means ``"float32"``, or the archive's precision.
         steering: Structured fields, hard Hamming windows, weighted callbacks, and
             automatic warmup. See :class:`SteeringConfig`.
-        steering_potential: Optional ``potential(batch, strength)`` added to the
-            DCA energy, returning one value per sequence (list, NumPy array or
-            tensor) and ``0`` at strength 0. ``None`` samples the model itself.
-        steering_strength: Non-zero strength ``s`` passed to the potential.
-        steering_input: What the potential receives: ``"sequences"`` (a list of
-            aligned strings, convenient for external tools) or ``"onehot"`` (a
-            tensor ``(n, L, q)``, fastest for potentials written in PyTorch).
-        steering_proposal_steps: Site updates per steered move; ``None`` adapts it
-            during warmup (doubling above 50% acceptance, halving below 20%, at most
-            16 sweeps' worth) and then keeps it fixed. Small values suit strong or
-            rugged potentials; larger ones need fewer potential evaluations per sweep.
-        ptt_steering_acceptance: PTT steering: smallest swap acceptance between
-            adjacent steered rungs; higher values place more rungs.
         collect_diagnostics: Keep the correlations and PCA projections needed by
             :meth:`SamplingResult.save_diagnostic_plots`.
         ptt_return_full_ladder: PTT: also keep ``n_sequences`` samples of every
@@ -587,26 +539,17 @@ def sample_sequences(
         >>> result = sample_sequences(model="params.dat.gz", n_sequences=1000,
         ...                           reference_fasta="family.fasta")
         >>> result.to_fasta("samples.fasta")
-
-        Steering towards sequences with a high GC content (RNA), as strings:
-
-        >>> def gc_potential(sequences, strength):
-        ...     return [-strength * sum(c in "GC" for c in s) / len(s) for s in sequences]
-        >>> steered = sample_sequences(model="params.dat.gz", alphabet="rna", n_sequences=500,
-        ...                            steering_potential=gc_potential, steering_strength=20.0)
-        >>> steered.steering["effective_sample_size"], steered.log_importance_weights[:3]
     """
     from adabmDCA.ptt import PTTSampler
 
     parallel = ptt or isinstance(model, PTTSampler)
-    if steering is not None or (parallel and beta > 1.0 and steering_potential is None):
+    if steering is not None or (parallel and beta > 1.0):
         from adabmDCA.steering.sampling import SteeringConfig, _sample_steered_sequences
 
-        if (steering_potential is not None
-                or initial_distribution is not None or ptt_return_full_ladder or collect_diagnostics):
+        if initial_distribution is not None or ptt_return_full_ladder or collect_diagnostics:
             raise InputValidationError(
                 "Structured steering uses its own initialization and diagnostics. "
-                "It cannot be combined with legacy steering, an explicit initial distribution, "
+                "It cannot be combined with an explicit initial distribution, "
                 "full ladder export, or reference-alignment plots."
             )
         return _sample_steered_sequences(
@@ -641,9 +584,6 @@ def sample_sequences(
             renewal_tolerance=ptt_renewal_tolerance,
             stationary=ptt_stationary,
             local_kernel=ptt_local_kernel,
-            steering_potential=steering_potential, steering_strength=steering_strength,
-            steering_input=steering_input, steering_proposal_steps=steering_proposal_steps,
-            steering_acceptance=ptt_steering_acceptance,
             collect_diagnostics=collect_diagnostics, return_full_ladder=ptt_return_full_ladder,
             progress=progress, is_cancelled=is_cancelled,
         )
@@ -727,28 +667,15 @@ def sample_sequences(
             dtype=loaded.params["bias"].dtype,
             fi=fi if profile else None,
         )
-    steered_kernel = None
-    if steering_potential is not None:
-        _validate_steering_strength(steering_strength)
-        if dtype == "bfloat16":
-            raise InputValidationError("Steered sampling supports float32 and float64 only.")
-        steering = Steering(steering_potential, tokens=loaded.tokens, steering_input=steering_input)
-        steering.check_zero_strength(samples[:16], dtype=samples.dtype)
-        steered_kernel = SteeredKernel(
-            steering, steering_strength, length=metadata.length, device=samples.device,
-            proposal_steps=steering_proposal_steps,
+    try:
+        sampling_function, sampling_params = prepare_fixed_model_sampler(
+            sampler,
+            loaded.params["bias"].device,
+            dtype,
+            loaded.params,
         )
-        sampling_function, sampling_params = steered_kernel, loaded.params
-    else:
-        try:
-            sampling_function, sampling_params = prepare_fixed_model_sampler(
-                sampler,
-                loaded.params["bias"].device,
-                dtype,
-                loaded.params,
-            )
-        except ValueError as exc:
-            raise InputValidationError(str(exc)) from exc
+    except ValueError as exc:
+        raise InputValidationError(str(exc)) from exc
     mixing_history: dict[str, list[float]] = {}
     sampling_history: dict[str, list[float]] = {}
     cij_reference = cij_generated = None
@@ -802,9 +729,6 @@ def sample_sequences(
         _notify(progress, stage="sampling", completed=0, total=total_sweeps)
     for sweep in range(total_sweeps):
         _check_cancelled(is_cancelled)
-        if steered_kernel is not None and sweep == total_sweeps // 2:
-            # Adapt the proposal blocks during the first half only.
-            steered_kernel.freeze()
         samples = sampling_function(
             chains=samples,
             params=sampling_params,
@@ -861,26 +785,6 @@ def sample_sequences(
         fit_warning = str(exc)
     decoded = decode_sequence(samples.detach().cpu().numpy(), loaded.tokens)
     result_warnings = [fit_warning] if fit_warning else []
-    steering_potentials = log_weights = None
-    steering_summary: dict[str, Any] = {}
-    if steered_kernel is not None:
-        steering_potentials = steered_kernel.values(samples).cpu().numpy()
-        log_weights, ess = importance_summary(steering_potentials)
-        steering_summary = {
-            "strength": float(steering_strength), "input": steering_input,
-            "proposal_steps": steered_kernel.proposal_steps, "acceptance": steered_kernel.acceptance,
-            "potential_evaluations": steered_kernel.steering.evaluations,
-            "effective_sample_size": ess, "weights": "self_normalized",
-        }
-        if reference_fasta is not None:
-            result_warnings.append("Comparisons with reference_fasta describe the steered distribution.")
-        if (warning := importance_warning(ess, len(steering_potentials))) is not None:
-            result_warnings.append(warning)
-        if steered_kernel.acceptance < 0.05:
-            result_warnings.append(
-                f"Steered moves were accepted {steered_kernel.acceptance:.1%} of the time; "
-                "lower steering_proposal_steps or steering_strength."
-            )
     return SamplingResult(
         sequences=tuple(str(sequence) for sequence in decoded),
         energies=energies,
@@ -895,9 +799,6 @@ def sample_sequences(
         cde_sum=cde_sum,
         local_lambda_fit=lambda_fit,
         warnings=tuple(result_warnings),
-        steering_potentials=steering_potentials,
-        log_importance_weights=log_weights,
-        steering=steering_summary,
         cij_reference=cij_reference,
         cij_generated=cij_generated,
         fi_reference=fi_reference,

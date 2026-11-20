@@ -16,12 +16,11 @@ from adabmDCA.numba_kernels.threads import set_kernel_threads
 
 
 def swaps_available(sampler, birth, memory):
-    """Restrict dispatch to unsteered, full, seven-model generation ladders."""
+    """Restrict dispatch to full, seven-model generation ladders."""
     if (sampler.device.type != 'cpu' or not is_numba_available()
             or os.environ.get('ADABMDCA_NUMBA_SWAPS', '1') == '0'
             or sampler.mode != 'generate' or len(sampler.models) != 7
-            or sampler.active_start != 0 or sampler.reservoir is not None
-            or sampler.steering is not None):
+            or sampler.active_start != 0 or sampler.reservoir is not None):
         return False
     n, length = sampler.chains[-1].shape
     if (not n or not length or len(sampler.chains) != 7

@@ -7,7 +7,7 @@ Exact definitions of the model, of the training rule, and of every number that a
 | [Potts model and statistics](model.md) | Energy and probability, gauge, sequence weights, pseudocount, frequencies, connected correlations, likelihood and its gradient |
 | [Training quantities](training.md) | Pearson and slope, likelihood and entropy during training, the adaptive optimizer and the predicted KL, chain lag, sparse-model selection rules, stopping rules and counters |
 | [Sampling quantities](sampling.md) | Local moves, swap acceptance, population renewal, autocorrelation times, the plain-MCMC mixing criterion, ladder health, distances |
-| [Normalization, scoring and importance weights](derived.md) | \(\log Z\) from the PTT ladder and by thermodynamic integration, entropy, context-dependent entropy, contact and mutation scores, steering weights |
+| [Normalization and scoring](derived.md) | \(\log Z\) from the PTT ladder and by thermodynamic integration, entropy, context-dependent entropy, contact and mutation scores, steered targets |
 | [The anchor](anchor.md) | The tractable starting model of PTT training: the Hopfield–Potts model and its equivalent RBM with Gaussian hidden units, the maximum-likelihood fit, sampling without Markov chains, the tree model and its combination with hidden units, these models at the bottom of the PTT ladder |
 
 ## Conventions

@@ -1,6 +1,6 @@
 # Analysis
 
-What a trained model can tell you, and the limits of each reading. The commands are documented in [Use the package](../usage/index.md); the exact definitions are in [Normalization, scoring and importance weights](../quantities/derived.md).
+What a trained model can tell you, and the limits of each reading. The commands are documented in [Use the package](../usage/index.md); the exact definitions are in [Normalization and scoring](../quantities/derived.md).
 
 ## Energies and probabilities
 

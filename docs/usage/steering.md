@@ -242,7 +242,3 @@ production batches and, for PTT, the ladder, swap rates and renewal records.
 With `entropy=True` it also keeps the running \(\log Z\) and entropy
 estimates. See the [steering API reference](../api/adabmDCA.steering.sampling.md)
 for every field.
-
-The older `steering_potential(batch, strength)` interface remains available
-for soft importance sampling. Its importance weights apply only when the
-steered distribution overlaps the model's.

@@ -20,13 +20,6 @@ from adabmDCA.ptt import PTTSampler
 from adabmDCA.ptt.precision import device_accumulation
 from adabmDCA.serialization import result_document, write_json
 from adabmDCA.statmech import compute_energy
-from adabmDCA.steering import (
-    Steering,
-    SteeringInput,
-    SteeringPotential,
-    importance_summary,
-    importance_warning,
-)
 
 
 def load_ptt_backend(
@@ -99,11 +92,6 @@ def sample_ptt_sequences(
     renewal_tolerance: float = 0.01,
     stationary: bool = False,
     local_kernel: str | None = "metropolized_gibbs",
-    steering_potential: SteeringPotential | None = None,
-    steering_strength: float = 1.0,
-    steering_input: SteeringInput = "sequences",
-    steering_proposal_steps: int | None = None,
-    steering_acceptance: float = 0.3,
     collect_diagnostics: bool = False,
     return_full_ladder: bool = False,
     progress: Callable[[SamplingProgress], None] | None = None,
@@ -126,9 +114,6 @@ def sample_ptt_sequences(
     default, 'metropolis' or 'gibbs'); ``None`` keeps the archived training
     kernel. All of them leave every replica's distribution invariant. The
     ladder is the training ladder (see ``PTTSampler.prepare_sampling_ladder``).
-    With ``steering_potential``, steered rungs are added on top of it
-    (``PTTSampler.prepare_steering``) and the samples come from the top one; see
-    :func:`adabmDCA.api.sampling.sample_sequences` for the steering arguments.
     With ``return_full_ladder``, every rung's chains are kept at the same
     rounds as the endpoint batches, in the result's ``ladder_samples``.
     """
@@ -165,10 +150,6 @@ def sample_ptt_sequences(
         raise InputValidationError("PTT sampling requires reference_fasta (--data) for ladder log-likelihoods.")
     if test_fasta is not None and not collect_diagnostics:
         raise InputValidationError("test_fasta is used only with collect_diagnostics=True (CLI: --plot-sampling-logs).")
-    if steering_potential is not None:
-        from adabmDCA.api.sampling import _validate_steering_strength
-
-        _validate_steering_strength(steering_strength)
     backend = load_ptt_backend(source, device=device, seed=seed, alphabet=alphabet)
     backend.prepare_sampling_ladder(n_sequences)
     backend.set_generation_kernel(local_kernel)
@@ -178,8 +159,6 @@ def sample_ptt_sequences(
             "(--ptt-local-kernel)."
         )
     if dtype == "bfloat16":
-        if steering_potential is not None:
-            raise InputValidationError("Steered sampling supports float32 and float64 only.")
         backend.set_coupling_dtype(torch.bfloat16)
     elif dtype is not None and dtype != str(backend.models[0]["bias"].dtype).removeprefix("torch."):
         raise InputValidationError("PTT generation uses the archived precision, optionally with BF16 couplings.")
@@ -199,12 +178,6 @@ def sample_ptt_sequences(
             progress(SamplingProgress("ptt_" + stage, completed, total, details=details))
 
     before = backend.local_sweeps
-    if steering_potential is not None:
-        steering = Steering(steering_potential, tokens=backend.tokens, steering_input=steering_input)
-        report("steering_ladder", 0, 1, strength=0.0)
-        backend.prepare_steering(steering, steering_strength, proposal_steps=steering_proposal_steps,
-                                 target_acceptance=steering_acceptance, local_sweeps=local_sweeps,
-                                 is_cancelled=is_cancelled, on_progress=report)
     report("ladder", len(backend.models), len(backend.models), selected_updates=backend.sampling_steps,
            chains_per_model=n_sequences)
     renewal = mixing = None
@@ -235,7 +208,6 @@ def sample_ptt_sequences(
     # That population is still a useful sampling result when the finite round
     # budget is exhausted, so retain it and mark the result as nonconverged.
     batches = []
-    batch_potentials = []
     batch_endpoint_fresh = []
     ladder_batches = [] if return_full_ladder else None
     collected = 0
@@ -246,8 +218,6 @@ def sample_ptt_sequences(
             raise OperationCancelledError("PTT sampling was cancelled.")
         count = min(n_sequences - collected, len(backend.chains[-1]))
         batches.append(backend.endpoint_samples()[:count])
-        if backend.steering is not None:
-            batch_potentials.append(backend.steering_values[-1][:count].clone())
         if ladder_batches is not None:
             ladder_batches.append(_ladder_batch(backend, count))
         collected += count
@@ -313,8 +283,7 @@ def sample_ptt_sequences(
     flagged = {p["step"] for p in backend.ptt_checkpoints}
     for row, step in zip(rows, backend.sampling_steps):
         row["training_step"] = step
-        row["flag"] = ("steered" if row["steering_strength"] != 0.0
-                       else "ptt" if step in flagged else "final")
+        row["flag"] = "ptt" if step in flagged else "final"
     report("ladder_statistics", len(rows), len(rows))
     # Bidirectional reweighting diagnostics on the final populations; the BAR
     # bridges above use the same pairs.
@@ -385,25 +354,6 @@ def sample_ptt_sequences(
     lambda_fit = None
     if not converged:
         result_warnings.append("The sampled population may be biased because PTT mixing did not converge.")
-    steering_potentials = log_weights = None
-    steering_summary = {}
-    if backend.steering is not None:
-        steering_potentials = torch.cat(batch_potentials).cpu().numpy()
-        base = backend.steering_base - backend.active_start
-        log_z_ratio = rows[-1]["log_z"] - rows[base]["log_z"]
-        log_weights, ess = importance_summary(steering_potentials, log_z_ratio)
-        kernels = [kernel for kernel in backend._steering_kernels if kernel is not None]
-        steering_summary = {
-            "strength": float(steering_strength), "input": steering_input,
-            "strengths": [s for s in backend.steering_strengths if s != 0.0],
-            "proposal_steps": [kernel.proposal_steps for kernel in kernels],
-            "acceptance": [kernel.acceptance for kernel in kernels],
-            "potential_evaluations": backend.steering.evaluations,
-            "log_z_ratio": log_z_ratio, "effective_sample_size": ess, "weights": "bridge_normalized",
-        }
-        result_warnings.append("Comparisons with reference_fasta describe the steered distribution.")
-        if (warning := importance_warning(ess, len(steering_potentials))) is not None:
-            result_warnings.append(warning)
     try:
         lambda_fit = fit_slope(energies, cde_sum)
     except InputValidationError as exc:
@@ -436,9 +386,6 @@ def sample_ptt_sequences(
         pca_explained_variance_ratio=pca_explained_variance_ratio,
         data_comparison=data_comparison,
         distance_comparison=distance_comparison,
-        steering_potentials=steering_potentials,
-        log_importance_weights=log_weights,
-        steering=steering_summary,
         ladder_samples=ladder_samples,
         ptt_configurations=configurations or None,
         warnings=tuple(result_warnings),
@@ -447,21 +394,14 @@ def sample_ptt_sequences(
 
 def _ladder_batch(backend: PTTSampler, count: int) -> dict[str, np.ndarray]:
     """The first ``count`` chains of every active rung, with their energies, as ``(models, count, ...)`` arrays."""
-    sequences, energies, potentials = [], [], []
+    sequences, energies = [], []
     for k in range(backend.active_start, len(backend.models)):
         chains = backend.chains[k][:count]
         states = chains.argmax(-1) if chains.ndim == 3 else chains
         sequences.append(states.to(torch.uint8).cpu().numpy())
         (energy,) = backend._energies(states, [backend.models[k]])
         energies.append(energy.cpu().numpy())
-        if backend.steering is not None:
-            values = backend._rung_values(k)
-            potentials.append(values[:count].cpu().numpy() if isinstance(values, torch.Tensor)
-                              else np.zeros(len(states)))
-    batch = {"sequences": np.stack(sequences), "energies": np.stack(energies)}
-    if potentials:
-        batch["steering_potentials"] = np.stack(potentials)
-    return batch
+    return {"sequences": np.stack(sequences), "energies": np.stack(energies)}
 
 
 @dataclass(frozen=True)

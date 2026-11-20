@@ -117,7 +117,7 @@ def test_other_ladders_do_not_dispatch(replicas, mode, monkeypatch):
     sampler.advance(return_samples=False)
 
 
-def test_dispatch_disabled_and_steering_reservoir_excluded(monkeypatch):
+def test_dispatch_disabled_and_reservoir_excluded(monkeypatch):
     sampler = ladder()
     assert swaps_available(sampler, sampler.birth, sampler.lag_memory)
     monkeypatch.setenv('ADABMDCA_NUMBA_SWAPS', '0')
@@ -126,9 +126,6 @@ def test_dispatch_disabled_and_steering_reservoir_excluded(monkeypatch):
     monkeypatch.setenv('ADABMDCA_NUMBA', '0')
     assert not swaps_available(sampler, sampler.birth, sampler.lag_memory)
     monkeypatch.delenv('ADABMDCA_NUMBA')
-    sampler.steering = object()
-    assert not swaps_available(sampler, sampler.birth, sampler.lag_memory)
-    sampler.steering = None
     sampler.reservoir = sampler.chains[0]
     assert not swaps_available(sampler, sampler.birth, sampler.lag_memory)
 

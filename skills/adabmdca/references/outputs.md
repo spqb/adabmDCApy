@@ -74,7 +74,7 @@ d = json.load(open("samples/sampling.json"))["data"]
 d["ptt_diagnostics"]["converged"], d["ptt_diagnostics"]["final_pearson"], d["warnings"]
 ```
 
-`logs/ptt.log` (CSV): one row per ladder model, profile first: `replica, model_id, log_z, log_z_forward, log_z_estimator, mean_energy, entropy, log_likelihood, log_likelihood_per_residue, steering_strength, sample_round, n_chains, training_step, flag` (`flag` is `ptt` for the profile and `final` for the endpoint).
+`logs/ptt.log` (CSV): one row per ladder model, profile first: `replica, model_id, log_z, log_z_forward, log_z_estimator, mean_energy, entropy, log_likelihood, log_likelihood_per_residue, sample_round, n_chains, training_step, flag` (`flag` is `ptt` for the profile and `final` for the endpoint).
 
 ### `ladder_samples.h5`
 

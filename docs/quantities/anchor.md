@@ -219,7 +219,7 @@ With two hidden units, the samples of the combined model recover the groups that
 
 ## At the bottom of the PTT ladder
 
-The profile serves at the bottom of the ladder because its samples are exact and its \(\log Z\) is known (see [Normalization, scoring and importance weights](derived.md)). The tree plus \(K\) hidden units has both properties, and so do its two parts alone, so any anchor other than the profile takes the profile's place:
+The profile serves at the bottom of the ladder because its samples are exact and its \(\log Z\) is known (see [Normalization and scoring](derived.md)). The tree plus \(K\) hidden units has both properties, and so do its two parts alone, so any anchor other than the profile takes the profile's place:
 
 - training starts with the chosen model as both rungs, and its Potts parameters \(h\) and \(J\) are the first endpoint;
 - in every round, rung 0 is redrawn exactly from that model, which is also where new chains start;
