@@ -96,11 +96,11 @@ inverse temperature above the trained endpoint. The pilot can insert
 intermediate rungs before warmup.
 
 An archive trained from an anchor other than the profile keeps its exact anchor at the bottom.
-With one hard distance window the bottom rung is the anchor restricted to that
-window, drawn independently and normalized exactly, so no profile or bridge
-rungs sit below it. Several windows fall back to an exact constrained profile
-at the bottom, with the restricted archive anchor as a coupled rung. A standalone
-model is also supported. Calling
+With hard distance windows the bottom rung is the anchor restricted to the
+windows, drawn independently and normalized exactly, so no profile or bridge
+rungs sit below it. Only windows whose joint count table would be too large
+fall back to an exact constrained profile at the bottom, with the restricted
+archive anchor as a coupled rung. A standalone model is also supported. Calling
 `sample_sequences(model="model/ptt.h5", ptt=True, beta=1.25, n_sequences=128)`
 uses a temperature ladder with every explicit bias weight set to zero.
 

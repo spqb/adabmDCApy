@@ -248,23 +248,31 @@ Ladders must be compared at equal likelihood, because runs stop at different poi
 
 The runs from the tree and from the combined model also had a better validation log-likelihood at equal training log-likelihood (−0.67 against −0.695 at −0.65). These are single runs on one family, and the runs from the tree models were stopped after about 500 updates.
 
-## Restricted to a Hamming window
+## Restricted to Hamming windows
 
-[Steered sampling](../usage/steering.md) can confine every rung to a window \(l \le d(x) \le u\) of substitutions from a reference. The bottom rung is then the anchor restricted to the window,
+[Steered sampling](../usage/steering.md) can confine every rung to windows \(l_r \le d_r(x) \le u_r\) of substitutions from one or more references. The bottom rung is then the anchor restricted to the windows,
 
 \[
-p_W(x) \propto e^{-E_A(x)}\, \mathbf 1\{l \le d(x) \le u\},
+p_W(x) \propto e^{-E_A(x)} \prod_r \mathbf 1\{l_r \le d_r(x) \le u_r\},
 \]
 
-and it keeps both properties of the anchor: exact independent draws and a known \(\log Z_W\). Without it, the ladder has to start from a profile restricted to the window and climb to the restricted anchor through bridge rungs.
+and it keeps both properties of the anchor: exact independent draws and a known \(\log Z_W\). Without it, the ladder has to start from a profile restricted to the windows and climb to the restricted anchor through bridge rungs.
 
 Rejection from the unrestricted anchor is not an option. A window of at most 15 substitutions from a natural sequence of the Azoarcus group I intron (\(L = 193\)) has probability \(e^{-55}\) under the tree + rank-2 anchor, whose samples sit about 110 substitutions away.
 
-The window is handled inside belief propagation instead. \(d(x)\) is a sum over sites, so at a fixed \(z\) the message that a subtree sends to its parent can be split by the number of substitutions inside the subtree. Combining two subtrees convolves their counts. At the root this gives, for every count \(c\), the sum of \(e^{-E(x \mid z)}\) over the sequences with \(d(x) = c\). Counts only grow towards the root, so every count above \(u\) is dropped as soon as it appears. The cost grows with \(u\), not with the width of the window. A window far from the reference counts matches instead, which are then fewer.
+The windows are handled inside belief propagation instead. \(d(x)\) is a sum over sites, so at a fixed \(z\) the message that a subtree sends to its parent can be split by the number of substitutions inside the subtree. Combining two subtrees convolves their counts. At the root this gives, for every count \(c\), the sum of \(e^{-E(x \mid z)}\) over the sequences with \(d(x) = c\). Counts only grow towards the root, so every count above \(u\) is dropped as soon as it appears. The cost grows with \(u\), not with the width of the window. A single window far from the reference counts matches instead, which are then fewer.
 
-\(\log Z_W\) is the lattice sum of \(-|z|^2/2 + \log \sum_{c=l}^{u} C_z(c)\), as for the unrestricted anchor. The lattice is searched with this restricted density, since the window can select a region of \(z\) that the unrestricted anchor rarely visits. Each sequence still contributes a unit Gaussian centred at \(m(x)\), so the lattice keeps its accuracy however rare the window is. A draw picks a lattice point with its weight, then a total count in the window, then the tree from the root down. At each node, the remaining count is split among the subtrees of its children before their states are drawn. The tables are built once, when sampling starts.
+Several windows need a vector of counts. The reference with the smallest \(u\) is primary, and \(n\) counts the substitutions from it. Every other reference \(j\) adds the count
 
-On the Azoarcus window above, the setup takes 0.4 s and 2,048 draws take 16 ms on an RTX A5000.
+\[
+t_j(x) = k_j + n(x) - d_j(x),
+\]
+
+where \(k_j\) is the number of sites at which the two references differ. \(t_j\) grows only at those sites: by 2 for the letter of reference \(j\), by 1 for a third letter. It never exceeds \(k_j + u - l_j\). For 5–10 substitutions from one Azoarcus variant and 25–30 from the wild type, 25 sites apart, the table holds \(11 \times 11\) counts, against \(11 \times 31\) for the two distances. Windows on the same reference are intersected. A window that the triangle inequality \(|d_j - k_j| \le n\) already guarantees is dropped. Only the counts that a subtree can reach are combined.
+
+\(\log Z_W\) is the lattice sum of \(-|z|^2/2 + \log \sum_{c \in W} C_z(c)\), as for the unrestricted anchor. The lattice is searched with this restricted density, since the windows can select a region of \(z\) that the unrestricted anchor rarely visits. Each sequence still contributes a unit Gaussian centred at \(m(x)\), so the lattice keeps its accuracy however rare the windows are. A draw picks a lattice point with its weight, then a count vector in the windows, then the tree from the root down. At each node, the remaining counts are split among the subtrees of its children before their states are drawn. The tables are built once, when sampling starts.
+
+On an RTX A5000, the setup takes 0.5 s for the single window above and 1.1 s for the two windows. 2,048 draws take 20 ms and 30 ms.
 
 ## Technical details
 

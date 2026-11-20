@@ -212,10 +212,11 @@ def _masked_anchor(anchor, support):
 def _bottom_anchor(anchor, support):
     """The archived anchor on the hard support, exactly sampled, or None when no exact form exists.
 
-    A single Hamming window restricts the anchor itself (:class:`WindowedAnchor`),
-    so the ladder starts on the steering support without a profile bridge.
+    Hamming windows restrict the anchor itself (:class:`WindowedAnchor`), so the
+    ladder starts on the steering support without a profile bridge. Windows whose
+    joint count table would be too large fall back to the profile.
     """
-    if anchor is None or len(support.maximum) > 1:
+    if anchor is None:
         return None
     masked = _masked_anchor(anchor, support)
     if not len(support.maximum):
@@ -223,10 +224,11 @@ def _bottom_anchor(anchor, support):
     from adabmDCA.anchor.window import WindowedAnchor
 
     try:
-        return WindowedAnchor(masked, support.increments[:, support.indices, 0],
-                              int(support.minimum[0]), int(support.maximum[0]))
+        return WindowedAnchor(masked, support.references, support.minimum, support.maximum, tokens=support.indices)
     except ValueError as error:
         raise InputValidationError(str(error)) from error
+    except RuntimeError:
+        return None
 
 
 def _make_ladder(config, backend, params, support, beta, fields, weights, ptt):
