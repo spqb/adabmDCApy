@@ -115,6 +115,9 @@ class TrainingConfig:
             reintegration) is an error.
         anchor_rank: Number of hidden units of the low-rank anchors (1 to 3). Rank 3 fits a slightly
             better anchor than rank 2 but takes about ten times longer to fit.
+        centered_gradient: Update with the centering trick, with PCD and PTT alike: the coupling step is
+            the difference of connected correlations, and the field step takes over the single-site
+            part. ``False`` uses the raw gradient.
         ptt: :class:`PTTConfig` to train with PTT, or ``None`` for PCD.
 
     Raises:
@@ -153,6 +156,7 @@ class TrainingConfig:
     edge_empirical_pseudocount: float = EDGE_EMPIRICAL_PSEUDOCOUNT
     anchor: str = DEFAULT_ANCHOR
     anchor_rank: int = DEFAULT_ANCHOR_RANK
+    centered_gradient: bool = True
     ptt: PTTConfig | None = None
 
     def __post_init__(self) -> None:
@@ -186,6 +190,8 @@ class TrainingConfig:
                 raise ConfigurationError("PTT currently supports bmDCA and eaDCA only.")
             if self.ptt.activation != "fixed" and self.model_type != "eaDCA":
                 raise ConfigurationError("PTT adaptive activation applies to eaDCA only.")
+        if not isinstance(self.centered_gradient, bool):
+            raise ConfigurationError("centered_gradient must be boolean.")
         if self.dtype not in ("float32", "float64", "bfloat16"):
             raise ConfigurationError("dtype must be float32, float64 or bfloat16.")
         if self.model_type not in MODEL_TYPES:

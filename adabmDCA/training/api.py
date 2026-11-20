@@ -229,6 +229,7 @@ def train_model(
     use_wandb: bool = False,
     anchor: str = DEFAULT_ANCHOR,
     anchor_rank: int = DEFAULT_ANCHOR_RANK,
+    centered_gradient: bool = True,
     allow_signed_weights: bool = False,
     progress: ProgressCallback | None = None,
     stage_progress: StageProgressCallback | None = None,
@@ -297,6 +298,8 @@ def train_model(
             :class:`TrainingConfig`. The command line defaults to ``"tree-low-rank"``.
             Anchors other than the profile apply to bmDCA trained from scratch.
         anchor_rank: Hidden units of the low-rank anchors (1 to 3, default 2).
+        centered_gradient: Update with the centering trick, with PCD and PTT
+            (default); ``False`` uses the raw gradient. See :class:`TrainingConfig`.
         allow_signed_weights: Permit signed input weights for experimental
             reintegration workflows.
         progress: Optional callback taking exactly one
@@ -385,6 +388,7 @@ def train_model(
         use_wandb=use_wandb,
         anchor=anchor,
         anchor_rank=anchor_rank,
+        centered_gradient=centered_gradient,
     )
     if ptt_resume is not None and training_config.ptt is None:
         raise InputValidationError("ptt_resume requires a PTTConfig.")
@@ -654,6 +658,7 @@ def train_model(
                 fij_val=fij_val,
                 controller=controller,
                 l2_reg=l2_regularization,
+                centered_gradient=training_config.centered_gradient,
             )
         elif model_type == "eaDCA":
             chains, params, history = train_eaDCA(
@@ -675,6 +680,7 @@ def train_model(
                 fij_val=fij_val,
                 controller=controller,
                 l2_reg=l2_regularization,
+                centered_gradient=training_config.centered_gradient,
             )
         elif model_type == "edDCA":
             chains, params, history = train_edDCA(
@@ -696,6 +702,7 @@ def train_model(
                 fi_val=fi_val,
                 fij_val=fij_val,
                 l2_reg=l2_regularization,
+                centered_gradient=training_config.centered_gradient,
             )
         else:
             chains, params, history = train_edgeDCA(

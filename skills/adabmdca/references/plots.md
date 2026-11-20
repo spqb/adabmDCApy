@@ -12,7 +12,7 @@ Read them together: a rising fit curve alone does not show that the chains kept 
 | `loglikelihood` (PTT) | Training keeps rising; validation flattens, then declines where the validation stop acts. Single-update spikes ≤ 0.01 at ladder changes are log Z noise | Validation falling over hundreds of updates: overfitting. Compare absolute values within one family only |
 | `ladder` (PTT) | Active replicas oscillate 2–3; saved models rise in steps (7–15 for bmDCA) | Many saved models: PTT sampling will be slow (edgeDCA reached 47) |
 | `acceptance` (PTT) | Saw-tooth between ~0.25 and 0.5–0.9 | Long stretches pinned at 0.25 (inserting snapshots as fast as possible, typical at 10 sweeps on large families); below 0.1 triggers a mixing check |
-| `learning_rates` (PTT) | At `--lr` while the trust region does not bind | Halved after recoveries and stays so; field rate at the floor (10⁻¹⁴) with `--no-ptt-centering`. Do not raise `--lr` because the trust region does not bind |
+| `learning_rates` (PTT) | At `--lr` while the trust region does not bind | Halved after recoveries and stays so; field rate at the floor (10⁻¹⁴) with `--no-centered-gradient`. Do not raise `--lr` because the trust region does not bind |
 | `kl` (PTT) | Median well below the trust radius (~1e-3) | Pinned at 0.01: steps are capped |
 | `lag` (PTT) | Below ~0.05 | Peaks near the 0.25 tolerance trigger pauses; repeated pauses: finding F2 of `adabmDCA diagnose` |
 | `density` (sparse) | Rises (eaDCA, edgeDCA) or falls (edDCA) to the target | Stalls far from the target: step budget exhausted |

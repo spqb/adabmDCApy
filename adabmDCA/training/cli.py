@@ -495,6 +495,7 @@ def run(args: argparse.Namespace, *, progress: Any = None, stage_progress: Any =
         dtype=args.dtype,
         use_wandb=args.wandb,
         **anchor_options(args),
+        centered_gradient=args.centered_gradient,
         progress=progress,
         stage_progress=stage_progress,
         on_initialized=on_initialized,

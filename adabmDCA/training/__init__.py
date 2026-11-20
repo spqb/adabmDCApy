@@ -51,6 +51,37 @@ def compute_gradient(
     return grad
 
 
+def center_gradient(
+    gradients: dict[str, torch.Tensor],
+    *,
+    fi: torch.Tensor,
+    pi: torch.Tensor,
+    mask: torch.Tensor,
+) -> dict[str, torch.Tensor]:
+    """Centering trick: the gradients of the energy written in x - mu, with mu = (fi + pi) / 2, mapped back.
+
+    Summed over the partner site, the raw coupling gradient is (L - 1) times the field gradient: the
+    coupling step repeats the field step, and the two are almost collinear. Centred, the coupling
+    gradient is the difference of connected correlations, Cij_data - Cij_model, which has no one-site
+    part, and the field step absorbs the shift of the centred parametrization:
+    dh_i(a) = (fi - pi)_i(a) - sum_{j,b} dJ_ij(a, b) mu_j(b).
+
+    Args:
+        gradients (Dict[str, torch.Tensor]): Raw gradients, with any L2 term already in the coupling one.
+        fi (torch.Tensor): Single-point frequencies of the data.
+        pi (torch.Tensor): Single-point marginals of the model.
+        mask (torch.Tensor): Mask of the interaction graph.
+
+    Returns:
+        Dict[str, torch.Tensor]: Centred gradients.
+    """
+    offset = 0.5 * (fi + pi)
+    coupling = (gradients["coupling_matrix"]
+                - (torch.einsum("ia,jb->iajb", fi, fi) - torch.einsum("ia,jb->iajb", pi, pi))) * mask
+    bias = gradients["bias"] - torch.einsum("iajb,jb->ia", coupling, offset)
+    return {"bias": bias, "coupling_matrix": coupling}
+
+
 def update_params(
     fi: torch.Tensor,
     fij: torch.Tensor,
@@ -60,6 +91,7 @@ def update_params(
     mask: torch.Tensor,
     lr: float,
     l2_reg: float = 0.0,
+    centered: bool = True,
 ) -> dict[str, torch.Tensor]:
     """Updates the parameters of the model.
 
@@ -72,21 +104,20 @@ def update_params(
         mask (torch.Tensor): Mask of the interaction graph.
         lr (float): Learning rate.
         l2_reg (float, optional): L2 regularization coefficient. Defaults to 0.0.
+        centered (bool, optional): Update with the centred gradient (:func:`center_gradient`). Defaults to True.
 
     Returns:
         Dict[str, torch.Tensor]: Updated parameters.
     """
 
-    # Compute the gradient
     grad = compute_gradient(fi=fi, fij=fij, pi=pi, pij=pij)
+    grad["coupling_matrix"] = (grad["coupling_matrix"] - l2_reg * params["coupling_matrix"]) * mask
+    if centered:
+        grad = center_gradient(grad, fi=fi, pi=pi, mask=mask)
 
-    # Update parameters
     with torch.no_grad():
         for key, value in params.items():
-            if key == "coupling_matrix":
-                value += lr * (grad[key] - l2_reg * value)
-            else:
-                value += lr * grad[key]
+            value += lr * grad[key]
 
         params["coupling_matrix"] *= mask  # Remove autocorrelations
 
@@ -146,6 +177,7 @@ def train_graph(
     fij_val: torch.Tensor | None = None,
     l2_reg: float = 0.0,
     controller: TrainingController | None = None,
+    centered_gradient: bool = True,
 ) -> tuple[torch.Tensor, dict[str, torch.Tensor], TrainingHistory]:
     """Trains the model on a given graph until the target Pearson correlation is reached or the maximum number of epochs is exceeded.
 
@@ -164,6 +196,7 @@ def train_graph(
         fij_val (Optional[torch.Tensor], optional): Two-point frequencies of the validation data. Defaults to None.
         l2_reg (float, optional): L2 regularization coefficient. Defaults to 0.0.
         controller (TrainingController, optional): Shared controller for counters, limits and logging.
+        centered_gradient (bool, optional): Update with the centred gradient. Defaults to True.
 
     Returns:
         Updated chains, parameters, and training history.
@@ -203,6 +236,7 @@ def train_graph(
             mask=mask,
             lr=lr,
             l2_reg=l2_reg,
+            centered=centered_gradient,
         )
 
         # Update the Markov chains
@@ -271,6 +305,7 @@ def train_eaDCA(
     l2_reg: float = 0.0,
     controller: TrainingController | None = None,
     max_gradient_steps: int | None = None,
+    centered_gradient: bool = True,
 ) -> tuple[torch.Tensor, dict[str, torch.Tensor], TrainingHistory]:
     """
     Fits an eaDCA model on the training data and saves the results in a file.
@@ -292,6 +327,7 @@ def train_eaDCA(
         fi_val (Optional[torch.Tensor], optional): Single-point frequencies of the validation data. Defaults to None.
         fij_val (Optional[torch.Tensor], optional): Two-point frequencies of the validation data. Defaults to None.
         l2_reg (float, optional): L2 regularization coefficient. Defaults to 0.0.
+        centered_gradient (bool, optional): Update with the centred gradient. Defaults to True.
 
     Returns:
         Updated chains, parameters, and training history.
@@ -367,6 +403,7 @@ def train_eaDCA(
             max_epochs=inner_steps,
             target_pearson=target_pearson,
             l2_reg=l2_reg,
+            centered_gradient=centered_gradient,
         )
 
         graph_upd += 1
@@ -437,6 +474,7 @@ def train_edDCA(
     controller: TrainingController | None = None,
     max_gradient_steps: int | None = None,
     inner_gradient_steps: int = DEFAULT_INNER_GRADIENT_STEPS,
+    centered_gradient: bool = True,
 ) -> tuple[torch.Tensor, dict[str, torch.Tensor], TrainingHistory]:
     """Fits an edDCA model on the training data and saves the results in a file.
 
@@ -455,6 +493,7 @@ def train_edDCA(
         fi_val (Optional[torch.Tensor], optional): Single-point frequencies of the validation data. Defaults to None.
         fij_val (Optional[torch.Tensor], optional): Two-point frequencies of the validation data. Defaults to None.
         l2_reg (float, optional): L2 regularization coefficient. Defaults to 0.0.
+        centered_gradient (bool, optional): Update with the centred gradient. Defaults to True.
 
     Returns:
         Updated chains, parameters, and training history.
@@ -502,6 +541,7 @@ def train_edDCA(
             max_epochs=inner_steps,
             target_pearson=target_pearson,
             l2_reg=l2_reg,
+            centered_gradient=centered_gradient,
         )
         controller.add_gradient_steps(len(inner_history["Epochs"]), sweeps_per_step=nsweeps)
         pi = get_freq_single_point(data=chains)
@@ -572,6 +612,7 @@ def train_edDCA(
             max_epochs=inner_steps,
             target_pearson=target_pearson,
             l2_reg=l2_reg,
+            centered_gradient=centered_gradient,
         )
         controller.add_gradient_steps(len(inner_history["Epochs"]), sweeps_per_step=nsweeps)
 

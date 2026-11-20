@@ -44,7 +44,7 @@ F = \begin{pmatrix}\operatorname{Var}u_h & \operatorname{Cov}(u_h,u_J)\\ \operat
 
 with variances over the endpoint chains: \(F\) is the Fisher information restricted to the two directions. The predicted likelihood gain is linear in the rates, \(\eta_h\|g_h\|^2 + \eta_J\|g_J\|^2\). The optimizer maximizes it subject to \(K_{\rm pred} \le\) `--ptt-trust-radius` (0.01) and \(a_h, a_J \le 1\). Because \(F\) keeps the off-diagonal term, correlated field and coupling steps are treated jointly. With the raw gradients above the correlation is structural, \(\sum_{j,b} g_J(i,a;j,b) = (L-1)\,g_h(i,a)\): when the constraint binds, the optimum has \(a_h < 0\) and the field rate goes to its floor.
 
-By default (`--ptt-centering`) the gradients are those of the energy written in \(x - \mu\), with \(\mu = (f + p)/2\), mapped back to the original parameters:
+By default, with PTT and PCD alike (`--no-centered-gradient` turns it off), the gradients are those of the energy written in \(x - \mu\), with \(\mu = (f + p)/2\), mapped back to the original parameters:
 
 \[
 g_J(i,a;j,b) = C^{\rm data}_{ij}(a,b) - C^{\rm model}_{ij}(a,b),
@@ -52,7 +52,7 @@ g_J(i,a;j,b) = C^{\rm data}_{ij}(a,b) - C^{\rm model}_{ij}(a,b),
 g_h(i,a) = f_i(a) - p_i(a) - \sum_{j,b} g_J(i,a;j,b)\,\mu_j(b),
 \]
 
-with \(C_{ij}(a,b) = f_{ij}(a,b) - f_i(a)f_j(b)\) the connected correlations. Then \(\sum_b g_J(i,a;j,b) = 0\): the coupling step has no one-site part, the field step carries all of it, and the trust region no longer has to stop the fields.
+with \(C_{ij}(a,b) = f_{ij}(a,b) - f_i(a)f_j(b)\) the connected correlations. Then \(\sum_b g_J(i,a;j,b) = 0\): the coupling step has no one-site part, the field step carries all of it, and the trust region no longer has to stop the fields. PCD steps along the same two directions with the single rate `--lr`.
 
 `lr_bias` and `lr_coupling` are \(\eta_h\) and \(\eta_J\); `kl` is \(K_{\rm pred}\) of the accepted step. It is a prediction of how much the model moves, not a measured error.
 

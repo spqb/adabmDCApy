@@ -33,9 +33,9 @@ The failures observed so far fall into three groups:
 | Error naming a link "below the target", with no immobile configurations | [F3](#f3-a-ladder-link-is-too-wide) | Smaller `--lr`, or larger `--ptt-target-acceptance` |
 | Error saying "every link accepts at least the target" | [F4](#f4-the-replicas-relax-too-slowly) | More `--nsweeps` |
 | Repeated `restored step …; learning rates …` lines, `lr_coupling` halving | F1, F3, F4 or F5 | Read the mixing-failure lines just before each recovery |
-| `kl` at 0.01 for most updates (and `lr_bias` at ~10⁻¹⁴ with `--no-ptt-centering`), with mixing failures or recoveries | [F5](#f5-the-learning-rate-is-too-large) | Treat the failures first; then a smaller `--lr` |
+| `kl` at 0.01 for most updates (and `lr_bias` at ~10⁻¹⁴ with `--no-centered-gradient`), with mixing failures or recoveries | [F5](#f5-the-learning-rate-is-too-large) | Treat the failures first; then a smaller `--lr` |
 | `kl` at 0.01 for most updates, training otherwise clean | The trust region binds; normal | Nothing |
-| `lr_bias` at ~10⁻¹⁴ for many updates, with `--no-ptt-centering` | The field steps are stopped, training is slow | Drop `--no-ptt-centering` ([why](training.md#centred-updates)) |
+| `lr_bias` at ~10⁻¹⁴ for many updates, with `--no-centered-gradient` | The field steps are stopped, training is slow | Drop `--no-centered-gradient` ([why](training.md#centred-updates)) |
 | Training finished, but independent samples disagree with training (Pearson, cluster shares), or the ladder health shows trapped links | [F6](#f6-good-metrics-miscalibrated-model) | Retrain with more `--nsweeps` |
 | PTT sampling warns that `G` stopped decreasing or its decay time doubled, or hits `--ptt-max-rounds` | [F7](#f7-slow-or-incomplete-ptt-sampling) | Usually a better training run |
 | "PTT initial mixing experiment exceeded its round budget" | [F8](#f8-the-initial-mixing-check-fails) | Check the input |
@@ -73,7 +73,7 @@ The failures observed so far fall into three groups:
 | `ll_val` | Rising, then flat; spikes up to 0.01 per site at ladder changes | Falling over hundreds of updates |
 | `acceptance_min` | Saw-tooth between ~0.25 and 0.5–0.9 | Long stretches below 0.25, or below 0.1 |
 | `replicas` | 2–3 | — |
-| `lr_bias`, `lr_coupling` | At `--lr`; below it when the trust region binds (with `--no-ptt-centering`, `lr_bias` at the floor instead) | Halved after recoveries |
+| `lr_bias`, `lr_coupling` | At `--lr`; below it when the trust region binds (with `--no-centered-gradient`, `lr_bias` at the floor instead) | Halved after recoveries |
 | `kl` | Below 0.01, or pinned at 0.01 when the trust region binds | Pinned at 0.01 together with mixing failures |
 | `lag_drift`, `lag_drift_tail` | Below ~0.05 most of the time | Peaks approaching 0.25 |
 
@@ -177,11 +177,11 @@ On a healthy protein run (cm_russ, `--nsweeps 100`): `validation_plateau`, no fa
 
 ### F5. The learning rate is too large
 
-**Symptoms.** Earlier and more frequent mixing failures and recoveries, while `kl` is pinned at 0.01. With `--no-ptt-centering`, `lr_bias` also sits at about 10⁻¹⁴.
+**Symptoms.** Earlier and more frequent mixing failures and recoveries, while `kl` is pinned at 0.01. With `--no-centered-gradient`, `lr_bias` also sits at about 10⁻¹⁴.
 
 **Mechanism.** The larger steps move the model faster than the chains can follow, making F1 and F3 more likely.
 
-A pinned `kl` alone is not a symptom, nor is the field rate at its floor with `--no-ptt-centering`: the raw coupling step repeats the field step, so a binding trust region stops the fields and fits them through the couplings, more slowly ([centred updates](training.md#centred-updates)).
+A pinned `kl` alone is not a symptom, nor is the field rate at its floor with `--no-centered-gradient`: the raw coupling step repeats the field step, so a binding trust region stops the fields and fits them through the couplings, more slowly ([centred updates](training.md#centred-updates)).
 
 **Fix.** Treat the mixing failures first (F1, F3). If they persist, use a smaller `--lr`.
 

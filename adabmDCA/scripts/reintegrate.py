@@ -53,6 +53,7 @@ def _config_from_args(args):
         dtype=args.dtype,
         use_wandb=args.wandb,
         **anchor_options(args),
+        centered_gradient=args.centered_gradient,
     )
 
 
