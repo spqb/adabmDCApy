@@ -46,4 +46,6 @@ result = model.score_sequences(["ACDEFGHIK", "ACDEYGHIK"], local_lambda=1.4)
 result.to_dataframe()                                                 # energy, cde_sum, local_free_energy
 ```
 
+As on the command line, the CDE and the local free energy are computed only when `local_lambda` is given; use the value fitted by a sampling run of the same model (`SamplingResult.local_lambda_fit["lambda"]`).
+
 Definitions: [energy](../quantities/model.md#potts-energy-and-probability) and [CDE](../quantities/derived.md#context-dependent-entropy).

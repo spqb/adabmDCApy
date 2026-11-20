@@ -141,13 +141,14 @@ class DCAModel:
 
         return compute_energies(sequences=sequences, model=self)
 
-    def score_sequences(self, sequences: str | Iterable[str], *, local_lambda: float = 1.0) -> EnergyResult:
+    def score_sequences(self, sequences: str | Iterable[str], *, local_lambda: float | None = None) -> EnergyResult:
         """Compute energy and CDE-based local free energy with sequence metadata.
 
         Args:
             sequences: One aligned sequence or an iterable of aligned
                 sequences compatible with this model.
-            local_lambda: Coefficient of summed CDE; defaults to 1.
+            local_lambda: Coefficient of summed CDE, fitted on equilibrium samples; ``None`` (default)
+                skips the CDE and the local free energy.
 
         Returns:
             An :class:`EnergyResult` containing the sequences, energy and

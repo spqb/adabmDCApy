@@ -63,7 +63,7 @@ result = score_sequences(fasta_path="candidates.fasta", model="model/params.dat.
 df = result.to_dataframe().sort_values("local_free_energy")   # best first
 ```
 
-- **Always pass lambda explicitly in Python.** `score_sequences` defaults to `local_lambda=1.0`, not to a fitted value; the CLI computes F only when `--local-lambda` is given.
+- **Pass the fitted lambda.** Without `local_lambda` (Python) or `--local-lambda` (CLI) only the energy is computed, with no CDE and no F. Versions before this change defaulted to `local_lambda=1.0` in Python; with them, always pass it.
 - Sequences must be aligned to the model (same length and alphabet; pass `alphabet=` for RNA without U, or custom tokens).
 - Compare F only **within one model**, like E. For different lengths or families divide by L, but prefer comparisons within one family.
 - Report E, CDE_sum and F together: a sequence can improve F by gaining local entropy while its energy gets worse, and the user should see which.

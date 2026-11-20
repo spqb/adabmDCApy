@@ -32,7 +32,7 @@ def test_score_without_lambda_omits_local_free_energy(tmp_path):
         "coupling_matrix": torch.zeros(2, 2, 2, 2),
     }
     model = DCAModel(params, alphabet="AB")
-    result = score_sequences(["AA"], model=model, local_lambda=None)
+    result = score_sequences(["AA"], model=model)  # no lambda: no CDE, as on the command line
 
     assert result.cde_sum is None
     assert result.local_free_energies is None

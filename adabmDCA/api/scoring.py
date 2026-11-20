@@ -66,14 +66,15 @@ def score_sequences(
     device: str = "auto",
     dtype: str = "float32",
     remove_duplicates: bool = False,
-    local_lambda: float | None = 1.0,
+    local_lambda: float | None = None,
 ) -> EnergyResult:
-    """Compute DCA energies of aligned sequences, with their local free energies.
+    """Compute DCA energies of aligned sequences and, with ``local_lambda``, their local free energies.
 
     Energies follow ``E(s) = -sum_i h_i(s_i) - sum_{i<j} J_ij(s_i, s_j)``: lower is
-    more probable under the model. Unless ``local_lambda`` is ``None``, each
-    sequence also gets its summed context-dependent entropy (CDE) and the local
-    free energy ``E - local_lambda * CDE``.
+    more probable under the model. When ``local_lambda`` is given, each sequence
+    also gets its summed context-dependent entropy (CDE) and the local free
+    energy ``E - local_lambda * CDE``. Use the ``lambda`` that a sampling run of
+    the same model fits (``SamplingResult.local_lambda_fit``).
 
     Args:
         sequences: One aligned sequence or an iterable of them, each of length
@@ -91,8 +92,10 @@ def score_sequences(
         dtype: ``"float32"`` or ``"float64"`` for loaded parameters. Ignored for an
             in-memory model.
         remove_duplicates: With ``fasta_path``, score each distinct sequence once.
-        local_lambda: Weight of the summed CDE in the local free energy, or
-            ``None`` to skip the CDE computation.
+        local_lambda: Weight of the summed CDE in the local free energy, fitted
+            on equilibrium samples of the model. ``None`` (default) skips the
+            CDE and the local free energy, as the command line does without
+            ``--local-lambda``.
 
     Returns:
         An :class:`EnergyResult` with one energy per sequence, in input order.
