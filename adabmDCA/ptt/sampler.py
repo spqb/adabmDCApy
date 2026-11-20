@@ -37,7 +37,6 @@ from adabmDCA.ptt.mixing import MixingEstimate, RenewalEstimate, process_replica
 from adabmDCA.ptt.precision import accumulation_dtype, device_accumulation, diagnostic_double
 from adabmDCA.cuda_kernels.sampling import sampling_profile_categorical
 from adabmDCA.statmech import compute_energy
-from adabmDCA.steering import SteeredKernel, Steering
 
 # Reservoir spacing checks per warmup length. Checked every whole warmup, the spacing was
 # typically twice the renewal time; a quarter cut 20-30 % of the training sweeps (RF00379, cm_russ).
@@ -249,15 +248,6 @@ class PTTSampler:
         # endpoint, decayed over ``config.lag_horizon`` updates. Carried with
         # configurations like lineages; see ``_record_endpoint_update``.
         self.lag_memory = None
-        # Generation-only steering (see ``prepare_steering``): rungs from
-        # ``steering_base`` up carry the endpoint parameters plus the potential
-        # at ``steering_strengths[k]``; ``steering_values[k]`` caches its value
-        # on the chains of rung k.
-        self.steering = None
-        self.steering_base = None
-        self.steering_strengths = None
-        self.steering_values = None
-        self._steering_kernels = None
         if self.config.reservoir_size is not None and self.config.reservoir_size < n_chains:
             raise InputValidationError("PTT reservoir_size must be at least n_chains.")
 
@@ -394,8 +384,6 @@ class PTTSampler:
             points.append(points[0])
         self.sampling_steps = [point["step"] for point in points]
         self.models = [_clone(point["params"]) for point in points]
-        self.steering = self.steering_base = self.steering_strengths = None
-        self.steering_values = self._steering_kernels = None
         self._replica_params_cache = None
         self.active_start = 0
         self.reservoir = self.temporary = self.held = None
@@ -431,16 +419,12 @@ class PTTSampler:
             k: v for k, v in self.__dict__.items()
             if k not in (
                 "recovery_points", "ptt_checkpoints", "_local_kernel", "_replica_kernel",
-                "_replica_params_cache", "_endpoint_samples_cache", "_exchange_kernel", "steering", "_steering_kernels",
+                "_replica_params_cache", "_endpoint_samples_cache", "_exchange_kernel",
                 "anchor",
             )
         })
         # The anchor is fixed for the life of the ladder: share it.
         result.anchor = getattr(self, "anchor", None)
-        # The steering potential is user code (possibly a large model): share it.
-        result.steering = getattr(self, "steering", None)
-        kernels = getattr(self, "_steering_kernels", None)
-        result._steering_kernels = None if kernels is None else [copy.copy(kernel) for kernel in kernels]
         result._install_kernels()
         result.ptt_checkpoints = list(self.ptt_checkpoints)
         result.recovery_points = []
@@ -629,16 +613,10 @@ class PTTSampler:
                                     values[k:k + 2] = moved[key]
                         continue
                     with timer.measure("exchange_seconds"):
-                        steered_pair = self._steered_pair(k)
-                        if steered_pair:
-                            log_a, cross = self._steered_exchange(k)
-                        else:
-                            log_a = exchange_kernel(
-                                self.models[k], self.models[k + 1], self.chains[k], self.chains[k + 1]
-                            )
+                        log_a = exchange_kernel(
+                            self.models[k], self.models[k + 1], self.chains[k], self.chains[k + 1]
+                        )
                         swap = torch.rand(len(log_a), device=self.device).log() < log_a
-                        if steered_pair:
-                            self._swap_steering_values(k, swap, cross)
                         acceptance[k - self.active_start] += device_accumulation(swap).mean().cpu()
                         saved = self.chains[k][swap].clone()
                         self.chains[k][swap] = self.chains[k + 1][swap]
@@ -663,8 +641,6 @@ class PTTSampler:
                                 birth[j] = birth[j][order]
                             if memory is not None:
                                 memory[j] = memory[j][order]
-                            if self.steering_values is not None and self.steering_values[j] is not None:
-                                self.steering_values[j] = self.steering_values[j][order]
                 with timer.measure("local_sampling_seconds"):
                     first_local = self.active_start
                     if first_local == 0 and self.reservoir is None:
@@ -675,10 +651,7 @@ class PTTSampler:
                         if memory is not None:
                             memory[0] = 0.0
                         first_local = 1
-                    local_indices = [k for k in range(first_local, len(self.models)) if not self._is_steered(k)]
-                    for k in range(first_local, len(self.models)):
-                        if self._is_steered(k):
-                            self._steered_local_update(k, local_sweeps)
+                    local_indices = list(range(first_local, len(self.models)))
                     use_replica_kernel = (
                         self._replica_kernel is not None
                         and len(local_indices) >= 2
@@ -832,11 +805,6 @@ class PTTSampler:
     @torch.no_grad()
     def _pair_works(self, k):
         """``W = E_{k+1} - E_k`` for the populations of replicas ``k`` and ``k + 1``."""
-        if self._steered_pair(k):
-            # Same DCA parameters on both rungs: only the potential differs.
-            lower_under_upper, upper_under_lower = self._steering_cross(k)
-            return (lower_under_upper - self._rung_values(k),
-                    self._rung_values(k + 1) - upper_under_lower)
         lower, upper = self.models[k], self.models[k + 1]
         if self.device.type == "mps":
             delta = {key: upper[key] - lower[key] for key in lower}
@@ -1259,7 +1227,7 @@ class PTTSampler:
         found = []
         for k in range(self.active_start + 1, len(self.models)):
             old = self.birth[k] < reference
-            if self._is_steered(k) or self._is_steered(k - 1) or not old.any():
+            if not old.any():
                 continue
             upper, lower = self.chains[k][old], self.chains[k - 1]
             acceptance = torch.zeros(len(upper), dtype=accumulation_dtype(self.device), device=self.device)
@@ -1830,8 +1798,8 @@ class PTTSampler:
             with the fields of the :class:`PartitionEstimate`.
         """
         estimate = self.partition_estimate(estimator)
-        mean_energy = float((device_accumulation(compute_energy(self.endpoint_samples(copy=False), self.models[-1]))
-                             + self._rung_values(len(self.models) - 1)).mean())
+        mean_energy = float(device_accumulation(
+            compute_energy(self.endpoint_samples(copy=False), self.models[-1])).mean())
         return {
             "entropy": mean_energy + estimate.log_z,
             "mean_energy": mean_energy,
@@ -1870,222 +1838,25 @@ class PTTSampler:
                 log_z_forward += forward
                 log_z += forward if estimator == "forward" else -float(bar(*self._pair_works(k - 1)))
             samples = _one_hot(self.chains[k], self.models[k])
-            mean_energy = float((device_accumulation(compute_energy(samples, self.models[k])) + self._rung_values(k)).mean())
-            if self._is_steered(k):
-                # The data likelihood of a steered rung would need the potential on
-                # the whole reference alignment; it is not part of the diagnostics.
-                likelihood = None
-            else:
-                # Categorical references are encoded in chunks: large alignments do
-                # not fit in memory as one one-hot tensor.
-                (reference_energy,) = (self._energies(reference, [self.models[k]]) if reference.ndim == 2
-                                       else (device_accumulation(compute_energy(reference, self.models[k])),))
-                likelihood = -float((reference_energy * weights).sum()) - log_z
+            mean_energy = float(device_accumulation(compute_energy(samples, self.models[k])).mean())
+            # Categorical references are encoded in chunks: large alignments do
+            # not fit in memory as one one-hot tensor.
+            (reference_energy,) = (self._energies(reference, [self.models[k]]) if reference.ndim == 2
+                                   else (device_accumulation(compute_energy(reference, self.models[k])),))
+            likelihood = -float((reference_energy * weights).sum()) - log_z
             rows.append({
                 "replica": k, "model_id": model_id(self.models[k]),
                 "log_z": log_z, "log_z_forward": log_z_forward, "log_z_estimator": estimator,
                 "mean_energy": mean_energy, "entropy": mean_energy + log_z,
                 "log_likelihood": likelihood,
-                "log_likelihood_per_residue": None if likelihood is None else likelihood / reference.shape[1],
-                "steering_strength": self._strength(k),
+                "log_likelihood_per_residue": likelihood / reference.shape[1],
                 "sample_round": self.rounds, "n_chains": len(self.chains[k]),
             })
         return rows
 
-    # Steering (generation only)
-
-    def _strength(self, k: int) -> float:
-        strengths = getattr(self, "steering_strengths", None)
-        return 0.0 if strengths is None else strengths[k]
-
-    def _is_steered(self, k: int) -> bool:
-        return self._strength(k) != 0.0
-
-    def _steered_pair(self, k: int) -> bool:
-        """Whether rungs ``k`` and ``k + 1`` belong to the steering ladder (same DCA parameters)."""
-        return getattr(self, "steering", None) is not None and k >= self.steering_base
-
-    def _rung_values(self, k: int) -> torch.Tensor | float:
-        """Cached potential of the chains of rung ``k`` (0 for unsteered rungs)."""
-        values = None if getattr(self, "steering_values", None) is None else self.steering_values[k]
-        return 0.0 if values is None else values
-
-    def _steering_cross(self, k: int) -> tuple[torch.Tensor, torch.Tensor]:
-        """``V(x_k, s_{k+1})`` and ``V(x_{k+1}, s_k)``: each population under its neighbour's strength."""
-        dtype = self.models[k]["bias"].dtype
-        return (self.steering(self.chains[k], self._strength(k + 1), dtype=dtype),
-                self.steering(self.chains[k + 1], self._strength(k), dtype=dtype))
-
-    def _steered_exchange(self, k: int) -> tuple[torch.Tensor, tuple[torch.Tensor, torch.Tensor]]:
-        lower_under_upper, upper_under_lower = self._steering_cross(k)
-        log_a = -(upper_under_lower + lower_under_upper - self._rung_values(k) - self._rung_values(k + 1))
-        return log_a.clamp_max(0.0), (lower_under_upper, upper_under_lower)
-
-    def _swap_steering_values(self, k: int, swap: torch.Tensor, cross) -> None:
-        """Move cached potentials with swapped configurations, re-evaluated at their new strength."""
-        lower_under_upper, upper_under_lower = cross
-        values = self.steering_values
-        if values[k] is not None:
-            values[k] = torch.where(swap, upper_under_lower, values[k])
-        values[k + 1] = torch.where(swap, lower_under_upper, values[k + 1])
-
-    def _steered_local_update(self, k: int, local_sweeps: int) -> None:
-        params = self.models[k]
-        chains, values = self._steering_kernels[k].run(
-            _one_hot(self.chains[k], params), params, local_sweeps, values=self.steering_values[k],
-        )
-        self.chains[k] = chains.argmax(-1).to(torch.int32)
-        self.steering_values[k] = values
-        self.local_sweeps += local_sweeps
-
     def _forward_increment(self, k: int) -> float:
         """Forward bridge estimate of ``log Z_{k+1} - log Z_k`` from the chains of rung ``k``."""
-        if not self._steered_pair(k):
-            return bridge_increment(self.models[k], self.models[k + 1], self.chains[k])
-        work = diagnostic_double(self._pair_works(k)[0])
-        return float(torch.logsumexp(-work, 0) - math.log(len(work)))
-
-    def _append_steered_rung(self, strength: float, proposal_steps: int | None) -> None:
-        base = self.steering_base
-        previous = self._steering_kernels[-1]
-        kernel = SteeredKernel(self.steering, strength, length=self.models[base]["bias"].shape[0],
-                               device=self.device, proposal_steps=proposal_steps)
-        if previous is not None and proposal_steps is None:
-            kernel.proposal_steps = previous.proposal_steps
-        chains = self.chains[-1].clone()
-        self.models.append(_clone(self.models[base]))
-        self.chains.append(chains)
-        self.lineage = torch.cat([self.lineage, torch.arange(
-            self.lineage.numel(), self.lineage.numel() + len(chains), device=self.device).unsqueeze(0)])
-        if self.birth is not None:
-            self.birth = torch.cat([self.birth, self.birth[-1:].clone()])
-        self.steering_strengths.append(float(strength))
-        self.steering_values.append(self.steering(chains, strength, dtype=self.models[base]["bias"].dtype))
-        self._steering_kernels.append(kernel)
-        self.sampling_steps.append(self.sampling_steps[base])
-        self.acceptance.append(1.0)
-        self._replica_params_cache = None
-
-    def _pop_steered_rung(self) -> None:
-        for name in ("models", "chains", "steering_strengths", "steering_values", "_steering_kernels",
-                     "sampling_steps", "acceptance"):
-            getattr(self, name).pop()
-        self.lineage = self.lineage[:-1]
-        if self.birth is not None:
-            self.birth = self.birth[:-1]
-        self._replica_params_cache = None
-
-    def prepare_steering(
-        self,
-        steering: Steering,
-        strength: float,
-        *,
-        proposal_steps: int | None = None,
-        target_acceptance: float = 0.3,
-        local_sweeps: int = 1,
-        trial_rounds: int = 20,
-        max_rungs: int = 64,
-        is_cancelled: Callable[[], bool] | None = None,
-        on_progress: Callable[..., None] | None = None,
-    ) -> list[float]:
-        """Extend the generation ladder with steered rungs up to ``strength``.
-
-        Every new rung has the endpoint's DCA parameters plus the steering
-        potential at a strength between 0 and ``strength``; the last one is at
-        ``strength`` and becomes the sampled endpoint. Rungs are placed one at a
-        time: a candidate strength is kept when, after ``trial_rounds`` rounds of
-        warmup and ``trial_rounds`` of measurement, the swap acceptance with the
-        rung below is at least ``target_acceptance``; otherwise the step is
-        halved. The bottom of the ladder, the exact profile, is unchanged, so
-        population renewal still certifies mixing. Proposal blocks of the steered
-        rungs adapt during placement and are then frozen.
-
-        Call after :meth:`prepare_sampling_ladder`. A steered ladder cannot be
-        saved with :meth:`save_archive`.
-
-        Args:
-            steering: The validated potential.
-            strength: Final steering strength.
-            proposal_steps: Site updates per steered proposal, or ``None`` to adapt.
-            target_acceptance: Smallest swap acceptance between adjacent steered rungs.
-            local_sweeps: Local sweeps per exchange round.
-            trial_rounds: Rounds of warmup, then of measurement, per candidate rung.
-            max_rungs: Largest number of steered rungs.
-            is_cancelled: Optional callable; returning ``True`` stops the run.
-            on_progress: Optional callback ``on_progress(stage, done, total, **details)``.
-
-        Returns:
-            The strengths of the steered rungs, increasing to ``strength``.
-
-        Raises:
-            InputValidationError: If the ladder is not a generation ladder, the
-                potential is invalid, or ``strength`` is 0.
-            ConvergenceError: If ``max_rungs`` rungs do not reach ``strength``.
-        """
-        from adabmDCA.exceptions import ConvergenceError
-
-        if self.mode != "generate" or not hasattr(self, "sampling_steps"):
-            raise InputValidationError("Call prepare_sampling_ladder before prepare_steering.")
-        if getattr(self, "steering", None) is not None:
-            raise InputValidationError("This ladder is already steered.")
-        if not math.isfinite(strength) or strength == 0.0:
-            raise InputValidationError("steering_strength must be finite and non-zero.")
-        validate_integer("trial_rounds", trial_rounds)
-        validate_integer("max_rungs", max_rungs)
-        if not 0.0 < target_acceptance < 1.0:
-            raise InputValidationError("The steering target acceptance must be between 0 and 1.")
-        steering.check_zero_strength(self.chains[-1][:16], dtype=self.models[-1]["bias"].dtype)
-        self.steering = steering
-        self.steering_base = len(self.models) - 1
-        self.steering_strengths = [0.0] * len(self.models)
-        self.steering_values = [None] * len(self.models)
-        self._steering_kernels = [None] * len(self.models)
-        reached, step, rungs = 0.0, 1.0, 0
-        while reached < 1.0:
-            if rungs >= max_rungs:
-                raise ConvergenceError(
-                    f"Steering needs more than {max_rungs} rungs to reach strength {strength}; "
-                    f"reached {reached * strength:.4g}.",
-                    details={"reached_strength": reached * strength, "max_rungs": max_rungs},
-                )
-            candidate = min(1.0, reached + step)
-            self._append_steered_rung(candidate * strength, proposal_steps)
-            self.advance(return_samples=False, rounds=trial_rounds, local_sweeps=local_sweeps, is_cancelled=is_cancelled)
-            self.advance(return_samples=False, rounds=trial_rounds, local_sweeps=local_sweeps, is_cancelled=is_cancelled)
-            acceptance = self.acceptance[-1]
-            if acceptance >= target_acceptance or step <= 2.0 ** -12:
-                reached, rungs = candidate, rungs + 1
-                if acceptance > 2 * target_acceptance:
-                    step *= 2.0
-                if on_progress is not None:
-                    on_progress("steering_ladder", rungs, max_rungs, strength=candidate * strength,
-                                acceptance=acceptance)
-            else:
-                self._pop_steered_rung()
-                step /= 2.0
-        for kernel in self._steering_kernels:
-            if kernel is not None:
-                kernel.freeze()
-        return [s for s in self.steering_strengths if s != 0.0]
-
-    def steering_log_z_ratio(self, estimator: str = "bar") -> float:
-        """Estimate ``log Z_s - log Z_0``: steered top rung against the unsteered endpoint.
-
-        ``-log_z_ratio`` is the free-energy cost of the steering, and
-        ``exp(log_z_ratio)`` equals ``<exp(-V(x, s))>`` under the unsteered model.
-
-        Args:
-            estimator: ``"bar"`` or ``"forward"`` bridges.
-
-        Returns:
-            The log ratio of partition functions.
-        """
-        if getattr(self, "steering", None) is None:
-            raise InputValidationError("This ladder is not steered.")
-        total = 0.0
-        for k in range(self.steering_base, len(self.models) - 1):
-            total += self._forward_increment(k) if estimator == "forward" else -float(bar(*self._pair_works(k)))
-        return total
+        return bridge_increment(self.models[k], self.models[k + 1], self.chains[k])
 
     def save_archive(self, path: str | Path) -> Path:
         """Write the complete sampler to an HDF5 archive, replacing ``path`` atomically.
@@ -2099,10 +1870,6 @@ class PTTSampler:
         Returns:
             The written path.
         """
-        if getattr(self, "steering", None) is not None:
-            raise InputValidationError(
-                "A steered generation ladder cannot be saved: its extra rungs are not part of the trained model."
-            )
         return save_archive(self, path)
 
     @classmethod

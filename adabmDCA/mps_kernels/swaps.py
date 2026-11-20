@@ -49,10 +49,9 @@ kernel void move_pair(
 
 
 def swaps_available(sampler, birth, memory):
-    """Select only the native categorical, unsteered MPS path."""
+    """Select only the native categorical MPS path."""
     if (sampler.device.type != 'mps' or not is_mps_available()
-            or os.environ.get('ADABMDCA_MPS_SWAPS', '1') == '0'
-            or sampler.steering is not None):
+            or os.environ.get('ADABMDCA_MPS_SWAPS', '1') == '0'):
         return False
     chains = sampler.chains
     n, length = chains[-1].shape

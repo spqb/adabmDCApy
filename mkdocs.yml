@@ -11,7 +11,7 @@ nav:
       - Split an alignment · split-data: usage/split-data.md
       - Train models · train: usage/train.md
       - Generate sequences · sample: usage/sample.md
-      - Steer sampling in Python: usage/steering.md
+      - Steered sampling: usage/steering.md
       - Score sequences · energies: usage/energies.md
       - Mutation scan · dms: usage/dms.md
       - Contact prediction · contacts: usage/contacts.md
@@ -33,7 +33,7 @@ nav:
       - Potts model and statistics: quantities/model.md
       - Training quantities: quantities/training.md
       - Sampling quantities: quantities/sampling.md
-      - Normalization, scoring and importance weights: quantities/derived.md
+      - Normalization and scoring: quantities/derived.md
       - The anchor: quantities/anchor.md
   - Python API:
       - Overview: api/index.md
@@ -47,7 +47,6 @@ nav:
       - PTT sampler: api/adabmDCA.ptt.sampler.md
       - Steering: api/adabmDCA.steering.sampling.md
       - Steering constraints: api/adabmDCA.steering.support.md
-      - Legacy steering callback: api/adabmDCA.steering.md
       - Scoring: api/adabmDCA.api.scoring.md
       - Comparison: api/adabmDCA.api.comparison.md
       - Contacts: api/adabmDCA.api.contacts.md

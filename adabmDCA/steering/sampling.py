@@ -209,34 +209,56 @@ def _masked_anchor(anchor, support):
     return type(anchor)(*parameters, tolerance=anchor.tolerance)
 
 
+def _bottom_anchor(anchor, support):
+    """The archived anchor on the hard support, exactly sampled, or None when no exact form exists.
+
+    Hamming windows restrict the anchor itself (:class:`WindowedAnchor`), so the
+    ladder starts on the steering support without a profile bridge. Windows whose
+    joint count table would be too large fall back to the profile.
+    """
+    if anchor is None:
+        return None
+    masked = _masked_anchor(anchor, support)
+    if not len(support.maximum):
+        return masked
+    from adabmDCA.anchor.window import WindowedAnchor
+
+    try:
+        return WindowedAnchor(masked, support.references, support.minimum, support.maximum, tokens=support.indices)
+    except ValueError as error:
+        raise InputValidationError(str(error)) from error
+    except RuntimeError:
+        return None
+
+
 def _make_ladder(config, backend, params, support, beta, fields, weights, ptt):
     target = PottsKernel(params, support)
     anchor = None if backend is None else backend.anchor
-    reference_kernel = target
-    if ptt and anchor is not None and len(support.references):
-        reference_kernel = PottsKernel(anchor.potts_params(params["bias"].dtype, target.device), support)
-    profile_fields = reference_kernel.bias.detach().cpu().double().numpy().copy()
-    # Approximate the first coupled rung with site conditionals at the
-    # reference. A narrow shell visits far fewer combinations than the
-    # full alphabet, where the raw fields need not be a useful bridge.
-    if len(support.references):
-        ref = support.references[0]
-        rows = reference_kernel.rows.detach().cpu().numpy()
-        profile_fields += rows[:, :, np.arange(support.length), ref].sum(axis=-1)
-    if not ptt:
-        profile = ExactProfile(beta * profile_fields - fields, support)
-        return [_Rung(target, beta, fields, weights, "target")], profile, None, None
+    exact_anchor = _bottom_anchor(anchor, support) if ptt else None
     zero = np.zeros_like(weights)
     empty = np.zeros_like(fields)
     points = [] if backend is None else sorted(backend.ptt_checkpoints, key=lambda point: point["step"])
     ladder = []
-    exact_anchor = _masked_anchor(anchor, support) if anchor is not None and not len(support.maximum) else None
+    profile = None
     if exact_anchor is not None:
         ladder.append(_Rung(PottsKernel(anchor.potts_params(params["bias"].dtype, params["bias"].device),
                                        support), 1, empty, zero, "archive anchor"))
         log_z0 = exact_anchor.log_z
-        profile = None
     else:
+        reference_kernel = target
+        if ptt and anchor is not None and len(support.references):
+            reference_kernel = PottsKernel(anchor.potts_params(params["bias"].dtype, target.device), support)
+        profile_fields = reference_kernel.bias.detach().cpu().double().numpy().copy()
+        # Approximate the first coupled rung with site conditionals at the
+        # reference. A narrow shell visits far fewer combinations than the
+        # full alphabet, where the raw fields need not be a useful bridge.
+        if len(support.references):
+            ref = support.references[0]
+            rows = reference_kernel.rows.detach().cpu().numpy()
+            profile_fields += rows[:, :, np.arange(support.length), ref].sum(axis=-1)
+        if not ptt:
+            profile = ExactProfile(beta * profile_fields - fields, support)
+            return [_Rung(target, beta, fields, weights, "target")], profile, None, None
         if backend is not None and anchor is None and points:
             profile_fields = points[0]["params"]["bias"].detach().cpu().double().numpy()
         bottom_params = {"bias": torch.as_tensor(profile_fields, device=target.device, dtype=params["bias"].dtype),
@@ -247,7 +269,7 @@ def _make_ladder(config, backend, params, support, beta, fields, weights, ptt):
         log_z0 = profile.log_z
     if backend is not None:
         usable = [point for point in points if point["step"] != backend.model_version
-                  and (point["step"] != 0 or (anchor is not None and not exact_anchor))]
+                  and (point["step"] != 0 or (anchor is not None and exact_anchor is None))]
         for point in usable:
             label = "restricted archive anchor" if point["step"] == 0 else f"archive step {point['step']}"
             ladder.append(_Rung(PottsKernel(point["params"], support), 1, empty, zero, label))
@@ -419,6 +441,13 @@ def _sample_steered_sequences(
                 states.append(support.indices[exact_anchor.sample(len(group), device=device).cpu().numpy()])
             return np.concatenate(states).astype(np.int32)
 
+    def proposal_score(states):
+        # Log weight, up to a constant, of the independence proposal of global moves.
+        if profile is not None:
+            return profile.fields[np.arange(length), states].sum(axis=1)
+        compact = np.searchsorted(support.indices, states)
+        return exact_anchor.score(torch.as_tensor(compact, device=exact_anchor.fields.device)).cpu().numpy()
+
     def evaluate(changed, indices):
         cache.evaluate([(ladder[i].states, ladder[i].values, changed[i], needed[i]) for i in indices])
 
@@ -513,8 +542,7 @@ def _sample_steered_sequences(
             energy = rung.kernel.energy(candidate)
             delta = rung.reduced(candidate, values[changed], energy) - rung.reduced()[changed]
             if global_move:
-                position = np.arange(length)
-                delta += (profile.fields[position, candidate] - profile.fields[position, rung.states[changed]]).sum(1)
+                delta += proposal_score(candidate) - proposal_score(rung.states[changed])
             accepted = np.log(random()[changed]) < -delta
             keep = changed[accepted]
             rung.states[keep], rung.values[keep], rung.energy[keep] = candidate[accepted], values[keep], energy[accepted]

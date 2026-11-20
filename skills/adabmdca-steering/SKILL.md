@@ -56,7 +56,7 @@ hard = sample_sequences(model="model/ptt.h5", ptt=True, steering=replace(config,
                         beta=1 / 0.3, n_sequences=1024, ptt_max_rounds=20000, seed=0)
 ```
 
-- **Hard constraints go in the kernel, not in a potential.** Windows and `allowed_tokens` mask each site update with running mismatch counts, so every update is accepted and no chain leaves the allowed set. A wall written as a callback, or the legacy `steering_potential`, cannot do this: a strength ladder needed ~3,400 rungs to reach a distance shell that the windows impose directly.
+- **Hard constraints go in the kernel, not in a potential.** Windows and `allowed_tokens` mask each site update with running mismatch counts, so every update is accepted and no chain leaves the allowed set. A wall written as a callback cannot do this: a strength ladder needed ~3,400 rungs to reach a distance shell that the windows impose directly. With PTT, the bottom rung is the archive's anchor restricted to the windows, drawn exactly, so no rungs sit below it.
 - **References** are aligned, model-length strings in the model alphabet. Check that the start sequences satisfy every window before running.
 - **Callbacks** receive aligned strings (or integer indices with `input="categorical"`), must be deterministic and return finite values, unweighted (the weight is in `WeightedPotential`). Values are cached (`cache_size`). Expensive callbacks dominate the cost: ViennaRNA took 92–97% of the wall time in the runs above, so keep weights moderate, set `block_steps` to the length so a proposal is a full sweep, and parallelize inside the callback.
 - **Temperature**: `beta` is a `sample_sequences` argument; it cools the Potts energy only, the biases keep their weights. `model="ptt.h5", ptt=True, beta=...` without `steering` uses a temperature ladder.
@@ -82,9 +82,5 @@ s["history"]["warmup"]             # rows with "round" and "observables" for plo
 - An entropy with `provisional: true` excludes warmup or overlap bias from its error bar.
 - Report the draws against the data with the PCA of the `adabmdca` skill (`compare_pca(train, steered_fasta)`), plus the distributions of energy, distances and callback values.
 - `production_spacing=0` returns a single snapshot at the end of warmup, with at most `chains` draws.
-
-## Legacy interface
-
-`sample_sequences(..., steering_potential=f, steering_strength=s)` tilts sampling by a soft potential and returns `log_importance_weights` to reweight back to the model. Use it only for gentle tilts where the steered and original distributions overlap (check `result.steering["effective_sample_size"]`); never for hard constraints or large weights.
 
 Full guide: https://spqb.github.io/adabmDCApy/usage/steering/ and the API reference of `adabmDCA.steering.sampling`.

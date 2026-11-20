@@ -1,4 +1,4 @@
-# Normalization, scoring and importance weights
+# Normalization and scoring
 
 ## Normalization and entropy
 
@@ -108,20 +108,14 @@ For a wild type \(x\) and its single mutant \(x'\) at position \(i\) (state \(a 
 
 and \(\log[p(x')/p(x)] = -\Delta E\): the partition function cancels. The sum over \(j\) makes the score depend on the background sequence. Interpreting \(\Delta E\) as fitness requires calibration on experimental data.
 
-## Steering and importance weights
+## Steered targets
 
-A steering potential \(V(x, s)\) with \(V(x, 0) = 0\) defines the target
-
-\[
-p_s(x) = \frac{e^{-\beta E(x) - V(x,s)}}{Z_s}.
-\]
-
-Each move proposes a block of Gibbs updates under the unsteered model, which leave \(p_0\) invariant, and accepts it with probability \(\min\{1, e^{-\Delta V}\}\); the result satisfies detailed balance with respect to \(p_s\). With PTT, rungs of increasing \(s\) are added above the endpoint.
-
-Averages under the original model follow from importance weights \(w(x) = p_0(x)/p_s(x) = e^{V(x,s)}\,Z_s/Z_0\):
+[Steered sampling](../usage/steering.md) samples, among the sequences allowed by the constraints \(\mathcal W\), the target
 
 \[
-\langle g\rangle_{p_0} \approx \frac{\sum_n e^{V(x_n,s)}\,g(x_n)}{\sum_n e^{V(x_n,s)}} .
+p_W(x) = \frac{e^{-u(x)}}{Z_W}, \qquad u(x) = \beta E(x) + \sum_k b_k\, d(x, r_k) + \sum_j \lambda_j V_j(x).
 \]
 
-`log_importance_weights` holds \(V(x_n, s) + \log(Z_s/Z_0)\) when PTT estimates the ratio (reported as `steering["log_z_ratio"]`), and otherwise \(V\) shifted so that the weights average to 1; the self-normalized average is the same. `steering["effective_sample_size"]` is \((\sum_n w_n)^2/\sum_n w_n^2\), in number of sequences. It measures the overlap between \(p_s\) and \(p_0\), not mixing or model quality; when it falls to a few sequences, the corrected averages rest on those few.
+`steering_potentials` holds \(u(x) - \beta E(x)\) for every returned sequence. With PTT and `entropy=True`, the ladder starts from the exactly known normalization of the anchor restricted to \(\mathcal W\) and adds the free-energy differences between rungs, so it gives \(\log Z_W\) and the entropy \(\langle u\rangle + \log Z_W\) of the target.
+
+Comparing two normalizations measures the steering itself. At \(\beta = 1\) with constraints only, \(Z_W / Z\) is the probability that the model gives to the allowed sequences, with \(\log Z\) from an unsteered run.

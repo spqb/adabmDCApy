@@ -77,11 +77,12 @@ def test_cold_constrained_weighted_sampling_and_entropy(ptt):
         assert estimate["entropy_nats"] == pytest.approx(log_z + probabilities @ reduced, abs=0.04)
 
 
-@pytest.mark.parametrize("restriction", ["none", "alphabet", "window"])
+@pytest.mark.parametrize("restriction", ["none", "alphabet", "window", "windows"])
 def test_archive_anchor_stays_on_ladder(tmp_path, restriction):
     model = small_model()
     allowed = None if restriction == "none" else "AB"
-    windows = (HammingWindow("AAAA", 1, 3),) if restriction == "window" else ()
+    windows = {"window": (HammingWindow("AAAA", 1, 3),),
+               "windows": (HammingWindow("AAAA", 1, 3), HammingWindow("ABAB", 0, 2))}.get(restriction, ())
     anchor = TreeLowRankPotts(
         model.params["bias"],
         torch.empty(4, 3, 0, dtype=torch.float64),
@@ -99,15 +100,13 @@ def test_archive_anchor_stays_on_ladder(tmp_path, restriction):
         ),
     )
     summary = result.steering
-    assert summary["exact_archive_anchor"] is (not bool(windows))
-    if windows:
-        assert summary["ladder"][:2] == ["exact profile", "restricted archive anchor"]
-    else:
-        assert summary["ladder"][0] == "archive anchor"
+    # Windows restrict the anchor itself: no profile and no bridge below it.
+    assert summary["exact_archive_anchor"]
+    assert summary["ladder"][0] == "archive anchor"
+    assert "exact profile" not in summary["ladder"]
     support = Support("-AB", 4, allowed, windows)
     _, energies = enumerated(DCAModel(params, alphabet="-AB"), support)
-    if not windows:
-        assert summary["entropy"]["anchor_log_z"] == pytest.approx(logsumexp(-energies))
+    assert summary["entropy"]["anchor_log_z"] == pytest.approx(logsumexp(-energies))
     if allowed is not None:
         assert all("-" not in sequence for sequence in result.sequences)
     assert summary["entropy"]["log_z"] == pytest.approx(logsumexp(-1.3 * energies), abs=0.055)

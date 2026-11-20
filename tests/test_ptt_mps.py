@@ -211,28 +211,6 @@ def test_unsupported_alphabet_falls_back():
     assert sampler.endpoint_samples().shape == (8, 2, q)
 
 
-@pytest.mark.parametrize('steering_input', ['onehot', 'sequences'])
-def test_steered_ptt_sampling(steering_input, tmp_path):
-    from adabmDCA.api.ptt import sample_ptt_sequences
-    from tests.test_steering import SEQUENCES, coupled, exact, onehot_potential, string_potential, total_variation
-
-    reference = tmp_path / 'reference.fasta'
-    reference.write_text(''.join(f'>s{i}\n{s}\n' for i, s in enumerate(SEQUENCES)))
-    parameters = mps(coupled())
-    anchor = {k: v.clone() for k, v in parameters.items()}
-    anchor['coupling_matrix'].zero_()
-    sampler = PTTSampler(anchor, tokens='AB', n_chains=2000, seed=1)
-    assert sampler.transition_target(parameters, local_sweeps=2)[0]
-    result = sample_ptt_sequences(source=sampler, n_sequences=4000, reference_fasta=reference,
-                                  local_sweeps=2, max_rounds=500, steering_strength=0.8,
-                                  steering_potential=onehot_potential if steering_input == 'onehot' else string_potential,
-                                  steering_input=steering_input, seed=7, no_reweighting=True)
-    probability, log_z = exact(0.8)
-    _, unsteered_z = exact(0)
-    assert total_variation(list(result.sequences), probability) < 0.045
-    assert result.steering['log_z_ratio'] == pytest.approx(log_z - unsteered_z, abs=0.06)
-
-
 @pytest.mark.parametrize('length,q', [(136, 5), (96, 21)])
 def test_exchange_family_sized_models(length, q):
     generator = torch.Generator().manual_seed(8)

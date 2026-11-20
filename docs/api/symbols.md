@@ -42,7 +42,6 @@
 - [`adabmDCA.cuda_kernels.sampling`](./adabmDCA.cuda_kernels.sampling.md#module-adabmdcacuda_kernelssampling)
 - [`adabmDCA.cuda_kernels.sampling_triton`](./adabmDCA.cuda_kernels.sampling_triton.md#module-adabmdcacuda_kernelssampling_triton): Optional Triton kernels for categorical GPU sampling.
 - [`adabmDCA.statmech`](./adabmDCA.statmech.md#module-adabmdcastatmech)
-- [`adabmDCA.steering`](./adabmDCA.steering.md#module-adabmdcasteering): Steered sampling: a user potential added to the DCA Hamiltonian.
 - [`adabmDCA.steering.sampling`](./adabmDCA.steering.sampling.md#module-adabmdcasteeringsampling): Sequence generation with compiled fields, hard support and weighted callbacks.
 - [`adabmDCA.steering.support`](./adabmDCA.steering.support.md#module-adabmdcasteeringsupport): Compiled Hamming costs, hard support, and an exactly sampled profile.
 - [`adabmDCA.stats`](./adabmDCA.stats.md#module-adabmdcastats)
@@ -110,8 +109,6 @@
 - [`mixing.RenewalForecast`](./adabmDCA.ptt.mixing.md#class-renewalforecast): Exponential fit of the old fraction G(t) of a renewal phase.
 - [`sampler.PTTSampler`](./adabmDCA.ptt.sampler.md#class-pttsampler): A Parallel Trajectory Tempering ladder: models, their chains and its own RNG.
 - [`sampler.PartitionEstimate`](./adabmDCA.ptt.sampler.md#class-partitionestimate): Estimate of the endpoint's log partition function, with its provenance.
-- [`steering.SteeredKernel`](./adabmDCA.steering.md#class-steeredkernel): Metropolis-Hastings kernel for `exp(-beta * H - V(·, strength))`.
-- [`steering.Steering`](./adabmDCA.steering.md#class-steering): A validated steering potential, evaluated on batches of chains.
 - [`sampling.SteeringConfig`](./adabmDCA.steering.sampling.md#class-steeringconfig): Define a structured steering target and its sampling diagnostics.
 - [`sampling.WeightedPotential`](./adabmDCA.steering.sampling.md#class-weightedpotential): Deterministic batch callback returning one finite unweighted cost per sequence.
 - [`support.ExactProfile`](./adabmDCA.steering.support.md#class-exactprofile): Suffix log partitions and independent samples from a constrained profile.
@@ -264,8 +261,6 @@
 - [`statmech.exchange_log_acceptance`](./adabmDCA.statmech.md#function-exchange_log_acceptance): Deterministic log Metropolis acceptance for Hamiltonian exchange.
 - [`statmech.get_cde`](./adabmDCA.statmech.md#function-get_cde): Compute per-site context-dependent entropy of one-hot sequences.
 - [`statmech.iterate_tap`](./adabmDCA.statmech.md#function-iterate_tap): Iterate the TAP equations up to the sweep limit.
-- [`steering.importance_summary`](./adabmDCA.steering.md#function-importance_summary): Log importance weights back to the unsteered model and their effective sample size.
-- [`steering.importance_warning`](./adabmDCA.steering.md#function-importance_warning): A warning when the importance weights are too concentrated to reweight reliably.
 - [`stats.compare_three_point_correlations`](./adabmDCA.stats.md#function-compare_three_point_correlations): Connected three-point correlations of data and samples on resolvable, not pairwise-implied triplets.
 - [`stats.extract_Cij_from_freq`](./adabmDCA.stats.md#function-extract_cij_from_freq): Extracts the lower triangular part of the covariance matrices of the natural data and generated data starting from the frequencies.
 - [`stats.extract_Cij_from_seqs`](./adabmDCA.stats.md#function-extract_cij_from_seqs): Extracts the lower triangular part of the covariance matrices of the natural data and generated data starting from the sequences.

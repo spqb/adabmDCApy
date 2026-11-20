@@ -633,23 +633,17 @@ class SamplingResult:
             alignment was given; ``privet`` holds the PRIVET fit and per-sample
             scores (also columns of :meth:`to_dataframe`).
         pca_explained_variance_ratio: Variance explained by each component.
-        steering_potentials: Steered sampling only: ``V(x, steering_strength)`` of
-            each sequence.
-        log_importance_weights: Steered sampling only: log weights that turn
-            averages over these sequences into averages under the unsteered model,
-            ``<g>_p = mean(exp(log_w) * g)``. PTT normalizes them with its estimate
-            of ``log Z_s - log Z_0``; ordinary sampling self-normalizes them to mean 1.
-        steering: Steering diagnostics. Structured steering includes ``history``
-            with pilot blocks, warmup rounds, retained production batches,
-            convergence checks, and running entropy estimates when requested.
-            The legacy callback reports its strength, proposal acceptance,
-            importance ESS, and for PTT its rung strengths and log Z ratio.
+        steering_potentials: Steered sampling only: the reduced energy that the
+            steering adds to ``beta * H`` for each sequence (Hamming biases and
+            weighted callback costs).
+        steering: Steering diagnostics, including ``history`` with pilot blocks,
+            warmup rounds, retained production batches, convergence checks, and
+            running entropy estimates when requested.
         ladder_samples: PTT with ``ptt_return_full_ladder`` only: ``sequences``
             ``(models, n, L)`` token indices of every ladder model, from the profile
             (first) to the endpoint (last, the same samples as ``sequences``),
             their ``energies`` ``(models, n)`` under their own model, ``tokens``,
-            the ``models`` rows of ``ptt_diagnostics`` and, when steered,
-            ``steering_potentials``. Written by :meth:`to_ladder_hdf5`.
+            and the ``models`` rows of ``ptt_diagnostics``. Written by :meth:`to_ladder_hdf5`.
     """
 
     sequences: tuple[str, ...]
@@ -677,7 +671,6 @@ class SamplingResult:
     data_comparison: dict[str, Any] = field(default_factory=dict)
     distance_comparison: dict[str, Any] = field(default_factory=dict)
     steering_potentials: np.ndarray | None = None
-    log_importance_weights: np.ndarray | None = None
     steering: dict[str, Any] = field(default_factory=dict)
     ladder_samples: dict[str, Any] | None = field(default=None, repr=False, compare=False)
     ptt_configurations: dict[str, Any] | None = field(default=None, repr=False, compare=False)
@@ -704,7 +697,6 @@ class SamplingResult:
                 "local_lambda_fit": self.local_lambda_fit,
                 "steering": self.steering,
                 "steering_potentials": self.steering_potentials,
-                "log_importance_weights": self.log_importance_weights,
                 "three_point_comparison": None if self.three_point is None else {
                     key: value for key, value in self.three_point.items()
                     if key not in ("triplets", "data", "samples", "z")
@@ -741,8 +733,6 @@ class SamplingResult:
             data["cde_sum"] = self.cde_sum
         if self.steering_potentials is not None:
             data["steering_potential"] = self.steering_potentials
-        if self.log_importance_weights is not None:
-            data["log_importance_weight"] = self.log_importance_weights
         privet = self.distance_comparison.get("privet")
         if privet:
             for key in ("log10_p_train", "log10_p_test", "delta_p"):
@@ -795,8 +785,7 @@ class SamplingResult:
         """Write the samples of every PTT ladder model as HDF5.
 
         The file holds ``sequences`` (uint8 token indices, ``(models, n, L)``),
-        ``energies`` (``(models, n)``, each under its own model) and, when
-        steered, ``steering_potentials``; the ``models`` group has one dataset
+        ``energies`` (``(models, n)``, each under its own model); the ``models`` group has one dataset
         per column of the ladder table (``training_step``, ``flag``, ``log_z``,
         ``log_likelihood``, ...), with ``NaN`` for missing values. Model 0 is the
         profile and the last model the endpoint. The root attributes give
@@ -825,9 +814,8 @@ class SamplingResult:
                 handle.attrs["tokens"] = ladder["tokens"]
                 handle.attrs["n_models"] = ladder["sequences"].shape[0]
                 handle.attrs["n_sequences"] = ladder["sequences"].shape[1]
-                for key in ("sequences", "energies", "steering_potentials"):
-                    if key in ladder:
-                        handle.create_dataset(key, data=ladder[key], compression="gzip")
+                for key in ("sequences", "energies"):
+                    handle.create_dataset(key, data=ladder[key], compression="gzip")
                 models = handle.create_group("models")
                 for column in ladder["models"][0]:
                     values = [row[column] for row in ladder["models"]]

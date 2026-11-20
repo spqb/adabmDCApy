@@ -142,4 +142,4 @@ The cluster numbers are recomputed for every run and do not correspond between p
 
 ## Steered sampling
 
-The [structured steering API](../usage/steering.md) enforces hard support on every rung, adds linear costs to the fields, and applies other costs through a block Metropolis correction. PTT connects the exact bottom model to the training checkpoints, then ramps the soft costs and inverse temperature above the endpoint. Warmup checks endpoint agreement and population renewal. The older callback interface supports [importance weighting](../quantities/derived.md#steering-and-importance-weights) for overlapping soft targets.
+The [structured steering API](../usage/steering.md) enforces hard support on every rung, adds linear costs to the fields, and applies other costs through a block Metropolis correction. PTT connects the exact bottom model to the training checkpoints, then ramps the soft costs and inverse temperature above the endpoint. Warmup checks endpoint agreement and population renewal.
