@@ -11,7 +11,6 @@ nav:
       - Split an alignment · split-data: usage/split-data.md
       - Train models · train: usage/train.md
       - Generate sequences · sample: usage/sample.md
-      - Steered sampling: usage/steering.md
       - Score sequences · energies: usage/energies.md
       - Mutation scan · dms: usage/dms.md
       - Contact prediction · contacts: usage/contacts.md
@@ -25,6 +24,7 @@ nav:
       - Input and reweighting: algorithms/input.md
       - Training: algorithms/training.md
       - Sampling: algorithms/sampling.md
+      - The anchor: algorithms/anchor.md
       - Diagnose a run: algorithms/diagnostics.md
       - Analysis: algorithms/analysis.md
       - Benchmarks: algorithms/benchmarks.md

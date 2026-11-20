@@ -90,4 +90,4 @@ ptt.h5
 
 You never need to open it yourself: pass it to `sample`, `entropy` or `train --ptt-resume`. Keep it as long as you may want to sample from the model with PTT; it cannot be rebuilt from `params.dat.gz`.
 
-For constrained or biased sequence generation, see the [Python steering guide](steering.md).
+For constrained or biased sequence generation, see the [steered sampling section](sample.md#steered-sampling-python).

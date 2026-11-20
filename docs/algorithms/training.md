@@ -30,7 +30,7 @@ Parallel Trajectory Tempering ([Béreux et al., 2026](https://arxiv.org/abs/2607
    ▲  fresh draws         ◄──── neighbouring populations exchange configurations ────►
 ```
 
-Rung 0 is the independent-site profile, a model with fields only that matches the single-site frequencies of the data, or for bmDCA the [anchor](../quantities/anchor.md), a coupled model fitted to the data (the default). Its sequences can be drawn exactly and its normalization is known. The other rungs are snapshots of the model saved during training, and the top rung is the current model. All rungs run at the same temperature; it is the parameters that change along the ladder.
+Rung 0 is the independent-site profile, a model with fields only that matches the single-site frequencies of the data, or for bmDCA the [anchor](anchor.md), a coupled model fitted to the data (the default). Its sequences can be drawn exactly and its normalization is known. The other rungs are snapshots of the model saved during training, and the top rung is the current model. All rungs run at the same temperature; it is the parameters that change along the ladder.
 
 Each rung holds its own population of chains. Neighbouring populations regularly attempt to **swap** configurations, with a Metropolis acceptance that keeps every rung at equilibrium for its own model. Configurations born at the bottom as exact draws can thus climb to the endpoint, carrying independent information that local moves alone would take very long to produce. Because neighbouring models are close, a swap is accepted often; because the snapshots were saved when the model was changing, they cover the path along which modes appeared.
 

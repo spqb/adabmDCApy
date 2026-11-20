@@ -83,4 +83,4 @@ s["history"]["warmup"]             # rows with "round" and "observables" for plo
 - Report the draws against the data with the PCA of the `adabmdca` skill (`compare_pca(train, steered_fasta)`), plus the distributions of energy, distances and callback values.
 - `production_spacing=0` returns a single snapshot at the end of warmup, with at most `chains` draws.
 
-Full guide: https://spqb.github.io/adabmDCApy/usage/steering/ and the API reference of `adabmDCA.steering.sampling`.
+Full guide: https://spqb.github.io/adabmDCApy/usage/sample/#steered-sampling-python, how the anchor is restricted in https://spqb.github.io/adabmDCApy/algorithms/anchor/, and the API reference of `adabmDCA.steering.sampling`.
