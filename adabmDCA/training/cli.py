@@ -443,8 +443,14 @@ def ptt_config_from_args(args: argparse.Namespace, *, validation: bool = False):
 
 
 def anchor_options(args: argparse.Namespace) -> dict:
-    """The --anchor and --anchor-rank given on the command line; omitted ones keep their defaults."""
-    options = {"anchor": getattr(args, "anchor", None), "anchor_rank": getattr(args, "anchor_rank", None)}
+    """The --anchor and --anchor-rank of the command line, where the anchor defaults to tree-low-rank.
+
+    The default stays recognizable as one, so it falls back to the profile where an anchor does not apply.
+    """
+    from adabmDCA.training.config import CLI_DEFAULT_ANCHOR
+
+    options = {"anchor": getattr(args, "anchor", None) or CLI_DEFAULT_ANCHOR,
+               "anchor_rank": getattr(args, "anchor_rank", None)}
     return {key: value for key, value in options.items() if value is not None}
 
 

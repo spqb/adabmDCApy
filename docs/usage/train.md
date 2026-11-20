@@ -171,4 +171,4 @@ print(result.stop_reason, result.converged, result.gradient_steps)
 history = result.history_dataframe()
 ```
 
-The Python defaults differ from the command line in two ways: training uses **PCD unless a `PTTConfig` is passed** as `ptt=`, and the validation stop is off unless requested with `PTTConfig(validation_stop=True)`. The other defaults are the same. More in [Python workflows](python.md#train).
+The Python defaults differ from the command line in three ways: training starts from the **profile unless `anchor=` names an anchor**, uses **PCD unless a `PTTConfig` is passed** as `ptt=`, and the validation stop is off unless requested with `PTTConfig(validation_stop=True)`. The other defaults are the same. More in [Python workflows](python.md#train).

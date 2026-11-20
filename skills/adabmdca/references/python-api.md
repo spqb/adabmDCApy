@@ -13,7 +13,7 @@ from adabmDCA import (load_alignment, load_model, inspect_model, train_model, sa
 
 - `train_model` trains with **PCD unless `ptt=PTTConfig(...)`** is passed.
 - The validation stop is off unless `PTTConfig(validation_stop=True)`.
-- bmDCA from scratch starts from the anchor, as on the command line: `anchor="tree-low-rank"` (default), `"low-rank"`, `"tree"` or `"profile"`, with `anchor_rank` (default 2), for PTT and PCD alike. They are arguments of `train_model` and fields of `TrainingConfig`, not of `PTTConfig`.
+- Unlike the command line, Python starts from the profile: pass `anchor="tree-low-rank"` (what the CLI uses), `"low-rank"` or `"tree"` for bmDCA from scratch, with `anchor_rank` (default 2), for PTT and PCD alike. They are arguments of `train_model` and fields of `TrainingConfig`, not of `PTTConfig`.
 - `sample_sequences` uses **plain MCMC unless `ptt=True`**, and `n_sequences` is required.
 - Workflow functions default to `alphabet="protein"`. Only `load_alignment` and `load_model` on a `ptt.h5` detect it. Pass `alphabet="rna"`, `"dna"` or a token string otherwise.
 
@@ -57,7 +57,7 @@ Function forms take `model=` a `DCAModel` or a path: `score_sequences(seqs, mode
 ```python
 result = train_model(
     "train.fasta", validation_path="validation.fasta", alphabet="rna",
-    ptt=PTTConfig(validation_stop=True),   # starts from the tree + low-rank anchor; see SKILL.md
+    ptt=PTTConfig(validation_stop=True), anchor="tree-low-rank",   # the CLI default; see SKILL.md
     output_dir="model", label="run1", device="auto", seed=0,
 )
 result.stop_reason, result.converged, result.gradient_steps, result.sweeps

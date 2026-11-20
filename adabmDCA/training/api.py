@@ -292,9 +292,10 @@ def train_model(
         dtype: Training precision, ``"float32"``, ``"float64"``, or
             ``"bfloat16"``.
         use_wandb: Enable Weights & Biases logging when output is configured.
-        anchor: The exactly sampled model training starts from: ``"tree-low-rank"``
-            (default), ``"low-rank"``, ``"tree"`` or ``"profile"``; see
-            :class:`TrainingConfig`. Applies to bmDCA trained from scratch.
+        anchor: The exactly sampled model training starts from: ``"profile"``
+            (default), ``"tree-low-rank"``, ``"low-rank"`` or ``"tree"``; see
+            :class:`TrainingConfig`. The command line defaults to ``"tree-low-rank"``.
+            Anchors other than the profile apply to bmDCA trained from scratch.
         anchor_rank: Hidden units of the low-rank anchors (1 to 3, default 2).
         allow_signed_weights: Permit signed input weights for experimental
             reintegration workflows.

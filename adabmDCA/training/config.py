@@ -47,7 +47,9 @@ DEFAULT_TARGET_DENSITY = 0.02
 DEFAULT_DECIMATION_RATE = 0.01
 DEFAULT_DEVICE = "auto"
 DEFAULT_DTYPE = "float32"
-DEFAULT_ANCHOR = _DefaultStr("tree-low-rank")
+DEFAULT_ANCHOR = _DefaultStr("profile")
+# The command line starts bmDCA from the tree + low-rank anchor unless told otherwise.
+CLI_DEFAULT_ANCHOR = _DefaultStr("tree-low-rank")
 DEFAULT_ANCHOR_RANK = _DefaultInt(2)
 
 DEFAULT_CHECKPOINT_INTERVAL = 500
@@ -103,13 +105,14 @@ class TrainingConfig:
             re-converge the model after each decimation.
         edge_empirical_pseudocount: edgeDCA: small pseudocount of the target
             statistics, which avoids zero frequencies.
-        anchor: The exactly sampled model training starts from: ``"tree-low-rank"`` (the Chow-Liu tree of
-            the data plus ``anchor_rank`` Gaussian hidden units), ``"low-rank"`` (the hidden units alone),
-            ``"tree"`` or ``"profile"`` (independent sites). It is fitted to the data before training. With PTT
+        anchor: The exactly sampled model training starts from: ``"profile"`` (independent sites, the
+            default here; the command line defaults to ``"tree-low-rank"``), ``"tree-low-rank"`` (the Chow-Liu
+            tree of the data plus ``anchor_rank`` Gaussian hidden units), ``"low-rank"`` (the hidden units
+            alone) or ``"tree"``. It is fitted to the data before training. With PTT
             it sits at the bottom of the ladder, which then needs fewer models; with PCD it gives the initial
             parameters, and exact samples of it the initial chains. Anchors other than the profile apply to
-            bmDCA trained from scratch; left at its default, the anchor falls back to the profile for the
-            sparse models, warm starts, PTT resumes and reintegration.
+            bmDCA trained from scratch; asking for one elsewhere (sparse models, warm starts, PTT resumes,
+            reintegration) is an error.
         anchor_rank: Number of hidden units of the low-rank anchors (1 to 3). Rank 3 fits a slightly
             better anchor than rank 2 but takes about ten times longer to fit.
         ptt: :class:`PTTConfig` to train with PTT, or ``None`` for PCD.

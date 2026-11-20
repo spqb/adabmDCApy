@@ -9,6 +9,7 @@ import torch
 
 from adabmDCA import PTTConfig, PTTSampler, train_model
 from adabmDCA.api import TrainingConfig
+from adabmDCA.training.config import CLI_DEFAULT_ANCHOR
 from adabmDCA.exceptions import InputValidationError
 from adabmDCA.anchor.lowrank import LowRankPotts, TargetMoments
 from adabmDCA.statmech import compute_energy
@@ -165,21 +166,23 @@ def test_ladder_starts_at_the_anchor_and_survives_an_archive(tmp_path, rank):
 def test_anchor_setting_is_validated_and_parsed():
     from adabmDCA.training.cli import anchor_options, create_parser
 
+    # Python starts from the profile, the command line from the tree + low-rank anchor.
     config = TrainingConfig()
-    assert config.anchor == "tree-low-rank" and config.anchor_rank == 2
-    assert TrainingConfig(ptt=PTTConfig()).anchor == "tree-low-rank"
+    assert config.anchor == "profile" and config.anchor_rank == 2
+    assert TrainingConfig(ptt=PTTConfig()).anchor == "profile"
+    assert TrainingConfig(anchor=CLI_DEFAULT_ANCHOR).anchor == "tree-low-rank"
     with pytest.raises(InputValidationError):
         TrainingConfig(anchor="spline")
     for rank in (0, 4):
         with pytest.raises(InputValidationError):
             TrainingConfig(anchor_rank=rank)
     # Left at its default the anchor falls back to the profile for the sparse models; asked for, it is an error.
-    assert TrainingConfig(model_type="eaDCA").anchor == "profile"
+    assert TrainingConfig(model_type="eaDCA", anchor=CLI_DEFAULT_ANCHOR).anchor == "profile"
     assert TrainingConfig(model_type="edDCA", anchor="profile").anchor == "profile"
     with pytest.raises(InputValidationError, match="bmDCA"):
         TrainingConfig(model_type="eaDCA", anchor="tree")
     base = ["-d", "x.fasta", "-o", "out"]
-    assert anchor_options(create_parser().parse_args(base)) == {}
+    assert anchor_options(create_parser().parse_args(base)) == {"anchor": "tree-low-rank"}
     assert anchor_options(create_parser().parse_args([*base, "--anchor", "low-rank", "--anchor-rank", "3"])) == {
         "anchor": "low-rank", "anchor_rank": 3}
     for removed in (["--ptt-anchor"], ["--anchor", "spline"]):
@@ -240,7 +243,7 @@ def test_the_default_anchor_falls_back_to_the_profile(tmp_path):
                             target_pearson=0.999999, no_reweighting=True, pseudocount=0.1, anchor="profile")
     first = train_model(path, config=config, output_dir=tmp_path / "first")
     events = []
-    warm = train_model(path, config=replace(config, anchor=TrainingConfig().anchor), stage_progress=events.append,
+    warm = train_model(path, config=replace(config, anchor=CLI_DEFAULT_ANCHOR), stage_progress=events.append,
                        initial_params_path=first.artifacts["params"])
     assert warm.config.anchor == "profile" and not events
     with pytest.raises(InputValidationError, match="warm start"):
