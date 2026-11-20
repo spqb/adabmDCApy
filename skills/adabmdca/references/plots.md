@@ -29,6 +29,6 @@ In this order:
 4. **`data_vs_samples.png`.** Share of each k-means cluster of the data, samples/data ratio on the label: ×0.8–×1.25 is typical of well-sampled models; read neighbouring clusters together (they trade samples across their boundary). Energy histograms: samples sit higher than training sequences (expected), only the shapes matter; a second peak or a much broader distribution points to a mode the data lack.
 5. **`ptt_ladder_health.png`** (PTT). Trapped-configuration bars: grey within chance, amber slow but renewed, red blocking renewal; a red title means renewal failed.
 6. **`distances.png`** (with `-v`). All-pair curves should coincide (samples as diverse as the family; shifted left means collapsed). Nearest-training distance of generated (orange) should not sit left of held-out (green), with no pile at zero. Generated slightly farther than held-out is normal with reweighting.
-7. **`energy_vs_cde.png`.** Energy against summed context-dependent entropy; the fitted slope λ is the `--local-lambda` for local free energies.
+7. **`energy_vs_cde.png`.** Energy against summed context-dependent entropy; the fitted slope λ is the `--local-lambda` for local free energies (see the `adabmdca-local-free-energy` skill); it is valid only if the sampling converged.
 
 The cluster numbers of `data_vs_samples.png` are recomputed for every run and do not correspond between plots.
