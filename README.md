@@ -20,7 +20,7 @@ A Potts model is only as good as the Monte Carlo chains used to train and sample
 
 By default, adabmDCA trains and samples with **Parallel Trajectory Tempering (PTT)**. PTT keeps a ladder of models saved along the training trajectory, from an independent-site profile that can be sampled exactly up to the current model. Configurations swap along this ladder, so fresh, independent ones keep reaching the top, and built-in checks verify that the ladder keeps mixing ([Béreux et al., 2026](https://arxiv.org/abs/2607.27077)). Because the bottom of the ladder has an exactly known normalization, PTT also gives a reliable estimate of the model's partition function. This enables online tracking of the training and validation log-likelihood, and an estimate of the model's entropy. The faster persistent contrastive divergence (`--strategy pcd`) remains available for families without strong cluster structure.
 
-For bmDCA, the ladder can start from a tractable **anchor** model instead of the profile (`--ptt-anchor`). The anchor is fitted to the data before training, sampled exactly and has a known normalization, like the profile, but it already captures part of the correlations, so the ladder needs fewer models. It builds on the exactly sampled low-rank models of [Béreux et al., ICLR 2025](https://proceedings.iclr.cc/paper_files/paper/2025/hash/4fe1859112230a032c7143a9adc3be78-Abstract-Conference.html).
+bmDCA training starts by default from a tractable **anchor** model instead of the profile (`--anchor`, default `tree-low-rank`). The anchor is fitted to the data before training, sampled exactly and has a known normalization, like the profile, but it already captures part of the correlations. With PTT it sits at the bottom of the ladder, which then needs fewer models; with PCD it gives the initial parameters and chains. It builds on the exactly sampled low-rank models of [Béreux et al., ICLR 2025](https://proceedings.iclr.cc/paper_files/paper/2025/hash/4fe1859112230a032c7143a9adc3be78-Abstract-Conference.html).
 
 On three large protein families, plain Monte Carlo sampling of trained models did not reach equilibrium within 10,000 sweeps, while PTT samples reproduced every cluster of the data.
 
@@ -143,7 +143,7 @@ and `beta > 1`, the API builds a temperature ladder even without another bias.
 
 The steering summary records rank-normalized split R-hat and ESS on
 independent group-mean traces. PTT also tracks refresh from the exact bottom
-of the ladder. A PTT archive trained with `--ptt-anchor` uses its exact anchor
+of the ladder. A PTT archive trained from an anchor other than the profile uses its exact anchor
 at the bottom for unrestricted or alphabet-only support. Joint Hamming
 windows use an exact constrained profile at the bottom and keep the restricted
 training anchor on the ladder. PTT entropy uses adjacent Bennett ratios and
@@ -180,7 +180,7 @@ plt.ylabel("Mean reduced energy")
 
 ## Use with AI agents
 
-[`skills/adabmdca`](skills/) is an Agent Skill that teaches coding agents such as Claude Code or Codex to run adabmDCA and check its results. Copy it to `~/.claude/skills/` (or your agent's skills folder); see [skills/README.md](skills/README.md).
+[`skills/adabmdca`](skills/) is an Agent Skill that teaches coding agents such as Claude Code or Codex to run adabmDCA and check its results, and `skills/adabmdca-steering` and `skills/adabmdca-local-free-energy` add steered generation and local free energies. Copy them to `~/.claude/skills/` (or your agent's skills folder); see [skills/README.md](skills/README.md).
 
 ## Documentation
 
@@ -219,7 +219,7 @@ If you use adabmDCA in your research, please cite:
 - Parallel Trajectory Tempering, when you train or sample with PTT:
   N. Béreux, A. Decelle, C. Furtlehner and B. Seoane, *Equilibrium training of energy-based models with Parallel Trajectory Tempering*, arXiv:2607.27077 (2026). [arXiv:2607.27077](https://arxiv.org/abs/2607.27077)
 
-- The anchor, when you train with `--ptt-anchor`:
+- The anchor, when you train bmDCA with its default `--anchor` or another low-rank anchor:
   N. Béreux, A. Decelle, C. Furtlehner, L. Rosset and B. Seoane, *Fast training and sampling of Restricted Boltzmann Machines*, ICLR 2025. [Proceedings](https://proceedings.iclr.cc/paper_files/paper/2025/hash/4fe1859112230a032c7143a9adc3be78-Abstract-Conference.html)
 
 ## License

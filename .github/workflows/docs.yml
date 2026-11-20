@@ -56,6 +56,7 @@ jobs:
           adabmDCA.preprocessing \
           adabmDCA.training.config \
           adabmDCA.training.control \
+          adabmDCA.api.comparison \
           adabmDCA.api.contacts \
           adabmDCA.api.diagnostics \
           adabmDCA.api.entropy \

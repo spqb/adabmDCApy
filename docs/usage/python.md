@@ -10,6 +10,7 @@ from adabmDCA import (load_alignment, load_model, train_model, sample_sequences,
 !!! warning "Defaults that differ from the command line"
     - `train_model` and `sample_sequences` use **PCD / plain MCMC unless asked for PTT** (`ptt=PTTConfig()` for training, `ptt=True` for sampling).
     - The validation stop is off unless `PTTConfig(validation_stop=True)`.
+    - `train_model` starts bmDCA from the **profile unless `anchor=` names an anchor** (`"tree-low-rank"`, the command-line default, `"low-rank"` or `"tree"`).
     - Workflow functions default to `alphabet="protein"`; only `load_alignment` and `load_model` on a PTT archive detect it. Pass `alphabet=` for RNA, DNA or custom data.
 
 ## Alignments
@@ -168,6 +169,21 @@ Use `SteeringConfig` to pass hard distance windows, linear Hamming biases, or
 batched costs to `sample_sequences`. The
 [steering guide](steering.md) shows fixed-model PCD, PTT with a callback,
 and how to plot warmup from the returned history.
+
+### Comparing other sequences with the data
+
+`compare_pca` draws the PCA figures of a sampling run for any set of
+sequences, for example from another generator or an experiment. The
+components are fitted on the natural sequences, drawn with their weights,
+and the other set is projected on them:
+
+```python
+from adabmDCA import compare_pca
+
+comparison = compare_pca("train.fasta", "generated.fasta")
+comparison.save_plots("comparison")          # pca_1_2.png and pca_3_4.png
+fig = comparison.plot(components=(0, 1), labels=("Natural", "Designed"))
+```
 
 ## Other workflows
 

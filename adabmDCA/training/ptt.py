@@ -32,8 +32,9 @@ def _resume_settings(config_or_settings):
     """Return numerical PTT settings after removing runtime and token aliases."""
     settings = config_or_settings.as_dict() if hasattr(config_or_settings, "as_dict") else dict(config_or_settings)
     # slope_tolerance: removed setting, still present in archives written before 2.1.
+    # The anchor of a resumed run is the one stored in the archive.
     for name in ("max_epochs", "max_gradient_steps", "max_structure_steps", "checkpoint_interval", "use_wandb",
-                 "alphabet", "slope_tolerance"):
+                 "alphabet", "slope_tolerance", "anchor", "anchor_rank"):
         settings.pop(name, None)
     return settings
 

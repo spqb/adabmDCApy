@@ -18,7 +18,7 @@ On a GPU, an independent sample (one energy correlation time) of the cm_russ mod
 
 ## Plain MCMC
 
-`sample --strategy pcd` runs independent chains on the final model.
+`sample --strategy mcmc` runs independent chains on the final model.
 
 **Measuring the mixing time.** With a reference alignment (`-d`), it first starts chains from natural sequences and follows two quantities as a function of time \(t\):
 

@@ -6,14 +6,14 @@ Everything the CLI does is a function of `adabmDCA`; the commands are thin wrapp
 from adabmDCA import (load_alignment, load_model, inspect_model, train_model, sample_sequences,
                       PTTConfig, TrainingConfig, PTTSampler, estimate_ptt_entropy, estimate_entropy,
                       predict_contacts, scan_mutations, score_sequences, split_alignment,
-                      preprocess_alignment, reintegrate_model, AdabmDCAError, OperationCancelledError)
+                      preprocess_alignment, reintegrate_model, compare_pca, AdabmDCAError, OperationCancelledError)
 ```
 
 ## Defaults that differ from the CLI
 
 - `train_model` trains with **PCD unless `ptt=PTTConfig(...)`** is passed.
 - The validation stop is off unless `PTTConfig(validation_stop=True)`.
-- The anchor is off unless `PTTConfig(anchor=True)` (rank: `anchor_rank`, default 2); use it for bmDCA from scratch.
+- Unlike the command line, Python starts from the profile: pass `anchor="tree-low-rank"` (what the CLI uses), `"low-rank"` or `"tree"` for bmDCA from scratch, with `anchor_rank` (default 2), for PTT and PCD alike. They are arguments of `train_model` and fields of `TrainingConfig`, not of `PTTConfig`.
 - `sample_sequences` uses **plain MCMC unless `ptt=True`**, and `n_sequences` is required.
 - Workflow functions default to `alphabet="protein"`. Only `load_alignment` and `load_model` on a `ptt.h5` detect it. Pass `alphabet="rna"`, `"dna"` or a token string otherwise.
 
@@ -57,7 +57,7 @@ Function forms take `model=` a `DCAModel` or a path: `score_sequences(seqs, mode
 ```python
 result = train_model(
     "train.fasta", validation_path="validation.fasta", alphabet="rna",
-    ptt=PTTConfig(validation_stop=True, anchor=True),   # anchor: see SKILL.md
+    ptt=PTTConfig(validation_stop=True), anchor="tree-low-rank",   # the CLI default; see SKILL.md
     output_dir="model", label="run1", device="auto", seed=0,
 )
 result.stop_reason, result.converged, result.gradient_steps, result.sweeps
@@ -114,6 +114,8 @@ res.save_diagnostic_plots("samples")                        # the --plot-samplin
 res.to_ladder_hdf5("samples/ladder_samples.h5")             # needs ptt_return_full_ladder=True
 ```
 
+Sequences from elsewhere (another generator, an experiment): `compare_pca("train.fasta", "other.fasta").save_plots("cmp")` gives the same PCA figures; see [comparison.md](comparison.md).
+
 When a `ptt.h5` exists, always sample it as above with `ptt=True`. Plain MCMC (only without an archive): pass a `DCAModel` or parameter file and leave `ptt=False`; `n_sweeps` bounds the mixing-time measurement and `mixing_multiplier` (2) sets the generation length.
 
 Reuse one archive for several operations without reloading:
@@ -127,21 +129,7 @@ health = backend.ladder_health()
 
 ### Steered sampling (Python only)
 
-Bias sampling toward a property with a potential V(x, s) (low V favoured, V = 0 at s = 0), then reweight back to the model:
-
-```python
-import numpy as np
-def gc_potential(sequences, strength):
-    gc = np.array([sum(c in "GC" for c in s) / max(1, len(s.replace("-", ""))) for s in sequences])
-    return -strength * gc
-
-st = sample_sequences(model="model/ptt.h5", ptt=True, alphabet="rna", n_sequences=1000,
-                      steering_potential=gc_potential, steering_strength=20.0)
-st.steering["effective_sample_size"]          # if only a few, corrected averages are unreliable
-w = np.exp(st.log_importance_weights - st.log_importance_weights.max())
-```
-
-`steering_input="onehot"` passes an `(n, L, q)` tensor instead of strings.
+Constraints (substitution windows, allowed letters), Hamming biases, scoring callbacks, low temperature and the steered entropy go through `SteeringConfig`; the separate `adabmdca-steering` skill covers them, including when to use plain MCMC and when PTT.
 
 ## Entropy and reintegration
 

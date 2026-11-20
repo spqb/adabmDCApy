@@ -28,6 +28,7 @@ class _DefaultStr(str):
 
 MODEL_TYPES = ("bmDCA", "eaDCA", "edDCA", "edgeDCA")
 SAMPLERS = ("metropolis", "gibbs", "metropolized_gibbs")
+ANCHORS = ("tree-low-rank", "low-rank", "tree", "profile")
 
 DEFAULT_MODEL_TYPE = "bmDCA"
 DEFAULT_ALPHABET = "protein"
@@ -46,6 +47,10 @@ DEFAULT_TARGET_DENSITY = 0.02
 DEFAULT_DECIMATION_RATE = 0.01
 DEFAULT_DEVICE = "auto"
 DEFAULT_DTYPE = "float32"
+DEFAULT_ANCHOR = _DefaultStr("profile")
+# The command line starts bmDCA from the tree + low-rank anchor unless told otherwise.
+CLI_DEFAULT_ANCHOR = _DefaultStr("tree-low-rank")
+DEFAULT_ANCHOR_RANK = _DefaultInt(2)
 
 DEFAULT_CHECKPOINT_INTERVAL = 500
 # Compatibility alias: all training models now share the same default.
@@ -100,6 +105,16 @@ class TrainingConfig:
             re-converge the model after each decimation.
         edge_empirical_pseudocount: edgeDCA: small pseudocount of the target
             statistics, which avoids zero frequencies.
+        anchor: The exactly sampled model training starts from: ``"profile"`` (independent sites, the
+            default here; the command line defaults to ``"tree-low-rank"``), ``"tree-low-rank"`` (the Chow-Liu
+            tree of the data plus ``anchor_rank`` Gaussian hidden units), ``"low-rank"`` (the hidden units
+            alone) or ``"tree"``. It is fitted to the data before training. With PTT
+            it sits at the bottom of the ladder, which then needs fewer models; with PCD it gives the initial
+            parameters, and exact samples of it the initial chains. Anchors other than the profile apply to
+            bmDCA trained from scratch; asking for one elsewhere (sparse models, warm starts, PTT resumes,
+            reintegration) is an error.
+        anchor_rank: Number of hidden units of the low-rank anchors (1 to 3). Rank 3 fits a slightly
+            better anchor than rank 2 but takes about ten times longer to fit.
         ptt: :class:`PTTConfig` to train with PTT, or ``None`` for PCD.
 
     Raises:
@@ -136,9 +151,19 @@ class TrainingConfig:
     checkpoint_interval: int | None = DEFAULT_CHECKPOINT_INTERVAL
     inner_gradient_steps: int = DEFAULT_INNER_GRADIENT_STEPS
     edge_empirical_pseudocount: float = EDGE_EMPIRICAL_PSEUDOCOUNT
+    anchor: str = DEFAULT_ANCHOR
+    anchor_rank: int = DEFAULT_ANCHOR_RANK
     ptt: PTTConfig | None = None
 
     def __post_init__(self) -> None:
+        if self.anchor not in ANCHORS:
+            raise ConfigurationError(f"anchor must be one of {ANCHORS}.")
+        validate_integer("anchor_rank", self.anchor_rank, maximum=3)
+        explicit_anchor = not isinstance(self.anchor, _DefaultStr)
+        if self.anchor != "profile" and self.model_type != "bmDCA":
+            if explicit_anchor:
+                raise ConfigurationError("Anchors other than the profile apply to bmDCA only.")
+            object.__setattr__(self, "anchor", _DefaultStr("profile"))
         if self.ptt is not None:
             if not isinstance(self.ptt, PTTConfig):
                 raise ConfigurationError("ptt must be a PTTConfig instance.")

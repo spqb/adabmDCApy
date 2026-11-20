@@ -9,8 +9,9 @@ import torch
 
 from adabmDCA import PTTConfig, PTTSampler, train_model
 from adabmDCA.api import TrainingConfig
+from adabmDCA.training.config import CLI_DEFAULT_ANCHOR
 from adabmDCA.exceptions import InputValidationError
-from adabmDCA.anchor.lowrank import TargetMoments
+from adabmDCA.anchor.lowrank import LowRankPotts, TargetMoments
 from adabmDCA.statmech import compute_energy
 from adabmDCA.anchor.anchor import TreeLowRankPotts, _lattice_sum, chow_liu_tree, fit_tree_low_rank_potts
 
@@ -163,52 +164,93 @@ def test_ladder_starts_at_the_anchor_and_survives_an_archive(tmp_path, rank):
 
 
 def test_anchor_setting_is_validated_and_parsed():
-    from adabmDCA.training.cli import create_parser, ptt_config_from_args
+    from adabmDCA.training.cli import anchor_options, create_parser
 
-    assert not PTTConfig().anchor and PTTConfig().anchor_rank == 2
+    # Python starts from the profile, the command line from the tree + low-rank anchor.
+    config = TrainingConfig()
+    assert config.anchor == "profile" and config.anchor_rank == 2
+    assert TrainingConfig(ptt=PTTConfig()).anchor == "profile"
+    assert TrainingConfig(anchor=CLI_DEFAULT_ANCHOR).anchor == "tree-low-rank"
     with pytest.raises(InputValidationError):
-        PTTConfig(anchor=1)
+        TrainingConfig(anchor="spline")
     for rank in (0, 4):
         with pytest.raises(InputValidationError):
-            PTTConfig(anchor=True, anchor_rank=rank)
-    base = ["-d", "x.fasta", "-o", "out", "--strategy", "ptt"]
-    config = ptt_config_from_args(create_parser().parse_args([*base, "--ptt-anchor"]))
-    assert config.anchor and config.anchor_rank == 2
-    config = ptt_config_from_args(create_parser().parse_args([*base, "--ptt-anchor", "--ptt-anchor-rank", "3"]))
-    assert config.anchor and config.anchor_rank == 3
-    with pytest.raises(InputValidationError, match="--ptt-anchor"):
-        ptt_config_from_args(create_parser().parse_args([*base, "--ptt-anchor-rank", "3"]))
+            TrainingConfig(anchor_rank=rank)
+    # Left at its default the anchor falls back to the profile for the sparse models; asked for, it is an error.
+    assert TrainingConfig(model_type="eaDCA", anchor=CLI_DEFAULT_ANCHOR).anchor == "profile"
+    assert TrainingConfig(model_type="edDCA", anchor="profile").anchor == "profile"
+    with pytest.raises(InputValidationError, match="bmDCA"):
+        TrainingConfig(model_type="eaDCA", anchor="tree")
+    base = ["-d", "x.fasta", "-o", "out"]
+    assert anchor_options(create_parser().parse_args(base)) == {"anchor": "tree-low-rank"}
+    assert anchor_options(create_parser().parse_args([*base, "--anchor", "low-rank", "--anchor-rank", "3"])) == {
+        "anchor": "low-rank", "anchor_rank": 3}
+    for removed in (["--ptt-anchor"], ["--anchor", "spline"]):
+        with pytest.raises(SystemExit):
+            create_parser().parse_args([*base, *removed])
 
 
-def test_training_starts_from_the_anchor(tmp_path):
+def _alignment(tmp_path):
     path = tmp_path / "data.fasta"
     sequences = ["AAAA", "AAAB", "AABA", "BBBB", "BBBA", "BBAB", "ABAB"]
     path.write_text("".join(f">s{i}\n{seq}\n" for i, seq in enumerate(sequences)))
+    return path
+
+
+@pytest.mark.parametrize(("kind", "rank", "model_class"), [("tree-low-rank", 1, TreeLowRankPotts),
+                                                           ("low-rank", 1, LowRankPotts),
+                                                           ("tree", 0, TreeLowRankPotts)])
+def test_ptt_training_starts_from_the_anchor(tmp_path, kind, rank, model_class):
+    path = _alignment(tmp_path)
     config = TrainingConfig(
         alphabet="AB", device="cpu", dtype="float64", n_chains=60, n_sweeps=1, max_epochs=3,
-        target_pearson=0.999999, no_reweighting=True, pseudocount=0.1,
+        target_pearson=0.999999, no_reweighting=True, pseudocount=0.1, anchor=kind, anchor_rank=max(rank, 1),
         ptt=PTTConfig(equilibration_rounds=2, initialization_rounds=2, mixing_thermalization_rounds=2,
-                      mixing_chains=20, anchor=True, anchor_rank=1),
+                      mixing_chains=20),
         checkpoint_interval=1,
     )
     events = []
     result = train_model(path, config=config, output_dir=tmp_path / "out", stage_progress=events.append)
     fit = [event for event in events if event.stage == "anchor_fit"]
-    assert [event.kind for event in fit[:2]] == ["start", "progress"] and fit[-1].kind == "event"
+    assert fit[0].kind == "start" and fit[-1].kind == "event"
     summary = fit[-1].details
-    assert summary["rank"] == 1 and summary["cells"] > 0 and 0 < summary["acceptance"] <= 1
+    assert summary["anchor"] == kind and summary["rank"] == rank and 0 < summary["acceptance"] <= 1
+    assert (summary["cells"] > 0) == (rank > 0)
     assert summary["log_likelihood"] > summary["profile_log_likelihood"]
     loaded = PTTSampler.from_archive(result.artifacts["ptt_archive"], device="cpu", mode="inspect")
-    assert isinstance(loaded.anchor, TreeLowRankPotts) and loaded.anchor.rank == 1
-    assert loaded.config.anchor and loaded.config.anchor_rank == 1
+    assert type(loaded.anchor) is model_class and loaded.anchor.rank == rank
     assert torch.count_nonzero(loaded.profile_params["coupling_matrix"])
-    with pytest.raises(InputValidationError, match="bmDCA"):
-        train_model(path, config=replace(config, model_type="eaDCA"), output_dir=tmp_path / "ea")
 
 
-@pytest.mark.parametrize(("legacy", "rank"), [({"anchor_rank": 3}, 3), ({"anchor_rank": 0, "anchor_tree": True}, 2),
-                                              ({"anchor_rank": 0}, 2)])
-def test_archives_with_the_former_anchor_options_load(tmp_path, legacy, rank):
+def test_pcd_training_starts_from_the_anchor(tmp_path):
+    path = _alignment(tmp_path)
+    # A negligible learning rate keeps the model at the anchor: couplings on the tree only.
+    config = TrainingConfig(alphabet="AB", device="cpu", dtype="float64", n_chains=50, n_sweeps=1, max_epochs=2,
+                            target_pearson=0.999999, no_reweighting=True, pseudocount=0.1, anchor="tree",
+                            learning_rate=1e-12)
+    events = []
+    result = train_model(path, config=config, stage_progress=events.append)
+    assert [event.kind for event in events if event.stage == "anchor_fit"] == ["start", "event"]
+    couplings = result.model.params["coupling_matrix"].abs().amax(dim=(1, 3))
+    tree = couplings > 1e-6
+    assert torch.equal(tree, tree.T) and int(tree.sum()) == 2 * 3
+    assert result.chains.shape == (50, 4, 2)
+
+
+def test_the_default_anchor_falls_back_to_the_profile(tmp_path):
+    path = _alignment(tmp_path)
+    config = TrainingConfig(alphabet="AB", device="cpu", dtype="float64", n_chains=20, n_sweeps=1, max_epochs=1,
+                            target_pearson=0.999999, no_reweighting=True, pseudocount=0.1, anchor="profile")
+    first = train_model(path, config=config, output_dir=tmp_path / "first")
+    events = []
+    warm = train_model(path, config=replace(config, anchor=CLI_DEFAULT_ANCHOR), stage_progress=events.append,
+                       initial_params_path=first.artifacts["params"])
+    assert warm.config.anchor == "profile" and not events
+    with pytest.raises(InputValidationError, match="warm start"):
+        train_model(path, config=replace(config, anchor="tree"), initial_params_path=first.artifacts["params"])
+
+
+def test_archives_with_the_former_anchor_options_load(tmp_path):
     import json
 
     import h5py
@@ -218,9 +260,8 @@ def test_archives_with_the_former_anchor_options_load(tmp_path, legacy, rank):
     path = sampler.save_archive(tmp_path / "ptt.h5")
     with h5py.File(path, "r+") as archive:
         meta = json.loads(archive.attrs["metadata"])
-        del meta["config"]["anchor"]
-        meta["config"].update(legacy)
+        meta["config"].update({"anchor": True, "anchor_rank": 1, "anchor_tree": True})
         archive.attrs["metadata"] = json.dumps(meta)
     loaded = PTTSampler.from_archive(path, device="cpu", mode="inspect")
-    assert loaded.config.anchor == bool(legacy["anchor_rank"] or legacy.get("anchor_tree"))
-    assert loaded.config.anchor_rank == rank
+    assert isinstance(loaded.anchor, TreeLowRankPotts) and loaded.anchor.rank == 1
+    assert not hasattr(loaded.config, "anchor")

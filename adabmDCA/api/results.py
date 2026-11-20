@@ -1033,8 +1033,8 @@ class SamplingResult:
         if self.ptt_diagnostics:
             import matplotlib.pyplot as plt
 
+            from adabmDCA.api.comparison import pca_figure
             from adabmDCA.plot import (
-                plot_PCA,
                 plot_ptt_autocorrelation,
                 plot_ptt_ladder_health,
                 plot_ptt_renewal,
@@ -1101,14 +1101,8 @@ class SamplingResult:
                                        pearson=self.ptt_diagnostics.get("final_pearson"))
 
             for pc1, pc2, path_key in ((0, 1, "pca_1_2_plot"), (2, 3, "pca_3_4_plot")):
-                figure = plt.figure(dpi=plot_dpi, figsize=(7, 6.5))
-                plot_PCA(
-                    figure, self.pca_reference, pc1=pc1, pc2=pc2,
-                    data2=self.pca_generated, labels=["Natural", "Generated"],
-                    colors=["#31688E", "#E76F51"],
-                    title=f"Natural and generated sequences: PC{pc1 + 1} vs PC{pc2 + 1}",
-                    explained_variance_ratio=self.pca_explained_variance_ratio,
-                )
+                figure = pca_figure(self.pca_reference, self.pca_generated, self.pca_explained_variance_ratio,
+                                    components=(pc1, pc2), dpi=plot_dpi)
                 figure.savefig(paths[path_key], dpi=plot_dpi, facecolor="white", bbox_inches="tight")
                 plt.close(figure)
             energy_cde_path = self._save_energy_cde_plot(folder, prefix)
@@ -1141,7 +1135,8 @@ class SamplingResult:
 
         import matplotlib.pyplot as plt
 
-        from adabmDCA.plot import plot_autocorrelation, plot_PCA, plot_pearson_sampling
+        from adabmDCA.api.comparison import pca_figure
+        from adabmDCA.plot import plot_autocorrelation, plot_pearson_sampling
 
         folder = Path(directory)
         folder.mkdir(parents=True, exist_ok=True)
@@ -1181,18 +1176,8 @@ class SamplingResult:
         self._save_statistics_plot(paths["statistics_scatter_plot"], plot_dpi)
 
         for pc1, pc2, path_key in ((0, 1, "pca_1_2_plot"), (2, 3, "pca_3_4_plot")):
-            figure = plt.figure(dpi=plot_dpi, figsize=(7, 6.5))
-            plot_PCA(
-                figure,
-                self.pca_reference,
-                pc1=pc1,
-                pc2=pc2,
-                data2=self.pca_generated,
-                labels=["Natural", "Generated"],
-                colors=["#31688E", "#E76F51"],
-                title=f"Natural and generated sequences: PC{pc1 + 1} vs PC{pc2 + 1}",
-                explained_variance_ratio=self.pca_explained_variance_ratio,
-            )
+            figure = pca_figure(self.pca_reference, self.pca_generated, self.pca_explained_variance_ratio,
+                                components=(pc1, pc2), dpi=plot_dpi)
             figure.savefig(paths[path_key], dpi=plot_dpi, facecolor="white", bbox_inches="tight")
             plt.close(figure)
         energy_cde_path = self._save_energy_cde_plot(folder, prefix)

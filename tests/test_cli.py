@@ -27,18 +27,22 @@ class CliTests(unittest.TestCase):
         from adabmDCA.training.cli import create_parser as train_parser
 
         cases = (
-            (train_parser(), ["-d", "alignment.fasta"], []),
-            (sample_parser(), ["-p", "model.h5", "-o", "output", "--ngen", "10"], []),
-            (entropy_parser(), ["-p", "model.h5"], ["-d", "alignment.fasta", "-t", "target.fasta"]),
+            (train_parser(), ["-d", "alignment.fasta"], "pcd", []),
+            (sample_parser(), ["-p", "model.h5", "-o", "output", "--ngen", "10"], "mcmc", []),
+            (entropy_parser(), ["-p", "model.h5"], "mcmc", ["-d", "alignment.fasta", "-t", "target.fasta"]),
         )
-        for parser, required, pcd_required in cases:
+        for parser, required, other, other_required in cases:
             with self.subTest(parser=parser.prog):
                 self.assertEqual(parser.parse_args(required).strategy, "ptt")
                 self.assertEqual(
-                    parser.parse_args([*required, "--strategy", "pcd", *pcd_required]).strategy, "pcd"
+                    parser.parse_args([*required, "--strategy", other, *other_required]).strategy, other
                 )
                 with self.assertRaises(SystemExit):
                     parser.parse_args([*required, "--strategy", "invalid"])
+                if other != "pcd":
+                    # PCD names a gradient estimator, so it is a training strategy only.
+                    with self.assertRaises(SystemExit):
+                        parser.parse_args([*required, "--strategy", "pcd", *other_required])
                 with self.assertRaises(SystemExit):
                     parser.parse_args([*required, "--ptt"])
 
@@ -77,7 +81,7 @@ class CliTests(unittest.TestCase):
         args = parser.parse_args([*required, "--strategy", "ptt", "--beta", "1.5"])
         with self.assertRaisesRegex(InputValidationError, "Use the Python API"):
             run(args)
-        args = parser.parse_args([*required, "--strategy", "pcd", "--beta", "1.5"])
+        args = parser.parse_args([*required, "--strategy", "mcmc", "--beta", "1.5"])
         self.assertEqual(args.beta, 1.5)
 
     def test_ptt_sampling_defaults_to_ten_local_sweeps(self):
@@ -421,7 +425,7 @@ class CliTests(unittest.TestCase):
 
             completed = run_cli(
                 "sample",
-                "--strategy", "pcd",
+                "--strategy", "mcmc",
                 "--path_params",
                 str(model),
                 "--data",
@@ -698,8 +702,8 @@ def test_printed_precision_and_stop_follow_the_options(capsys):
         args = create_parser().parse_args(["-p", "model.h5", "-o", "out", "--ngen", "10", *options])
         return _configuration(args)["dtype"]
 
-    assert sample_label("--strategy", "pcd") == "float32"
-    assert sample_label("--strategy", "pcd", "--dtype", "bfloat16") == "bfloat16 (float32 parameters)"
+    assert sample_label("--strategy", "mcmc") == "float32"
+    assert sample_label("--strategy", "mcmc", "--dtype", "bfloat16") == "bfloat16 (float32 parameters)"
     assert sample_label() == "archive precision"
     assert sample_label("--dtype", "bfloat16") == "bfloat16 (archive parameters)"
 

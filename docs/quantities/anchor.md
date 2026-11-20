@@ -1,10 +1,10 @@
 # The anchor
 
-The **anchor** is an optional starting point of bmDCA training with PTT (`--ptt-anchor`). It is a Potts model that is coupled, unlike the profile, but still tractable: it can be fitted by exact maximum likelihood, sampled without Markov chains, and normalized exactly. It is fitted to the alignment before training and replaces the profile at the bottom of the PTT ladder, so the ladder needs fewer models.
+The **anchor** is the starting point of bmDCA training (`--anchor`, default `tree-low-rank`). It is a Potts model that is coupled, unlike the profile, but still tractable: it can be fitted by exact maximum likelihood, sampled without Markov chains, and normalized exactly. It is fitted to the alignment before training. With PTT it replaces the profile at the bottom of the ladder, so the ladder needs fewer models. With PCD it is only the initial model: training starts from its parameters, with persistent chains drawn exactly from it.
 
 The anchor combines two tractable models:
 
-- a **low-rank** Potts model, the Hopfield–Potts model of [Cocco, Monasson and Weigt (2013)](https://doi.org/10.1371/journal.pcbi.1003176), which keeps only \(K\) collective modes of the couplings (\(K = 2\) by default, `--ptt-anchor-rank`). Written as an RBM with Gaussian hidden units, it is sampled exactly through its low-dimensional latent space, as in the low-rank RBM pre-training of [Béreux et al. (2025)](https://proceedings.iclr.cc/paper_files/paper/2025/hash/4fe1859112230a032c7143a9adc3be78-Abstract-Conference.html);
+- a **low-rank** Potts model, the Hopfield–Potts model of [Cocco, Monasson and Weigt (2013)](https://doi.org/10.1371/journal.pcbi.1003176), which keeps only \(K\) collective modes of the couplings (\(K = 2\) by default, `--anchor-rank`). Written as an RBM with Gaussian hidden units, it is sampled exactly through its low-dimensional latent space, as in the low-rank RBM pre-training of [Béreux et al. (2025)](https://proceedings.iclr.cc/paper_files/paper/2025/hash/4fe1859112230a032c7143a9adc3be78-Abstract-Conference.html);
 - the pair terms of the **Chow–Liu tree** of the alignment, the spanning tree of largest mutual information, which hold the strongest local pair statistics that a few collective modes cannot represent.
 
 This page builds the anchor step by step, from the Hopfield–Potts model to its exact sampler, then adds the tree to it. The implementations are in `adabmDCA/anchor/lowrank.py` and `adabmDCA/anchor/anchor.py`.
@@ -219,7 +219,7 @@ With two hidden units, the samples of the combined model recover the groups that
 
 ## At the bottom of the PTT ladder
 
-The profile serves at the bottom of the ladder because its samples are exact and its \(\log Z\) is known (see [Normalization, scoring and importance weights](derived.md)). The tree plus \(K\) hidden units has both properties, so with `--ptt-anchor` it takes the profile's place:
+The profile serves at the bottom of the ladder because its samples are exact and its \(\log Z\) is known (see [Normalization, scoring and importance weights](derived.md)). The tree plus \(K\) hidden units has both properties, and so do its two parts alone, so any anchor other than the profile takes the profile's place:
 
 - training starts with the chosen model as both rungs, and its Potts parameters \(h\) and \(J\) are the first endpoint;
 - in every round, rung 0 is redrawn exactly from that model, which is also where new chains start;
@@ -228,9 +228,13 @@ The profile serves at the bottom of the ladder because its samples are exact and
 
 | Options | Starting model |
 |---|---|
-| none | profile |
-| `--ptt-anchor` | Chow–Liu tree plus 2 Gaussian hidden units |
-| `--ptt-anchor --ptt-anchor-rank K` | Chow–Liu tree plus \(K\) Gaussian hidden units (\(K\) from 1 to 3) |
+| none, or `--anchor tree-low-rank` | Chow–Liu tree plus 2 Gaussian hidden units |
+| `--anchor-rank K` | Chow–Liu tree plus \(K\) Gaussian hidden units (\(K\) from 1 to 3) |
+| `--anchor low-rank [--anchor-rank K]` | \(K\) Gaussian hidden units, no tree |
+| `--anchor tree` | Chow–Liu tree |
+| `--anchor profile` | profile |
+
+The sparse models, warm starts with `-p`, PTT resumes and `reintegrate` always start from the profile; asking for another anchor there is an error.
 
 **How much shorter the ladder gets.** A better starting model saves fewer rungs than its likelihood suggests. Adjacent rungs sit at a fixed distance, about 1.65 in units of the square root of the symmetrized KL divergence. The rank-3 model of RF00023 is 7.0 away from the profile, about four rungs. But what the training adds afterwards is different in kind from what the starting model holds, and the two distances add in quadrature: for every later model \(T\), \(d(\text{profile}, T)^2 \approx d(\text{profile}, \text{start})^2 + d(\text{start}, T)^2\) within a few percent. A head start of \(n\) rung lengths on a ladder of \(N\) rungs therefore saves about \(N - \sqrt{N^2 - n^2}\) rungs, not \(n\).
 

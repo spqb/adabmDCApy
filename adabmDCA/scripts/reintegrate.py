@@ -24,7 +24,7 @@ def create_parser() -> argparse.ArgumentParser:
 
 
 def _config_from_args(args):
-    from adabmDCA.training.cli import ptt_config_from_args
+    from adabmDCA.training.cli import anchor_options, ptt_config_from_args
     from adabmDCA.training.config import TrainingConfig
 
     return TrainingConfig(
@@ -52,6 +52,7 @@ def _config_from_args(args):
         device=args.device,
         dtype=args.dtype,
         use_wandb=args.wandb,
+        **anchor_options(args),
     )
 
 

@@ -53,7 +53,7 @@ def test_entropy_cli_completes_and_warns_for_multiple_targets(entropy_inputs, tm
     target.write_text(">first\nBB\n>second\nAA\n")
     output = tmp_path / "entropy"
     completed = subprocess.run([
-        sys.executable, "-m", "adabmDCA.cli", "entropy", "--strategy", "pcd",
+        sys.executable, "-m", "adabmDCA.cli", "entropy", "--strategy", "mcmc",
         "-p", str(entropy_inputs["model"]), "-d", str(entropy_inputs["natural_alignment"]),
         "-t", str(target), "-o", str(output), "--alphabet", "AB", "--device", "cpu",
         "--nchains", "16", "--nsteps", "2", "--nsweeps", "1",

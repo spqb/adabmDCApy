@@ -2,8 +2,8 @@
 
 Use structured steering to sample from a DCA model with a hard sequence
 constraint, a soft preference, or both. Pass a `SteeringConfig` to
-`sample_sequences`. PCD runs
-fixed-model MCMC. PTT runs a replica ladder and can estimate the target
+`sample_sequences`. Plain MCMC runs
+chains on the fixed model. PTT runs a replica ladder and can estimate the target
 entropy.
 
 The target energy on the allowed sequences is
@@ -95,7 +95,7 @@ the stored checkpoints, then ramps the callback weights, linear biases and
 inverse temperature above the trained endpoint. The pilot can insert
 intermediate rungs before warmup.
 
-An archive trained with `--ptt-anchor` keeps its exact anchor at the bottom
+An archive trained from an anchor other than the profile keeps its exact anchor at the bottom
 for unrestricted or alphabet-only support. Hard distance windows use an
 exact constrained profile at the bottom and retain the restricted archive
 anchor as a coupled rung. A standalone model is also supported. Calling
@@ -115,7 +115,7 @@ Both strategies monitor rank-normalized split R-hat and bulk and tail ESS
 on independent group-mean traces. PTT also tracks how many old configurations
 remain anywhere on the ladder. A run that exhausts its warmup budget returns
 `warmup_budget_exhausted` and provisional draws. With `sample_sequences`,
-`n_sweeps` sets the structured PCD budget and `ptt_max_rounds` sets the
+`n_sweeps` sets the structured MCMC budget and `ptt_max_rounds` sets the
 structured PTT budget. Set `SteeringConfig.warmup_seconds` to add a
 wall-clock limit checked between rounds. An endpoint returned at that limit
 has status `warmup_time_exhausted`. Set `production_spacing=0` to take a

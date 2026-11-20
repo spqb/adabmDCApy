@@ -12,7 +12,7 @@ When a residue pair is more frequent in the data than in the model, its coupling
 
 ## PCD: persistent chains
 
-Persistent contrastive divergence keeps one population of chains (10,240 by default) across the whole training. Each update runs `--nsweeps` sweeps (default 10) of every chain on the current model, computes \(p\) from the chains, and updates the parameters with learning rate `--lr`. Because the model changes little between updates, the chains stay close to equilibrium as long as they decorrelate faster than the model moves.
+Persistent contrastive divergence keeps one population of chains (10,240 by default) across the whole training. bmDCA starts from the [anchor](../quantities/anchor.md) (`--anchor`, a tree plus two Gaussian hidden units by default), with the chains drawn exactly from it, so they start at the equilibrium of the initial model; the sparse models start from the profile. Each update runs `--nsweeps` sweeps (default 10) of every chain on the current model, computes \(p\) from the chains, and updates the parameters with learning rate `--lr`. Because the model changes little between updates, the chains stay close to equilibrium as long as they decorrelate faster than the model moves.
 
 PCD is fast and works well on families without strong cluster structure. Its weakness is silent: when the model develops separated modes, chains stop moving between them, the estimate of \(p\) is biased toward the modes the chains happen to occupy, and the reported Pearson, computed from the same chains, still looks good. In the [benchmarks](benchmarks.md), PCD models of three large protein families could not even be checked, because plain MCMC sampling of the finished models did not mix within 10,000 sweeps.
 
@@ -30,7 +30,7 @@ Parallel Trajectory Tempering ([Béreux et al., 2026](https://arxiv.org/abs/2607
    ▲  fresh draws         ◄──── neighbouring populations exchange configurations ────►
 ```
 
-Rung 0 is the independent-site profile, a model with fields only that matches the single-site frequencies of the data. Its sequences can be drawn exactly and its normalization is known. The other rungs are snapshots of the model saved during training, and the top rung is the current model. All rungs run at the same temperature; it is the parameters that change along the ladder.
+Rung 0 is the independent-site profile, a model with fields only that matches the single-site frequencies of the data, or for bmDCA the [anchor](../quantities/anchor.md), a coupled model fitted to the data (the default). Its sequences can be drawn exactly and its normalization is known. The other rungs are snapshots of the model saved during training, and the top rung is the current model. All rungs run at the same temperature; it is the parameters that change along the ladder.
 
 Each rung holds its own population of chains. Neighbouring populations regularly attempt to **swap** configurations, with a Metropolis acceptance that keeps every rung at equilibrium for its own model. Configurations born at the bottom as exact draws can thus climb to the endpoint, carrying independent information that local moves alone would take very long to produce. Because neighbouring models are close, a swap is accepted often; because the snapshots were saved when the model was changing, they cover the path along which modes appeared.
 
@@ -144,7 +144,7 @@ The [benchmarks](benchmarks.md#bmdca-vs-edgedca) found bmDCA preferable to edgeD
 
 With windows of 100 on RF00379 (three seeds, as in the figure), the rule stopped within 40 updates of the maximum of the smoothed validation curve, at most 4·10⁻⁵ nats per site below it. Stopping at Pearson 0.95 instead gave about 10⁻³ less, and training on to 6,000 updates about 9·10⁻³ less. The stop also adapts to the family: on the benchmark families it ended at training Pearson values between 0.918 and 0.968.
 
-**Training past the plateau.** Continuing another RF00379 run (10 sweeps) from its validation stop at update 2,475 to 20,000 updates shows what a late stop costs. The training Pearson keeps creeping up (0.952 to 0.967) while the validation Pearson stays at about 0.80, so neither warns that anything is wrong. The validation log-likelihood, in contrast, falls steadily from −0.711 to −0.762 per site, and the mixing time of the model, measured as in `sample --strategy pcd`, grows about sevenfold, from about 220 to 1,650 sweeps. The longer-trained model is worse on held-out sequences and much more expensive to sample.
+**Training past the plateau.** Continuing another RF00379 run (10 sweeps) from its validation stop at update 2,475 to 20,000 updates shows what a late stop costs. The training Pearson keeps creeping up (0.952 to 0.967) while the validation Pearson stays at about 0.80, so neither warns that anything is wrong. The validation log-likelihood, in contrast, falls steadily from −0.711 to −0.762 per site, and the mixing time of the model, measured as in `sample --strategy mcmc`, grows about sevenfold, from about 220 to 1,650 sweeps. The longer-trained model is worse on held-out sequences and much more expensive to sample.
 
 [![RF00379 trained past the validation plateau](../figures/benchmarks/rf00379_overtraining.png){ width="660" }](../figures/benchmarks/rf00379_overtraining.png)
 

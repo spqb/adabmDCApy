@@ -139,7 +139,7 @@ jobs:
     - name: 🎲 Sample from bmDCA model
       run: |
         adabmDCA sample \
-          --strategy pcd \
+          --strategy mcmc \
           --path_params test_outputs/bmDCA_test_params.dat.gz \
           --output test_outputs/ \
           --ngen 100 \
@@ -168,7 +168,7 @@ jobs:
     - name: 🌡️ Thermodynamic Integration (entropy)
       run: |
         adabmDCA entropy \
-          --strategy pcd \
+          --strategy mcmc \
           --data example_data/RF00379/splits/RF00379_train.fasta \
           --path_targetseq example_data/RF00379/splits/RF00379_train.fasta \
           --path_params test_outputs/bmDCA_test_params.dat.gz \

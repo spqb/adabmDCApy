@@ -54,7 +54,7 @@ adabmDCA sample -p model/ptt.h5 -d train.fasta -v validation.fasta --plot-sampli
 4. `pca_1_2.png`, `data_vs_samples.png`: every data cluster covered, share ratios roughly ×0.8–×1.25.
 5. `distances.png` (needs `-v`): generated sequences not closer to training than held-out ones; none identical to a training sequence.
 
-PCD models (no ladder): `sample --strategy pcd -p model_pcd/params.dat.gz -d train.fasta --plot-sampling-logs --max_nsweeps 10000`. The run must report a mixing time (not hit `--max_nsweeps`), and `pearson_sampling.png` must rise and settle; a rise then decline means trained out of equilibrium. If either fails, retrain with PTT.
+PCD models (no ladder): `sample --strategy mcmc -p model_pcd/params.dat.gz -d train.fasta --plot-sampling-logs --max_nsweeps 10000`. The run must report a mixing time (not hit `--max_nsweeps`), and `pearson_sampling.png` must rise and settle; a rise then decline means trained out of equilibrium. If either fails, retrain with PTT.
 
 ## Decision table
 

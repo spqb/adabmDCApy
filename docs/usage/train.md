@@ -25,8 +25,8 @@ adabmDCA train -m eaDCA   -d train.fasta -v validation.fasta -o model_ea
 adabmDCA train --strategy pcd -m edgeDCA -d train.fasta -o model_edge
 adabmDCA train --strategy pcd -m edDCA -d train.fasta -o model_ed --density 0.02
 
-# bmDCA with PTT, starting from the anchor: fewer models in the ladder
-adabmDCA train -d train.fasta -v validation.fasta -o model --ptt-anchor
+# bmDCA starting from the profile instead of the default tree + low-rank anchor
+adabmDCA train -d train.fasta -v validation.fasta -o model --anchor profile
 
 # Equal weights for all sequences, for instance when the alignment is not redundant
 adabmDCA train -d train.fasta -v validation.fasta -o model --no_reweighting
@@ -47,6 +47,8 @@ adabmDCA train -d train.fasta -v validation.fasta -o model --plot-training-logs
 | `-l`, `--label` | none | Prefix of the output files, to keep several runs in one folder |
 | `-m`, `--model` | `bmDCA` | `bmDCA`, `eaDCA`, `edDCA` or `edgeDCA` (the last two with PCD only) |
 | `--strategy` | `ptt` | `ptt` or `pcd` |
+| `--anchor` | `tree-low-rank` | bmDCA from scratch: starting model, also `low-rank`, `tree` or `profile`; the ladder bottom with PTT, the initial parameters and chains with PCD |
+| `--anchor-rank` | 2 | Hidden units of the low-rank anchors, 1 to 3 |
 | `--alphabet` | `auto` | `protein`, `rna`, `dna`, or custom tokens |
 | `--nchains` | 10240 | Number of Markov chains (per replica with PTT) |
 | `--nsweeps` | 10 | Local sweeps per update (PCD) or per exchange round and replica (PTT) |
@@ -70,7 +72,9 @@ adabmDCA train -d train.fasta -v validation.fasta -o model --plot-training-logs
 
 Sparse models have their own options: `--gsteps` (10, parameter updates per graph change) and `--factivate` (0.001, fraction of the inactive couplings activated each time) for eaDCA; `--density` (0.02, final fraction of couplings) and `--drate` (0.01, fraction removed per step) for edDCA. For edgeDCA the pseudocount, not `--lr`, sets the size of each update: values closer to 1 give smaller steps, and some datasets need values up to 0.95.
 
-PTT has about thirty further options, all prefixed `--ptt-`. `--ptt-anchor` (bmDCA trained from scratch) starts the ladder at the [anchor](../quantities/anchor.md), a tractable model fitted to the data and sampled exactly, instead of the profile. Fitting it takes from seconds to a few minutes before training starts, and the ladder then needs fewer models ([how much fewer](../quantities/anchor.md#at-the-bottom-of-the-ptt-ladder)). `--ptt-anchor-rank 3` fits a slightly better anchor, about ten times more slowly, than the default rank 2. Another option changes the update rule: PTT updates with the centering trick by default, and `--no-ptt-centering` uses the raw gradient instead, which trains more slowly on several families ([why](../algorithms/training.md#centred-updates)). The defaults rarely need changing; the ones that do are discussed in [Diagnose a run](../algorithms/diagnostics.md#hyperparameters-that-matter-for-diagnosis), and the full list is in `adabmDCA train --help` and the [PTT configuration reference](../api/adabmDCA.ptt.config.md).
+bmDCA trained from scratch starts from the [anchor](../quantities/anchor.md), a tractable model fitted to the data and sampled exactly, instead of the profile. `--anchor` chooses it: `tree-low-rank` (default, the Chow–Liu tree of the data plus Gaussian hidden units), `low-rank`, `tree` or `profile`. Fitting it takes from seconds to a few minutes before training starts. With PTT the ladder then needs fewer models ([how much fewer](../quantities/anchor.md#at-the-bottom-of-the-ptt-ladder)); with PCD the anchor gives the initial parameters, and exact samples of it the initial chains. `--anchor-rank 3` fits a slightly better low-rank anchor, about ten times more slowly, than the default rank 2. The sparse models, warm starts with `-p`, PTT resumes and `reintegrate` start from the profile.
+
+PTT has about thirty further options, all prefixed `--ptt-`. One of them changes the update rule: PTT updates with the centering trick by default, and `--no-ptt-centering` uses the raw gradient instead, which trains more slowly on several families ([why](../algorithms/training.md#centred-updates)). The defaults rarely need changing; the ones that do are discussed in [Diagnose a run](../algorithms/diagnostics.md#hyperparameters-that-matter-for-diagnosis), and the full list is in `adabmDCA train --help` and the [PTT configuration reference](../api/adabmDCA.ptt.config.md).
 
 ## What you see while it runs
 
@@ -167,4 +171,4 @@ print(result.stop_reason, result.converged, result.gradient_steps)
 history = result.history_dataframe()
 ```
 
-The Python defaults differ from the command line in two ways: training uses **PCD unless a `PTTConfig` is passed** as `ptt=`, and the validation stop is off unless requested with `PTTConfig(validation_stop=True)`. The other defaults are the same. More in [Python workflows](python.md#train).
+The Python defaults differ from the command line in three ways: training starts from the **profile unless `anchor=` names an anchor**, uses **PCD unless a `PTTConfig` is passed** as `ptt=`, and the validation stop is off unless requested with `PTTConfig(validation_stop=True)`. The other defaults are the same. More in [Python workflows](python.md#train).

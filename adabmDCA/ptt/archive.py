@@ -184,11 +184,6 @@ def load_archive(cls, path, *, device="cpu", mode="generate", seed=None):
             # Settings added to PTTConfig after the archive was written take
             # their defaults; settings since removed are dropped.
             valid_config_fields = {field.name for field in fields(PTTConfig)}
-            # Archives written before the single anchor option set a rank (0 for none) and a tree flag.
-            if "anchor_rank" in meta["config"] and "anchor" not in meta["config"]:
-                rank = meta["config"]["anchor_rank"]
-                meta["config"]["anchor"] = bool(rank or meta["config"].get("anchor_tree"))
-                meta["config"]["anchor_rank"] = rank or PTTConfig.anchor_rank
             # Archives written while the natural-gradient update existed store an unset trust
             # radius: it meant 0.01, or 0.001 with that update.
             if "trust_radius" in meta["config"] and meta["config"]["trust_radius"] is None:

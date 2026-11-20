@@ -9,7 +9,7 @@ adabmDCA sample -p model/ptt.h5 -d train.fasta -v validation.fasta --plot-sampli
 Sample any model, including a PCD-trained one, with plain Markov chain Monte Carlo:
 
 ```bash
-adabmDCA sample --strategy pcd -p model/params.dat.gz -d train.fasta --plot-sampling-logs -o samples_mcmc
+adabmDCA sample --strategy mcmc -p model/params.dat.gz -d train.fasta --plot-sampling-logs -o samples_mcmc
 ```
 
 Both commands also **check the model**: they verify that the chains have equilibrated and compare the generated sequences with the natural ones. Sampling is the main way to validate a trained model, so run it with `--plot-sampling-logs` and a held-out set at least once for every model you intend to use.
@@ -32,7 +32,7 @@ The mixing time is measured from natural sequences, so it cannot see states that
 | `-d`, `--data` | none (required for PTT) | Natural alignment used as reference for mixing, comparisons and likelihoods; normally the training set |
 | `-v`, `--validation` | none | Held-out alignment, normally the validation set of training. With `--plot-sampling-logs`, enables the overfitting checks (`--test` is an older alias) |
 | `--plot-sampling-logs` | off | Write the diagnostic figures. Requires `-d` |
-| `--strategy` | `ptt` | `ptt` or `pcd` |
+| `--strategy` | `ptt` | `ptt` or `mcmc` (plain MCMC) |
 | `--ptt-local-sweeps` | 10 | Local sweeps per replica per exchange round |
 | `--ptt-local-kernel` | `metropolized_gibbs` | Local move; `archived` keeps the one used in training |
 | `--ptt-stationary` | off | Renew the ladder a second time before returning samples |
@@ -88,7 +88,7 @@ Numerical logs, in `logs/`: `mix.log`, `sampling.log` (Pearson, slope and mean c
 4. **Ladder health** (PTT, `ptt_ladder_health.png`). In the trapped-configurations panel, grey bars are within chance, amber bars are slow links whose stuck configurations are still renewed, and red bars are links that block renewal. A red title means renewal failed.
 5. **Memorization** (`distances.png`, with `-v`). Generated sequences should not be closer to the training set than held-out sequences are, and none should be identical to a training sequence.
 
-The plots are explained one by one in [Sampling](../algorithms/sampling.md#comparing-samples-with-the-data) and [Diagnose a run](../algorithms/diagnostics.md#checking-a-finished-model).
+The plots are explained one by one in [Sampling](../algorithms/sampling.md#comparing-samples-with-the-data) and [Diagnose a run](../algorithms/diagnostics.md#checking-a-finished-model). For sequences that do not come from a sampling run, `compare_pca` draws the same PCA figures ([Python workflows](python.md#comparing-other-sequences-with-the-data)).
 
 ## In Python
 

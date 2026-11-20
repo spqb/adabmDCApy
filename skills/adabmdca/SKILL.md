@@ -1,6 +1,6 @@
 ---
 name: adabmdca
-description: Run Direct Coupling Analysis with the adabmDCA Python package (CLI or API). Use when asked to train a Potts/Boltzmann machine model (bmDCA, eaDCA, edDCA) on a protein, RNA or DNA multiple sequence alignment, generate sequences from it (PTT or MCMC), score sequences, scan single mutations, predict contacts, estimate entropy or log Z, or retrain with experimental feedback.
+description: Run Direct Coupling Analysis with the adabmDCA Python package (CLI or API). Use when asked to train a Potts/Boltzmann machine model (bmDCA, eaDCA, edDCA) on a protein, RNA or DNA multiple sequence alignment, generate sequences from it (PTT or MCMC), score sequences, scan single mutations, predict contacts or compare them with a PDB structure, estimate entropy or log Z, retrain with experimental feedback, compare generated or designed sequences with natural ones (PCA, correlations, distances), or read the training and sampling plots.
 ---
 
 # adabmDCA
@@ -42,8 +42,8 @@ adabmDCA preprocess family.sto -o family.fasta --remove-insertions --remove-dupl
 # 2. Homology-aware split: writes family.train.fasta, family.test.fasta, family.split.json
 adabmDCA split-data family family.fasta
 
-# 3. Train bmDCA with PTT, starting from the anchor; with -v it stops at the best validation log-likelihood
-adabmDCA train -d family.train.fasta -v family.test.fasta -o model --ptt-anchor
+# 3. Train bmDCA with PTT, starting from the anchor (default); with -v it stops at the best validation log-likelihood
+adabmDCA train -d family.train.fasta -v family.test.fasta -o model
 
 # 4. Validate the model by sampling it, with diagnostic plots
 adabmDCA sample -p model/ptt.h5 -d family.train.fasta -v family.test.fasta --plot-sampling-logs -o samples
@@ -64,14 +64,16 @@ Skip steps 1–2 when the user already has a clean aligned FASTA and a validatio
 3. **Never overwrite a previous run.** Use a new `-o` folder (or `-l label`) per run. Only `--ptt-resume` reuses a folder, deliberately.
 4. **A finished training run is not a validated model.** Always read `training.json` → `data.stop_reason` and `data.converged`, then sample the model with `--plot-sampling-logs` and a held-out set, and run `adabmDCA diagnose model -s check/sampling.json`, which compares the sampled Pearson with training and flags known failures. See [references/diagnostics.md](references/diagnostics.md).
 5. **Prefer PTT, use PCD to explore.** `--strategy pcd` is 9 to 41 times faster but nothing checks that its chains stay at equilibrium; on clustered protein families PCD models could not be sampled correctly. Train the model the user will rely on with PTT (the CLI default).
-6. **Python defaults differ from the CLI.** `train_model` uses PCD unless `ptt=PTTConfig(...)` is passed; the validation stop needs `PTTConfig(validation_stop=True)`; `sample_sequences` uses plain MCMC unless `ptt=True`; workflow functions default to `alphabet="protein"` (only `load_alignment` and `load_model` on `ptt.h5` detect it).
+6. **Python defaults differ from the CLI.** `train_model` uses PCD unless `ptt=PTTConfig(...)` is passed, and starts from the profile unless `anchor="tree-low-rank"` is passed; the validation stop needs `PTTConfig(validation_stop=True)`; `sample_sequences` uses plain MCMC unless `ptt=True`; workflow functions default to `alphabet="protein"` (only `load_alignment` and `load_model` on `ptt.h5` detect it).
 7. **Alphabets.** Detection tries DNA, then RNA, then protein. An RNA alignment without any `U` is read as DNA: pass `--alphabet rna`. For custom symbols pass the ordered token string (e.g. `--alphabet ABCD-`) and use the same string in every command that reads that model.
 8. **Positions are zero-based alignment columns** in every output (contacts, DMS labels such as `G27A`, parameter files). The DMS CSV also has `position_1based`. Alignment columns are not residue numbers of the full-length protein; map them before comparing with structures or assays.
-9. **Sample with PTT whenever a `ptt.h5` archive exists.** Look for `ptt.h5` (or `<label>_ptt.h5`) in the training folder before sampling. If it is there, pass it with `-p` and keep the default `--strategy ptt` (in Python: `sample_sequences(model="model/ptt.h5", ptt=True, ...)`), even if the user only mentions `params.dat.gz`. Use plain MCMC (`--strategy pcd`) only when there is no archive (PCD-trained or imported models), or as an extra cross-check, and then confirm it reached its mixing time.
+9. **Sample with PTT whenever a `ptt.h5` archive exists.** Look for `ptt.h5` (or `<label>_ptt.h5`) in the training folder before sampling. If it is there, pass it with `-p` and keep the default `--strategy ptt` (in Python: `sample_sequences(model="model/ptt.h5", ptt=True, ...)`), even if the user only mentions `params.dat.gz`. Use plain MCMC (`--strategy mcmc`) only when there is no archive (PCD-trained or imported models), or as an extra cross-check, and then confirm it reached its mixing time.
 10. **Pick the right model file.** `params.dat.gz` for energies, DMS, contacts and plain MCMC; `ptt.h5` for PTT sampling, PTT entropy and resuming PTT training (it also works wherever `params.dat.gz` does). Resuming PCD needs `params.dat.gz` **and** `chains.fasta`.
-11. **Interpretation.** Lower energy means more probable under that model; energies of different models are not comparable. DMS `delta_energy` < 0 means the model prefers the mutant. Contact scores rank pairs; they are not probabilities (take the top L or L/2, excluding |i−j| ≤ 4 for proteins).
+11. **Interpretation.** Lower energy means more probable under that model; energies of different models are not comparable. To rank sequences, also give the local free energy E − λ·CDE with λ fitted on converged samples of the same model (`adabmdca-local-free-energy` skill). DMS `delta_energy` < 0 means the model prefers the mutant. Contact scores rank pairs; they are not probabilities (take the top L or L/2, excluding |i−j| ≤ 4 for proteins).
 12. **Errors are structured.** The CLI prints `Error [<code>]: <message>` plus details and exits with 2 for invalid input, 1 for loading, computation or convergence failures, 130 for cancellation. Report the message and the setting it names; do not retry blindly.
 13. **In custom scripts, sample with the optimized kernels.** When a script runs MCMC itself (trajectories, custom observables, figures), get the sampler with `prepare_sampler(method, device)` from `adabmDCA.cuda_kernels.sampling`, or `prepare_fixed_model_sampler(method, device, dtype, params)` for a model that does not change. They pick the fused Triton kernels on CUDA, the Metal kernels on MPS and the Numba kernels on CPU, with the same signature `sampler(chains, params, nsweeps, beta)` and the same distribution. Never call `gibbs_sampling` or `get_sampler` directly: they are the reference implementations, one PyTorch operation per site update, and with few chains they are bound by launch overhead (hours instead of minutes for 10,000 sweeps of a 279-site protein). Prefer recording every few sweeps over calling the sampler once per sweep when the observable allows it.
+14. **Comparing sequences with the data means a PCA with marginal histograms.** Fit the components on the natural sequences only, drawn with their weights, project the other set on them, and plot PC1–2 and PC3–4 with `adabmDCA.plot.plot_PCA`; `compare_pca(data, samples).save_plots(folder)` does all of it, and `sample --plot-sampling-logs` does it for model samples. Compute only the leading components (`torch.pca_lowrank`, or scikit-learn `PCA(svd_solver="randomized")` if installed), never a full SVD. Add the correlation scatter, energies and distances of [references/comparison.md](references/comparison.md), since PCA misses small subfamilies.
+15. **Look at the plots before reporting.** Training and sampling figures have known healthy and failure patterns; describe what they show against [references/plots.md](references/plots.md) rather than only quoting numbers.
 
 ## Choosing settings
 
@@ -80,24 +82,24 @@ Skip steps 1–2 when the user already has a clean aligned FASTA and a validatio
 | Strategy | `ptt` | `--strategy pcd` for a fast first look or small families without clusters |
 | Model | `bmDCA` | `-m eaDCA` (PTT or PCD) or `-m edDCA` / `-m edgeDCA` (PCD only) when a sparse graph is itself the goal |
 | Validation set | none | Always provide `-v` if possible: it enables the validation stop and the memorization checks |
-| Anchor | off | Add `--ptt-anchor` to every bmDCA PTT run trained from scratch (see below) |
+| Anchor | `tree-low-rank` (bmDCA from scratch) | Keep it; `--anchor profile` only to reproduce runs from before the anchor (see below) |
 | `--nsweeps` | 10 | 100 when PTT reports trapped configurations or stalls in a mixing check; restart from scratch, do not resume |
 | `--lr` | 0.01 | Do not raise it with PTT |
 | `--sampler` | `metropolized_gibbs` | `gibbs` is equally good; avoid `metropolis` on proteins |
 | `--target` | 0.95 | Only matters without `-v` (Pearson stop), or with `--no-ptt-validation-stop` |
 | Reweighting | 80% identity | `--clustering_seqid`, `-w weights.dat`, or `--no_reweighting` for non-redundant data |
 
-### The anchor (`--ptt-anchor`)
+### The anchor (`--anchor`)
 
-By default the PTT ladder starts at the independent-site profile. `--ptt-anchor` starts it at the **anchor**, a tractable coupled model fitted to the data before training: it is sampled exactly and its log Z is known, so it replaces the profile at the bottom of the ladder. In general use it, for bmDCA trained from scratch with PTT (it is rejected for eaDCA and with `-p` initial parameters):
+bmDCA trained from scratch starts from the **anchor**, a tractable coupled model fitted to the data before training: it is sampled exactly and its log Z is known. `--anchor` picks it: `tree-low-rank` (default: Chow-Liu tree plus Gaussian hidden units), `low-rank`, `tree` or `profile`. With PTT it replaces the profile at the bottom of the ladder; with PCD it only gives the initial parameters, and exact samples of it the initial chains. eaDCA, edDCA, edgeDCA, warm starts with `-p`, `--ptt-resume` and `reintegrate` start from the profile (an explicit other `--anchor` there is an error). With PTT:
 
 - the final ladder has fewer models (on RF00023, 6 instead of 10 at the same training log-likelihood), so
 - sampling the trained model with PTT is faster, since every model of the ladder costs as much as the endpoint, and
 - training quality can improve: at equal training log-likelihood the validation log-likelihood was higher.
 
-Its fit runs before the first update and prints `Fitting the anchor (...)`, then the anchor's log-likelihood per site next to the profile's.
+Its fit runs before the first update and prints `Fitting the tree-low-rank anchor (...)`, then the anchor's log-likelihood per site next to the profile's.
 
-`--ptt-anchor-rank K` (1 to 3, default 2) sets the rank of the anchor. **K = 2 is the best compromise** between what the anchor captures and the time to fit it. K = 3 gains a little (+0.007 to +0.02 log-likelihood per site over K = 2) and is a valid choice for small systems. One evaluation of the fit costs about P_K · L · q², where P_K, the number of latent lattice points, grows by a factor of 20–30 per extra rank and is larger for strongly clustered families. Measured fit times on one RTX A5000:
+`--anchor-rank K` (1 to 3, default 2) sets the rank of the low-rank anchors. **K = 2 is the best compromise** between what the anchor captures and the time to fit it. K = 3 gains a little (+0.007 to +0.02 log-likelihood per site over K = 2) and is a valid choice for small systems. One evaluation of the fit costs about P_K · L · q², where P_K, the number of latent lattice points, grows by a factor of 20–30 per extra rank and is larger for strongly clustered families. Measured fit times on one RTX A5000:
 
 | Family | L | q | K = 2 | K = 3 |
 | --- | --- | --- | --- | --- |
@@ -117,6 +119,10 @@ Read the one that matches the task:
 - [references/python-api.md](references/python-api.md): the same workflows from Python, progress callbacks and cancellation, steered sampling, result objects.
 - [references/outputs.md](references/outputs.md): what each output file contains and how to read it (`params.dat.gz`, `history.csv` columns, `events.jsonl`, `training.json`, `sampling.json`, `ladder_samples.h5`).
 - [references/diagnostics.md](references/diagnostics.md): `adabmDCA diagnose`, how to tell whether a run is healthy, and what to change when it is not.
+- [references/plots.md](references/plots.md): how to read every training and sampling figure, healthy and failing patterns.
+- The `adabmdca-local-free-energy` skill (next to this one): scoring with F = E − λ·CDE, and fitting λ on equilibrium samples.
+- The `adabmdca-steering` skill (next to this one): steered generation with `SteeringConfig`, substitution windows, callbacks, low temperature, MCMC vs PTT.
+- [references/comparison.md](references/comparison.md): comparing generated or other sequences with the natural alignment (PCA, correlations, energies, distances), and predicted contacts with a PDB structure.
 
 The full documentation is at https://spqb.github.io/adabmDCApy/ and, in a clone, under `docs/`.
 

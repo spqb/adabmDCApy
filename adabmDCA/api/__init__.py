@@ -21,6 +21,8 @@ _EXPORTS = {
     "HammingWindow": "adabmDCA.steering.support",
     "HammingBias": "adabmDCA.steering.support",
     "generate_sequences": "adabmDCA.api.sampling",
+    "compare_pca": "adabmDCA.api.comparison",
+    "PCAComparison": "adabmDCA.api.comparison",
     "train_model": "adabmDCA.training.api",
     "split_alignment": "adabmDCA.api.splitting",
     "reintegrate_model": "adabmDCA.api.reintegration",

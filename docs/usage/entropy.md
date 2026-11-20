@@ -21,7 +21,7 @@ Output: `entropy.json` (or `<label>.json`) with `entropy`, `log_z`, `mean_energy
 ## From any model, by thermodynamic integration
 
 ```bash
-adabmDCA entropy --strategy pcd -p model/params.dat.gz \
+adabmDCA entropy --strategy mcmc -p model/params.dat.gz \
     -d train.fasta -t target.fasta -o entropy_ti
 ```
 

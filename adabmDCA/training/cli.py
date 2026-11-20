@@ -39,6 +39,27 @@ def create_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _anchor_start_line(details) -> str:
+    rank = f", rank {details['rank']}" if details["rank"] else ""
+    return f"Fitting the {details['anchor']} anchor ({details['parameters']:,} parameters{rank})"
+
+
+def _anchor_status(event) -> str:
+    details = event.details
+    return (f"Anchor | evaluation {event.current} | LL/L {details['log_likelihood']:.4f} | "
+            f"{details['lattice_points']:,} lattice points")
+
+
+def _anchor_summary(details) -> list[str]:
+    fit = (f"  fitted in {details['seconds']:.1f}s ({details['evaluations']} evaluations): "
+           f"LL/L {details['log_likelihood']:.4f}, profile {details['profile_log_likelihood']:.4f} "
+           f"({details['log_likelihood'] - details['profile_log_likelihood']:+.4f})")
+    if not details["cells"]:
+        return [fit, f"  exact sampler: belief propagation, log Z {details['log_z']:.4f}"]
+    return [fit, (f"  exact sampler: {details['cells']:,} latent cells built in {details['sampler_seconds']:.1f}s, "
+                  f"acceptance {details['acceptance']:.2f}, log Z {details['log_z']:.4f}")]
+
+
 class _TrainingProgressRenderer:
     """Render structured training events for an interactive terminal."""
 
@@ -57,6 +78,18 @@ class _TrainingProgressRenderer:
             total=self._target_pearson, colour="red", dynamic_ncols=True, leave=False, ascii="-#",
             bar_format="  {desc} [{bar}] Pearson {n:.4f}/{total:.4f} [{elapsed}]",
         )
+
+    def on_stage(self, event: StageProgress) -> None:
+        """The anchor fit before PCD training starts."""
+        if event.stage != "anchor_fit":
+            return
+        from tqdm import tqdm
+
+        if event.kind == "start":
+            tqdm.write(_anchor_start_line(event.details))
+        elif event.kind == "event":
+            for line in _anchor_summary(event.details):
+                tqdm.write(line)
 
     def __call__(self, event: TrainingProgress) -> None:
         self._start()
@@ -258,25 +291,14 @@ class _PTTProgressRenderer:
 
     def _on_anchor(self, event: StageProgress) -> None:
         """The fit of the exactly sampled model at the bottom of the ladder, before training starts."""
-        details = event.details
         if event.kind == "start":
-            self._lines([f"Fitting the anchor (rank {details['rank']}, {details['parameters']:,} parameters)"])
+            self._lines([_anchor_start_line(event.details)])
         elif event.kind == "progress":
-            self._set_status(f"Anchor | evaluation {event.current} | "
-                             f"LL/L {details['log_likelihood']:.4f} | {details['lattice_points']:,} lattice points",
-                             phase="anchor_fit")
+            self._set_status(_anchor_status(event), phase="anchor_fit")
         else:
             with self._lock:
                 self._status = None
-                sampler = (f"  exact sampler: {details['cells']:,} latent cells built in "
-                           f"{details['sampler_seconds']:.1f}s, acceptance {details['acceptance']:.2f}, "
-                           f"log Z {details['log_z']:.4f}")
-                self._lines([
-                    f"  fitted in {details['seconds']:.1f}s ({details['evaluations']} evaluations): "
-                    f"LL/L {details['log_likelihood']:.4f}, profile {details['profile_log_likelihood']:.4f} "
-                    f"({details['log_likelihood'] - details['profile_log_likelihood']:+.4f})",
-                    sampler,
-                ])
+                self._lines(_anchor_summary(event.details))
 
     def on_stage(self, event: StageProgress) -> None:
         if event.stage == "anchor_fit":
@@ -385,8 +407,8 @@ def _print_initialization(args: argparse.Namespace, initialized) -> None:
         "sweeps per step": initialized.config.n_sweeps,
         "PTT optimizer": None if initialized.config.ptt is None else initialized.config.ptt.optimizer,
         "PTT mixing method": None if initialized.config.ptt is None else initialized.config.ptt.mixing_method,
-        "PTT anchor": (f"rank {initialized.config.ptt.anchor_rank}"
-                       if initialized.config.ptt and initialized.config.ptt.anchor else None),
+        "anchor": (f"{initialized.config.anchor} (rank {initialized.config.anchor_rank})"
+                   if initialized.config.anchor in ("tree-low-rank", "low-rank") else initialized.config.anchor),
         "maximum gradient steps": limits.max_gradient_steps,
         "maximum structure steps": limits.max_structure_steps,
         "effective pseudocount": f"{initialized.effective_pseudocount:.6g}",
@@ -415,11 +437,21 @@ def ptt_config_from_args(args: argparse.Namespace, *, validation: bool = False):
         raise InputValidationError("PTT tuning and resume options require --strategy ptt.")
     if args.strategy != "ptt":
         return None
-    if "anchor_rank" in ptt_options and not ptt_options.get("anchor"):
-        raise InputValidationError("--ptt-anchor-rank requires --ptt-anchor.")
     if validation and "validation_stop" not in ptt_options:
         ptt_options["validation_stop"] = True
     return PTTConfig(**ptt_options)
+
+
+def anchor_options(args: argparse.Namespace) -> dict:
+    """The --anchor and --anchor-rank of the command line, where the anchor defaults to tree-low-rank.
+
+    The default stays recognizable as one, so it falls back to the profile where an anchor does not apply.
+    """
+    from adabmDCA.training.config import CLI_DEFAULT_ANCHOR
+
+    options = {"anchor": getattr(args, "anchor", None) or CLI_DEFAULT_ANCHOR,
+               "anchor_rank": getattr(args, "anchor_rank", None)}
+    return {key: value for key, value in options.items() if value is not None}
 
 
 def run(args: argparse.Namespace, *, progress: Any = None, stage_progress: Any = None, on_initialized: Any = None):
@@ -462,6 +494,7 @@ def run(args: argparse.Namespace, *, progress: Any = None, stage_progress: Any =
         device=args.device,
         dtype=args.dtype,
         use_wandb=args.wandb,
+        **anchor_options(args),
         progress=progress,
         stage_progress=stage_progress,
         on_initialized=on_initialized,
@@ -519,8 +552,8 @@ def make_renderer(args: argparse.Namespace):
 
 
 def stage_callback(renderer):
-    """The PTT stage callback of ``renderer``, if it renders PTT stages."""
-    return renderer.on_stage if isinstance(renderer, _PTTProgressRenderer) else None
+    """The stage callback of ``renderer``: PTT stages, and the anchor fit for PCD."""
+    return getattr(renderer, "on_stage", None)
 
 
 def initialization_callback(args: argparse.Namespace, renderer):
