@@ -248,6 +248,24 @@ Ladders must be compared at equal likelihood, because runs stop at different poi
 
 The runs from the tree and from the combined model also had a better validation log-likelihood at equal training log-likelihood (−0.67 against −0.695 at −0.65). These are single runs on one family, and the runs from the tree models were stopped after about 500 updates.
 
+## Restricted to a Hamming window
+
+[Steered sampling](../usage/steering.md) can confine every rung to a window \(l \le d(x) \le u\) of substitutions from a reference. The bottom rung is then the anchor restricted to the window,
+
+\[
+p_W(x) \propto e^{-E_A(x)}\, \mathbf 1\{l \le d(x) \le u\},
+\]
+
+and it keeps both properties of the anchor: exact independent draws and a known \(\log Z_W\). Without it, the ladder has to start from a profile restricted to the window and climb to the restricted anchor through bridge rungs.
+
+Rejection from the unrestricted anchor is not an option. A window of at most 15 substitutions from a natural sequence of the Azoarcus group I intron (\(L = 193\)) has probability \(e^{-55}\) under the tree + rank-2 anchor, whose samples sit about 110 substitutions away.
+
+The window is handled inside belief propagation instead. \(d(x)\) is a sum over sites, so at a fixed \(z\) the message that a subtree sends to its parent can be split by the number of substitutions inside the subtree. Combining two subtrees convolves their counts. At the root this gives, for every count \(c\), the sum of \(e^{-E(x \mid z)}\) over the sequences with \(d(x) = c\). Counts only grow towards the root, so every count above \(u\) is dropped as soon as it appears. The cost grows with \(u\), not with the width of the window. A window far from the reference counts matches instead, which are then fewer.
+
+\(\log Z_W\) is the lattice sum of \(-|z|^2/2 + \log \sum_{c=l}^{u} C_z(c)\), as for the unrestricted anchor. The lattice is searched with this restricted density, since the window can select a region of \(z\) that the unrestricted anchor rarely visits. Each sequence still contributes a unit Gaussian centred at \(m(x)\), so the lattice keeps its accuracy however rare the window is. A draw picks a lattice point with its weight, then a total count in the window, then the tree from the root down. At each node, the remaining count is split among the subtrees of its children before their states are drawn. The tables are built once, when sampling starts.
+
+On the Azoarcus window above, the setup takes 0.4 s and 2,048 draws take 16 ms on an RTX A5000.
+
 ## Technical details
 
 ### Bounds of \(F\) on a box
