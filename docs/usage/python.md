@@ -170,6 +170,21 @@ batched costs to `sample_sequences`. The
 [steering guide](steering.md) shows fixed-model PCD, PTT with a callback,
 and how to plot warmup from the returned history.
 
+### Comparing other sequences with the data
+
+`compare_pca` draws the PCA figures of a sampling run for any set of
+sequences, for example from another generator or an experiment. The
+components are fitted on the natural sequences, drawn with their weights,
+and the other set is projected on them:
+
+```python
+from adabmDCA import compare_pca
+
+comparison = compare_pca("train.fasta", "generated.fasta")
+comparison.save_plots("comparison")          # pca_1_2.png and pca_3_4.png
+fig = comparison.plot(components=(0, 1), labels=("Natural", "Designed"))
+```
+
 ## Other workflows
 
 ```python

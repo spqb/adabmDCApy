@@ -6,7 +6,7 @@ Everything the CLI does is a function of `adabmDCA`; the commands are thin wrapp
 from adabmDCA import (load_alignment, load_model, inspect_model, train_model, sample_sequences,
                       PTTConfig, TrainingConfig, PTTSampler, estimate_ptt_entropy, estimate_entropy,
                       predict_contacts, scan_mutations, score_sequences, split_alignment,
-                      preprocess_alignment, reintegrate_model, AdabmDCAError, OperationCancelledError)
+                      preprocess_alignment, reintegrate_model, compare_pca, AdabmDCAError, OperationCancelledError)
 ```
 
 ## Defaults that differ from the CLI
@@ -113,6 +113,8 @@ res.save_bundle("samples")                                  # FASTA, CSV, JSON, 
 res.save_diagnostic_plots("samples")                        # the --plot-sampling-logs figures
 res.to_ladder_hdf5("samples/ladder_samples.h5")             # needs ptt_return_full_ladder=True
 ```
+
+Sequences from elsewhere (another generator, an experiment): `compare_pca("train.fasta", "other.fasta").save_plots("cmp")` gives the same PCA figures; see [comparison.md](comparison.md).
 
 When a `ptt.h5` exists, always sample it as above with `ptt=True`. Plain MCMC (only without an archive): pass a `DCAModel` or parameter file and leave `ptt=False`; `n_sweeps` bounds the mixing-time measurement and `mixing_multiplier` (2) sets the generation length.
 

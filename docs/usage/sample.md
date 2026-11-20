@@ -88,7 +88,7 @@ Numerical logs, in `logs/`: `mix.log`, `sampling.log` (Pearson, slope and mean c
 4. **Ladder health** (PTT, `ptt_ladder_health.png`). In the trapped-configurations panel, grey bars are within chance, amber bars are slow links whose stuck configurations are still renewed, and red bars are links that block renewal. A red title means renewal failed.
 5. **Memorization** (`distances.png`, with `-v`). Generated sequences should not be closer to the training set than held-out sequences are, and none should be identical to a training sequence.
 
-The plots are explained one by one in [Sampling](../algorithms/sampling.md#comparing-samples-with-the-data) and [Diagnose a run](../algorithms/diagnostics.md#checking-a-finished-model).
+The plots are explained one by one in [Sampling](../algorithms/sampling.md#comparing-samples-with-the-data) and [Diagnose a run](../algorithms/diagnostics.md#checking-a-finished-model). For sequences that do not come from a sampling run, `compare_pca` draws the same PCA figures ([Python workflows](python.md#comparing-other-sequences-with-the-data)).
 
 ## In Python
 

@@ -1,6 +1,6 @@
 ---
 name: adabmdca
-description: Run Direct Coupling Analysis with the adabmDCA Python package (CLI or API). Use when asked to train a Potts/Boltzmann machine model (bmDCA, eaDCA, edDCA) on a protein, RNA or DNA multiple sequence alignment, generate sequences from it (PTT or MCMC), score sequences, scan single mutations, predict contacts, estimate entropy or log Z, or retrain with experimental feedback.
+description: Run Direct Coupling Analysis with the adabmDCA Python package (CLI or API). Use when asked to train a Potts/Boltzmann machine model (bmDCA, eaDCA, edDCA) on a protein, RNA or DNA multiple sequence alignment, generate sequences from it (PTT or MCMC), score sequences, scan single mutations, predict contacts or compare them with a PDB structure, estimate entropy or log Z, retrain with experimental feedback, compare generated or designed sequences with natural ones (PCA, correlations, distances), or read the training and sampling plots.
 ---
 
 # adabmDCA
@@ -72,6 +72,8 @@ Skip steps 1–2 when the user already has a clean aligned FASTA and a validatio
 11. **Interpretation.** Lower energy means more probable under that model; energies of different models are not comparable. DMS `delta_energy` < 0 means the model prefers the mutant. Contact scores rank pairs; they are not probabilities (take the top L or L/2, excluding |i−j| ≤ 4 for proteins).
 12. **Errors are structured.** The CLI prints `Error [<code>]: <message>` plus details and exits with 2 for invalid input, 1 for loading, computation or convergence failures, 130 for cancellation. Report the message and the setting it names; do not retry blindly.
 13. **In custom scripts, sample with the optimized kernels.** When a script runs MCMC itself (trajectories, custom observables, figures), get the sampler with `prepare_sampler(method, device)` from `adabmDCA.cuda_kernels.sampling`, or `prepare_fixed_model_sampler(method, device, dtype, params)` for a model that does not change. They pick the fused Triton kernels on CUDA, the Metal kernels on MPS and the Numba kernels on CPU, with the same signature `sampler(chains, params, nsweeps, beta)` and the same distribution. Never call `gibbs_sampling` or `get_sampler` directly: they are the reference implementations, one PyTorch operation per site update, and with few chains they are bound by launch overhead (hours instead of minutes for 10,000 sweeps of a 279-site protein). Prefer recording every few sweeps over calling the sampler once per sweep when the observable allows it.
+14. **Comparing sequences with the data means a PCA with marginal histograms.** Fit the components on the natural sequences only, drawn with their weights, project the other set on them, and plot PC1–2 and PC3–4 with `adabmDCA.plot.plot_PCA`; `compare_pca(data, samples).save_plots(folder)` does all of it, and `sample --plot-sampling-logs` does it for model samples. Compute only the leading components (`torch.pca_lowrank`, or scikit-learn `PCA(svd_solver="randomized")` if installed), never a full SVD. Add the correlation scatter, energies and distances of [references/comparison.md](references/comparison.md), since PCA misses small subfamilies.
+15. **Look at the plots before reporting.** Training and sampling figures have known healthy and failure patterns; describe what they show against [references/plots.md](references/plots.md) rather than only quoting numbers.
 
 ## Choosing settings
 
@@ -117,6 +119,8 @@ Read the one that matches the task:
 - [references/python-api.md](references/python-api.md): the same workflows from Python, progress callbacks and cancellation, steered sampling, result objects.
 - [references/outputs.md](references/outputs.md): what each output file contains and how to read it (`params.dat.gz`, `history.csv` columns, `events.jsonl`, `training.json`, `sampling.json`, `ladder_samples.h5`).
 - [references/diagnostics.md](references/diagnostics.md): `adabmDCA diagnose`, how to tell whether a run is healthy, and what to change when it is not.
+- [references/plots.md](references/plots.md): how to read every training and sampling figure, healthy and failing patterns.
+- [references/comparison.md](references/comparison.md): comparing generated or other sequences with the natural alignment (PCA, correlations, energies, distances), and predicted contacts with a PDB structure.
 
 The full documentation is at https://spqb.github.io/adabmDCApy/ and, in a clone, under `docs/`.
 
