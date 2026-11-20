@@ -48,6 +48,8 @@ Default: bmDCA, PTT, 10240 chains, 10 Metropolized Gibbs sweeps per exchange rou
 | `-l`, `--label` | none | Prefix of output files |
 | `-m`, `--model` | `bmDCA` | `bmDCA`, `eaDCA` (PTT or PCD), `edDCA`, `edgeDCA` (PCD only) |
 | `--strategy` | `ptt` | `ptt` or `pcd` |
+| `--anchor` | `tree-low-rank` | bmDCA from scratch: starting model, also `low-rank`, `tree` or `profile`; the ladder bottom with PTT, the initial parameters and chains with PCD |
+| `--anchor-rank` | 2 | Hidden units of the low-rank anchors, 1 to 3 |
 | `--nchains` | 10240 | Chains (per replica with PTT) |
 | `--nsweeps` | 10 | Sweeps per update (PCD) or per exchange round (PTT) |
 | `--sampler` | `metropolized_gibbs` | `gibbs`, `metropolis` |
@@ -72,8 +74,6 @@ PTT has about thirty `--ptt-*` options; the defaults rarely need changing. The o
 
 | Option | Default | Meaning |
 | --- | --- | --- |
-| `--ptt-anchor` | off | bmDCA from scratch: start the ladder at the anchor, a tractable model fitted to the data, instead of the profile. Recommended: fewer ladder models, faster sampling |
-| `--ptt-anchor-rank` | 2 | Rank of the anchor, 1 to 3 (needs `--ptt-anchor`); 3 for RNA and short proteins, see SKILL.md |
 | `--ptt-validation-stop` / `--no-ptt-validation-stop` | on with `-v` | Stop at the validation plateau |
 | `--ptt-validation-window` | 100 | Updates per compared window |
 | `--ptt-validation-min-gain` | 0 | Minimal gain between windows |
@@ -88,7 +88,7 @@ Common variants:
 
 ```bash
 adabmDCA train --strategy pcd -d train.fasta -o model_pcd                         # fast first look
-adabmDCA train -d train.fasta -v validation.fasta -o model --ptt-anchor           # PTT from the anchor (recommended for bmDCA)
+adabmDCA train -d train.fasta -v validation.fasta -o model --anchor profile      # PTT from the profile instead of the anchor
 adabmDCA train -d train.fasta -v validation.fasta -o model --nsweeps 100          # after trapped configurations
 adabmDCA train -m eaDCA -d train.fasta -v validation.fasta -o model_ea            # sparse, PTT
 adabmDCA train --strategy pcd -m edDCA -d train.fasta -o model_ed --density 0.02  # decimated, PCD only

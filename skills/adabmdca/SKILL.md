@@ -42,8 +42,8 @@ adabmDCA preprocess family.sto -o family.fasta --remove-insertions --remove-dupl
 # 2. Homology-aware split: writes family.train.fasta, family.test.fasta, family.split.json
 adabmDCA split-data family family.fasta
 
-# 3. Train bmDCA with PTT, starting from the anchor; with -v it stops at the best validation log-likelihood
-adabmDCA train -d family.train.fasta -v family.test.fasta -o model --ptt-anchor
+# 3. Train bmDCA with PTT, starting from the anchor (default); with -v it stops at the best validation log-likelihood
+adabmDCA train -d family.train.fasta -v family.test.fasta -o model
 
 # 4. Validate the model by sampling it, with diagnostic plots
 adabmDCA sample -p model/ptt.h5 -d family.train.fasta -v family.test.fasta --plot-sampling-logs -o samples
@@ -80,24 +80,24 @@ Skip steps 1–2 when the user already has a clean aligned FASTA and a validatio
 | Strategy | `ptt` | `--strategy pcd` for a fast first look or small families without clusters |
 | Model | `bmDCA` | `-m eaDCA` (PTT or PCD) or `-m edDCA` / `-m edgeDCA` (PCD only) when a sparse graph is itself the goal |
 | Validation set | none | Always provide `-v` if possible: it enables the validation stop and the memorization checks |
-| Anchor | off | Add `--ptt-anchor` to every bmDCA PTT run trained from scratch (see below) |
+| Anchor | `tree-low-rank` (bmDCA from scratch) | Keep it; `--anchor profile` only to reproduce runs from before the anchor (see below) |
 | `--nsweeps` | 10 | 100 when PTT reports trapped configurations or stalls in a mixing check; restart from scratch, do not resume |
 | `--lr` | 0.01 | Do not raise it with PTT |
 | `--sampler` | `metropolized_gibbs` | `gibbs` is equally good; avoid `metropolis` on proteins |
 | `--target` | 0.95 | Only matters without `-v` (Pearson stop), or with `--no-ptt-validation-stop` |
 | Reweighting | 80% identity | `--clustering_seqid`, `-w weights.dat`, or `--no_reweighting` for non-redundant data |
 
-### The anchor (`--ptt-anchor`)
+### The anchor (`--anchor`)
 
-By default the PTT ladder starts at the independent-site profile. `--ptt-anchor` starts it at the **anchor**, a tractable coupled model fitted to the data before training: it is sampled exactly and its log Z is known, so it replaces the profile at the bottom of the ladder. In general use it, for bmDCA trained from scratch with PTT (it is rejected for eaDCA and with `-p` initial parameters):
+bmDCA trained from scratch starts from the **anchor**, a tractable coupled model fitted to the data before training: it is sampled exactly and its log Z is known. `--anchor` picks it: `tree-low-rank` (default: Chow-Liu tree plus Gaussian hidden units), `low-rank`, `tree` or `profile`. With PTT it replaces the profile at the bottom of the ladder; with PCD it only gives the initial parameters, and exact samples of it the initial chains. eaDCA, edDCA, edgeDCA, warm starts with `-p`, `--ptt-resume` and `reintegrate` start from the profile (an explicit other `--anchor` there is an error). With PTT:
 
 - the final ladder has fewer models (on RF00023, 6 instead of 10 at the same training log-likelihood), so
 - sampling the trained model with PTT is faster, since every model of the ladder costs as much as the endpoint, and
 - training quality can improve: at equal training log-likelihood the validation log-likelihood was higher.
 
-Its fit runs before the first update and prints `Fitting the anchor (...)`, then the anchor's log-likelihood per site next to the profile's.
+Its fit runs before the first update and prints `Fitting the tree-low-rank anchor (...)`, then the anchor's log-likelihood per site next to the profile's.
 
-`--ptt-anchor-rank K` (1 to 3, default 2) sets the rank of the anchor. **K = 2 is the best compromise** between what the anchor captures and the time to fit it. K = 3 gains a little (+0.007 to +0.02 log-likelihood per site over K = 2) and is a valid choice for small systems. One evaluation of the fit costs about P_K · L · q², where P_K, the number of latent lattice points, grows by a factor of 20–30 per extra rank and is larger for strongly clustered families. Measured fit times on one RTX A5000:
+`--anchor-rank K` (1 to 3, default 2) sets the rank of the low-rank anchors. **K = 2 is the best compromise** between what the anchor captures and the time to fit it. K = 3 gains a little (+0.007 to +0.02 log-likelihood per site over K = 2) and is a valid choice for small systems. One evaluation of the fit costs about P_K · L · q², where P_K, the number of latent lattice points, grows by a factor of 20–30 per extra rank and is larger for strongly clustered families. Measured fit times on one RTX A5000:
 
 | Family | L | q | K = 2 | K = 3 |
 | --- | --- | --- | --- | --- |

@@ -18,6 +18,7 @@ from adabmDCA.training.config import (
     DEFAULT_SEED,
     DEFAULT_TARGET_DENSITY,
     DEFAULT_TARGET_PEARSON,
+    ANCHORS,
     MODEL_TYPES,
     SAMPLERS,
 )
@@ -42,6 +43,18 @@ def add_args_dca(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         default=DEFAULT_MODEL_TYPE,
         help="(Defaults to 'bmDCA'). Type of model to be trained.",
         choices=MODEL_TYPES,
+    )
+    dca_args.add_argument(
+        "--anchor", choices=ANCHORS, default=None,
+        help=("bmDCA: the exactly sampled model training starts from, fitted to the data first (default: "
+              "tree-low-rank). 'tree-low-rank' is the Chow-Liu tree of the data plus Gaussian hidden units, "
+              "'low-rank' the hidden units alone, 'profile' independent sites. With PTT it sits at the bottom "
+              "of the ladder, which then needs fewer models; with PCD it gives the initial parameters and "
+              "chains. Other models, warm starts, PTT resumes and reintegration start from the profile."),
+    )
+    dca_args.add_argument(
+        "--anchor-rank", type=int, default=None,
+        help="Hidden units of the tree-low-rank and low-rank anchors, 1 to 3 (default: 2); ignored by the others.",
     )
     dca_args.add_argument(
         "-v",
@@ -302,11 +315,6 @@ def add_args_ptt(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
                         help="PTT rounds after a ladder change (default: 10).")
     ptt_args.add_argument("--ptt-initialization-rounds", type=int, default=None,
                         help="PTT initialization rounds (default: 100).")
-    ptt_args.add_argument("--ptt-anchor", action="store_true", default=None,
-                        help=("bmDCA: start the ladder at the anchor, a tractable model fitted to the data and "
-                              "sampled exactly, instead of the profile. The ladder then needs fewer models."))
-    ptt_args.add_argument("--ptt-anchor-rank", type=int, default=None,
-                        help="With --ptt-anchor: rank of the anchor, 1 to 3 (default: 2).")
     return parser
 
 

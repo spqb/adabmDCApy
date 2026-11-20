@@ -82,12 +82,6 @@ class PTTConfig:
             first update of the new couplings; halved by each recovery.
         activation_significance: Adaptive activation: standard errors by which a
             candidate's pair frequency must differ from the data; 0 disables the test.
-        anchor: bmDCA: start training at the anchor instead of the profile. The anchor is a
-            tractable model fitted to the data by maximum likelihood before training; it is
-            sampled exactly and its log Z is known, so it replaces the profile at the bottom
-            of the ladder, and the ladder needs fewer models.
-        anchor_rank: Rank of the anchor (1 to 3). Rank 3 fits a slightly better anchor than
-            rank 2 but takes about ten times longer to fit.
 
     Example:
         >>> from adabmDCA import PTTConfig, train_model
@@ -125,16 +119,11 @@ class PTTConfig:
     activation: str = "fixed"
     activation_kl_share: float = 0.5
     activation_significance: float = 3.0
-    anchor: bool = False
-    anchor_rank: int = 2
 
     def __post_init__(self):
         for name in ("swaps", "equilibration_rounds", "initialization_rounds", "mixing_chains", "max_recoveries",
                      "lag_horizon", "lag_pause_rounds", "validation_window"):
             validate_integer(name, getattr(self, name))
-        if not isinstance(self.anchor, bool):
-            raise InputValidationError("PTT anchor must be boolean.")
-        validate_integer("anchor_rank", self.anchor_rank, maximum=3)
         validate_integer("max_replicas", self.max_replicas, minimum=2)
         validate_integer("target_replicas", self.target_replicas, minimum=2)
         validate_integer("mixing_initial_rounds", self.mixing_initial_rounds, minimum=8)

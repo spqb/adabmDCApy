@@ -95,7 +95,7 @@ the stored checkpoints, then ramps the callback weights, linear biases and
 inverse temperature above the trained endpoint. The pilot can insert
 intermediate rungs before warmup.
 
-An archive trained with `--ptt-anchor` keeps its exact anchor at the bottom
+An archive trained from an anchor other than the profile keeps its exact anchor at the bottom
 for unrestricted or alphabet-only support. Hard distance windows use an
 exact constrained profile at the bottom and retain the restricted archive
 anchor as a coupled rung. A standalone model is also supported. Calling

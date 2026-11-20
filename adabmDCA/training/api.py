@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import time
 from collections.abc import Callable
+from dataclasses import replace
 from pathlib import Path
 
 import numpy as np
@@ -30,6 +31,8 @@ from adabmDCA.training.config import (
     DEFAULT_ACTIVATION_FRACTION,
     DEFAULT_ACTIVATION_STEPS,
     DEFAULT_ALPHABET,
+    DEFAULT_ANCHOR,
+    DEFAULT_ANCHOR_RANK,
     DEFAULT_CHECKPOINT_INTERVAL,
     DEFAULT_CLUSTERING_SEQID,
     DEFAULT_DECIMATION_RATE,
@@ -46,6 +49,7 @@ from adabmDCA.training.config import (
     DEFAULT_TARGET_DENSITY,
     DEFAULT_TARGET_PEARSON,
     TrainingConfig,
+    _DefaultStr,
 )
 from adabmDCA.training.control import (
     StageProgress,
@@ -134,26 +138,30 @@ def _finish_log(checkpoint, status: str, controller, history, *, error: BaseExce
     finish(status, summary)
 
 
-def _fit_anchor(dataset, num_states, rank, pseudocount, frequencies, device, stage_progress):
-    """Fit the PTT anchor and build its exact sampler, reporting both as ``anchor_fit`` stage events.
+def _fit_anchor(dataset, num_states, kind, rank, pseudocount, frequencies, device, stage_progress):
+    """Fit the anchor and build its exact sampler, reporting both as ``anchor_fit`` stage events.
 
-    The anchor is the Chow-Liu tree of the data plus ``rank`` Gaussian hidden units.
+    ``kind`` is ``"tree-low-rank"`` (the Chow-Liu tree of the data plus ``rank``
+    Gaussian hidden units), ``"low-rank"`` (the hidden units alone) or ``"tree"``.
 
-    Events: ``start`` (rank, number of parameters), ``progress`` after every
+    Events: ``start`` (anchor, rank, number of parameters), ``progress`` after every
     likelihood evaluation, and a final ``event`` with the log-likelihoods per
     site of the anchor and of the profile on the training data, and the cost and
     acceptance of the exact sampler.
     """
     from adabmDCA.anchor.anchor import fit_tree_low_rank_potts
+    from adabmDCA.anchor.lowrank import fit_low_rank_potts
 
     length = dataset.get_num_residues()
+    rank = 0 if kind == "tree" else rank
+    tree = kind != "low-rank"
 
-    def emit(kind, current=None, total=None, **details):
+    def emit(event_kind, current=None, total=None, **details):
         if stage_progress is not None:
-            stage_progress(StageProgress("anchor_fit", kind, 0, current=current, total=total,
-                                         details={"rank": rank, **details}))
+            stage_progress(StageProgress("anchor_fit", event_kind, 0, current=current, total=total,
+                                         details={"anchor": kind, "rank": rank, **details}))
 
-    emit("start", parameters=length * num_states * (rank + 1) + (length - 1) * num_states ** 2)
+    emit("start", parameters=length * num_states * (rank + 1) + tree * (length - 1) * num_states ** 2)
     evaluations = 0
 
     def report(info):
@@ -163,14 +171,14 @@ def _fit_anchor(dataset, num_states, rank, pseudocount, frequencies, device, sta
              lattice_points=info["lattice_points"])
 
     started = time.monotonic()
-    anchor = fit_tree_low_rank_potts(dataset.data, dataset.weights, num_states=num_states, rank=rank,
-                                     pseudocount=pseudocount, device=device,
-                                     callback=None if stage_progress is None else report)
+    fit = fit_tree_low_rank_potts if tree else fit_low_rank_potts
+    anchor = fit(dataset.data, dataset.weights, num_states=num_states, rank=rank, pseudocount=pseudocount,
+                 device=device, callback=None if stage_progress is None else report)
     fit_seconds = time.monotonic() - started
     if stage_progress is None:
         return anchor
     started = time.monotonic()
-    cells = anchor.cells  # the exact sampler, which the ladder would otherwise build on its first draw
+    cells = anchor.cells  # the exact sampler, which would otherwise be built on the first draw
     sampler_seconds = time.monotonic() - started
     sites = torch.arange(length, device=dataset.data.device)
     weights = dataset.weights.to(torch.float64).reshape(-1)
@@ -219,6 +227,8 @@ def train_model(
     device: str = DEFAULT_DEVICE,
     dtype: str = DEFAULT_DTYPE,
     use_wandb: bool = False,
+    anchor: str = DEFAULT_ANCHOR,
+    anchor_rank: int = DEFAULT_ANCHOR_RANK,
     allow_signed_weights: bool = False,
     progress: ProgressCallback | None = None,
     stage_progress: StageProgressCallback | None = None,
@@ -282,6 +292,10 @@ def train_model(
         dtype: Training precision, ``"float32"``, ``"float64"``, or
             ``"bfloat16"``.
         use_wandb: Enable Weights & Biases logging when output is configured.
+        anchor: The exactly sampled model training starts from: ``"tree-low-rank"``
+            (default), ``"low-rank"``, ``"tree"`` or ``"profile"``; see
+            :class:`TrainingConfig`. Applies to bmDCA trained from scratch.
+        anchor_rank: Hidden units of the low-rank anchors (1 to 3, default 2).
         allow_signed_weights: Permit signed input weights for experimental
             reintegration workflows.
         progress: Optional callback taking exactly one
@@ -299,8 +313,8 @@ def train_model(
             It receives a :class:`StageProgress` with ``stage``, ``kind``,
             completed and total work, and stage-specific details. These
             events do not add metric rows or alter the ``progress`` callback.
-            With a PTT anchor, the ``anchor_fit`` stage reports its fit
-            before training starts.
+            With an anchor other than the profile, the ``anchor_fit`` stage
+            reports its fit before training starts, for PTT and PCD.
         on_initialized: Optional callback taking one
             :class:`TrainingInitialization` event. It runs once after input
             loading and weighting, before the PTT ladder is built and
@@ -368,6 +382,8 @@ def train_model(
         device=device,
         dtype=dtype,
         use_wandb=use_wandb,
+        anchor=anchor,
+        anchor_rank=anchor_rank,
     )
     if ptt_resume is not None and training_config.ptt is None:
         raise InputValidationError("ptt_resume requires a PTTConfig.")
@@ -425,6 +441,15 @@ def train_model(
     )
     dataset = loaded_inputs.training
     validation = loaded_inputs.validation
+    if training_config.anchor != "profile":
+        # The anchor is fitted to positively weighted data and replaces the initial model.
+        reason = ("a warm start" if loaded_inputs.initial_params is not None
+                  else "a PTT resume" if ptt_resume is not None
+                  else "reintegration" if allow_signed_weights else None)
+        if reason is not None:
+            if not isinstance(training_config.anchor, _DefaultStr):
+                raise InputValidationError(f"Anchors other than the profile cannot be combined with {reason}.")
+            training_config = replace(training_config, anchor=_DefaultStr("profile"))
     if validation is not None:
         validation_pseudocount = 1.0 / validation.get_effective_size()
         fi_val, fij_val = validation.get_frequencies(
@@ -499,6 +524,16 @@ def train_model(
     if on_initialized is not None:
         on_initialized(initialization)
 
+    anchor_model = None
+    if training_config.anchor != "profile":
+        anchor_model = _fit_anchor(dataset, num_states, training_config.anchor, training_config.anchor_rank,
+                                    effective_pseudocount, fi_target, resolved_device, stage_progress)
+        params = anchor_model.potts_params(resolved_dtype, resolved_device)
+        if training_config.ptt is None and loaded_inputs.initial_chains is None:
+            # PCD starts from exact samples of the anchor, at the equilibrium of its initial model.
+            chains = torch.nn.functional.one_hot(anchor_model.sample(n_chains, device=resolved_device).long(),
+                                                 num_classes=num_states).to(resolved_dtype)
+
     ptt_sampler = None
     if training_config.ptt is not None:
         if ptt_resume is not None:
@@ -506,15 +541,8 @@ def train_model(
             if ptt_sampler.tokens != tokens or not ptt_sampler.training_state:
                 raise InputValidationError("PTT archive token order or training restart state is incompatible.")
         else:
-            anchor = None
-            if training_config.ptt.anchor:
-                if model_type != "bmDCA" or loaded_inputs.initial_params is not None:
-                    raise InputValidationError("A PTT anchor requires bmDCA trained from scratch.")
-                anchor = _fit_anchor(dataset, num_states, training_config.ptt.anchor_rank, effective_pseudocount,
-                                     fi_target, resolved_device, stage_progress)
-                params = anchor.potts_params(resolved_dtype, resolved_device)
             ptt_sampler = PTTSampler(params, tokens=tokens, n_chains=n_chains, sampler=sampler,
-                                     config=training_config.ptt, seed=seed, anchor=anchor)
+                                     config=training_config.ptt, seed=seed, anchor=anchor_model)
         if dtype == "bfloat16":
             ptt_sampler.set_coupling_dtype(torch.bfloat16)
 
