@@ -40,15 +40,21 @@ Instead, the window is built into the tree draw itself. The idea is to count sub
 
 An exact tree draw has two passes. The first goes from the leaves to the root: each position sends its parent a **message**, which says, for every letter the parent might take, how much total weight the whole subtree below could carry. The second pass goes back down and draws the letters.
 
+The figures below follow a toy example: seven RNA positions on a tree rooted at position 4, the reference `ACGUACG`, and a window of 1 to 2 substitutions.
+
 For a window, each message also keeps a **tally**: the weight is split by how many substitutions the subtree uses. A position contributes one substitution if its letter differs from the reference. When a node collects the messages of its children, their tallies add up. Tallies above the window's maximum can never come back down, since substitutions only accumulate, so they are dropped as soon as they appear. At the root, the anchor knows exactly how much weight carries each total number of substitutions, and it keeps only the totals inside the window.
 
 ![Upward pass: each message carries a histogram of substitution counts](../figures/anchor/anchor_upward.svg){ width="900" }
+
+On the right, position 2 joins the tallies of its two children, then adds its own letter. Its message to the root keeps the counts 0, 1 and 2 and drops 3. At the root, only the counts 1 and 2 remain.
 
 ### Drawing inside the window
 
 The second pass picks a total inside the window, then divides it among the branches of the root, in proportion to the weights that the first pass stored. Each branch then divides its share among its own branches, and every position draws its letter given its parent and its share. Every sequence lands inside the window on the first try, and with exactly the probability that the anchor gives it among the sequences of the window.
 
 ![Downward pass: the total count is split among the branches](../figures/anchor/anchor_downward.svg){ width="900" }
+
+Here the root picks a total of 2, sends one substitution down each branch, and positions 3 and 5 end up substituted.
 
 ### The hidden directions
 
@@ -61,6 +67,8 @@ The tree draw happens at a fixed \(z\). The restricted anchor runs both passes a
 With two references, a single count is not enough. One count \(n\) follows the substitutions from the reference with the tightest window. A second count \(t\) changes only at the positions where the two references differ: it grows by 2 when such a position takes the letter of the second reference and by 1 for a third letter. Both distances can be read from \(n\) and \(t\), so each tally becomes a small table, and the windows become a region of that table. Windows on the same reference are merged, and windows that the other ones already guarantee are dropped.
 
 ![Two windows: the tally becomes a small table of reachable counts](../figures/anchor/anchor_two_windows.svg){ width="900" }
+
+In the example, the second reference differs from the first at positions 3 and 6, and both windows allow 1 to 3 substitutions. The drawn sequence takes the second reference's letter at position 3, which moves it by 1 in \(n\) and 2 in \(t\), then a substitution at position 5, where the references agree, which moves it by 1 in \(n\) only. It ends 2 substitutions from each reference. Cells with \(t > 2n\) can never be reached and are never stored.
 
 ### Cost
 

@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="450" viewBox="0 0 900 450" role="img" aria-labelledby="title desc">
+<title id="title">One tree per grid point</title>
+<desc id="desc">The restricted weights on a two-dimensional hidden-variable grid peak away from the unrestricted anchor. A selected point yields the seven-site tree draw A C U U C C G.</desc>
+<defs>
+  <pattern id="grid" x="79" y="93" width="36" height="36" patternUnits="userSpaceOnUse"><circle cx="8" cy="8" r="2.1" fill="#52514e" opacity=".42"/></pattern>
+  <marker id="arrow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0 0L6 3L0 6Z" fill="#2a78d6"/></marker>
+</defs>
+<style>text{font:14px sans-serif;fill:#0b0b0b;text-anchor:middle}.heading{font-size:25px;font-weight:700}.node{fill:white;stroke:#2a78d6;stroke-width:1.8}.change{fill:#fff0e9;stroke:#eb6834;stroke-dasharray:4 2}.point{fill:#1baf7a;stroke:#116e50;stroke-width:1}</style>
+<rect width="900" height="450" fill="white"/>
+<text class="heading" x="450" y="38">One tree per grid point</text>
+<text x="238" y="70">1. Pick a weighted grid point</text>
+<text x="674" y="70">2. Draw from its tree</text>
+<path d="M68 351V92 M68 351H399" fill="none" stroke="#52514e" stroke-width="1.5"/>
+<text x="53" y="103">z₂</text><text x="402" y="372">z₁</text>
+<ellipse cx="157" cy="171" rx="70" ry="53" transform="rotate(-18 157 171)" fill="none" stroke="#52514e" stroke-opacity=".6" stroke-dasharray="5 4" stroke-width="1.8"/>
+<ellipse cx="285" cy="246" rx="79" ry="58" transform="rotate(19 285 246)" fill="#c5efe0" stroke="#1baf7a" stroke-width="1.8"/>
+<rect x="79" y="93" width="324" height="252" fill="url(#grid)"/>
+<g class="point">
+  <circle cx="231" cy="245" r="4"/><circle cx="267" cy="209" r="6"/><circle cx="303" cy="209" r="4"/>
+  <circle cx="267" cy="245" r="9"/><circle cx="303" cy="245" r="12"/><circle cx="339" cy="245" r="5"/>
+  <circle cx="267" cy="281" r="5"/><circle cx="303" cy="281" r="7"/><circle cx="339" cy="281" r="4"/>
+</g>
+<circle cx="303" cy="245" r="17" fill="none" stroke="#0b0b0b" stroke-width="1.8"/>
+<path d="M320 245C410 245 442 149 538 149" fill="none" stroke="#2a78d6" stroke-width="1.8" marker-end="url(#arrow)"/>
+<path d="M82 403h26" stroke="#52514e" stroke-dasharray="5 4" stroke-width="1.8"/><text x="116" y="408" style="text-anchor:start">Unrestricted anchor</text>
+<circle cx="290" cy="403" r="7" class="point"/><text x="304" y="408" style="text-anchor:start">Restricted to the window</text>
+<g stroke="#2a78d6" stroke-width="1.8" fill="none">
+  <path d="M670 144L590 223L539 291M590 223L637 291M670 144L750 223L703 291M750 223L801 291"/>
+</g>
+<g class="node">
+  <circle cx="670" cy="144" r="18"/><circle cx="590" cy="223" r="18"/><circle cx="750" cy="223" r="18"/>
+  <circle cx="539" cy="291" r="18"/><circle class="change" cx="637" cy="291" r="18"/><circle class="change" cx="703" cy="291" r="18"/><circle cx="801" cy="291" r="18"/>
+</g>
+<text x="670" y="149">4 U</text><text x="590" y="228">2 C</text><text x="750" y="228">6 C</text>
+<text x="539" y="296">1 A</text><text x="637" y="296">3 U</text><text x="703" y="296">5 C</text><text x="801" y="296">7 G</text>
+<text x="670" y="352" letter-spacing="3">A C U U C C G</text>
+<text x="670" y="376">2 substitutions</text>
+</svg>

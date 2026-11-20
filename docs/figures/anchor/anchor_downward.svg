@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="450" viewBox="0 0 900 450" role="img" aria-labelledby="title desc">
+<title id="title">Draw a windowed sequence</title>
+<desc id="desc">The root draws two substitutions and sends one to each branch. Sites three and five change, producing A C U U C C G.</desc>
+<defs><marker id="arrow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0 0L6 3L0 6Z" fill="#2a78d6"/></marker></defs>
+<style>text{font:14px sans-serif;fill:#0b0b0b;text-anchor:middle}.heading{font-size:25px;font-weight:700}.site circle{fill:white;stroke:#2a78d6;stroke-width:1.8}.site .changed{fill:#fff0e9;stroke:#eb6834;stroke-dasharray:4 2}.site text,.budgets text{font-weight:600}.edge{fill:none;stroke:#2a78d6;stroke-width:1.8;marker-end:url(#arrow)}.budgets circle{fill:#e0f6ee;stroke:#1baf7a}.orange{fill:#eb6834}</style>
+<rect width="900" height="450" fill="white"/>
+<text class="heading" x="450" y="38">Draw a windowed sequence</text>
+<rect x="365" y="57" width="170" height="30" rx="9" fill="#e0f6ee" stroke="#1baf7a"/>
+<text x="450" y="77">Total = 2 · window 1–2</text>
+<g class="edge">
+  <path d="M430 127L295 193"/><path d="M470 127L605 193"/>
+  <path d="M258 218L147 291"/><path d="M291 220L381 290"/>
+  <path d="M609 220L519 290"/><path d="M642 218L753 291"/>
+</g>
+<g class="budgets">
+  <circle cx="365" cy="159" r="12"/><text x="365" y="164">1</text>
+  <circle cx="535" cy="159" r="12"/><text x="535" y="164">1</text>
+  <circle cx="204" cy="254" r="12"/><text x="204" y="259">0</text>
+  <circle cx="338" cy="256" r="12"/><text x="338" y="261">1</text>
+  <circle cx="562" cy="256" r="12"/><text x="562" y="261">1</text>
+  <circle cx="696" cy="254" r="12"/><text x="696" y="259">0</text>
+</g>
+<g class="site">
+  <circle cx="450" cy="117" r="21"/><text x="450" y="122">4 U</text>
+  <circle cx="275" cy="204" r="21"/><text x="275" y="209">2 C</text>
+  <circle cx="625" cy="204" r="21"/><text x="625" y="209">6 C</text>
+  <circle cx="130" cy="307" r="21"/><text x="130" y="312">1 A</text>
+  <circle class="changed" cx="398" cy="307" r="21"/><text x="398" y="312">3 U</text>
+  <circle class="changed" cx="502" cy="307" r="21"/><text x="502" y="312">5 C</text>
+  <circle cx="770" cy="307" r="21"/><text x="770" y="312">7 G</text>
+</g>
+<g>
+  <path d="M405 369l5-6 5 6m70 0 5-6 5 6" fill="none" stroke="#eb6834" stroke-width="1.8"/>
+  <rect x="394" y="395" width="32" height="25" rx="5" fill="#fff0e9" stroke="#eb6834" stroke-dasharray="4 2"/>
+  <rect x="474" y="395" width="32" height="25" rx="5" fill="#fff0e9" stroke="#eb6834" stroke-dasharray="4 2"/>
+  <text x="263" y="388">Reference r₁</text><text x="263" y="412">Draw</text>
+  <text y="388"><tspan x="330">A</tspan><tspan x="370">C</tspan><tspan x="410">G</tspan><tspan x="450">U</tspan><tspan x="490">A</tspan><tspan x="530">C</tspan><tspan x="570">G</tspan></text>
+  <text y="412"><tspan x="330">A</tspan><tspan x="370">C</tspan><tspan x="410">U</tspan><tspan x="450">U</tspan><tspan x="490">C</tspan><tspan x="530">C</tspan><tspan x="570">G</tspan></text>
+</g>
+</svg>
