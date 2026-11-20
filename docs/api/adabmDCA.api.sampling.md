@@ -12,7 +12,7 @@ High-level sequence-generation operations.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/sampling.py#L404"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/sampling.py#L409"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `sample_sequences`
 
@@ -87,7 +87,7 @@ With PTT, steered rungs of increasing strength are added above the trained endpo
  - <b>`sampler`</b>:  `"metropolized_gibbs"`, `"gibbs"` or `"metropolis"`. For PTT,  select the local update with `ptt_local_kernel` instead.
  - <b>`beta`</b>:  Inverse Potts temperature. Explicit steering weights are in reduced-energy units.
  - <b>`seed`</b>:  Random seed.
- - <b>`initial_sequences`</b>:  Ordinary sampling: starting configurations instead of  random sequences. A FASTA/Stockholm path, an `Alignment`, a list  of aligned strings, a `SamplingResult` (e.g. from PTT sampling),  or an array of token indices `(N, L)` or one-hot `(N, L, q)` in the  model's alphabet.
+ - <b>`initial_sequences`</b>:  Starting configurations for ordinary MCMC or structured PTT.  Structured PTT uses `steering.chains` rows to seed each rung above  its exact bottom rung. A FASTA/Stockholm path, an `Alignment`, a list  of aligned strings, a `SamplingResult` (e.g. from PTT sampling),  or an array of token indices `(N, L)` or one-hot `(N, L, q)` in the  model's alphabet.
  - <b>`initial_distribution`</b>:  Ordinary sampling without `initial_sequences`:  `"profile"` draws the starting sequences from the weighted  single-site frequencies of `reference_fasta` (with `pseudocount`),  `"uniform"` draws every residue uniformly. `None` uses the profile  when `reference_fasta` is given and uniform sequences otherwise.  Uniform sequences are far from any natural sequence, where the model
  - <b>`is not constrained by data`</b>:  chains can fall into metastable states there, such as blocks of gaps, that plain MCMC never leaves.
  - <b>`measure_mixing_time`</b>:  Ordinary sampling with `reference_fasta`: `False`  skips the mixing-time measurement and runs exactly `n_sweeps` sweeps,  still recording the comparison with the reference.
@@ -149,7 +149,7 @@ steered.steering["effective_sample_size"], steered.log_importance_weights[:3]
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/sampling.py#L908"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/sampling.py#L914"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `generate_sequences`
 
