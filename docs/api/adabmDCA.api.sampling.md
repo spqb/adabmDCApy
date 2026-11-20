@@ -12,7 +12,7 @@ High-level sequence-generation operations.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/sampling.py#L409"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/sampling.py#L395"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `sample_sequences`
 
@@ -48,11 +48,6 @@ sample_sequences(
     device: 'str' = 'auto',
     dtype: 'str | None' = None,
     steering: 'SteeringConfig | None' = None,
-    steering_potential: 'SteeringPotential | None' = None,
-    steering_strength: 'float' = 1.0,
-    steering_input: 'SteeringInput' = 'sequences',
-    steering_proposal_steps: 'int | None' = None,
-    ptt_steering_acceptance: 'float' = 0.3,
     collect_diagnostics: 'bool' = False,
     ptt_return_full_ladder: 'bool' = False,
     progress: 'ProgressCallback | None' = None,
@@ -66,9 +61,7 @@ Ordinary sampling runs `n_sequences` independent Markov chains, started from the
 
 PTT sampling (`ptt=True`, a PTT archive, or a `PTTSampler` as `model`) instead uses the replica ladder saved during training: the exact profile, the models flagged during training and the endpoint. It runs at `beta=1` by default, ignores `n_sweeps`, and equilibrates until its mixing check passes. An explicit structured target or a colder `beta` uses the steered ladder and its endpoint diagnostics. A `PTTSampler` passed as `model` is forked, not modified. The ordinary sampling paths also report the summed context-dependent entropy (CDE) and, when identifiable, a least-squares fit of energy against it.
 
-**Steered (importance) sampling.** With `steering_potential`, sequences are drawn from `p_s(x) ∝ exp(-beta * H(x) - V(x, s))` instead, where `V(x, s) = steering_potential(x, s)` and `s = steering_strength`: low `V` is favoured, so return `-s * score` to favour high scores. `V` is called on batches: a list of aligned sequence strings (`steering_input="sequences"`) or a one-hot tensor `(n, L, q)` on the model's device and precision (`"onehot"`), and must return one number per sequence, and `0` when `s == 0`. Each Monte Carlo move proposes `steering_proposal_steps` Gibbs updates under the DCA model, at random sites visited in palindromic order (which makes the proposal reversible), and accepts them with probability `min(1, exp(-ΔV))`. This samples `p_s` exactly while calling `V` once per chain and move; `sampler` and `ptt_local_kernel` do not apply to steered moves.
-
-With PTT, steered rungs of increasing strength are added above the trained endpoint until `steering_strength` is reached, keeping the swap acceptance between them at least `ptt_steering_acceptance`; the ladder's bottom is unchanged, so the mixing check still applies, and PTT also estimates `log Z_s - log Z_0`. The result's `log_importance_weights` turn averages over the steered sequences into averages under the original model.
+**Steered sampling.** With `steering`, sequences are drawn under hard alphabet and Hamming constraints, linear distance biases and weighted callback costs, by MCMC or by PTT. See `SteeringConfig` and the steered sampling guide.
 
 
 
@@ -103,13 +96,8 @@ With PTT, steered rungs of increasing strength are added above the trained endpo
  - <b>`no_reweighting`</b>:  Give every reference sequence the same weight.
  - <b>`alphabet`</b>:  Alphabet of a text parameter file; `None` reads it from a PTT  archive and assumes `"protein"` for text files.
  - <b>`device`</b>:  `"auto"`, `"cpu"`, `"cuda"` or `"mps"`.
- - <b>`dtype`</b>:  `"float32"`, `"float64"` or `"bfloat16"` (CUDA/MPS, unsteered  sampling only; CUDA only with PTT); `None` means `"float32"`, or the archive's precision.
+ - <b>`dtype`</b>:  `"float32"`, `"float64"` or `"bfloat16"` (CUDA/MPS; CUDA only  with PTT); `None` means `"float32"`, or the archive's precision.
  - <b>`steering`</b>:  Structured fields, hard Hamming windows, weighted callbacks, and  automatic warmup. See `SteeringConfig`.
- - <b>`steering_potential`</b>:  Optional `potential(batch, strength)` added to the  DCA energy, returning one value per sequence (list, NumPy array or  tensor) and `0` at strength 0. `None` samples the model itself.
- - <b>`steering_strength`</b>:  Non-zero strength `s` passed to the potential.
- - <b>`steering_input`</b>:  What the potential receives: `"sequences"` (a list of  aligned strings, convenient for external tools) or `"onehot"` (a  tensor `(n, L, q)`, fastest for potentials written in PyTorch).
- - <b>`steering_proposal_steps`</b>:  Site updates per steered move; `None` adapts it  during warmup (doubling above 50% acceptance, halving below 20%, at most  16 sweeps' worth) and then keeps it fixed. Small values suit strong or  rugged potentials; larger ones need fewer potential evaluations per sweep.
- - <b>`ptt_steering_acceptance`</b>:  PTT steering: smallest swap acceptance between  adjacent steered rungs; higher values place more rungs.
  - <b>`collect_diagnostics`</b>:  Keep the correlations and PCA projections needed by  `SamplingResult.save_diagnostic_plots`.
  - <b>`ptt_return_full_ladder`</b>:  PTT: also keep `n_sequences` samples of every  model of the ladder, from the profile to the endpoint, in the result's  `ladder_samples` (written by `SamplingResult.to_ladder_hdf5`).
  - <b>`progress`</b>:  Optional callback receiving `SamplingProgress` events.
@@ -136,20 +124,10 @@ result = sample_sequences(model="params.dat.gz", n_sequences=1000,
 result.to_fasta("samples.fasta")
 ```
 
-Steering towards sequences with a high GC content (RNA), as strings:
-
-```python
-def gc_potential(sequences, strength):
-    return [-strength * sum(c in "GC" for c in s) / len(s) for s in sequences]
-steered = sample_sequences(model="params.dat.gz", alphabet="rna", n_sequences=500,
-                           steering_potential=gc_potential, steering_strength=20.0)
-steered.steering["effective_sample_size"], steered.log_importance_weights[:3]
-```
-
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/sampling.py#L914"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/sampling.py#L815"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `generate_sequences`
 

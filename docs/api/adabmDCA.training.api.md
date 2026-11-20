@@ -65,6 +65,7 @@ train_model(
     use_wandb: 'bool' = False,
     anchor: 'str' = 'profile',
     anchor_rank: 'int' = 2,
+    centered_gradient: 'bool' = True,
     allow_signed_weights: 'bool' = False,
     progress: 'ProgressCallback | None' = None,
     stage_progress: 'StageProgressCallback | None' = None,
@@ -118,6 +119,7 @@ Pass `config=TrainingConfig(...)` to specify the training policy as one object. 
  - <b>`use_wandb`</b>:  Enable Weights & Biases logging when output is configured.
  - <b>`anchor`</b>:  The exactly sampled model training starts from: `"profile"`  (default), `"tree-low-rank"`, `"low-rank"` or `"tree"`; see  `TrainingConfig`. The command line defaults to `"tree-low-rank"`.  Anchors other than the profile apply to bmDCA trained from scratch.
  - <b>`anchor_rank`</b>:  Hidden units of the low-rank anchors (1 to 3, default 2).
+ - <b>`centered_gradient`</b>:  Update with the centering trick, with PCD and PTT  (default); `False` uses the raw gradient. See `TrainingConfig`.
  - <b>`allow_signed_weights`</b>:  Permit signed input weights for experimental  reintegration workflows.
  - <b>`progress`</b>:  Optional callback taking exactly one  `TrainingProgress` event and returning `None`. It runs  synchronously after each recorded metrics update. The event has  `epoch` (the reported step), `stage` (for example,  `"optimization"` or `"activation"`), cumulative  `gradient_steps`, `structure_steps`, and `sweeps` counters,  and a `metrics` dictionary. Numeric metrics are Python floats;  keys such as `"Pearson"` and `"Time"` can vary by stage.  For PTT, `partition_estimate` may contain normalization  diagnostics; otherwise it is `None`. Callback exceptions  propagate and end the training run.
  - <b>`stage_progress`</b>:  Optional callback for transient PTT stage updates.  It receives a `StageProgress` with `stage`, `kind`,  completed and total work, and stage-specific details. These  events do not add metric rows or alter the `progress` callback.  With an anchor other than the profile, the `anchor_fit` stage  reports its fit before training starts, for PTT and PCD.

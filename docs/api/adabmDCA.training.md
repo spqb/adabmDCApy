@@ -53,6 +53,41 @@ Computes the gradient of the log-likelihood of the model using PyTorch.
 
 <a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training/__init__.py#L54"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
+## <kbd>function</kbd> `center_gradient`
+
+```python
+center_gradient(
+    gradients: dict[str, Tensor],
+    fi: Tensor,
+    pi: Tensor,
+    mask: Tensor
+) → dict[str, Tensor]
+```
+
+Centering trick: the gradients of the energy written in x - mu, with mu = (fi + pi) / 2, mapped back.
+
+Summed over the partner site, the raw coupling gradient is (L - 1) times the field gradient: the coupling step repeats the field step, and the two are almost collinear. Centred, the coupling gradient is the difference of connected correlations, Cij_data - Cij_model, which has no one-site part, and the field step absorbs the shift of the centred parametrization: dh_i(a) = (fi - pi)_i(a) - sum_{j,b} dJ_ij(a, b) mu_j(b).
+
+
+
+**Args:**
+
+ - <b>`gradients`</b> (Dict[str, torch.Tensor]):  Raw gradients, with any L2 term already in the coupling one.
+ - <b>`fi`</b> (torch.Tensor):  Single-point frequencies of the data.
+ - <b>`pi`</b> (torch.Tensor):  Single-point marginals of the model.
+ - <b>`mask`</b> (torch.Tensor):  Mask of the interaction graph.
+
+
+
+**Returns:**
+
+ - <b>`Dict[str, torch.Tensor]`</b>:  Centred gradients.
+
+
+---
+
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training/__init__.py#L85"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+
 ## <kbd>function</kbd> `update_params`
 
 ```python
@@ -64,7 +99,8 @@ update_params(
     params: dict[str, Tensor],
     mask: Tensor,
     lr: float,
-    l2_reg: float = 0.0
+    l2_reg: float = 0.0,
+    centered: bool = True
 ) → dict[str, Tensor]
 ```
 
@@ -82,6 +118,7 @@ Updates the parameters of the model.
  - <b>`mask`</b> (torch.Tensor):  Mask of the interaction graph.
  - <b>`lr`</b> (float):  Learning rate.
  - <b>`l2_reg`</b> (float, optional):  L2 regularization coefficient. Defaults to 0.0.
+ - <b>`centered`</b> (bool, optional):  Update with the centred gradient (`center_gradient`). Defaults to True.
 
 
 
@@ -92,7 +129,7 @@ Updates the parameters of the model.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training/__init__.py#L96"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training/__init__.py#L127"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `update_params_edge_activation`
 
@@ -127,7 +164,7 @@ Updates the mask and the coupling parameters using the edge-activation algorithm
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training/__init__.py#L134"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training/__init__.py#L165"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `train_graph`
 
@@ -146,7 +183,8 @@ train_graph(
     fi_val: Tensor | None = None,
     fij_val: Tensor | None = None,
     l2_reg: float = 0.0,
-    controller: TrainingController | None = None
+    controller: TrainingController | None = None,
+    centered_gradient: bool = True
 ) → tuple[Tensor, dict[str, Tensor], dict[str, list[Any]]]
 ```
 
@@ -170,6 +208,7 @@ Trains the model on a given graph until the target Pearson correlation is reache
  - <b>`fij_val`</b> (Optional[torch.Tensor], optional):  Two-point frequencies of the validation data. Defaults to None.
  - <b>`l2_reg`</b> (float, optional):  L2 regularization coefficient. Defaults to 0.0.
  - <b>`controller`</b> (TrainingController, optional):  Shared controller for counters, limits and logging.
+ - <b>`centered_gradient`</b> (bool, optional):  Update with the centred gradient. Defaults to True.
 
 
 
@@ -179,7 +218,7 @@ Trains the model on a given graph until the target Pearson correlation is reache
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training/__init__.py#L255"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training/__init__.py#L289"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `train_eaDCA`
 
@@ -202,7 +241,8 @@ train_eaDCA(
     fij_val: Tensor | None = None,
     l2_reg: float = 0.0,
     controller: TrainingController | None = None,
-    max_gradient_steps: int | None = None
+    max_gradient_steps: int | None = None,
+    centered_gradient: bool = True
 ) → tuple[Tensor, dict[str, Tensor], dict[str, list[Any]]]
 ```
 
@@ -228,6 +268,7 @@ Fits an eaDCA model on the training data and saves the results in a file.
  - <b>`fi_val`</b> (Optional[torch.Tensor], optional):  Single-point frequencies of the validation data. Defaults to None.
  - <b>`fij_val`</b> (Optional[torch.Tensor], optional):  Two-point frequencies of the validation data. Defaults to None.
  - <b>`l2_reg`</b> (float, optional):  L2 regularization coefficient. Defaults to 0.0.
+ - <b>`centered_gradient`</b> (bool, optional):  Update with the centred gradient. Defaults to True.
 
 
 
@@ -237,7 +278,7 @@ Fits an eaDCA model on the training data and saves the results in a file.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training/__init__.py#L421"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training/__init__.py#L458"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `train_edDCA`
 
@@ -260,7 +301,8 @@ train_edDCA(
     max_epochs: int = 10000,
     controller: TrainingController | None = None,
     max_gradient_steps: int | None = None,
-    inner_gradient_steps: int = 10000
+    inner_gradient_steps: int = 10000,
+    centered_gradient: bool = True
 ) → tuple[Tensor, dict[str, Tensor], dict[str, list[Any]]]
 ```
 
@@ -284,6 +326,7 @@ Fits an edDCA model on the training data and saves the results in a file.
  - <b>`fi_val`</b> (Optional[torch.Tensor], optional):  Single-point frequencies of the validation data. Defaults to None.
  - <b>`fij_val`</b> (Optional[torch.Tensor], optional):  Two-point frequencies of the validation data. Defaults to None.
  - <b>`l2_reg`</b> (float, optional):  L2 regularization coefficient. Defaults to 0.0.
+ - <b>`centered_gradient`</b> (bool, optional):  Update with the centred gradient. Defaults to True.
 
 
 
@@ -293,7 +336,7 @@ Fits an edDCA model on the training data and saves the results in a file.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training/__init__.py#L623"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/training/__init__.py#L664"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `train_edgeDCA`
 

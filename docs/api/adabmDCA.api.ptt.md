@@ -11,7 +11,7 @@ Archive-based generation and direct entropy using the shared PTT sampler.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/ptt.py#L32"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/ptt.py#L25"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `load_ptt_backend`
 
@@ -51,7 +51,7 @@ An in-memory `PTTSampler` is forked, so the original is not modified. An archive
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/ptt.py#L79"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/ptt.py#L72"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `sample_ptt_sequences`
 
@@ -78,11 +78,6 @@ sample_ptt_sequences(
     renewal_tolerance: 'float' = 0.01,
     stationary: 'bool' = False,
     local_kernel: 'str | None' = 'metropolized_gibbs',
-    steering_potential: 'SteeringPotential | None' = None,
-    steering_strength: 'float' = 1.0,
-    steering_input: 'SteeringInput' = 'sequences',
-    steering_proposal_steps: 'int | None' = None,
-    steering_acceptance: 'float' = 0.3,
     collect_diagnostics: 'bool' = False,
     return_full_ladder: 'bool' = False,
     progress: 'Callable[[SamplingProgress], None] | None' = None,
@@ -92,12 +87,12 @@ sample_ptt_sequences(
 
 Equilibrate the ladder in place, then collect endpoint samples.
 
-`mixing_method='renewal'` (default) tracks the birth round of every configuration and waits until the ladder has twice been repopulated by exact rung-0 draws (see `PTTSampler.measure_renewal`); extra batches are spaced by the measured renewal time. By default the renewal runs only the warmup, which replaces the initial populations once; `stationary=True` adds the stationary renewal, which certifies that the returned population descends from draws made after the ladder had forgotten its start. `'autocorrelation'` keeps the replica-index TRWA estimate of tau_int and tau_exp. Each round runs one pass of adjacent exchanges and population permutations, then the local sweeps, as in training. `local_kernel` selects the local update ('metropolized_gibbs' by default, 'metropolis' or 'gibbs'); `None` keeps the archived training kernel. All of them leave every replica's distribution invariant. The ladder is the training ladder (see `PTTSampler.prepare_sampling_ladder`). With `steering_potential`, steered rungs are added on top of it (`PTTSampler.prepare_steering`) and the samples come from the top one; see `adabmDCA.api.sampling.sample_sequences` for the steering arguments. With `return_full_ladder`, every rung's chains are kept at the same rounds as the endpoint batches, in the result's `ladder_samples`.
+`mixing_method='renewal'` (default) tracks the birth round of every configuration and waits until the ladder has twice been repopulated by exact rung-0 draws (see `PTTSampler.measure_renewal`); extra batches are spaced by the measured renewal time. By default the renewal runs only the warmup, which replaces the initial populations once; `stationary=True` adds the stationary renewal, which certifies that the returned population descends from draws made after the ladder had forgotten its start. `'autocorrelation'` keeps the replica-index TRWA estimate of tau_int and tau_exp. Each round runs one pass of adjacent exchanges and population permutations, then the local sweeps, as in training. `local_kernel` selects the local update ('metropolized_gibbs' by default, 'metropolis' or 'gibbs'); `None` keeps the archived training kernel. All of them leave every replica's distribution invariant. The ladder is the training ladder (see `PTTSampler.prepare_sampling_ladder`). With `return_full_ladder`, every rung's chains are kept at the same rounds as the endpoint batches, in the result's `ladder_samples`.
 
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/ptt.py#L507"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/ptt.py#L447"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `estimate_ptt_entropy`
 
@@ -146,7 +141,7 @@ estimate_ptt_entropy(model="output/ptt.h5", device="cuda").entropy  # 131.2
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/ptt.py#L467"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/ptt.py#L407"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `PTTEntropyResult`
 Entropy of a PTT model, returned by `estimate_ptt_entropy`.
@@ -196,7 +191,7 @@ __init__(
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/ptt.py#L498"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/ptt.py#L438"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `to_dict`
 
@@ -208,7 +203,7 @@ Return a JSON-compatible document with the result type and schema version.
 
 ---
 
-<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/ptt.py#L502"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/spqb/adabmDCApy/blob/main/adabmDCA/api/ptt.py#L442"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `to_json`
 

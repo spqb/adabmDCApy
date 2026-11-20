@@ -42,6 +42,7 @@
 - [`adabmDCA.cuda_kernels.sampling`](./adabmDCA.cuda_kernels.sampling.md#module-adabmdcacuda_kernelssampling)
 - [`adabmDCA.cuda_kernels.sampling_triton`](./adabmDCA.cuda_kernels.sampling_triton.md#module-adabmdcacuda_kernelssampling_triton): Optional Triton kernels for categorical GPU sampling.
 - [`adabmDCA.statmech`](./adabmDCA.statmech.md#module-adabmdcastatmech)
+- [`adabmDCA.steering`](./adabmDCA.steering.md#module-adabmdcasteering): Steered sampling: hard alphabet and Hamming constraints, linear distance biases and weighted callbacks.
 - [`adabmDCA.steering.sampling`](./adabmDCA.steering.sampling.md#module-adabmdcasteeringsampling): Sequence generation with compiled fields, hard support and weighted callbacks.
 - [`adabmDCA.steering.support`](./adabmDCA.steering.support.md#module-adabmdcasteeringsupport): Compiled Hamming costs, hard support, and an exactly sampled profile.
 - [`adabmDCA.stats`](./adabmDCA.stats.md#module-adabmdcastats)
@@ -271,6 +272,7 @@
 - [`stats.get_freq_three_points`](./adabmDCA.stats.md#function-get_freq_three_points): Computes the 3-body connected correlation statistics of the input MSAs.
 - [`stats.get_freq_two_points`](./adabmDCA.stats.md#function-get_freq_two_points): Computes the 2-points statistics of the input MSA.
 - [`stats.r2_about_identity`](./adabmDCA.stats.md#function-r2_about_identity): `1 - sum (generated - reference)^2 / sum (reference - mean)^2`.
+- [`training.center_gradient`](./adabmDCA.training.md#function-center_gradient): Centering trick: the gradients of the energy written in x - mu, with mu = (fi + pi) / 2, mapped back.
 - [`training.compute_gradient`](./adabmDCA.training.md#function-compute_gradient): Computes the gradient of the log-likelihood of the model using PyTorch.
 - [`training.train_eaDCA`](./adabmDCA.training.md#function-train_eadca): Fits an eaDCA model on the training data and saves the results in a file.
 - [`training.train_edDCA`](./adabmDCA.training.md#function-train_eddca): Fits an edDCA model on the training data and saves the results in a file.
