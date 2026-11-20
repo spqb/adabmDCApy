@@ -77,8 +77,8 @@ def _validate_steering_strength(strength: float) -> None:
         raise InputValidationError("steering_strength must be a finite, non-zero number.")
 
 
-def _initial_chains(initial: InitialSequences, model: DCAModel, n_sequences: int | None, seed: int) -> torch.Tensor:
-    """One-hot starting chains from ``initial``, a random subset of ``n_sequences`` rows when fewer are asked."""
+def _initial_states(initial: InitialSequences, model: DCAModel, n_sequences: int | None, seed: int) -> torch.Tensor:
+    """Categorical starting chains, subsampled when fewer sequences are requested."""
     from adabmDCA.alignment import Alignment
     from adabmDCA.input_loading import load_alignment
 
@@ -114,7 +114,12 @@ def _initial_chains(initial: InitialSequences, model: DCAModel, n_sequences: int
     if n_sequences is not None and n_sequences < len(states):
         generator = torch.Generator().manual_seed(seed)
         states = states[torch.randperm(len(states), generator=generator)[:n_sequences].to(states.device)]
-    params = model.params
+    return states
+
+
+def _initial_chains(initial: InitialSequences, model: DCAModel, n_sequences: int | None, seed: int) -> torch.Tensor:
+    states = _initial_states(initial, model, n_sequences, seed)
+    params, num_states = model.params, model.metadata.num_states
     return torch.nn.functional.one_hot(states.long().to(params["bias"].device), num_states).to(params["bias"].dtype)
 
 
@@ -507,8 +512,9 @@ def sample_sequences(
             select the local update with ``ptt_local_kernel`` instead.
         beta: Inverse Potts temperature. Explicit steering weights are in reduced-energy units.
         seed: Random seed.
-        initial_sequences: Ordinary sampling: starting configurations instead of
-            random sequences. A FASTA/Stockholm path, an :class:`Alignment`, a list
+        initial_sequences: Starting configurations for ordinary MCMC or structured PTT.
+            Structured PTT uses ``steering.chains`` rows to seed each rung above
+            its exact bottom rung. A FASTA/Stockholm path, an :class:`Alignment`, a list
             of aligned strings, a :class:`SamplingResult` (e.g. from PTT sampling),
             or an array of token indices ``(N, L)`` or one-hot ``(N, L, q)`` in the
             model's alphabet.
@@ -596,18 +602,18 @@ def sample_sequences(
     if steering is not None or (parallel and beta > 1.0 and steering_potential is None):
         from adabmDCA.steering.sampling import SteeringConfig, _sample_steered_sequences
 
-        if (steering_potential is not None or initial_sequences is not None
+        if (steering_potential is not None
                 or initial_distribution is not None or ptt_return_full_ladder or collect_diagnostics):
             raise InputValidationError(
                 "Structured steering uses its own initialization and diagnostics. "
-                "It cannot be combined with legacy steering, explicit initial sequences, "
+                "It cannot be combined with legacy steering, an explicit initial distribution, "
                 "full ladder export, or reference-alignment plots."
             )
         return _sample_steered_sequences(
             model=model, n_sequences=n_sequences, steering=steering if steering is not None else SteeringConfig(),
             ptt=parallel, beta=beta, seed=seed, device=device, alphabet=alphabet, dtype=dtype,
             max_rounds=ptt_max_rounds if parallel else n_sweeps, renewal_tolerance=ptt_renewal_tolerance,
-            progress=progress, is_cancelled=is_cancelled,
+            progress=progress, is_cancelled=is_cancelled, initial_sequences=initial_sequences,
         )
     if parallel:
         if (initial_sequences is not None or initial_distribution is not None or not measure_mixing_time

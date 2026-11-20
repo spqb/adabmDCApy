@@ -102,6 +102,13 @@ anchor as a coupled rung. A standalone model is also supported. Calling
 `sample_sequences(model="model/ptt.h5", ptt=True, beta=1.25, n_sequences=128)`
 uses a temperature ladder with every explicit bias weight set to zero.
 
+Pass `initial_sequences` to structured PTT to seed every rung above the exact
+bottom rung. Provide at least `SteeringConfig.chains` aligned sequences that
+satisfy the hard constraints, for example a gap-free FASTA drawn at a warmer
+temperature. The sampler shuffles seeds within each diagnostic group at each
+upper rung. The bottom rung continues to supply exact draws for renewal.
+The seeds count as old configurations during the renewal check.
+
 ## Check warmup and plot the result
 
 Both strategies monitor rank-normalized split R-hat and bulk and tail ESS
@@ -109,7 +116,10 @@ on independent group-mean traces. PTT also tracks how many old configurations
 remain anywhere on the ladder. A run that exhausts its warmup budget returns
 `warmup_budget_exhausted` and provisional draws. With `sample_sequences`,
 `n_sweeps` sets the structured PCD budget and `ptt_max_rounds` sets the
-structured PTT budget.
+structured PTT budget. Set `SteeringConfig.warmup_seconds` to add a
+wall-clock limit checked between rounds. An endpoint returned at that limit
+has status `warmup_time_exhausted`. Set `production_spacing=0` to take a
+single snapshot at the end of warmup, with no more draws than chains.
 
 ```python
 import matplotlib.pyplot as plt

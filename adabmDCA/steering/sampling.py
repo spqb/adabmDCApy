@@ -49,7 +49,8 @@ class SteeringConfig:
         min_rounds: Minimum warmup rounds.
         min_ess: Minimum bulk and tail ESS for each monitored group-mean trace.
         rhat: Upper bound on rank-normalized split R-hat.
-        production_spacing: Rounds between retained batches.
+        production_spacing: Rounds between retained batches. Zero takes one final snapshot.
+        warmup_seconds: Optional wall-clock budget for setup, pilot, and warmup.
         ladder_steps: Initial number of increments from the trained to steered target.
         bridge_steps: Initial number of increments between consecutive base models.
         pilot_rounds: Rounds per PTT pilot block. Zero skips the pilot.
@@ -78,6 +79,7 @@ class SteeringConfig:
     min_swap: float = 0.25
     cache_size: int = 8192
     entropy: bool = False
+    warmup_seconds: float | None = None
 
 
 @dataclass(eq=False)
@@ -154,7 +156,7 @@ class _PotentialCache:
 
 
 def _validate(config, beta, n_sequences, seed, rounds, renewal_tolerance):
-    for name in ("chains", "groups", "check_every", "min_rounds", "production_spacing", "ladder_steps", "bridge_steps"):
+    for name in ("chains", "groups", "check_every", "min_rounds", "ladder_steps", "bridge_steps"):
         validate_integer(name, getattr(config, name))
     validate_integer("cache_size", config.cache_size, minimum=0)
     validate_integer("pilot_rounds", config.pilot_rounds, minimum=0)
@@ -162,6 +164,13 @@ def _validate(config, beta, n_sequences, seed, rounds, renewal_tolerance):
     if not 0 < config.min_swap < 1:
         raise InputValidationError("Steering min_swap must lie between zero and one.")
     validate_integer("n_sequences", n_sequences)
+    validate_integer("production_spacing", config.production_spacing, minimum=0)
+    if config.production_spacing == 0 and n_sequences > config.chains:
+        raise InputValidationError("A final snapshot requires n_sequences <= chains.")
+    if config.warmup_seconds is not None and (
+        not math.isfinite(config.warmup_seconds) or config.warmup_seconds <= 0
+    ):
+        raise InputValidationError("warmup_seconds must be finite and positive.")
     validate_integer("round limit", rounds)
     validate_seed(seed)
     if config.block_steps is not None:
@@ -307,6 +316,7 @@ def _sample_steered_sequences(
     *, model, n_sequences: int, steering: SteeringConfig, beta: float = 1.0,
     ptt: bool = False, max_rounds: int = 1000, renewal_tolerance: float = 0.01,
     alphabet=None, device="auto", dtype=None, seed=0, progress=None, is_cancelled=None,
+    initial_sequences=None,
 ) -> SamplingResult:
     """Sample the constrained Potts law with explicit reduced-energy biases.
 
@@ -331,15 +341,22 @@ def _sample_steered_sequences(
         seed: Random seed for the run.
         progress: Optional callback receiving sampling progress events.
         is_cancelled: Optional cancellation callback checked during sampling.
+        initial_sequences: Starting population for rungs above the exact PTT bottom.
     """
     from adabmDCA.api.ptt import load_ptt_backend
     from adabmDCA.ptt import PTTSampler
 
     started = perf_counter()
+
+    def time_expired():
+        return steering.warmup_seconds is not None and perf_counter() - started >= steering.warmup_seconds
+
     _validate(steering, beta, n_sequences, seed, max_rounds, renewal_tolerance)
     if is_cancelled is not None and is_cancelled():
         raise OperationCancelledError("Sampling was cancelled.")
     ptt = ptt or isinstance(model, PTTSampler)
+    if initial_sequences is not None and not ptt:
+        raise InputValidationError("Use PTT to provide initial_sequences with structured steering.")
     if steering.entropy and not ptt:
         raise InputValidationError("Absolute steered entropy requires a PTT ladder.")
     backend = None
@@ -372,6 +389,16 @@ def _sample_steered_sequences(
 
     size = steering.chains
     groups = np.array_split(np.arange(size), steering.groups)
+    initial_states = None
+    if initial_sequences is not None:
+        from adabmDCA.api.sampling import _initial_states
+
+        if len(ladder) == 1:
+            raise InputValidationError("Initial sequences require a PTT rung above the exact bottom.")
+        initial_states = _initial_states(initial_sequences, loaded, size, seed).cpu().numpy().astype(np.int32)
+        if not support.contains(initial_states).all():
+            raise InputValidationError("Initial sequences must satisfy the steering alphabet and hard windows.")
+        initial_rng = np.random.default_rng(np.random.SeedSequence([seed % 2**64, 1]))
     rngs = [np.random.default_rng(child) for child in np.random.SeedSequence(seed % 2**64).spawn(len(groups))]
 
     def random():
@@ -396,8 +423,12 @@ def _sample_steered_sequences(
         cache.evaluate([(ladder[i].states, ladder[i].values, changed[i], needed[i]) for i in indices])
 
     indices = np.arange(size)
-    for rung in ladder:
-        rung.states = draw(profile)
+    for i, rung in enumerate(ladder):
+        if i and initial_states is not None:
+            order = np.concatenate([initial_rng.permutation(group) for group in groups])
+            rung.states = initial_states[order]
+        else:
+            rung.states = draw(profile)
         rung.values = np.full((size, len(weights)), np.nan)
         rung.births = np.zeros(size, dtype=np.int64)
         _refresh_energy(rung)
@@ -518,7 +549,11 @@ def _sample_steered_sequences(
     while ptt and steering.pilot_rounds and rounds + steering.pilot_rounds <= max_rounds // 3:
         first_round = rounds + 1
         for _ in range(steering.pilot_rounds):
+            if time_expired():
+                break
             step()
+        if time_expired():
+            break
         rates = swap_total / swap_count
         block = {
             "first_round": first_round, "round": rounds, "elapsed_seconds": perf_counter() - started,
@@ -593,8 +628,10 @@ def _sample_steered_sequences(
     checks = []
     diagnostics = {}
     converged = False
-    old_fraction = 1.0 if ptt else 0.0
+    old_fraction = float(len(ladder)) if ptt else 0.0
     for _ in range(max_rounds - pilot):
+        if time_expired():
+            break
         rates = step()
         observed = observe()
         warmup_observations.append(observed)
@@ -602,8 +639,9 @@ def _sample_steered_sequences(
         warmup_history.append(record)
         old_fraction = record["old_configurations_per_chain"]
         warmup_round = len(warmup_observations)
+        expired = time_expired()
         if warmup_round >= max(6, steering.min_rounds) and (
-            warmup_round % steering.check_every == 0 or rounds == max_rounds
+            warmup_round % steering.check_every == 0 or rounds == max_rounds or expired
         ):
             diagnostics = summarize_traces(warmup_observations[warmup_round // 3:], names)
             pass_observables = all(item["rhat"] < steering.rhat and item["bulk_ess"] >= steering.min_ess
@@ -616,8 +654,9 @@ def _sample_steered_sequences(
         if progress is not None and (rounds % steering.check_every == 0 or converged):
             progress(SamplingProgress(stage="mixing", completed=rounds, total=max_rounds,
                                       details={"old_fraction": old_fraction, "observables": diagnostics}))
-        if converged:
+        if converged or expired:
             break
+    deadline_reached = time_expired() and not converged
     warmup = len(warmup_observations)
     before_production = rounds
     local_acceptance = [rung.accepted / rung.proposed if rung.proposed else None for rung in ladder]
@@ -637,10 +676,11 @@ def _sample_steered_sequences(
         values.append((top.reduced() - beta * top.energy)[:count])
         raw_values.append(top.values[:count].copy())
         observed = observe()
-        block_rates = [(rung.accepted - before) / (spacing * size) if rung.proposed else None
+        block_rates = [(rung.accepted - before) / (spacing * size) if spacing and rung.proposed else None
                        for rung, before in zip(ladder, previous_acceptance)]
         production_batches.append(snapshot(
-            observed, block_rates, ((swap_total - previous_swaps) / spacing).tolist(), retained=count,
+            observed, block_rates, ((swap_total - previous_swaps) / spacing).tolist() if spacing
+            else [None] * len(swap_total), retained=count,
         ))
         if count == size:
             production_history.append(observed)
@@ -671,10 +711,11 @@ def _sample_steered_sequences(
         entropy_history.append({"round": rounds, "batches": len(endpoints), **entropy})
     states = np.concatenate(batches)
     tokens = np.array(list(loaded.tokens))
-    status = "converged" if converged else "warmup_budget_exhausted"
+    status = "converged" if converged else ("warmup_time_exhausted" if deadline_reached else "warmup_budget_exhausted")
     summary = {
         "status": status, "warmup_rounds": warmup, "production_rounds": rounds - before_production,
         "pilot_rounds": pilot, "added_rungs": additions,
+        "initialization": "initial_sequences" if initial_states is not None else "default",
         "kernel": "triton" if top.kernel.cuda else "numba" if top.kernel.cpu else "torch",
         "production_observables": summarize_traces(production_history, names) if len(production_history) >= 4 else {},
         "old_configurations_per_chain": old_fraction, "observables": diagnostics,

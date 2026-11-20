@@ -198,3 +198,47 @@ def test_fused_cuda_keeps_group_schedules_and_hard_support(windows):
     assert support.contains(actual).all()
     np.testing.assert_array_equal(actual, expected)
     np.testing.assert_allclose(gpu.energy(actual), cpu.energy(expected), atol=1e-6)
+
+
+def test_wall_clock_budget_returns_single_snapshot(monkeypatch):
+    import adabmDCA.steering.sampling as sampling
+
+    tick = iter(range(10_000))
+    monkeypatch.setattr(sampling, "perf_counter", lambda: next(tick))
+    result = sample_sequences(
+        model=small_model(), steering=SteeringConfig(chains=8, production_spacing=0, warmup_seconds=4),
+        n_sequences=8, n_sweeps=20, device="cpu",
+    )
+    assert result.steering["status"] == "warmup_time_exhausted"
+    assert result.steering["production_rounds"] == 0
+    assert len(result.sequences) == 8
+    assert result.steering["history"]["production"][0]["retained"] == 8
+
+
+def test_snapshot_requires_enough_chains():
+    with pytest.raises(InputValidationError, match="final snapshot"):
+        sample_sequences(
+            model=small_model(), steering=SteeringConfig(chains=4, production_spacing=0), n_sequences=5,
+        )
+
+
+def test_ptt_seeds_upper_rungs_and_counts_seeds_as_old(monkeypatch):
+    import adabmDCA.steering.sampling as sampling
+
+    tick = iter(range(10_000))
+    monkeypatch.setattr(sampling, "perf_counter", lambda: next(tick))
+    seeds = ("AAAB", "AABA", "ABAA", "BAAA", "AABB", "ABAB", "ABBA", "BAAB")
+    config = SteeringConfig(
+        allowed_tokens="AB", windows=(HammingWindow("AAAA", 1, 2),),
+        chains=8, production_spacing=0, bridge_steps=1, ladder_steps=2,
+        pilot_rounds=0, warmup_seconds=0.5,
+    )
+    options = dict(model=small_model(), steering=config, n_sequences=8, beta=2, ptt=True)
+    result = sample_sequences(**options, initial_sequences=seeds)
+    for start in range(0, 8, 2):
+        assert set(result.sequences[start:start+2]) == set(seeds[start:start+2])
+    assert result.steering["initialization"] == "initial_sequences"
+    snapshot = result.steering["history"]["production"][0]
+    assert snapshot["old_configurations_by_rung"] == [8] * len(result.steering["ladder"])
+    with pytest.raises(InputValidationError, match="alphabet and hard windows"):
+        sample_sequences(**options, initial_sequences=(*seeds[:-1], "AAAA"))
