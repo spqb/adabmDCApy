@@ -258,7 +258,7 @@ p_W(x) \propto e^{-E_A(x)} \prod_r \mathbf 1\{l_r \le d_r(x) \le u_r\},
 
 and it keeps both properties of the anchor: exact independent draws and a known \(\log Z_W\). Without it, the ladder has to start from a profile restricted to the windows and climb to the restricted anchor through bridge rungs.
 
-Rejection from the unrestricted anchor is not an option. A window of at most 15 substitutions from a natural sequence of the Azoarcus group I intron (\(L = 193\)) has probability \(e^{-55}\) under the tree + rank-2 anchor, whose samples sit about 110 substitutions away.
+Rejection from the unrestricted anchor is not an option. A window of at most 15 substitutions from a natural sequence of the Azoarcus group I intron (\(L = 193\)) has probability \(e^{-55}\) under the tree + rank-2 anchor, whose samples sit about 105 substitutions away.
 
 The windows are handled inside belief propagation instead. \(d(x)\) is a sum over sites, so at a fixed \(z\) the message that a subtree sends to its parent can be split by the number of substitutions inside the subtree. Combining two subtrees convolves their counts. At the root this gives, for every count \(c\), the sum of \(e^{-E(x \mid z)}\) over the sequences with \(d(x) = c\). Counts only grow towards the root, so every count above \(u\) is dropped as soon as it appears. The cost grows with \(u\), not with the width of the window. A single window far from the reference counts matches instead, which are then fewer.
 
