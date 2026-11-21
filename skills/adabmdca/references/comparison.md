@@ -2,7 +2,7 @@
 
 ## Generated sequences against the natural alignment
 
-When the user asks to compare generated (or designed, or sequenced) sequences with the natural ones, always show the **PCA with marginal histograms**, then add the statistics that PCA cannot see.
+Choose comparisons that answer the user’s question. For a broad distributional comparison, PCA with marginal histograms is a useful starting point, complemented by statistics for features PCA cannot see. A focused distance, energy or correlation request does not require the full comparison workflow.
 
 **If they come from an adabmDCA model**, sample with `--plot-sampling-logs` and a reference: `pca_1_2.png`, `pca_3_4.png`, `statistics_scatter.png`, `data_vs_samples.png` and (with `-v`) `distances.png` are all made for you. Read them with [plots.md](plots.md).
 

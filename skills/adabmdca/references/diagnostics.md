@@ -1,6 +1,6 @@
 # Is the run healthy? What to change if not
 
-Training metrics come from the same chains that estimate the gradient. If those chains fall out of equilibrium, the model is wrong **and** the metrics can still look fine. So every model that will be relied on must be checked by independent sampling. Full guide: https://spqb.github.io/adabmDCApy/algorithms/diagnostics/ (`docs/algorithms/diagnostics.md` in a clone).
+Training metrics come from the same chains that estimate the gradient. If those chains fall out of equilibrium, the model is wrong **and** the metrics can still look fine. Independent sampling is therefore recommended when validating a newly trained model or assessing its quality. Computing requested scores with an existing model does not itself require launching this validation workflow; disclose known limits instead. Full guide: https://spqb.github.io/adabmDCApy/algorithms/diagnostics/ (`docs/algorithms/diagnostics.md` in a clone).
 
 ## Quick first step: `adabmDCA diagnose`
 
@@ -48,7 +48,7 @@ Healthy `history.csv`:
 adabmDCA sample -p model/ptt.h5 -d train.fasta -v validation.fasta --plot-sampling-logs -o check
 ```
 
-1. `sampling.json` → `ptt_diagnostics.converged` must be true. If not, do not use the samples.
+1. `sampling.json` → `ptt_diagnostics.converged` indicates whether the configured checks passed. Passing supports convergence but does not prove equilibrium; if false, report the samples as provisional rather than using them as equilibrium evidence.
 2. Sampled Pearson (`ptt_diagnostics.final_pearson`) vs last training `pearson`, at the same number of sequences as training chains: a healthy model loses 0.003–0.007; more than ~0.01 deserves attention.
 3. `ptt_ladder_health.png`: trapped-configuration bars are grey (within chance), amber (slow, still renewed) or red (blocking renewal); a red title means renewal failed.
 4. `pca_1_2.png`, `data_vs_samples.png`: every data cluster covered, share ratios roughly ×0.8–×1.25.

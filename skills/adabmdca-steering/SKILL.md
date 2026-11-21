@@ -1,6 +1,6 @@
 ---
 name: adabmdca-steering
-description: Steer sequence generation from an adabmDCA Potts model with the Python API (SteeringConfig) - sample within a substitution budget or distance shell around reference sequences, exclude gaps or restrict the alphabet, add linear Hamming biases or arbitrary scoring callbacks (structure, folding energy, a predictor), sample at low temperature (beta > 1), estimate the entropy of the steered distribution, and choose between plain MCMC and PTT for it. Use for design-like requests such as "generate variants within N mutations of the wild type", "sample sequences that fold into this structure", or "sample the model at lower temperature".
+description: Generate sequences from an adabmDCA Potts model with Python SteeringConfig when the request involves substitution windows, alphabet restrictions, Hamming biases, scoring callbacks or low temperature. Covers MCMC versus PTT and steered entropy; use the main adabmdca skill for unconstrained sampling.
 ---
 
 # Steered generation with adabmDCA
@@ -19,7 +19,7 @@ Both strategies sample the same target with the same constrained kernel; they di
 
 | Problem | Use | Why |
 | --- | --- | --- |
-| Easy constraints: a shell or small substitution budget around a reference, at `beta = 1`, with no or weak callbacks | **Plain MCMC** (`ptt=False`, budget `n_sweeps`) | Converges in seconds; PTT pays for a whole ladder |
+| Easy constraints: a shell or small substitution budget around a reference, at `beta = 1`, with no or weak callbacks | **Plain MCMC** (`ptt=False`, budget `n_sweeps`) | Often cheaper for local targets; PTT pays for a whole ladder |
 | Hard targets: low temperature (`beta > 1`), strong callbacks, wide windows far from the data, multimodal targets | **PTT** (`ptt=True`, budget `ptt_max_rounds`), from the `ptt.h5` archive when there is one | Replicas carry configurations across barriers that single chains do not cross |
 | The entropy or log Z of the steered distribution is needed | **PTT** with `entropy=True` (an error with MCMC) | Only the ladder has an exact bottom to normalize from |
 
@@ -32,7 +32,7 @@ Measured on the Azoarcus group I intron model (L = 193, RNA, gap-free ACGU):
 | `beta = 1/0.3`, at most 15 substitutions | not converged after 585 s, R-hat 2.02 | nearly converged in 585 s, R-hat 1.02, bulk ESS 183 |
 | `beta = 1/0.3`, no window | R-hat 3.70 after 585 s | R-hat 1.49 after 595 s (neither converged) |
 
-So: start with MCMC for easy local design; switch to PTT as soon as the temperature goes down or the callback weight goes up, and expect cold global sampling to need a long budget even with PTT.
+These results support starting with MCMC for easy local design and considering PTT for colder or more strongly biased targets. They are examples from one model, not runtime guarantees or universal switching thresholds; use diagnostics for the actual target. Cold global sampling may need a long budget even with PTT.
 
 ## Build the configuration
 
@@ -58,7 +58,7 @@ hard = sample_sequences(model="model/ptt.h5", ptt=True, steering=replace(config,
 
 - **Hard constraints go in the kernel, not in a potential.** Windows and `allowed_tokens` mask each site update with running mismatch counts, so every update is accepted and no chain leaves the allowed set. A wall written as a callback cannot do this: a strength ladder needed ~3,400 rungs to reach a distance shell that the windows impose directly. With PTT, the bottom rung is the archive's anchor restricted to the windows, drawn exactly, so no rungs sit below it.
 - **References** are aligned, model-length strings in the model alphabet. Check that the start sequences satisfy every window before running.
-- **Callbacks** receive aligned strings (or integer indices with `input="categorical"`), must be deterministic and return finite values, unweighted (the weight is in `WeightedPotential`). Values are cached (`cache_size`). Expensive callbacks dominate the cost: ViennaRNA took 92–97% of the wall time in the runs above, so keep weights moderate, set `block_steps` to the length so a proposal is a full sweep, and parallelize inside the callback.
+- **Callbacks** receive aligned strings (or integer indices with `input="categorical"`), must be deterministic and return finite values, unweighted (the weight is in `WeightedPotential`). Values are cached (`cache_size`). Expensive callbacks dominate the cost: ViennaRNA took 92–97% of the wall time in the runs above, so consider `block_steps` equal to the length for full-sweep proposals and parallelizing inside the callback. Choose weights for the intended target: changing them changes the distribution, rather than merely tuning performance.
 - **Temperature**: `beta` is a `sample_sequences` argument; it cools the Potts energy only, the biases keep their weights. `model="ptt.h5", ptt=True, beta=...` without `steering` uses a temperature ladder.
 - **Seeding cold PTT runs**: `initial_sequences=` (at least `chains` aligned sequences that satisfy the constraints, e.g. gap-free samples at `beta = 1`) seeds every rung above the exact bottom. On the cold global run it cooled the target rung faster and lowered R-hat (1.31 vs 1.49 at equal time) but slowed renewal, because seeds count as old configurations. Use it to speed the approach, not as a shortcut to convergence.
 
@@ -78,9 +78,9 @@ s["entropy"]                       # PTT with entropy=True: "log_z", "entropy_na
 s["history"]["warmup"]             # rows with "round" and "observables" for plotting traces
 ```
 
-- Only `status == "converged"` gives equilibrium draws: R-hat below `rhat` (1.01) and bulk and tail ESS above `min_ess` (40) for every monitored observable, plus renewal for PTT. Anything else is **provisional**: say so, report R-hat, ESS and old configurations, and either raise the budget (`n_sweeps`, `ptt_max_rounds`, `warmup_seconds`), switch to PTT, or lower the callback weight.
+- `status == "converged"` means the configured diagnostic thresholds passed: R-hat below `rhat` (1.01) and bulk and tail ESS above `min_ess` (40) for every monitored observable, plus renewal for PTT. These checks support convergence for the monitored observables; they do not prove global equilibrium. Other statuses are **provisional**: report R-hat, ESS and old configurations. Within the authorized budget, consider more warmup or PTT; changing a callback weight changes the target and should follow the user’s design objective.
 - An entropy with `provisional: true` excludes warmup or overlap bias from its error bar.
-- Report the draws against the data with the PCA of the `adabmdca` skill (`compare_pca(train, steered_fasta)`), plus the distributions of energy, distances and callback values.
+- For distributional comparisons with natural data, consider `compare_pca(train, steered_fasta)` from the `adabmdca` skill. Report energy, distances or callback distributions as relevant to the requested design assessment; generation alone does not require this whole analysis.
 - `production_spacing=0` returns a single snapshot at the end of warmup, with at most `chains` draws.
 
 Full guide: https://spqb.github.io/adabmDCApy/usage/sample/#steered-sampling-python, how the anchor is restricted in https://spqb.github.io/adabmDCApy/algorithms/anchor/, and the API reference of `adabmDCA.steering.sampling`.

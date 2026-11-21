@@ -15,9 +15,14 @@ mkdir -p ~/.claude/skills && cp -r skills/adabmdca* ~/.claude/skills/
 # Claude Code, for one project
 mkdir -p .claude/skills && cp -r /path/to/adabmDCApy/skills/adabmdca* .claude/skills/
 
-# Codex
-mkdir -p ~/.codex/skills && cp -r skills/adabmdca* ~/.codex/skills/
+# Codex, for all projects (run from the repository root)
+mkdir -p ~/.agents/skills
+for skill in adabmdca adabmdca-steering adabmdca-local-free-energy; do
+  ln -s "$PWD/skills/$skill" "$HOME/.agents/skills/$skill"
+done
 ```
+
+For Codex in this repository, `.agents/skills/` already contains relative symlinks to the three skill folders, so no separate installation is needed. Codex discovers these skills automatically. The user-level links above make them available in other projects too; choose the scope you need to avoid duplicate entries. Symlinks keep skill changes in sync. If a skill does not appear after a change, restart Codex.
 
 The skill expects `adabmDCA` to be installed in the environment the agent uses (`python -m pip install 'adabmDCA[cpu]'`).
 

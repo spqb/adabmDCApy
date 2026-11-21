@@ -43,9 +43,9 @@ For samples without `cde_sum` (an older FASTA), score them first with `adabmDCA 
 
 Before using the fit, check:
 
-- **The samples are at equilibrium**: `sampling.json` → `ptt_diagnostics.converged` true (PTT), or a mixing time found (plain MCMC). A lambda fitted on non-equilibrated chains is meaningless; say so instead of using it.
+- **Sampling diagnostics support convergence**: `sampling.json` → `ptt_diagnostics.converged` true (PTT), or a mixing time found (plain MCMC). Passing these checks is evidence, not proof, of equilibrium. If they fail, treat the fit as provisional and do not present it as an equilibrium correction.
 - **Enough samples**: the default number (as many as training chains) is fine; below a few hundred the slope is noisy.
-- **R²**: it says how much of the energy variation the CDE explains. A low R² (well below ~0.3) means the correction is weak for this model: report it next to lambda.
+- **R²**: it says how much of the energy variation the CDE explains. A low R² means CDE explains little of the sampled energy variation; report it next to lambda. The heuristic ~0.3 is not a validated cutoff for ranking utility, which requires evaluation on the relevant task.
 - **Temperature**: samples at `beta ≠ 1` or from a steered run give the lambda of that distribution, not of the model at beta = 1.
 
 ## Score sequences
@@ -65,7 +65,7 @@ df = result.to_dataframe().sort_values("local_free_energy")   # best first
 
 - **Pass the fitted lambda.** Without `local_lambda` (Python) or `--local-lambda` (CLI) only the energy is computed, with no CDE and no F. Versions before this change defaulted to `local_lambda=1.0` in Python; with them, always pass it.
 - Sequences must be aligned to the model (same length and alphabet; pass `alphabet=` for RNA without U, or custom tokens).
-- Compare F only **within one model**, like E. For different lengths or families divide by L, but prefer comparisons within one family.
+- Compare F only **within one model**, like E. Dividing by L does not make scores from different models, lengths or families comparable: model energies can have arbitrary additive offsets. Cross-model comparisons need a separately justified calibration.
 - Report E, CDE_sum and F together: a sequence can improve F by gaining local entropy while its energy gets worse, and the user should see which.
 
 ## What the correction does in practice
