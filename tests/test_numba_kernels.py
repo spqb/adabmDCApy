@@ -113,7 +113,7 @@ def test_explicit_sites_update_only_those_sites():
 
 def test_cpu_dispatch_uses_numba_unless_disabled(monkeypatch):
     from adabmDCA.ptt import PTTSampler
-    from adabmDCA.cuda_kernels.sampling import prepare_sampler
+    from adabmDCA.cuda_kernels.sampling import gibbs_sampling, prepare_sampler
 
     assert prepare_sampler("gibbs", torch.device("cpu")).__name__ == "gibbs_sampling_numba"
     params = random_potts(3, 2, torch.float64)
@@ -126,7 +126,7 @@ def test_cpu_dispatch_uses_numba_unless_disabled(monkeypatch):
     assert prepare_sampler("metropolis", torch.device("cpu"))(chains, params, 2).shape == chains.shape
     monkeypatch.setenv("ADABMDCA_NUMBA", "0")
     assert not is_numba_available()
-    assert "numba" not in prepare_sampler("gibbs", torch.device("cpu")).name
+    assert prepare_sampler("gibbs", torch.device("cpu")) is gibbs_sampling
 
 
 def test_invalid_inputs_are_rejected():

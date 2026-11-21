@@ -1,0 +1,20 @@
+{
+  "train_count": 2908,
+  "model_samples_count": 2000,
+  "random_count": 2000,
+  "sequence_length": 136,
+  "samples_source": "/Users/lorenzo/Documents/PhD/Github/adabmDCApy/models/RF00739/sampling/samples.fasta",
+  "contour_edge_below_lowest_level": true,
+  "random_seed": 42,
+  "random_distribution": "uniform over -ACGU",
+  "PCA": "training resampled with replacement according to weights; one-hot, centered, no scaling",
+  "weights_source": "/Users/lorenzo/Documents/PhD/Github/adabmDCApy/models/RF00739/weights.dat",
+  "original_train_count": 3060,
+  "resampled_train_count": 10000,
+  "resampling_seed": 43,
+  "contour": "KDE of weighted resampled training",
+  "explained_variance_ratio": [
+    0.061743311696171865,
+    0.028928036996521387
+  ]
+}

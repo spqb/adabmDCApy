@@ -12,28 +12,28 @@
 - **estimate the entropy** and the normalization of the model;
 - **retrain** the model with experimental feedback on tested sequences.
 
-adabmDCA 2.1 is a major update of the Python implementation. It introduces equilibrium training and sampling with Parallel Trajectory Tempering (below), and rewrites the Monte Carlo samplers: optimized **Triton kernels on NVIDIA GPUs** and multithreaded **Numba kernels on CPUs** are 24–74× and 7–36× faster per sweep than the previous PyTorch implementation, while producing the same Markov chains. It also runs on Apple GPUs (Metal) using optimized mps kernels, and offers both a command-line interface and a Python API. The Python package has its own version number.
+adabmDCA 2.1 is a major update of the Python implementation. It introduces equilibrium training and sampling with Parallel Trajectory Tempering (below), and rewrites the Monte Carlo samplers: optimized **Triton kernels on NVIDIA GPUs** and multithreaded **Numba kernels on CPUs** were 24–74× and 7–36× faster per sweep in the [reported benchmarks](https://spqb.github.io/adabmDCApy/algorithms/benchmarks/#sampling-kernels), while preserving the sampling distribution. It also runs on Apple GPUs using optimized Metal kernels, and offers both a command-line interface and a Python API. The Python package has its own version number.
 
 ## Equilibrium training with Parallel Trajectory Tempering
 
 A Potts model is only as good as the Monte Carlo chains used to train and sample it. When a family contains well-separated subfamilies, ordinary chains stay inside one of them for a very long time. The training gradient is then estimated from unrepresentative samples, and generated sequences miss whole clusters, while the usual metrics still look fine.
 
-By default, adabmDCA trains and samples with **Parallel Trajectory Tempering (PTT)**. PTT keeps a ladder of models saved along the training trajectory, from an independent-site profile that can be sampled exactly up to the current model. Configurations swap along this ladder, so fresh, independent ones keep reaching the top, and built-in checks verify that the ladder keeps mixing ([Béreux et al., 2026](https://arxiv.org/abs/2607.27077)). Because the bottom of the ladder has an exactly known normalization, PTT also gives a reliable estimate of the model's partition function. This enables online tracking of the training and validation log-likelihood, and an estimate of the model's entropy. The faster persistent contrastive divergence (`--strategy pcd`) remains available for families without strong cluster structure.
+By default, the adabmDCA CLI trains and samples with **Parallel Trajectory Tempering (PTT)**. PTT keeps a ladder of models saved along the training trajectory, from an exactly sampled anchor (or independent-site profile) up to the current model. Configurations swap along this ladder, so fresh, independent ones keep reaching the top, and built-in checks verify that the ladder keeps mixing ([Béreux et al., 2026](https://arxiv.org/abs/2607.27077)). Because the bottom of the ladder has an exactly known normalization, PTT also estimates the model's partition function, subject to mixing and overlap diagnostics. This enables online tracking of the training and validation log-likelihood, and an estimate of the model's entropy. The faster persistent contrastive divergence (`--strategy pcd`) remains available for families without strong cluster structure.
 
-bmDCA training starts by default from a tractable **anchor** model instead of the profile (`--anchor`, default `tree-low-rank`). The anchor is fitted to the data before training, sampled exactly and has a known normalization, like the profile, but it already captures part of the correlations. With PTT it sits at the bottom of the ladder, which then needs fewer models; with PCD it gives the initial parameters and chains. It builds on the exactly sampled low-rank models of [Béreux et al., ICLR 2025](https://proceedings.iclr.cc/paper_files/paper/2025/hash/4fe1859112230a032c7143a9adc3be78-Abstract-Conference.html).
+CLI bmDCA training from scratch starts by default from a tractable **anchor** model instead of the profile (`--anchor`, default `tree-low-rank`). The anchor is fitted to the data before training, sampled exactly and has a known normalization, like the profile, but it already captures part of the correlations. With PTT it sits at the bottom of the ladder, which then needs fewer models; with PCD it gives the initial parameters and chains. It builds on the exactly sampled low-rank models of [Béreux et al., ICLR 2025](https://proceedings.iclr.cc/paper_files/paper/2025/hash/4fe1859112230a032c7143a9adc3be78-Abstract-Conference.html).
 
 On three large protein families, plain Monte Carlo sampling of trained models did not reach equilibrium within 10,000 sweeps, while PTT samples reproduced every cluster of the data.
 
 ## Features
 
 - Dense (`bmDCA`) and sparse (`eaDCA`, `edDCA`, `edgeDCA`) Potts models.
-- PTT or PCD training, with a held-out validation set and automatic stopping at the best validation likelihood.
+- PTT or PCD training, with held-out validation; PTT can stop automatically at the best validation likelihood.
 - Sampling with convergence checks and diagnostic plots: connected correlations, PCA projections, cluster balance, distances to training and held-out sequences.
 - Contact maps, sequence energies, single-mutant scans, entropy and log Z estimates.
 - Retraining with experimental feedback on tested sequences.
 - Alignment preprocessing (FASTA and Stockholm) and homology-aware train/test splits.
 - Automatic detection of protein, RNA and DNA alphabets; custom alphabets on request.
-- Fast sampling kernels: Triton on NVIDIA GPUs, multithreaded Numba on CPUs.
+- Fast sampling kernels: Triton on NVIDIA GPUs, Metal on Apple GPUs, multithreaded Numba on CPUs.
 
 ## Installation
 
@@ -107,80 +107,26 @@ contacts = model.compute_contact_map()
 
 ### Steered sampling
 
-Use `SteeringConfig` to specify the support and the reduced-energy bias. This
-example uses a 193-site RNA model and an aligned reference string `start`.
+Use `SteeringConfig` to restrict generated sequences or add scoring biases. This example generates aligned RNA variants within ten substitutions of an aligned reference:
 
 ```python
-from adabmDCA import HammingBias, HammingWindow, SteeringConfig, sample_sequences
+from adabmDCA import HammingWindow, SteeringConfig, sample_sequences
 
 steering = SteeringConfig(
-    allowed_tokens="ACGU",
-    windows=(HammingWindow(start, 5, 10),),
-    distance_biases=(HammingBias(start, 0.1),),
-    entropy=True,
+    windows=(HammingWindow(train.sequences[0], 0, 10),),
 )
-result = sample_sequences(
+variants = sample_sequences(
     model="model/ptt.h5", ptt=True, steering=steering,
-    beta=1.25, n_sequences=1024, ptt_max_rounds=1000,
+    n_sequences=1024, ptt_max_rounds=1000,
 )
-print(result.steering["status"], result.steering["entropy"])
+print(variants.steering["status"])
 ```
 
-The reduced energy is `beta * H + sum(weight * cost)` within the allowed
-support. Linear Hamming costs are folded into the fields, and inclusive
-windows are enforced during proposals. Add deterministic
-`WeightedPotential(callback, weight)` terms to `SteeringConfig.potentials`
-for other costs. Each callback takes a batch of aligned sequences and
-returns one finite unweighted value per sequence. It can also take
-categorical indices with `input="categorical"`. The sampler reuses these
-values across weights. `beta > 1` cools the Potts model with the specified
-bias weights fixed.
-
-Steering is available through the Python API using `sample_sequences` with
-`steering=SteeringConfig(...)`. Steered PTT also accepts a standalone Potts
-file. With `ptt=True`
-and `beta > 1`, the API builds a temperature ladder even without another bias.
-
-The steering summary records rank-normalized split R-hat and ESS on
-independent group-mean traces. PTT also tracks refresh from the exact bottom
-of the ladder. A PTT archive trained from an anchor other than the profile uses its exact anchor
-at the bottom for unrestricted or alphabet-only support. Joint Hamming
-windows use an exact constrained profile at the bottom and keep the restricted
-training anchor on the ladder. PTT entropy uses adjacent Bennett ratios and
-reports its Monte Carlo uncertainty. If warmup exhausts the budget, output
-draws and entropy are marked provisional.
-
-Use `result.steering["history"]` to plot a structured steering run. The
-`warmup` and `production` records have absolute round numbers, elapsed time,
-endpoint observables and group means, acceptance rates, and cumulative
-callback evaluations. Production records correspond to retained batches and
-average acceptance over each batch interval. Endpoint means use the full
-chain population, including when the last batch retains fewer chains. PTT
-also records rung energies, available callback means, and the old population
-count on each rung. Rung arrays follow `history["rungs"]` from bottom to top.
-Callback columns follow `history["potential_indices"]`, which indexes the
-original configuration and skips zero-weight callbacks. Distance columns
-follow `history["windows"]`.
-
-The `checks` records give R-hat and ESS at each stopping check. The `pilot`
-records show the ladder and swap acceptance before each insertion. When
-entropy is enabled, `history["entropy"]` gives running log Z and entropy after
-1, 2, 4, … retained batches and at the final batch. These histories are
-included when the result is saved as JSON.
-
-```python
-import matplotlib.pyplot as plt
-
-warmup = result.steering["history"]["warmup"]
-plt.plot([row["round"] for row in warmup],
-         [row["observables"]["reduced_energy"] for row in warmup])
-plt.xlabel("Round")
-plt.ylabel("Mean reduced energy")
-```
+Hamming biases, scoring callbacks and lower-temperature sampling are also supported. Check the returned status before interpreting the draws; budget-exhausted runs are provisional. See [steered sampling](https://spqb.github.io/adabmDCApy/usage/sample/#steered-sampling-python) for configuration, diagnostics and entropy estimates.
 
 ## Use with AI agents
 
-[`skills/adabmdca`](skills/) is an Agent Skill that teaches coding agents such as Claude Code or Codex to run adabmDCA and check its results, and `skills/adabmdca-steering` and `skills/adabmdca-local-free-energy` add steered generation and local free energies. Copy them to `~/.claude/skills/` (or your agent's skills folder); see [skills/README.md](skills/README.md).
+[`skills/adabmdca`](skills/) is an Agent Skill that teaches coding agents such as Claude Code or Codex to run adabmDCA and check its results, and `skills/adabmdca-steering` and `skills/adabmdca-local-free-energy` add steered generation and local free energies. Codex discovers them through `.agents/skills/` in this repository. For installation in other projects or agents, see [skills/README.md](skills/README.md).
 
 ## Documentation
 
