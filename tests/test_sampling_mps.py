@@ -12,7 +12,7 @@ import torch
 from adabmDCA.mps_kernels import is_mps_available
 from adabmDCA.mps_kernels import sampling as metal
 from adabmDCA.mps_kernels.random import SOURCE as RANDOM_SOURCE
-from adabmDCA.cuda_kernels.sampling import prepare_sampler
+from adabmDCA.cuda_kernels.sampling import get_sampler, prepare_sampler
 from adabmDCA.statmech import compute_energy
 
 pytestmark = pytest.mark.skipif(not is_mps_available(), reason="Metal shaders unavailable")
@@ -171,8 +171,10 @@ def test_onehot_dispatch_and_fallback(method, monkeypatch):
     monkeypatch.setenv("ADABMDCA_MPS", "0")
     assert not is_mps_available()
     fallback = prepare_sampler(method, torch.device("mps"))
-    assert isinstance(fallback, torch.jit.ScriptFunction)
-    torch.testing.assert_close(fallback(chains, p, 0), chains)
+    torch.manual_seed(7)
+    expected = get_sampler(method)(chains, p, 2)
+    torch.manual_seed(7)
+    torch.testing.assert_close(fallback(chains, p, 2), expected, atol=0, rtol=0)
 
 
 def test_large_alphabet_uses_torch_fallback():

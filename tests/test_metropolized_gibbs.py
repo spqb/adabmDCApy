@@ -125,15 +125,14 @@ def test_triton_replica_kernel_samples_exact_distributions():
         np.testing.assert_allclose(empirical_distribution(samples[replica], 3), exact, atol=0.01)
 
 
-@pytest.mark.parametrize("scripted", [False, True])
-def test_one_hot_reference_sampler_samples_exact_distribution(scripted):
-    from adabmDCA.cuda_kernels.sampling import get_sampler
+def test_one_hot_cpu_fallback_samples_exact_distribution(monkeypatch):
+    from adabmDCA.cuda_kernels.sampling import prepare_sampler
 
+    monkeypatch.setenv("ADABMDCA_NUMBA", "0")
     torch.manual_seed(21)
     params = random_potts(3, 3, scale=1.2, seed=6)
     _, exact = exact_distribution(params)
-    sampler = get_sampler("metropolized_gibbs")
-    sampler = torch.jit.script(sampler) if scripted else sampler
+    sampler = prepare_sampler("metropolized_gibbs", torch.device("cpu"))
     chains = torch.nn.functional.one_hot(torch.zeros(40_000, 3, dtype=torch.long), 3).double()
     samples = sampler(chains, params, 12, 1.0).argmax(-1)
     np.testing.assert_allclose(empirical_distribution(samples, 3), exact, atol=0.01)
@@ -163,8 +162,8 @@ def test_sampler_registry_and_public_sampling_accept_metropolized_gibbs(tmp_path
     from adabmDCA.training.config import SAMPLERS
 
     assert "metropolized_gibbs" in SAMPLERS
-    monkeypatch.setenv("ADABMDCA_NUMBA", "0")  # the TorchScript fallback on CPU
-    assert prepare_sampler("metropolized_gibbs", torch.device("cpu")).name == metropolized_gibbs_sampling.__name__
+    monkeypatch.setenv("ADABMDCA_NUMBA", "0")
+    assert prepare_sampler("metropolized_gibbs", torch.device("cpu")) is metropolized_gibbs_sampling
     monkeypatch.delenv("ADABMDCA_NUMBA")
     if torch.cuda.is_available():
         from adabmDCA.cuda_kernels.sampling_triton import is_triton_available, metropolized_gibbs_sampling_triton

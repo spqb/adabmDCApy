@@ -275,7 +275,7 @@ def onehot_sampler(method: str) -> Callable:
     """One-hot adapter with the standard sampler signature and PyTorch fallback."""
     from adabmDCA.cuda_kernels.sampling import get_sampler
 
-    fallback = torch.jit.script(get_sampler(method))
+    fallback = get_sampler(method)
 
     def sampler(chains, params, nsweeps, beta=1.0, *, coupling_dtype=None):
         if not _supported(chains, params["bias"], params["coupling_matrix"]) or chains.dtype != torch.float32:

@@ -385,7 +385,7 @@ def prepare_sampler(sampling_method: str, device: torch.device) -> Callable:
     disabled with ``ADABMDCA_MPS=0`` (unsupported shapes/dtypes use PyTorch). CPU uses the
     multithreaded Numba kernels of :mod:`adabmDCA.numba_kernels` when Numba is
     installed (``pip install adabmDCA[cpu]``) and not disabled with
-    ``ADABMDCA_NUMBA=0``. Otherwise the TorchScript samplers of this module run.
+    ``ADABMDCA_NUMBA=0``. Otherwise the PyTorch samplers of this module run.
     All of them perform the same random-site updates and sample the same
     distribution.
     """
@@ -402,7 +402,6 @@ def prepare_sampler(sampling_method: str, device: torch.device) -> Callable:
             from adabmDCA.numba_kernels import onehot_sampler
 
             return onehot_sampler(sampling_method)
-    scripted_sampler = torch.jit.script(sampler)
     if device.type == "cuda":
         try:
             from adabmDCA.cuda_kernels.sampling_triton import (
@@ -423,7 +422,7 @@ def prepare_sampler(sampling_method: str, device: torch.device) -> Callable:
                 return gibbs_sampling_triton
         except ImportError:
             pass
-    return scripted_sampler
+    return sampler
 
 
 def _validate_bfloat16_sampling(device: torch.device) -> None:

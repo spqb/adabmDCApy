@@ -62,14 +62,11 @@ def _prepare_categorical_sampler(name, device, coupling_dtype=None):
         if is_mps_available():
             metal = categorical_sampler(name)
             from adabmDCA.cuda_kernels.sampling import get_sampler
-            fallback = None
+            fallback = get_sampler(name)
 
             def mps_dispatch(chains, params, nsweeps, beta=1.0):
-                nonlocal fallback
                 if _supported(chains, params["bias"], params["coupling_matrix"]):
                     return metal(chains, params, nsweeps, beta)
-                if fallback is None:
-                    fallback = torch.jit.script(get_sampler(name))
                 return fallback(_one_hot(chains, params), params, nsweeps, beta).argmax(-1).to(torch.int32)
 
             return mps_dispatch

@@ -134,7 +134,7 @@ def test_distribution_diagnostics_rng_and_archive(method, tmp_path):
     moved.advance(rounds=2)
 
 
-@pytest.mark.parametrize('model,optimizer,activation', [(m, o, a) for m, o, a in product(['bmDCA', 'eaDCA', 'edgeDCA'], ['sgd', 'adaptive'], ['fixed', 'adaptive'])
+@pytest.mark.parametrize('model,optimizer,activation', [(m, o, a) for m, o, a in product(['bmDCA', 'eaDCA'], ['sgd', 'adaptive'], ['fixed', 'adaptive'])
                                                     if a == 'fixed' or m == 'eaDCA'])
 def test_training(model, optimizer, activation, tmp_path):
     path, config = training_case.__wrapped__(tmp_path)

@@ -1,3 +1,4 @@
+import os
 import unittest
 from unittest.mock import patch
 
@@ -43,16 +44,16 @@ class SamplingTests(unittest.TestCase):
                 expected = step(expected, self.params, beta=0.8)
             torch.testing.assert_close(actual, expected)
 
-    def test_samplers_remain_torchscript_compatible(self):
-        for sampler in (gibbs_sampling, metropolis_sampling):
-            scripted = torch.jit.script(sampler)
-            result = scripted(self.chains, self.params, 1, 1.0)
-            self.assertEqual(result.shape, self.chains.shape)
-
-    def test_prepare_sampler_uses_scripted_cpu_fallback(self):
-        sampler = prepare_sampler("metropolis", torch.device("cpu"))
-        result = sampler(self.chains, self.params, 1, 1.0)
-        self.assertEqual(result.shape, self.chains.shape)
+    def test_prepare_sampler_uses_pytorch_cpu_fallback(self):
+        with patch.dict(os.environ, {"ADABMDCA_NUMBA": "0"}):
+            for method, reference in (("gibbs", gibbs_sampling), ("metropolis", metropolis_sampling)):
+                with self.subTest(method=method):
+                    sampler = prepare_sampler(method, torch.device("cpu"))
+                    torch.manual_seed(23)
+                    expected = reference(self.chains, self.params, nsweeps=2, beta=0.8)
+                    torch.manual_seed(23)
+                    actual = sampler(self.chains, self.params, nsweeps=2, beta=0.8)
+                    torch.testing.assert_close(actual, expected, atol=0, rtol=0)
 
     def test_mixing_progress_closes_before_not_reached_message(self):
         from adabmDCA.resampling import compute_mixing_time
